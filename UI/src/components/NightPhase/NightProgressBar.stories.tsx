@@ -1,0 +1,80 @@
+import type { Meta, StoryObj } from '@storybook/react-vite';
+import { NightProgressBar } from './NightProgressBar';
+import { mockFirstNightEntries } from '../../stories/mockData';
+import Box from '@mui/material/Box';
+
+/** Build a characterTypes map from the entries for colouring dots. */
+function buildCharacterTypes(entries: typeof mockFirstNightEntries): Record<string, string> {
+  const map: Record<string, string> = {};
+  for (const e of entries) {
+    if (e.type === 'character') {
+      // Use the character id to approximate type colours
+      // In real usage the caller would map from CharacterDef.type
+      if (['imp', 'nodashii', 'fanggu'].includes(e.id)) map[e.id] = 'Demon';
+      else if (['cerenovus', 'scarletwoman', 'marionette', 'baron'].includes(e.id))
+        map[e.id] = 'Minion';
+      else if (['drunk', 'mutant', 'damsel', 'klutz', 'golem'].includes(e.id))
+        map[e.id] = 'Outsider';
+      else map[e.id] = 'Townsfolk';
+    }
+  }
+  return map;
+}
+
+const characterTypes = buildCharacterTypes(mockFirstNightEntries);
+const deadIds = new Set(['fortuneteller']);
+
+const meta = {
+  title: 'NightPhase/NightProgressBar',
+  component: NightProgressBar,
+  decorators: [
+    (Story) => (
+      <Box sx={{ bgcolor: 'rgba(30, 30, 50, 0.95)', p: 2, maxWidth: 500 }}>
+        <Story />
+      </Box>
+    ),
+  ],
+  args: {
+    entries: mockFirstNightEntries,
+    characterTypes,
+    deadIds,
+  },
+} satisfies Meta<typeof NightProgressBar>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+/** At the very start of the night — first card active. */
+export const Start: Story = {
+  args: {
+    currentIndex: 0,
+    totalCards: mockFirstNightEntries.length,
+  },
+};
+
+/** Roughly mid-way through the night order. */
+export const Middle: Story = {
+  args: {
+    currentIndex: Math.floor(mockFirstNightEntries.length / 2),
+    totalCards: mockFirstNightEntries.length,
+  },
+};
+
+/** Near the end of the night order. */
+export const NearEnd: Story = {
+  args: {
+    currentIndex: mockFirstNightEntries.length - 2,
+    totalCards: mockFirstNightEntries.length,
+  },
+};
+
+/** Small game with only 5 entries. */
+export const SmallGame: Story = {
+  args: {
+    currentIndex: 2,
+    totalCards: 5,
+    entries: mockFirstNightEntries.slice(0, 5),
+    characterTypes: buildCharacterTypes(mockFirstNightEntries.slice(0, 5)),
+    deadIds: new Set<string>(),
+  },
+};

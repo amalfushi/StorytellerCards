@@ -1,0 +1,2869 @@
+{
+  "firstNight": [
+    {
+      "order": 0,
+      "type": "structural",
+      "id": "dusk",
+      "name": "Dusk",
+      "helpText": "Start the Night Phase.",
+      "subActions": [
+        { "id": "dusk-fn-1", "description": "Start the Night Phase.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 1,
+      "type": "character",
+      "id": "angel",
+      "name": "Angel",
+      "helpText": "Announce which players are protected by the Angel.",
+      "subActions": [
+        {
+          "id": "angel-fn-1",
+          "description": "Announce which players are protected by the Angel.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "type": "character",
+      "id": "buddhist",
+      "name": "Buddhist",
+      "helpText": "Announce which players are affected by the Buddhist.",
+      "subActions": [
+        {
+          "id": "buddhist-fn-1",
+          "description": "Announce which players are affected by the Buddhist.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "type": "character",
+      "id": "toymaker",
+      "name": "Toymaker",
+      "helpText": "Resolve Minion Info and Demon Info, even though there are fewer than 7 players.",
+      "subActions": [
+        {
+          "id": "toymaker-fn-1",
+          "description": "Resolve Minion Info and Demon Info, even though there are fewer than 7 players.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "type": "character",
+      "id": "stormcatcher",
+      "name": "Storm Catcher",
+      "helpText": "Announce which character is stormcaught. If that character is in play, mark that player as STORMCAUGHT. Wake each evil player and show them the character token, then the marked player. If not in play, wake each evil player, show them the THESE CHARACTERS ARE NOT IN PLAY token & the relevant character token.",
+      "subActions": [
+        {
+          "id": "stormcatcher-fn-1",
+          "description": "Announce which character is stormcaught.",
+          "isConditional": false
+        },
+        {
+          "id": "stormcatcher-fn-2",
+          "description": "If that character is in play, mark that player as STORMCAUGHT.",
+          "isConditional": true
+        },
+        {
+          "id": "stormcatcher-fn-3",
+          "description": "Wake each evil player and show them the character token, then the marked player.",
+          "isConditional": false
+        },
+        {
+          "id": "stormcatcher-fn-4",
+          "description": "If not in play, wake each evil player, show them the THESE CHARACTERS ARE NOT IN PLAY token & the relevant character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "type": "character",
+      "id": "wraith",
+      "name": "Wraith",
+      "helpText": "Wake the Wraith whenever other evil players wake.",
+      "subActions": [
+        {
+          "id": "wraith-fn-1",
+          "description": "Wake the Wraith whenever other evil players wake.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 6,
+      "type": "character",
+      "id": "lordoftyphon",
+      "name": "Lord of Typhon",
+      "helpText": "Wake the Lord of Typhon's neighbors. Show the YOU ARE and Minion tokens & give a thumbs-down.",
+      "subActions": [
+        {
+          "id": "lordoftyphon-fn-1",
+          "description": "Wake the Lord of Typhon's neighbors.",
+          "isConditional": false
+        },
+        {
+          "id": "lordoftyphon-fn-2",
+          "description": "Show the YOU ARE and Minion tokens & give a thumbs-down.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "type": "character",
+      "id": "kazali",
+      "name": "Kazali",
+      "helpText": "The Kazali chooses which players are which Minions. Wake each target. Show the YOU ARE and Minion tokens & give a thumbs-down.",
+      "subActions": [
+        {
+          "id": "kazali-fn-1",
+          "description": "The Kazali chooses which players are which Minions.",
+          "isConditional": false
+        },
+        { "id": "kazali-fn-2", "description": "Wake each target.", "isConditional": false },
+        {
+          "id": "kazali-fn-3",
+          "description": "Show the YOU ARE and Minion tokens & give a thumbs-down.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 8,
+      "type": "character",
+      "id": "boffin",
+      "name": "Boffin",
+      "helpText": "Wake the Boffin and the Demon. Show the THIS CHARACTER SELECTED YOU & Boffin tokens, then the not-in-play good character token.",
+      "subActions": [
+        {
+          "id": "boffin-fn-1",
+          "description": "Wake the Boffin and the Demon.",
+          "isConditional": false
+        },
+        {
+          "id": "boffin-fn-2",
+          "description": "Show the THIS CHARACTER SELECTED YOU & Boffin tokens, then the not-in-play good character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 9,
+      "type": "character",
+      "id": "philosopher",
+      "name": "Philosopher",
+      "helpText": "The Philosopher might choose a character. If necessary, swap their character token.",
+      "subActions": [
+        {
+          "id": "philosopher-fn-1",
+          "description": "The Philosopher might choose a character.",
+          "isConditional": false
+        },
+        {
+          "id": "philosopher-fn-2",
+          "description": "If necessary, swap their character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 10,
+      "type": "character",
+      "id": "alchemist",
+      "name": "Alchemist",
+      "helpText": "Show the YOU ARE info token and a Minion token.",
+      "subActions": [
+        {
+          "id": "alchemist-fn-1",
+          "description": "Show the YOU ARE info token and a Minion token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 11,
+      "type": "character",
+      "id": "poppygrower",
+      "name": "Poppy Grower",
+      "helpText": "Skip Minion Info and Demon Info. Wake the Demon. Show the THESE CHARACTERS ARE NOT IN PLAY token. Show 3 not-in-play good character tokens.",
+      "subActions": [
+        {
+          "id": "poppygrower-fn-1",
+          "description": "Skip Minion Info and Demon Info.",
+          "isConditional": false
+        },
+        { "id": "poppygrower-fn-2", "description": "Wake the Demon.", "isConditional": false },
+        {
+          "id": "poppygrower-fn-3",
+          "description": "Show the THESE CHARACTERS ARE NOT IN PLAY token.",
+          "isConditional": false
+        },
+        {
+          "id": "poppygrower-fn-4",
+          "description": "Show 3 not-in-play good character tokens.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 12,
+      "type": "character",
+      "id": "yaggababble",
+      "name": "Yaggababble",
+      "helpText": "Show the Yaggababble their secret phrase.",
+      "subActions": [
+        {
+          "id": "yaggababble-fn-1",
+          "description": "Show the Yaggababble their secret phrase.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 13,
+      "type": "character",
+      "id": "magician",
+      "name": "Magician",
+      "helpText": "During Minion Info, point to the Magician and the Demon. During Demon Info, point to the Magician and the Minions.",
+      "subActions": [
+        {
+          "id": "magician-fn-1",
+          "description": "During Minion Info, point to the Magician and the Demon.",
+          "isConditional": false
+        },
+        {
+          "id": "magician-fn-2",
+          "description": "During Demon Info, point to the Magician and the Minions.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 14,
+      "type": "structural",
+      "id": "minioninfo",
+      "name": "Minion Info",
+      "helpText": "If there are 7 or more players, wake all Minions: Show the THIS IS THE DEMON token. Point to the Demon. Show the THESE ARE YOUR MINIONS token. Point to the other Minions.",
+      "subActions": [
+        {
+          "id": "minioninfo-fn-1",
+          "description": "If there are 7 or more players, wake all Minions: Show the THIS IS THE DEMON token.",
+          "isConditional": true
+        },
+        { "id": "minioninfo-fn-2", "description": "Point to the Demon.", "isConditional": false },
+        {
+          "id": "minioninfo-fn-3",
+          "description": "Show the THESE ARE YOUR MINIONS token.",
+          "isConditional": false
+        },
+        {
+          "id": "minioninfo-fn-4",
+          "description": "Point to the other Minions.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 15,
+      "type": "character",
+      "id": "snitch",
+      "name": "Snitch",
+      "helpText": "Wake each Minion. Show the THESE CHARACTERS ARE NOT IN PLAY token. Show 3 not-in-play character tokens.",
+      "subActions": [
+        { "id": "snitch-fn-1", "description": "Wake each Minion.", "isConditional": false },
+        {
+          "id": "snitch-fn-2",
+          "description": "Show the THESE CHARACTERS ARE NOT IN PLAY token.",
+          "isConditional": false
+        },
+        {
+          "id": "snitch-fn-3",
+          "description": "Show 3 not-in-play character tokens.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 16,
+      "type": "character",
+      "id": "lunatic",
+      "name": "Lunatic",
+      "helpText": "If there are 7 or more players, wake the Lunatic: Show the THESE ARE YOUR MINIONS token. Point to any players. Show the THESE CHARACTERS ARE NOT IN PLAY token. Show 3 good character tokens. Put the Lunatic to sleep. Wake the Demon. Show the YOU ARE info token and the Demon token. Show the THIS PLAYER IS info token and the Lunatic token, then point to the Lunatic.",
+      "subActions": [
+        {
+          "id": "lunatic-fn-1",
+          "description": "If there are 7 or more players, wake the Lunatic: Show the THESE ARE YOUR MINIONS token.",
+          "isConditional": true
+        },
+        { "id": "lunatic-fn-2", "description": "Point to any players.", "isConditional": false },
+        {
+          "id": "lunatic-fn-3",
+          "description": "Show the THESE CHARACTERS ARE NOT IN PLAY token.",
+          "isConditional": false
+        },
+        {
+          "id": "lunatic-fn-4",
+          "description": "Show 3 good character tokens.",
+          "isConditional": false
+        },
+        {
+          "id": "lunatic-fn-5",
+          "description": "Put the Lunatic to sleep.",
+          "isConditional": false
+        },
+        { "id": "lunatic-fn-6", "description": "Wake the Demon.", "isConditional": false },
+        {
+          "id": "lunatic-fn-7",
+          "description": "Show the YOU ARE info token and the Demon token.",
+          "isConditional": false
+        },
+        {
+          "id": "lunatic-fn-8",
+          "description": "Show the THIS PLAYER IS info token and the Lunatic token, then point to the Lunatic.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 17,
+      "type": "character",
+      "id": "summoner",
+      "name": "Summoner",
+      "helpText": "Show the THESE CHARACTERS ARE NOT IN PLAY token. Show 3 not-in-play good character tokens.",
+      "subActions": [
+        {
+          "id": "summoner-fn-1",
+          "description": "Show the THESE CHARACTERS ARE NOT IN PLAY token.",
+          "isConditional": false
+        },
+        {
+          "id": "summoner-fn-2",
+          "description": "Show 3 not-in-play good character tokens.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 18,
+      "type": "structural",
+      "id": "demoninfo",
+      "name": "Demon Info",
+      "helpText": "If there are 7 or more players, wake the Demon: Show the THESE ARE YOUR MINIONS token. Point to all Minions. Show the THESE CHARACTERS ARE NOT IN PLAY token. Show 3 not-in-play good character tokens.",
+      "subActions": [
+        {
+          "id": "demoninfo-fn-1",
+          "description": "If there are 7 or more players, wake the Demon: Show the THESE ARE YOUR MINIONS token.",
+          "isConditional": true
+        },
+        { "id": "demoninfo-fn-2", "description": "Point to all Minions.", "isConditional": false },
+        {
+          "id": "demoninfo-fn-3",
+          "description": "Show the THESE CHARACTERS ARE NOT IN PLAY token.",
+          "isConditional": false
+        },
+        {
+          "id": "demoninfo-fn-4",
+          "description": "Show 3 not-in-play good character tokens.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 19,
+      "type": "character",
+      "id": "king",
+      "name": "King",
+      "helpText": "Wake the Demon: Show the THIS PLAYER IS & King tokens, then point to the King.",
+      "subActions": [
+        {
+          "id": "king-fn-1",
+          "description": "Wake the Demon: Show the THIS PLAYER IS & King tokens, then point to the King.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 20,
+      "type": "character",
+      "id": "sailor",
+      "name": "Sailor",
+      "helpText": "The Sailor chooses a living player.",
+      "subActions": [
+        {
+          "id": "sailor-fn-1",
+          "description": "The Sailor chooses a living player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 21,
+      "type": "character",
+      "id": "marionette",
+      "name": "Marionette",
+      "helpText": "Wake the Demon. Show the THIS PLAYER IS & Marionette tokens. Point to the Marionette.",
+      "subActions": [
+        { "id": "marionette-fn-1", "description": "Wake the Demon.", "isConditional": false },
+        {
+          "id": "marionette-fn-2",
+          "description": "Show the THIS PLAYER IS & Marionette tokens.",
+          "isConditional": false
+        },
+        {
+          "id": "marionette-fn-3",
+          "description": "Point to the Marionette.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 22,
+      "type": "character",
+      "id": "engineer",
+      "name": "Engineer",
+      "helpText": "The Engineer might choose Minions or Demons. Put the Engineer to sleep. Wake the target(s) one at a time. Show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "engineer-fn-1",
+          "description": "The Engineer might choose Minions or Demons.",
+          "isConditional": false
+        },
+        {
+          "id": "engineer-fn-2",
+          "description": "Put the Engineer to sleep.",
+          "isConditional": false
+        },
+        {
+          "id": "engineer-fn-3",
+          "description": "Wake the target(s) one at a time.",
+          "isConditional": false
+        },
+        {
+          "id": "engineer-fn-4",
+          "description": "Show the YOU ARE info token & their new character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 23,
+      "type": "character",
+      "id": "preacher",
+      "name": "Preacher",
+      "helpText": "The Preacher chooses a player. If they chose a Minion: Put the Preacher to sleep. Wake the target. Show the THIS CHARACTER SELECTED YOU & Preacher tokens.",
+      "subActions": [
+        {
+          "id": "preacher-fn-1",
+          "description": "The Preacher chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "preacher-fn-2",
+          "description": "If they chose a Minion: Put the Preacher to sleep.",
+          "isConditional": true
+        },
+        { "id": "preacher-fn-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "preacher-fn-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU & Preacher tokens.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 24,
+      "type": "character",
+      "id": "lilmonsta",
+      "name": "Lil' Monsta",
+      "helpText": "Wake the Minions. They choose a player. Put the Minions to sleep. Wake the target. Show the YOU ARE & Lil' Monsta tokens.",
+      "subActions": [
+        { "id": "lilmonsta-fn-1", "description": "Wake the Minions.", "isConditional": false },
+        { "id": "lilmonsta-fn-2", "description": "They choose a player.", "isConditional": false },
+        {
+          "id": "lilmonsta-fn-3",
+          "description": "Put the Minions to sleep.",
+          "isConditional": false
+        },
+        { "id": "lilmonsta-fn-4", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "lilmonsta-fn-5",
+          "description": "Show the YOU ARE & Lil' Monsta tokens.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 25,
+      "type": "character",
+      "id": "lleech",
+      "name": "Lleech",
+      "helpText": "The Lleech chooses a player.",
+      "subActions": [
+        {
+          "id": "lleech-fn-1",
+          "description": "The Lleech chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 26,
+      "type": "character",
+      "id": "xaan",
+      "name": "Xaan",
+      "helpText": "If X is 1, mark the Xaan with the X reminder token.",
+      "subActions": [
+        {
+          "id": "xaan-fn-1",
+          "description": "If X is 1, mark the Xaan with the X reminder token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 27,
+      "type": "character",
+      "id": "poisoner",
+      "name": "Poisoner",
+      "helpText": "The Poisoner chooses a player.",
+      "subActions": [
+        {
+          "id": "poisoner-fn-1",
+          "description": "The Poisoner chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 28,
+      "type": "character",
+      "id": "widow",
+      "name": "Widow",
+      "helpText": "Show the Grimoire for as long as the Widow needs. The Widow chooses a player. Put the Widow to sleep. Wake the player marked KNOW & show the Widow token.",
+      "subActions": [
+        {
+          "id": "widow-fn-1",
+          "description": "Show the Grimoire for as long as the Widow needs.",
+          "isConditional": false
+        },
+        {
+          "id": "widow-fn-2",
+          "description": "The Widow chooses a player.",
+          "isConditional": false
+        },
+        { "id": "widow-fn-3", "description": "Put the Widow to sleep.", "isConditional": false },
+        {
+          "id": "widow-fn-4",
+          "description": "Wake the player marked KNOW & show the Widow token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 29,
+      "type": "character",
+      "id": "courtier",
+      "name": "Courtier",
+      "helpText": "The Courtier might choose a character.",
+      "subActions": [
+        {
+          "id": "courtier-fn-1",
+          "description": "The Courtier might choose a character.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 30,
+      "type": "character",
+      "id": "wizard",
+      "name": "Wizard",
+      "helpText": "Do whatever needs to be done to satisfy the Wizard's ability.",
+      "subActions": [
+        {
+          "id": "wizard-fn-1",
+          "description": "Do whatever needs to be done to satisfy the Wizard's ability.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 31,
+      "type": "character",
+      "id": "snakecharmer",
+      "name": "Snake Charmer",
+      "helpText": "The Snake Charmer chooses a player. If they chose the Demon: Show the YOU ARE & Demon tokens. Give a thumbs down. Swap the Snake Charmer & Demon tokens. Put the old Snake Charmer to sleep. Wake the old Demon. Show the YOU ARE and Snake Charmer tokens & give a thumbs up.",
+      "subActions": [
+        {
+          "id": "snakecharmer-fn-1",
+          "description": "The Snake Charmer chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "snakecharmer-fn-2",
+          "description": "If they chose the Demon: Show the YOU ARE & Demon tokens.",
+          "isConditional": true
+        },
+        { "id": "snakecharmer-fn-3", "description": "Give a thumbs down.", "isConditional": false },
+        {
+          "id": "snakecharmer-fn-4",
+          "description": "Swap the Snake Charmer & Demon tokens.",
+          "isConditional": false
+        },
+        {
+          "id": "snakecharmer-fn-5",
+          "description": "Put the old Snake Charmer to sleep.",
+          "isConditional": false
+        },
+        { "id": "snakecharmer-fn-6", "description": "Wake the old Demon.", "isConditional": false },
+        {
+          "id": "snakecharmer-fn-7",
+          "description": "Show the YOU ARE and Snake Charmer tokens & give a thumbs up.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 32,
+      "type": "character",
+      "id": "godfather",
+      "name": "Godfather",
+      "helpText": "Show the character tokens of all in-play Outsiders.",
+      "subActions": [
+        {
+          "id": "godfather-fn-1",
+          "description": "Show the character tokens of all in-play Outsiders.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 33,
+      "type": "character",
+      "id": "organgrinder",
+      "name": "Organ Grinder",
+      "helpText": "The Organ Grinder either nods their head yes to be drunk, or shakes their head no to be sober.",
+      "subActions": [
+        {
+          "id": "organgrinder-fn-1",
+          "description": "The Organ Grinder either nods their head yes to be drunk, or shakes their head no to be sober.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 34,
+      "type": "character",
+      "id": "devilsadvocate",
+      "name": "Devil's Advocate",
+      "helpText": "The Devil's Advocate chooses a living player.",
+      "subActions": [
+        {
+          "id": "devilsadvocate-fn-1",
+          "description": "The Devil's Advocate chooses a living player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 35,
+      "type": "character",
+      "id": "eviltwin",
+      "name": "Evil Twin",
+      "helpText": "Wake both twins. Allow eye contact. Show the good twin's character token to the Evil Twin & vice versa.",
+      "subActions": [
+        { "id": "eviltwin-fn-1", "description": "Wake both twins.", "isConditional": false },
+        { "id": "eviltwin-fn-2", "description": "Allow eye contact.", "isConditional": false },
+        {
+          "id": "eviltwin-fn-3",
+          "description": "Show the good twin's character token to the Evil Twin & vice versa.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 36,
+      "type": "character",
+      "id": "witch",
+      "name": "Witch",
+      "helpText": "The Witch chooses a player.",
+      "subActions": [
+        { "id": "witch-fn-1", "description": "The Witch chooses a player.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 37,
+      "type": "character",
+      "id": "cerenovus",
+      "name": "Cerenovus",
+      "helpText": "The Cerenovus chooses a player & a character. Put the Cerenovus to sleep. Wake the target. Show the THIS CHARACTER SELECTED YOU token, the Cerenovus token, then the madness-character token.",
+      "subActions": [
+        {
+          "id": "cerenovus-fn-1",
+          "description": "The Cerenovus chooses a player & a character.",
+          "isConditional": false
+        },
+        {
+          "id": "cerenovus-fn-2",
+          "description": "Put the Cerenovus to sleep.",
+          "isConditional": false
+        },
+        { "id": "cerenovus-fn-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "cerenovus-fn-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU token, the Cerenovus token, then the madness-character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 38,
+      "type": "character",
+      "id": "fearmonger",
+      "name": "Fearmonger",
+      "helpText": "The Fearmonger chooses a player. Announce that the Fearmonger has chosen a player.",
+      "subActions": [
+        {
+          "id": "fearmonger-fn-1",
+          "description": "The Fearmonger chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "fearmonger-fn-2",
+          "description": "Announce that the Fearmonger has chosen a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 39,
+      "type": "character",
+      "id": "harpy",
+      "name": "Harpy",
+      "helpText": "The Harpy chooses 2 players. Put the Harpy to sleep. Wake the 1st target. Show the THIS CHARACTER SELECTED YOU token, the Harpy token, then point to the 2nd target.",
+      "subActions": [
+        {
+          "id": "harpy-fn-1",
+          "description": "The Harpy chooses 2 players.",
+          "isConditional": false
+        },
+        { "id": "harpy-fn-2", "description": "Put the Harpy to sleep.", "isConditional": false },
+        { "id": "harpy-fn-3", "description": "Wake the 1st target.", "isConditional": false },
+        {
+          "id": "harpy-fn-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU token, the Harpy token, then point to the 2nd target.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 40,
+      "type": "character",
+      "id": "mezepheles",
+      "name": "Mezepheles",
+      "helpText": "Show the secret word.",
+      "subActions": [
+        { "id": "mezepheles-fn-1", "description": "Show the secret word.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 41,
+      "type": "character",
+      "id": "pukka",
+      "name": "Pukka",
+      "helpText": "The Pukka chooses a player.",
+      "subActions": [
+        { "id": "pukka-fn-1", "description": "The Pukka chooses a player.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 42,
+      "type": "character",
+      "id": "pixie",
+      "name": "Pixie",
+      "helpText": "Show the Townsfolk character token marked MAD.",
+      "subActions": [
+        {
+          "id": "pixie-fn-1",
+          "description": "Show the Townsfolk character token marked MAD.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 43,
+      "type": "character",
+      "id": "huntsman",
+      "name": "Huntsman",
+      "helpText": "The Huntsman might choose a player. If they chose the Damsel: Put the Huntsman to sleep. Wake the target. Show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "huntsman-fn-1",
+          "description": "The Huntsman might choose a player.",
+          "isConditional": false
+        },
+        {
+          "id": "huntsman-fn-2",
+          "description": "If they chose the Damsel: Put the Huntsman to sleep.",
+          "isConditional": true
+        },
+        { "id": "huntsman-fn-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "huntsman-fn-4",
+          "description": "Show the YOU ARE info token & their new character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 44,
+      "type": "character",
+      "id": "damsel",
+      "name": "Damsel",
+      "helpText": "During Minion Info, show the Minions the Damsel token. If you haven't done this yet, do so now. If the Damsel was chosen by the Huntsman, show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "damsel-fn-1",
+          "description": "During Minion Info, show the Minions the Damsel token.",
+          "isConditional": false
+        },
+        {
+          "id": "damsel-fn-2",
+          "description": "If you haven't done this yet, do so now.",
+          "isConditional": true
+        },
+        {
+          "id": "damsel-fn-3",
+          "description": "If the Damsel was chosen by the Huntsman, show the YOU ARE info token & their new character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 45,
+      "type": "character",
+      "id": "amnesiac",
+      "name": "Amnesiac",
+      "helpText": "Do whatever needs to be done to satisfy the Amnesiac's ability.",
+      "subActions": [
+        {
+          "id": "amnesiac-fn-1",
+          "description": "Do whatever needs to be done to satisfy the Amnesiac's ability.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 46,
+      "type": "character",
+      "id": "washerwoman",
+      "name": "Washerwoman",
+      "helpText": "Show the Townsfolk character token. Point to both the TOWNSFOLK and WRONG players.",
+      "subActions": [
+        {
+          "id": "washerwoman-fn-1",
+          "description": "Show the Townsfolk character token.",
+          "isConditional": false
+        },
+        {
+          "id": "washerwoman-fn-2",
+          "description": "Point to both the TOWNSFOLK and WRONG players.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 47,
+      "type": "character",
+      "id": "librarian",
+      "name": "Librarian",
+      "helpText": "Show the Outsider character token. Point to both the OUTSIDER and WRONG players.",
+      "subActions": [
+        {
+          "id": "librarian-fn-1",
+          "description": "Show the Outsider character token.",
+          "isConditional": false
+        },
+        {
+          "id": "librarian-fn-2",
+          "description": "Point to both the OUTSIDER and WRONG players.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 48,
+      "type": "character",
+      "id": "investigator",
+      "name": "Investigator",
+      "helpText": "Show the Minion character token. Point to both the MINION and WRONG players.",
+      "subActions": [
+        {
+          "id": "investigator-fn-1",
+          "description": "Show the Minion character token.",
+          "isConditional": false
+        },
+        {
+          "id": "investigator-fn-2",
+          "description": "Point to both the MINION and WRONG players.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 49,
+      "type": "character",
+      "id": "chef",
+      "name": "Chef",
+      "helpText": "Give a finger signal.",
+      "subActions": [
+        { "id": "chef-fn-1", "description": "Give a finger signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 50,
+      "type": "character",
+      "id": "empath",
+      "name": "Empath",
+      "helpText": "Give a finger signal.",
+      "subActions": [
+        { "id": "empath-fn-1", "description": "Give a finger signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 51,
+      "type": "character",
+      "id": "fortuneteller",
+      "name": "Fortune Teller",
+      "helpText": "The Fortune Teller chooses 2 players. Nod if either is the Demon (or the RED HERRING).",
+      "subActions": [
+        {
+          "id": "fortuneteller-fn-1",
+          "description": "The Fortune Teller chooses 2 players.",
+          "isConditional": false
+        },
+        {
+          "id": "fortuneteller-fn-2",
+          "description": "Nod if either is the Demon (or the RED HERRING).",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 52,
+      "type": "character",
+      "id": "butler",
+      "name": "Butler",
+      "helpText": "The Butler chooses a player.",
+      "subActions": [
+        {
+          "id": "butler-fn-1",
+          "description": "The Butler chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 53,
+      "type": "character",
+      "id": "grandmother",
+      "name": "Grandmother",
+      "helpText": "Point to the grandchild player & show their character token.",
+      "subActions": [
+        {
+          "id": "grandmother-fn-1",
+          "description": "Point to the grandchild player & show their character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 54,
+      "type": "character",
+      "id": "clockmaker",
+      "name": "Clockmaker",
+      "helpText": "Give a finger signal.",
+      "subActions": [
+        { "id": "clockmaker-fn-1", "description": "Give a finger signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 55,
+      "type": "character",
+      "id": "dreamer",
+      "name": "Dreamer",
+      "helpText": "The Dreamer points to a player. Show 1 good & 1 evil character token, 1 of which is their character.",
+      "subActions": [
+        {
+          "id": "dreamer-fn-1",
+          "description": "The Dreamer points to a player.",
+          "isConditional": false
+        },
+        {
+          "id": "dreamer-fn-2",
+          "description": "Show 1 good & 1 evil character token, 1 of which is their character.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 56,
+      "type": "character",
+      "id": "seamstress",
+      "name": "Seamstress",
+      "helpText": "The Seamstress might choose 2 players. Nod or shake your head.",
+      "subActions": [
+        {
+          "id": "seamstress-fn-1",
+          "description": "The Seamstress might choose 2 players.",
+          "isConditional": false
+        },
+        {
+          "id": "seamstress-fn-2",
+          "description": "Nod or shake your head.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 57,
+      "type": "character",
+      "id": "steward",
+      "name": "Steward",
+      "helpText": "Point to the player marked KNOW.",
+      "subActions": [
+        {
+          "id": "steward-fn-1",
+          "description": "Point to the player marked KNOW.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 58,
+      "type": "character",
+      "id": "knight",
+      "name": "Knight",
+      "helpText": "Point to the 2 players marked KNOW.",
+      "subActions": [
+        {
+          "id": "knight-fn-1",
+          "description": "Point to the 2 players marked KNOW.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 59,
+      "type": "character",
+      "id": "noble",
+      "name": "Noble",
+      "helpText": "Point to the 3 players marked KNOW.",
+      "subActions": [
+        {
+          "id": "noble-fn-1",
+          "description": "Point to the 3 players marked KNOW.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 60,
+      "type": "character",
+      "id": "balloonist",
+      "name": "Balloonist",
+      "helpText": "Point to any player.",
+      "subActions": [
+        { "id": "balloonist-fn-1", "description": "Point to any player.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 61,
+      "type": "character",
+      "id": "shugenja",
+      "name": "Shugenja",
+      "helpText": "Point clockwise or anticlockwise.",
+      "subActions": [
+        {
+          "id": "shugenja-fn-1",
+          "description": "Point clockwise or anticlockwise.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 62,
+      "type": "character",
+      "id": "villageidiot",
+      "name": "Village Idiot",
+      "helpText": "If there are multiple Village Idiots, mark one as DRUNK. Wake the Village Idiots one at a time to choose a player. Give a thumb signal.",
+      "subActions": [
+        {
+          "id": "villageidiot-fn-1",
+          "description": "If there are multiple Village Idiots, mark one as DRUNK.",
+          "isConditional": true
+        },
+        {
+          "id": "villageidiot-fn-2",
+          "description": "Wake the Village Idiots one at a time to choose a player.",
+          "isConditional": false
+        },
+        { "id": "villageidiot-fn-3", "description": "Give a thumb signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 63,
+      "type": "character",
+      "id": "bountyhunter",
+      "name": "Bounty Hunter",
+      "helpText": "Point to the player marked KNOW.",
+      "subActions": [
+        {
+          "id": "bountyhunter-fn-1",
+          "description": "Point to the player marked KNOW.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 64,
+      "type": "character",
+      "id": "nightwatchman",
+      "name": "Nightwatchman",
+      "helpText": "The Nightwatchman might choose a player. Put the Nightwatchman to sleep. Wake the target. Show the THIS PLAYER IS & Nightwatchman tokens, then point to the Nightwatchman.",
+      "subActions": [
+        {
+          "id": "nightwatchman-fn-1",
+          "description": "The Nightwatchman might choose a player.",
+          "isConditional": false
+        },
+        {
+          "id": "nightwatchman-fn-2",
+          "description": "Put the Nightwatchman to sleep.",
+          "isConditional": false
+        },
+        { "id": "nightwatchman-fn-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "nightwatchman-fn-4",
+          "description": "Show the THIS PLAYER IS & Nightwatchman tokens, then point to the Nightwatchman.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 65,
+      "type": "character",
+      "id": "cultleader",
+      "name": "Cult Leader",
+      "helpText": "The Cult Leader might change alignment. If so, show the YOU ARE info token & give a thumb signal.",
+      "subActions": [
+        {
+          "id": "cultleader-fn-1",
+          "description": "The Cult Leader might change alignment.",
+          "isConditional": false
+        },
+        {
+          "id": "cultleader-fn-2",
+          "description": "If so, show the YOU ARE info token & give a thumb signal.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 66,
+      "type": "character",
+      "id": "spy",
+      "name": "Spy",
+      "helpText": "Show the Grimoire for as long as the Spy needs.",
+      "subActions": [
+        {
+          "id": "spy-fn-1",
+          "description": "Show the Grimoire for as long as the Spy needs.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 67,
+      "type": "character",
+      "id": "ogre",
+      "name": "Ogre",
+      "helpText": "The Ogre chooses a player.",
+      "subActions": [
+        { "id": "ogre-fn-1", "description": "The Ogre chooses a player.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 68,
+      "type": "character",
+      "id": "highpriestess",
+      "name": "High Priestess",
+      "helpText": "Point to a player.",
+      "subActions": [
+        { "id": "highpriestess-fn-1", "description": "Point to a player.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 69,
+      "type": "character",
+      "id": "general",
+      "name": "General",
+      "helpText": "Give a thumb signal.",
+      "subActions": [
+        { "id": "general-fn-1", "description": "Give a thumb signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 70,
+      "type": "character",
+      "id": "chambermaid",
+      "name": "Chambermaid",
+      "helpText": "The Chambermaid chooses 2 living players. Give a finger signal.",
+      "subActions": [
+        {
+          "id": "chambermaid-fn-1",
+          "description": "The Chambermaid chooses 2 living players.",
+          "isConditional": false
+        },
+        { "id": "chambermaid-fn-2", "description": "Give a finger signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 71,
+      "type": "character",
+      "id": "mathematician",
+      "name": "Mathematician",
+      "helpText": "Give a finger signal.",
+      "subActions": [
+        {
+          "id": "mathematician-fn-1",
+          "description": "Give a finger signal.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 72,
+      "type": "structural",
+      "id": "dawn",
+      "name": "Dawn",
+      "helpText": "Wait for a few seconds. End the Night Phase.",
+      "subActions": [
+        { "id": "dawn-fn-1", "description": "Wait for a few seconds.", "isConditional": false },
+        { "id": "dawn-fn-2", "description": "End the Night Phase.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 73,
+      "type": "character",
+      "id": "leviathan",
+      "name": "Leviathan",
+      "helpText": "Announce that the Leviathan is in play.",
+      "subActions": [
+        {
+          "id": "leviathan-fn-1",
+          "description": "Announce that the Leviathan is in play.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 74,
+      "type": "character",
+      "id": "vizier",
+      "name": "Vizier",
+      "helpText": "Announce which player is the Vizier.",
+      "subActions": [
+        {
+          "id": "vizier-fn-1",
+          "description": "Announce which player is the Vizier.",
+          "isConditional": false
+        }
+      ]
+    }
+  ],
+  "otherNights": [
+    {
+      "order": 0,
+      "type": "structural",
+      "id": "dusk",
+      "name": "Dusk",
+      "helpText": "Start the Night Phase.",
+      "subActions": [
+        { "id": "dusk-on-1", "description": "Start the Night Phase.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 1,
+      "type": "character",
+      "id": "duchess",
+      "name": "Duchess",
+      "helpText": "One at a time: Wake each player marked VISITOR or FALSE INFO. Show the THIS CHARACTER SELECTED YOU & Duchess tokens, then give a finger signal.",
+      "subActions": [
+        {
+          "id": "duchess-on-1",
+          "description": "One at a time: Wake each player marked VISITOR or FALSE INFO.",
+          "isConditional": false
+        },
+        {
+          "id": "duchess-on-2",
+          "description": "Show the THIS CHARACTER SELECTED YOU & Duchess tokens, then give a finger signal.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 2,
+      "type": "character",
+      "id": "toymaker",
+      "name": "Toymaker",
+      "helpText": "If a Demon attack could end the game, and the Demon is marked FINAL NIGHT: NO ATTACK, do not wake the Demon.",
+      "subActions": [
+        {
+          "id": "toymaker-on-1",
+          "description": "If a Demon attack could end the game, and the Demon is marked FINAL NIGHT: NO ATTACK, do not wake the Demon.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 3,
+      "type": "character",
+      "id": "wraith",
+      "name": "Wraith",
+      "helpText": "Wake the Wraith whenever other evil players wake.",
+      "subActions": [
+        {
+          "id": "wraith-on-1",
+          "description": "Wake the Wraith whenever other evil players wake.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 4,
+      "type": "character",
+      "id": "philosopher",
+      "name": "Philosopher",
+      "helpText": "The Philosopher might choose a character. If necessary, swap their character token.",
+      "subActions": [
+        {
+          "id": "philosopher-on-1",
+          "description": "The Philosopher might choose a character.",
+          "isConditional": false
+        },
+        {
+          "id": "philosopher-on-2",
+          "description": "If necessary, swap their character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 5,
+      "type": "character",
+      "id": "poppygrower",
+      "name": "Poppy Grower",
+      "helpText": "If the Poppy Grower died today or tonight, wake all Minions. Show the THIS IS THE DEMON token. Point to the Demon. Put the Minions to sleep. Wake the Demon. Show the THESE ARE YOUR MINIONS token. Point to the Minions.",
+      "subActions": [
+        {
+          "id": "poppygrower-on-1",
+          "description": "If the Poppy Grower died today or tonight, wake all Minions.",
+          "isConditional": true
+        },
+        {
+          "id": "poppygrower-on-2",
+          "description": "Show the THIS IS THE DEMON token.",
+          "isConditional": false
+        },
+        { "id": "poppygrower-on-3", "description": "Point to the Demon.", "isConditional": false },
+        {
+          "id": "poppygrower-on-4",
+          "description": "Put the Minions to sleep.",
+          "isConditional": false
+        },
+        { "id": "poppygrower-on-5", "description": "Wake the Demon.", "isConditional": false },
+        {
+          "id": "poppygrower-on-6",
+          "description": "Show the THESE ARE YOUR MINIONS token.",
+          "isConditional": false
+        },
+        { "id": "poppygrower-on-7", "description": "Point to the Minions.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 6,
+      "type": "character",
+      "id": "sailor",
+      "name": "Sailor",
+      "helpText": "The Sailor chooses a living player.",
+      "subActions": [
+        {
+          "id": "sailor-on-1",
+          "description": "The Sailor chooses a living player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 7,
+      "type": "character",
+      "id": "engineer",
+      "name": "Engineer",
+      "helpText": "The Engineer might choose Minions or Demons. Put the Engineer to sleep. Wake the target(s) one at a time. Show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "engineer-on-1",
+          "description": "The Engineer might choose Minions or Demons.",
+          "isConditional": false
+        },
+        {
+          "id": "engineer-on-2",
+          "description": "Put the Engineer to sleep.",
+          "isConditional": false
+        },
+        {
+          "id": "engineer-on-3",
+          "description": "Wake the target(s) one at a time.",
+          "isConditional": false
+        },
+        {
+          "id": "engineer-on-4",
+          "description": "Show the YOU ARE info token & their new character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 8,
+      "type": "character",
+      "id": "preacher",
+      "name": "Preacher",
+      "helpText": "The Preacher chooses a player. If they chose a Minion: Put the Preacher to sleep. Wake the target. Show the THIS CHARACTER SELECTED YOU & Preacher tokens.",
+      "subActions": [
+        {
+          "id": "preacher-on-1",
+          "description": "The Preacher chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "preacher-on-2",
+          "description": "If they chose a Minion: Put the Preacher to sleep.",
+          "isConditional": true
+        },
+        { "id": "preacher-on-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "preacher-on-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU & Preacher tokens.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 9,
+      "type": "character",
+      "id": "xaan",
+      "name": "Xaan",
+      "helpText": "Change the Xaan reminder token to the relevant night. If it is night X, mark the Xaan with the X reminder token.",
+      "subActions": [
+        {
+          "id": "xaan-on-1",
+          "description": "Change the Xaan reminder token to the relevant night.",
+          "isConditional": false
+        },
+        {
+          "id": "xaan-on-2",
+          "description": "If it is night X, mark the Xaan with the X reminder token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 10,
+      "type": "character",
+      "id": "poisoner",
+      "name": "Poisoner",
+      "helpText": "The Poisoner chooses a player.",
+      "subActions": [
+        {
+          "id": "poisoner-on-1",
+          "description": "The Poisoner chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 11,
+      "type": "character",
+      "id": "courtier",
+      "name": "Courtier",
+      "helpText": "The Courtier might choose a character.",
+      "subActions": [
+        {
+          "id": "courtier-on-1",
+          "description": "The Courtier might choose a character.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 12,
+      "type": "character",
+      "id": "innkeeper",
+      "name": "Innkeeper",
+      "helpText": "The Innkeeper chooses 2 players.",
+      "subActions": [
+        {
+          "id": "innkeeper-on-1",
+          "description": "The Innkeeper chooses 2 players.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 13,
+      "type": "character",
+      "id": "wizard",
+      "name": "Wizard",
+      "helpText": "Do whatever needs to be done to satisfy the Wizard's ability.",
+      "subActions": [
+        {
+          "id": "wizard-on-1",
+          "description": "Do whatever needs to be done to satisfy the Wizard's ability.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 14,
+      "type": "character",
+      "id": "gambler",
+      "name": "Gambler",
+      "helpText": "The Gambler chooses a player & a character.",
+      "subActions": [
+        {
+          "id": "gambler-on-1",
+          "description": "The Gambler chooses a player & a character.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 15,
+      "type": "character",
+      "id": "acrobat",
+      "name": "Acrobat",
+      "helpText": "The Acrobat chooses a player.",
+      "subActions": [
+        {
+          "id": "acrobat-on-1",
+          "description": "The Acrobat chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 16,
+      "type": "character",
+      "id": "snakecharmer",
+      "name": "Snake Charmer",
+      "helpText": "The Snake Charmer chooses a player. If they chose the Demon: Show the YOU ARE & Demon tokens. Give a thumbs down. Swap the Snake Charmer & Demon tokens. Put the old Snake Charmer to sleep. Wake the old Demon. Show the YOU ARE and Snake Charmer tokens & give a thumbs up.",
+      "subActions": [
+        {
+          "id": "snakecharmer-on-1",
+          "description": "The Snake Charmer chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "snakecharmer-on-2",
+          "description": "If they chose the Demon: Show the YOU ARE & Demon tokens.",
+          "isConditional": true
+        },
+        { "id": "snakecharmer-on-3", "description": "Give a thumbs down.", "isConditional": false },
+        {
+          "id": "snakecharmer-on-4",
+          "description": "Swap the Snake Charmer & Demon tokens.",
+          "isConditional": false
+        },
+        {
+          "id": "snakecharmer-on-5",
+          "description": "Put the old Snake Charmer to sleep.",
+          "isConditional": false
+        },
+        { "id": "snakecharmer-on-6", "description": "Wake the old Demon.", "isConditional": false },
+        {
+          "id": "snakecharmer-on-7",
+          "description": "Show the YOU ARE and Snake Charmer tokens & give a thumbs up.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 17,
+      "type": "character",
+      "id": "monk",
+      "name": "Monk",
+      "helpText": "The Monk chooses a player.",
+      "subActions": [
+        { "id": "monk-on-1", "description": "The Monk chooses a player.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 18,
+      "type": "character",
+      "id": "organgrinder",
+      "name": "Organ Grinder",
+      "helpText": "The Organ Grinder either nods their head yes to be drunk, or shakes their head no to be sober.",
+      "subActions": [
+        {
+          "id": "organgrinder-on-1",
+          "description": "The Organ Grinder either nods their head yes to be drunk, or shakes their head no to be sober.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 19,
+      "type": "character",
+      "id": "devilsadvocate",
+      "name": "Devil's Advocate",
+      "helpText": "The Devil's Advocate chooses a living player.",
+      "subActions": [
+        {
+          "id": "devilsadvocate-on-1",
+          "description": "The Devil's Advocate chooses a living player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 20,
+      "type": "character",
+      "id": "witch",
+      "name": "Witch",
+      "helpText": "The Witch chooses a player.",
+      "subActions": [
+        { "id": "witch-on-1", "description": "The Witch chooses a player.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 21,
+      "type": "character",
+      "id": "cerenovus",
+      "name": "Cerenovus",
+      "helpText": "The Cerenovus chooses a player & a character. Put the Cerenovus to sleep. Wake the target. Show the THIS CHARACTER SELECTED YOU token, the Cerenovus token, then the madness-character token.",
+      "subActions": [
+        {
+          "id": "cerenovus-on-1",
+          "description": "The Cerenovus chooses a player & a character.",
+          "isConditional": false
+        },
+        {
+          "id": "cerenovus-on-2",
+          "description": "Put the Cerenovus to sleep.",
+          "isConditional": false
+        },
+        { "id": "cerenovus-on-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "cerenovus-on-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU token, the Cerenovus token, then the madness-character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 22,
+      "type": "character",
+      "id": "pithag",
+      "name": "Pit-Hag",
+      "helpText": "The Pit-Hag chooses a player & a character. If they chose a character that is not in play: Put the Pit-Hag to sleep. Wake the target. Show the YOU ARE token & their new character token.",
+      "subActions": [
+        {
+          "id": "pithag-on-1",
+          "description": "The Pit-Hag chooses a player & a character.",
+          "isConditional": false
+        },
+        {
+          "id": "pithag-on-2",
+          "description": "If they chose a character that is not in play: Put the Pit-Hag to sleep.",
+          "isConditional": true
+        },
+        { "id": "pithag-on-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "pithag-on-4",
+          "description": "Show the YOU ARE token & their new character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 23,
+      "type": "character",
+      "id": "fearmonger",
+      "name": "Fearmonger",
+      "helpText": "The Fearmonger chooses a player. If the target is different to last night, announce that the Fearmonger has chosen a player.",
+      "subActions": [
+        {
+          "id": "fearmonger-on-1",
+          "description": "The Fearmonger chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "fearmonger-on-2",
+          "description": "If the target is different to last night, announce that the Fearmonger has chosen a player.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 24,
+      "type": "character",
+      "id": "harpy",
+      "name": "Harpy",
+      "helpText": "The Harpy chooses 2 players. Put the Harpy to sleep. Wake the 1st target. Show the THIS CHARACTER SELECTED YOU token, the Harpy token, then point to the 2nd target.",
+      "subActions": [
+        {
+          "id": "harpy-on-1",
+          "description": "The Harpy chooses 2 players.",
+          "isConditional": false
+        },
+        { "id": "harpy-on-2", "description": "Put the Harpy to sleep.", "isConditional": false },
+        { "id": "harpy-on-3", "description": "Wake the 1st target.", "isConditional": false },
+        {
+          "id": "harpy-on-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU token, the Harpy token, then point to the 2nd target.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 25,
+      "type": "character",
+      "id": "mezepheles",
+      "name": "Mezepheles",
+      "helpText": "If a good player said the secret word, wake the player. Show the YOU ARE info token & give a thumbs-down.",
+      "subActions": [
+        {
+          "id": "mezepheles-on-1",
+          "description": "If a good player said the secret word, wake the player.",
+          "isConditional": true
+        },
+        {
+          "id": "mezepheles-on-2",
+          "description": "Show the YOU ARE info token & give a thumbs-down.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 26,
+      "type": "character",
+      "id": "scarletwoman",
+      "name": "Scarlet Woman",
+      "helpText": "If the Scarlet Woman became the Demon today, show them the YOU ARE token, then the Demon token.",
+      "subActions": [
+        {
+          "id": "scarletwoman-on-1",
+          "description": "If the Scarlet Woman became the Demon today, show them the YOU ARE token, then the Demon token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 27,
+      "type": "character",
+      "id": "summoner",
+      "name": "Summoner",
+      "helpText": "Change the Summoner reminder token to the relevant night. If it is night 3, the Summoner chooses a player & a Demon character. Put the Summoner to sleep. Wake the target. Show the YOU ARE and Demon tokens & give a thumbs-down.",
+      "subActions": [
+        {
+          "id": "summoner-on-1",
+          "description": "Change the Summoner reminder token to the relevant night.",
+          "isConditional": false
+        },
+        {
+          "id": "summoner-on-2",
+          "description": "If it is night 3, the Summoner chooses a player & a Demon character.",
+          "isConditional": true
+        },
+        {
+          "id": "summoner-on-3",
+          "description": "Put the Summoner to sleep.",
+          "isConditional": false
+        },
+        { "id": "summoner-on-4", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "summoner-on-5",
+          "description": "Show the YOU ARE and Demon tokens & give a thumbs-down.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 28,
+      "type": "character",
+      "id": "lunatic",
+      "name": "Lunatic",
+      "helpText": "Do whatever needs to be done to simulate the Demon acting. Put the Lunatic to sleep. Wake the Demon. Show the Lunatic token & point to them, then their target(s).",
+      "subActions": [
+        {
+          "id": "lunatic-on-1",
+          "description": "Do whatever needs to be done to simulate the Demon acting.",
+          "isConditional": false
+        },
+        {
+          "id": "lunatic-on-2",
+          "description": "Put the Lunatic to sleep.",
+          "isConditional": false
+        },
+        { "id": "lunatic-on-3", "description": "Wake the Demon.", "isConditional": false },
+        {
+          "id": "lunatic-on-4",
+          "description": "Show the Lunatic token & point to them, then their target(s).",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 29,
+      "type": "character",
+      "id": "exorcist",
+      "name": "Exorcist",
+      "helpText": "The Exorcist chooses a player. Put the Exorcist to sleep. If the Exorcist chose the Demon: Wake the Demon. Show the THIS CHARACTER SELECTED YOU & Exorcist tokens. Point to the Exorcist.",
+      "subActions": [
+        {
+          "id": "exorcist-on-1",
+          "description": "The Exorcist chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "exorcist-on-2",
+          "description": "Put the Exorcist to sleep.",
+          "isConditional": false
+        },
+        {
+          "id": "exorcist-on-3",
+          "description": "If the Exorcist chose the Demon: Wake the Demon.",
+          "isConditional": true
+        },
+        {
+          "id": "exorcist-on-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU & Exorcist tokens.",
+          "isConditional": false
+        },
+        { "id": "exorcist-on-5", "description": "Point to the Exorcist.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 30,
+      "type": "character",
+      "id": "lycanthrope",
+      "name": "Lycanthrope",
+      "helpText": "The Lycanthrope chooses a player.",
+      "subActions": [
+        {
+          "id": "lycanthrope-on-1",
+          "description": "The Lycanthrope chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 31,
+      "type": "character",
+      "id": "princess",
+      "name": "Princess",
+      "helpText": "If the Princess nominated the player who was executed today, wake the Demon as normal, but no one dies to the Demon's ability.",
+      "subActions": [
+        {
+          "id": "princess-on-1",
+          "description": "If the Princess nominated the player who was executed today, wake the Demon as normal, but no one dies to the Demon's ability.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 32,
+      "type": "character",
+      "id": "legion",
+      "name": "Legion",
+      "helpText": "A player might die.",
+      "subActions": [
+        { "id": "legion-on-1", "description": "A player might die.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 33,
+      "type": "character",
+      "id": "imp",
+      "name": "Imp",
+      "helpText": "The Imp chooses a player. If the Imp chose themselves: Replace 1 alive Minion token with a spare Imp token. Put the old Imp to sleep. Wake the new Imp. Show the YOU ARE token, then show the Imp token.",
+      "subActions": [
+        { "id": "imp-on-1", "description": "The Imp chooses a player.", "isConditional": false },
+        {
+          "id": "imp-on-2",
+          "description": "If the Imp chose themselves: Replace 1 alive Minion token with a spare Imp token.",
+          "isConditional": true
+        },
+        { "id": "imp-on-3", "description": "Put the old Imp to sleep.", "isConditional": false },
+        { "id": "imp-on-4", "description": "Wake the new Imp.", "isConditional": false },
+        {
+          "id": "imp-on-5",
+          "description": "Show the YOU ARE token, then show the Imp token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 34,
+      "type": "character",
+      "id": "zombuul",
+      "name": "Zombuul",
+      "helpText": "If no one died today, the Zombuul chooses a player.",
+      "subActions": [
+        {
+          "id": "zombuul-on-1",
+          "description": "If no one died today, the Zombuul chooses a player.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 35,
+      "type": "character",
+      "id": "pukka",
+      "name": "Pukka",
+      "helpText": "The Pukka chooses a player. The previously poisoned player dies then becomes healthy.",
+      "subActions": [
+        {
+          "id": "pukka-on-1",
+          "description": "The Pukka chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "pukka-on-2",
+          "description": "The previously poisoned player dies then becomes healthy.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 36,
+      "type": "character",
+      "id": "shabaloth",
+      "name": "Shabaloth",
+      "helpText": "A previously chosen player might be resurrected. The Shabaloth chooses 2 players.",
+      "subActions": [
+        {
+          "id": "shabaloth-on-1",
+          "description": "A previously chosen player might be resurrected.",
+          "isConditional": false
+        },
+        {
+          "id": "shabaloth-on-2",
+          "description": "The Shabaloth chooses 2 players.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 37,
+      "type": "character",
+      "id": "po",
+      "name": "Po",
+      "helpText": "The Po may choose a player OR chooses 3 players if they chose no-one last night.",
+      "subActions": [
+        {
+          "id": "po-on-1",
+          "description": "The Po may choose a player OR chooses 3 players if they chose no-one last night.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 38,
+      "type": "character",
+      "id": "fanggu",
+      "name": "Fang Gu",
+      "helpText": "The Fang Gu chooses a player. If they chose an Outsider (once only): Replace the Outsider token with the spare Fang Gu token. Put the Fang Gu to sleep. Wake the target. Show the YOU ARE and Fang Gu tokens & give a thumbs-down.",
+      "subActions": [
+        {
+          "id": "fanggu-on-1",
+          "description": "The Fang Gu chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "fanggu-on-2",
+          "description": "If they chose an Outsider (once only): Replace the Outsider token with the spare Fang Gu token.",
+          "isConditional": true
+        },
+        { "id": "fanggu-on-3", "description": "Put the Fang Gu to sleep.", "isConditional": false },
+        { "id": "fanggu-on-4", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "fanggu-on-5",
+          "description": "Show the YOU ARE and Fang Gu tokens & give a thumbs-down.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 39,
+      "type": "character",
+      "id": "nodashii",
+      "name": "No Dashii",
+      "helpText": "The No Dashii chooses a player.",
+      "subActions": [
+        {
+          "id": "nodashii-on-1",
+          "description": "The No Dashii chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 40,
+      "type": "character",
+      "id": "vortox",
+      "name": "Vortox",
+      "helpText": "The Vortox chooses a player.",
+      "subActions": [
+        {
+          "id": "vortox-on-1",
+          "description": "The Vortox chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 41,
+      "type": "character",
+      "id": "lordoftyphon",
+      "name": "Lord of Typhon",
+      "helpText": "The Lord of Typhon chooses a player.",
+      "subActions": [
+        {
+          "id": "lordoftyphon-on-1",
+          "description": "The Lord of Typhon chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 42,
+      "type": "character",
+      "id": "vigormortis",
+      "name": "Vigormortis",
+      "helpText": "The Vigormortis chooses a player. If that player is a Minion, poison a neighboring Townsfolk.",
+      "subActions": [
+        {
+          "id": "vigormortis-on-1",
+          "description": "The Vigormortis chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "vigormortis-on-2",
+          "description": "If that player is a Minion, poison a neighboring Townsfolk.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 43,
+      "type": "character",
+      "id": "ojo",
+      "name": "Ojo",
+      "helpText": "The Ojo chooses a character.",
+      "subActions": [
+        { "id": "ojo-on-1", "description": "The Ojo chooses a character.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 44,
+      "type": "character",
+      "id": "alhadikhia",
+      "name": "Al-Hadikhia",
+      "helpText": "The Al-Hadikhia chooses 3 players. In order, wake each target. They nod or shake their head. Put them to sleep before waking the next target.",
+      "subActions": [
+        {
+          "id": "alhadikhia-on-1",
+          "description": "The Al-Hadikhia chooses 3 players.",
+          "isConditional": false
+        },
+        {
+          "id": "alhadikhia-on-2",
+          "description": "In order, wake each target.",
+          "isConditional": false
+        },
+        {
+          "id": "alhadikhia-on-3",
+          "description": "They nod or shake their head.",
+          "isConditional": false
+        },
+        {
+          "id": "alhadikhia-on-4",
+          "description": "Put them to sleep before waking the next target.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 45,
+      "type": "character",
+      "id": "lleech",
+      "name": "Lleech",
+      "helpText": "The Lleech chooses a player.",
+      "subActions": [
+        {
+          "id": "lleech-on-1",
+          "description": "The Lleech chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 46,
+      "type": "character",
+      "id": "lilmonsta",
+      "name": "Lil' Monsta",
+      "helpText": "Wake the Minions. They choose a player. Put the Minions to sleep. Wake the target. Show the YOU ARE & Lil' Monsta tokens. A player might die.",
+      "subActions": [
+        { "id": "lilmonsta-on-1", "description": "Wake the Minions.", "isConditional": false },
+        { "id": "lilmonsta-on-2", "description": "They choose a player.", "isConditional": false },
+        {
+          "id": "lilmonsta-on-3",
+          "description": "Put the Minions to sleep.",
+          "isConditional": false
+        },
+        { "id": "lilmonsta-on-4", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "lilmonsta-on-5",
+          "description": "Show the YOU ARE & Lil' Monsta tokens.",
+          "isConditional": false
+        },
+        { "id": "lilmonsta-on-6", "description": "A player might die.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 47,
+      "type": "character",
+      "id": "yaggababble",
+      "name": "Yaggababble",
+      "helpText": "For each time the Yaggababble said their phrase today, a player might die.",
+      "subActions": [
+        {
+          "id": "yaggababble-on-1",
+          "description": "For each time the Yaggababble said their phrase today, a player might die.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 48,
+      "type": "character",
+      "id": "kazali",
+      "name": "Kazali",
+      "helpText": "The Kazali chooses a player.",
+      "subActions": [
+        {
+          "id": "kazali-on-1",
+          "description": "The Kazali chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 49,
+      "type": "character",
+      "id": "assassin",
+      "name": "Assassin",
+      "helpText": "The Assassin might choose a player.",
+      "subActions": [
+        {
+          "id": "assassin-on-1",
+          "description": "The Assassin might choose a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 50,
+      "type": "character",
+      "id": "godfather",
+      "name": "Godfather",
+      "helpText": "If an Outsider died today, the Godfather chooses a player.",
+      "subActions": [
+        {
+          "id": "godfather-on-1",
+          "description": "If an Outsider died today, the Godfather chooses a player.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 51,
+      "type": "character",
+      "id": "gossip",
+      "name": "Gossip",
+      "helpText": "If the Gossip is due to kill a player, they die.",
+      "subActions": [
+        {
+          "id": "gossip-on-1",
+          "description": "If the Gossip is due to kill a player, they die.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 52,
+      "type": "character",
+      "id": "hatter",
+      "name": "Hatter",
+      "helpText": "If the Hatter died, wake the Minions & Demons. Each may choose a new character. If they do, show the YOU ARE token & their new character token.",
+      "subActions": [
+        {
+          "id": "hatter-on-1",
+          "description": "If the Hatter died, wake the Minions & Demons.",
+          "isConditional": true
+        },
+        {
+          "id": "hatter-on-2",
+          "description": "Each may choose a new character.",
+          "isConditional": false
+        },
+        {
+          "id": "hatter-on-3",
+          "description": "If they do, show the YOU ARE token & their new character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 53,
+      "type": "character",
+      "id": "barber",
+      "name": "Barber",
+      "helpText": "If the Barber died today or tonight, show the Demon the THIS CHARACTER SELECTED YOU & Barber tokens. If the Demon chose 2 players, wake one at a time. Show the YOU ARE token & their new character token.",
+      "subActions": [
+        {
+          "id": "barber-on-1",
+          "description": "If the Barber died today or tonight, show the Demon the THIS CHARACTER SELECTED YOU & Barber tokens.",
+          "isConditional": true
+        },
+        {
+          "id": "barber-on-2",
+          "description": "If the Demon chose 2 players, wake one at a time.",
+          "isConditional": true
+        },
+        {
+          "id": "barber-on-3",
+          "description": "Show the YOU ARE token & their new character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 54,
+      "type": "character",
+      "id": "sweetheart",
+      "name": "Sweetheart",
+      "helpText": "If the Sweetheart died, a player became drunk immediately. If you haven't done this yet, do so now.",
+      "subActions": [
+        {
+          "id": "sweetheart-on-1",
+          "description": "If the Sweetheart died, a player became drunk immediately.",
+          "isConditional": true
+        },
+        {
+          "id": "sweetheart-on-2",
+          "description": "If you haven't done this yet, do so now.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 55,
+      "type": "character",
+      "id": "plaguedoctor",
+      "name": "Plague Doctor",
+      "helpText": "If the Plague Doctor died, the Storyteller gained a Minion ability. If you haven't done this yet, do so now.",
+      "subActions": [
+        {
+          "id": "plaguedoctor-on-1",
+          "description": "If the Plague Doctor died, the Storyteller gained a Minion ability.",
+          "isConditional": true
+        },
+        {
+          "id": "plaguedoctor-on-2",
+          "description": "If you haven't done this yet, do so now.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 56,
+      "type": "character",
+      "id": "sage",
+      "name": "Sage",
+      "helpText": "If the Demon killed the Sage, wake the Sage and point to 2 players, 1 of which is the Demon.",
+      "subActions": [
+        {
+          "id": "sage-on-1",
+          "description": "If the Demon killed the Sage, wake the Sage and point to 2 players, 1 of which is the Demon.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 57,
+      "type": "character",
+      "id": "banshee",
+      "name": "Banshee",
+      "helpText": "If the Banshee was killed by the Demon tonight, announce that the Banshee has died.",
+      "subActions": [
+        {
+          "id": "banshee-on-1",
+          "description": "If the Banshee was killed by the Demon tonight, announce that the Banshee has died.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 58,
+      "type": "character",
+      "id": "professor",
+      "name": "Professor",
+      "helpText": "The Professor might choose a dead player.",
+      "subActions": [
+        {
+          "id": "professor-on-1",
+          "description": "The Professor might choose a dead player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 59,
+      "type": "character",
+      "id": "choirboy",
+      "name": "Choirboy",
+      "helpText": "If the Demon killed the King, point to the Demon player.",
+      "subActions": [
+        {
+          "id": "choirboy-on-1",
+          "description": "If the Demon killed the King, point to the Demon player.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 60,
+      "type": "character",
+      "id": "huntsman",
+      "name": "Huntsman",
+      "helpText": "The Huntsman might choose a player. If they chose the Damsel: Put the Huntsman to sleep. Wake the target. Show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "huntsman-on-1",
+          "description": "The Huntsman might choose a player.",
+          "isConditional": false
+        },
+        {
+          "id": "huntsman-on-2",
+          "description": "If they chose the Damsel: Put the Huntsman to sleep.",
+          "isConditional": true
+        },
+        { "id": "huntsman-on-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "huntsman-on-4",
+          "description": "Show the YOU ARE info token & their new character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 61,
+      "type": "character",
+      "id": "damsel",
+      "name": "Damsel",
+      "helpText": "If the Damsel was chosen by the Huntsman, show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "damsel-on-1",
+          "description": "If the Damsel was chosen by the Huntsman, show the YOU ARE info token & their new character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 62,
+      "type": "character",
+      "id": "amnesiac",
+      "name": "Amnesiac",
+      "helpText": "Do whatever needs to be done to satisfy the Amnesiac's ability.",
+      "subActions": [
+        {
+          "id": "amnesiac-on-1",
+          "description": "Do whatever needs to be done to satisfy the Amnesiac's ability.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 63,
+      "type": "character",
+      "id": "farmer",
+      "name": "Farmer",
+      "helpText": "If the Farmer died tonight, wake a living good player. Show the YOU ARE info token and a Farmer token.",
+      "subActions": [
+        {
+          "id": "farmer-on-1",
+          "description": "If the Farmer died tonight, wake a living good player.",
+          "isConditional": true
+        },
+        {
+          "id": "farmer-on-2",
+          "description": "Show the YOU ARE info token and a Farmer token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 64,
+      "type": "character",
+      "id": "tinker",
+      "name": "Tinker",
+      "helpText": "The Tinker might die.",
+      "subActions": [
+        { "id": "tinker-on-1", "description": "The Tinker might die.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 65,
+      "type": "character",
+      "id": "moonchild",
+      "name": "Moonchild",
+      "helpText": "If the Moonchild is due to kill a good player, they die.",
+      "subActions": [
+        {
+          "id": "moonchild-on-1",
+          "description": "If the Moonchild is due to kill a good player, they die.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 66,
+      "type": "character",
+      "id": "grandmother",
+      "name": "Grandmother",
+      "helpText": "If the grandchild was killed by the Demon, the Grandmother dies too.",
+      "subActions": [
+        {
+          "id": "grandmother-on-1",
+          "description": "If the grandchild was killed by the Demon, the Grandmother dies too.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 67,
+      "type": "character",
+      "id": "tor",
+      "name": "Tor",
+      "helpText": "If a player died tonight, show the YOU ARE info token, their character token, & a thumbs up or thumbs down.",
+      "subActions": [
+        {
+          "id": "tor-on-1",
+          "description": "If a player died tonight, show the YOU ARE info token, their character token, & a thumbs up or thumbs down.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 68,
+      "type": "character",
+      "id": "ravenkeeper",
+      "name": "Ravenkeeper",
+      "helpText": "If the Ravenkeeper died tonight, the Ravenkeeper chooses a player. Show that player's character token.",
+      "subActions": [
+        {
+          "id": "ravenkeeper-on-1",
+          "description": "If the Ravenkeeper died tonight, the Ravenkeeper chooses a player.",
+          "isConditional": true
+        },
+        {
+          "id": "ravenkeeper-on-2",
+          "description": "Show that player's character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 69,
+      "type": "character",
+      "id": "empath",
+      "name": "Empath",
+      "helpText": "Give a finger signal.",
+      "subActions": [
+        { "id": "empath-on-1", "description": "Give a finger signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 70,
+      "type": "character",
+      "id": "fortuneteller",
+      "name": "Fortune Teller",
+      "helpText": "The Fortune Teller chooses 2 players. Nod if either is the Demon (or the RED HERRING).",
+      "subActions": [
+        {
+          "id": "fortuneteller-on-1",
+          "description": "The Fortune Teller chooses 2 players.",
+          "isConditional": false
+        },
+        {
+          "id": "fortuneteller-on-2",
+          "description": "Nod if either is the Demon (or the RED HERRING).",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 71,
+      "type": "character",
+      "id": "undertaker",
+      "name": "Undertaker",
+      "helpText": "If a player was executed today, show their character token.",
+      "subActions": [
+        {
+          "id": "undertaker-on-1",
+          "description": "If a player was executed today, show their character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 72,
+      "type": "character",
+      "id": "dreamer",
+      "name": "Dreamer",
+      "helpText": "The Dreamer points to a player. Show 1 good & 1 evil character token, 1 of which is their character.",
+      "subActions": [
+        {
+          "id": "dreamer-on-1",
+          "description": "The Dreamer points to a player.",
+          "isConditional": false
+        },
+        {
+          "id": "dreamer-on-2",
+          "description": "Show 1 good & 1 evil character token, 1 of which is their character.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 73,
+      "type": "character",
+      "id": "flowergirl",
+      "name": "Flowergirl",
+      "helpText": "Either nod or shake your head.",
+      "subActions": [
+        {
+          "id": "flowergirl-on-1",
+          "description": "Either nod or shake your head.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 74,
+      "type": "character",
+      "id": "towncrier",
+      "name": "Town Crier",
+      "helpText": "Either nod or shake your head.",
+      "subActions": [
+        {
+          "id": "towncrier-on-1",
+          "description": "Either nod or shake your head.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 75,
+      "type": "character",
+      "id": "oracle",
+      "name": "Oracle",
+      "helpText": "Give a finger signal.",
+      "subActions": [
+        { "id": "oracle-on-1", "description": "Give a finger signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 76,
+      "type": "character",
+      "id": "seamstress",
+      "name": "Seamstress",
+      "helpText": "The Seamstress might choose 2 players. Nod or shake your head.",
+      "subActions": [
+        {
+          "id": "seamstress-on-1",
+          "description": "The Seamstress might choose 2 players.",
+          "isConditional": false
+        },
+        {
+          "id": "seamstress-on-2",
+          "description": "Nod or shake your head.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 77,
+      "type": "character",
+      "id": "juggler",
+      "name": "Juggler",
+      "helpText": "Give a finger signal.",
+      "subActions": [
+        { "id": "juggler-on-1", "description": "Give a finger signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 78,
+      "type": "character",
+      "id": "balloonist",
+      "name": "Balloonist",
+      "helpText": "Point to a player with a different character type to the previously shown player.",
+      "subActions": [
+        {
+          "id": "balloonist-on-1",
+          "description": "Point to a player with a different character type to the previously shown player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 79,
+      "type": "character",
+      "id": "villageidiot",
+      "name": "Village Idiot",
+      "helpText": "Wake the Village Idiots one at a time to choose a player. Give a thumb signal.",
+      "subActions": [
+        {
+          "id": "villageidiot-on-1",
+          "description": "Wake the Village Idiots one at a time to choose a player.",
+          "isConditional": false
+        },
+        { "id": "villageidiot-on-2", "description": "Give a thumb signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 80,
+      "type": "character",
+      "id": "king",
+      "name": "King",
+      "helpText": "If the dead equal or outnumber the living, show the character token of a living player.",
+      "subActions": [
+        {
+          "id": "king-on-1",
+          "description": "If the dead equal or outnumber the living, show the character token of a living player.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 81,
+      "type": "character",
+      "id": "bountyhunter",
+      "name": "Bounty Hunter",
+      "helpText": "If the player marked KNOW died today or tonight, point to the new player marked KNOW.",
+      "subActions": [
+        {
+          "id": "bountyhunter-on-1",
+          "description": "If the player marked KNOW died today or tonight, point to the new player marked KNOW.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 82,
+      "type": "character",
+      "id": "nightwatchman",
+      "name": "Nightwatchman",
+      "helpText": "The Nightwatchman might choose a player. Put the Nightwatchman to sleep. Wake the target. Show the THIS PLAYER IS & Nightwatchman tokens, then point to the Nightwatchman.",
+      "subActions": [
+        {
+          "id": "nightwatchman-on-1",
+          "description": "The Nightwatchman might choose a player.",
+          "isConditional": false
+        },
+        {
+          "id": "nightwatchman-on-2",
+          "description": "Put the Nightwatchman to sleep.",
+          "isConditional": false
+        },
+        { "id": "nightwatchman-on-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "nightwatchman-on-4",
+          "description": "Show the THIS PLAYER IS & Nightwatchman tokens, then point to the Nightwatchman.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 83,
+      "type": "character",
+      "id": "cultleader",
+      "name": "Cult Leader",
+      "helpText": "The Cult Leader might change alignment. If so, show the YOU ARE info token & give a thumb signal.",
+      "subActions": [
+        {
+          "id": "cultleader-on-1",
+          "description": "The Cult Leader might change alignment.",
+          "isConditional": false
+        },
+        {
+          "id": "cultleader-on-2",
+          "description": "If so, show the YOU ARE info token & give a thumb signal.",
+          "isConditional": true
+        }
+      ]
+    },
+    {
+      "order": 84,
+      "type": "character",
+      "id": "butler",
+      "name": "Butler",
+      "helpText": "The Butler chooses a player.",
+      "subActions": [
+        {
+          "id": "butler-on-1",
+          "description": "The Butler chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 85,
+      "type": "character",
+      "id": "spy",
+      "name": "Spy",
+      "helpText": "Show the Grimoire for as long as the Spy needs.",
+      "subActions": [
+        {
+          "id": "spy-on-1",
+          "description": "Show the Grimoire for as long as the Spy needs.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 86,
+      "type": "character",
+      "id": "highpriestess",
+      "name": "High Priestess",
+      "helpText": "Point to a player.",
+      "subActions": [
+        { "id": "highpriestess-on-1", "description": "Point to a player.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 87,
+      "type": "character",
+      "id": "general",
+      "name": "General",
+      "helpText": "Give a thumb signal.",
+      "subActions": [
+        { "id": "general-on-1", "description": "Give a thumb signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 88,
+      "type": "character",
+      "id": "chambermaid",
+      "name": "Chambermaid",
+      "helpText": "The Chambermaid chooses 2 living players. Give a finger signal.",
+      "subActions": [
+        {
+          "id": "chambermaid-on-1",
+          "description": "The Chambermaid chooses 2 living players.",
+          "isConditional": false
+        },
+        { "id": "chambermaid-on-2", "description": "Give a finger signal.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 89,
+      "type": "character",
+      "id": "mathematician",
+      "name": "Mathematician",
+      "helpText": "Give a finger signal.",
+      "subActions": [
+        {
+          "id": "mathematician-on-1",
+          "description": "Give a finger signal.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 90,
+      "type": "character",
+      "id": "riot",
+      "name": "Riot",
+      "helpText": "Change the Riot reminder token to the relevant day. If it is night 3, you may wake the Minions. Show the YOU ARE & Riot tokens.",
+      "subActions": [
+        {
+          "id": "riot-on-1",
+          "description": "Change the Riot reminder token to the relevant day.",
+          "isConditional": false
+        },
+        {
+          "id": "riot-on-2",
+          "description": "If it is night 3, you may wake the Minions.",
+          "isConditional": true
+        },
+        {
+          "id": "riot-on-3",
+          "description": "Show the YOU ARE & Riot tokens.",
+          "isConditional": false
+        }
+      ]
+    },
+    {
+      "order": 91,
+      "type": "structural",
+      "id": "dawn",
+      "name": "Dawn",
+      "helpText": "Wait for a few seconds. End the Night Phase.",
+      "subActions": [
+        { "id": "dawn-on-1", "description": "Wait for a few seconds.", "isConditional": false },
+        { "id": "dawn-on-2", "description": "End the Night Phase.", "isConditional": false }
+      ]
+    },
+    {
+      "order": 92,
+      "type": "character",
+      "id": "leviathan",
+      "name": "Leviathan",
+      "helpText": "Change the Leviathan reminder token to the relevant day. You may announce that the Leviathan is in play.",
+      "subActions": [
+        {
+          "id": "leviathan-on-1",
+          "description": "Change the Leviathan reminder token to the relevant day.",
+          "isConditional": false
+        },
+        {
+          "id": "leviathan-on-2",
+          "description": "You may announce that the Leviathan is in play.",
+          "isConditional": false
+        }
+      ]
+    }
+  ]
+}

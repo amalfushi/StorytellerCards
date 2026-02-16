@@ -1,0 +1,21 @@
+#!/usr/bin/env sh
+
+# Detect changed files
+UI_CHANGED=$(git diff --cached --name-only --diff-filter=ACMR | grep "^UI/" || true)
+API_CHANGED=$(git diff --cached --name-only --diff-filter=ACMR | grep "^API/" || true)
+
+if [ -n "$UI_CHANGED" ]; then
+  echo "🎨 UI changes detected — running lint-staged..."
+  cd UI && npx lint-staged
+  cd ..
+fi
+
+if [ -n "$API_CHANGED" ]; then
+  echo "🔧 API changes detected — running go vet..."
+  cd API && go vet ./...
+  cd ..
+fi
+
+if [ -z "$UI_CHANGED" ] && [ -z "$API_CHANGED" ]; then
+  echo "ℹ️  No UI or API changes to lint"
+fi

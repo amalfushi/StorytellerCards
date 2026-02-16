@@ -1,0 +1,15 @@
+{
+  "name": "storyteller-cards-monorepo",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently --names UI,API --prefix-colors cyan,green \"cd UI && npm run dev\" \"cd API && go run ./cmd/server\"",
+    "dev:ui": "cd UI && npm run dev",
+    "dev:api": "cd API && go run ./cmd/server",
+    "test": "concurrently --names UI,API \"cd UI && npm test\" \"cd API && go test ./...\"",
+    "test:ui": "cd UI && npm test",
+    "test:api": "cd API && go test ./..."
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

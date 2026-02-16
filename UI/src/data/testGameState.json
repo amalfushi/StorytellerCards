@@ -1,0 +1,58 @@
+{
+  "session": {
+    "id": "test-session-1",
+    "name": "Friday Night Games",
+    "createdAt": "2025-02-14T20:00:00Z",
+    "defaultScriptId": "boozling"
+  },
+  "game": {
+    "id": "test-game-1",
+    "sessionId": "test-session-1",
+    "scriptId": "boozling",
+    "currentDay": 1,
+    "currentPhase": "Night",
+    "isFirstNight": true,
+    "players": [
+      {
+        "seat": 1,
+        "playerName": "Alice",
+        "characterId": "noble",
+        "alive": true,
+        "ghostVoteUsed": false,
+        "actualAlignment": "Good"
+      },
+      {
+        "seat": 2,
+        "playerName": "Bob",
+        "characterId": "imp",
+        "alive": true,
+        "ghostVoteUsed": false,
+        "actualAlignment": "Evil"
+      },
+      {
+        "seat": 3,
+        "playerName": "Charlie",
+        "characterId": "fortuneteller",
+        "alive": true,
+        "ghostVoteUsed": false,
+        "actualAlignment": "Good"
+      },
+      {
+        "seat": 4,
+        "playerName": "Diana",
+        "characterId": "scarletwoman",
+        "alive": true,
+        "ghostVoteUsed": false,
+        "actualAlignment": "Evil"
+      },
+      {
+        "seat": 5,
+        "playerName": "Eve",
+        "characterId": "drunk",
+        "alive": false,
+        "ghostVoteUsed": false,
+        "actualAlignment": "Good"
+      }
+    ]
+  }
+}

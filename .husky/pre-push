@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+
+# Detect changed files compared to remote
+UI_CHANGED=$(git diff --name-only @{push}.. -- UI/ 2>/dev/null || git diff --name-only HEAD~1 -- UI/ 2>/dev/null || true)
+API_CHANGED=$(git diff --name-only @{push}.. -- API/ 2>/dev/null || git diff --name-only HEAD~1 -- API/ 2>/dev/null || true)
+
+FAILED=0
+
+if [ -n "$UI_CHANGED" ]; then
+  echo "🧪 UI changes detected — running tests..."
+  cd UI && npm test
+  if [ $? -ne 0 ]; then FAILED=1; fi
+  cd ..
+fi
+
+if [ -n "$API_CHANGED" ]; then
+  echo "🧪 API changes detected — running Go tests..."
+  cd API && go test ./...
+  if [ $? -ne 0 ]; then FAILED=1; fi
+  cd ..
+fi
+
+if [ -z "$UI_CHANGED" ] && [ -z "$API_CHANGED" ]; then
+  echo "ℹ️  No UI or API changes to test"
+fi
+
+exit $FAILED

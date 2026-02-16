@@ -1,0 +1,591 @@
+[
+  {
+    "id": "noble",
+    "name": "Noble",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "You start knowing 3 players, 1 and only 1 of which is evil.",
+    "firstNight": {
+      "order": 59,
+      "helpText": "Point to the 3 players marked KNOW.",
+      "subActions": [
+        {
+          "id": "noble-fn-1",
+          "description": "Point to the 3 players marked KNOW.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": null,
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "pixie",
+    "name": "Pixie",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "You start knowing 1 in-play Townsfolk. If you were mad that you were this character, you gain their ability when they die.",
+    "firstNight": {
+      "order": 42,
+      "helpText": "Show the Townsfolk character token marked MAD.",
+      "subActions": [
+        {
+          "id": "pixie-fn-1",
+          "description": "Show the Townsfolk character token marked MAD.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": null,
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "highpriestess",
+    "name": "High Priestess",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "Each night, learn which player the Storyteller believes you should talk to most.",
+    "firstNight": {
+      "order": 68,
+      "helpText": "Point to a player.",
+      "subActions": [
+        { "id": "highpriestess-fn-1", "description": "Point to a player.", "isConditional": false }
+      ]
+    },
+    "otherNights": {
+      "order": 86,
+      "helpText": "Point to a player.",
+      "subActions": [
+        { "id": "highpriestess-on-1", "description": "Point to a player.", "isConditional": false }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "balloonist",
+    "name": "Balloonist",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "Each night, you learn a player of a different character type than last night. [+0 or +1 Outsider]",
+    "firstNight": {
+      "order": 60,
+      "helpText": "Point to any player.",
+      "subActions": [
+        { "id": "balloonist-fn-1", "description": "Point to any player.", "isConditional": false }
+      ]
+    },
+    "otherNights": {
+      "order": 78,
+      "helpText": "Point to a player with a different character type to the previously shown player.",
+      "subActions": [
+        {
+          "id": "balloonist-on-1",
+          "description": "Point to a player with a different character type to the previously shown player.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "fortuneteller",
+    "name": "Fortune Teller",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "Each night, choose 2 players: you learn if either is a Demon. There is a good player that registers as a Demon to you.",
+    "firstNight": {
+      "order": 51,
+      "helpText": "The Fortune Teller chooses 2 players. Nod if either is the Demon (or the RED HERRING).",
+      "subActions": [
+        {
+          "id": "fortuneteller-fn-1",
+          "description": "The Fortune Teller chooses 2 players.",
+          "isConditional": false
+        },
+        {
+          "id": "fortuneteller-fn-2",
+          "description": "Nod if either is the Demon (or the RED HERRING).",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 70,
+      "helpText": "The Fortune Teller chooses 2 players. Nod if either is the Demon (or the RED HERRING).",
+      "subActions": [
+        {
+          "id": "fortuneteller-on-1",
+          "description": "The Fortune Teller chooses 2 players.",
+          "isConditional": false
+        },
+        {
+          "id": "fortuneteller-on-2",
+          "description": "Nod if either is the Demon (or the RED HERRING).",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "oracle",
+    "name": "Oracle",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "Each night*, you learn how many dead players are evil.",
+    "firstNight": null,
+    "otherNights": {
+      "order": 75,
+      "helpText": "Give a finger signal.",
+      "subActions": [
+        { "id": "oracle-on-1", "description": "Give a finger signal.", "isConditional": false }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "savant",
+    "name": "Savant",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "Each day, you may visit the Storyteller to learn 2 things in private: 1 is true & 1 is false.",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "philosopher",
+    "name": "Philosopher",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "Once per game, at night, choose a good character: gain that ability. If this character is in play, they are drunk.",
+    "firstNight": {
+      "order": 9,
+      "helpText": "The Philosopher might choose a character. If necessary, swap their character token.",
+      "subActions": [
+        {
+          "id": "philosopher-fn-1",
+          "description": "The Philosopher might choose a character.",
+          "isConditional": false
+        },
+        {
+          "id": "philosopher-fn-2",
+          "description": "If necessary, swap their character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 4,
+      "helpText": "The Philosopher might choose a character. If necessary, swap their character token.",
+      "subActions": [
+        {
+          "id": "philosopher-on-1",
+          "description": "The Philosopher might choose a character.",
+          "isConditional": false
+        },
+        {
+          "id": "philosopher-on-2",
+          "description": "If necessary, swap their character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "huntsman",
+    "name": "Huntsman",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "Once per game, at night, choose a living player: the Damsel, if chosen, becomes a not-in-play Townsfolk. [+the Damsel]",
+    "firstNight": {
+      "order": 43,
+      "helpText": "The Huntsman might choose a player. If they chose the Damsel: Put the Huntsman to sleep. Wake the target. Show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "huntsman-fn-1",
+          "description": "The Huntsman might choose a player.",
+          "isConditional": false
+        },
+        {
+          "id": "huntsman-fn-2",
+          "description": "If they chose the Damsel: Put the Huntsman to sleep.",
+          "isConditional": true
+        },
+        { "id": "huntsman-fn-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "huntsman-fn-4",
+          "description": "Show the YOU ARE info token & their new character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 60,
+      "helpText": "The Huntsman might choose a player. If they chose the Damsel: Put the Huntsman to sleep. Wake the target. Show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "huntsman-on-1",
+          "description": "The Huntsman might choose a player.",
+          "isConditional": false
+        },
+        {
+          "id": "huntsman-on-2",
+          "description": "If they chose the Damsel: Put the Huntsman to sleep.",
+          "isConditional": true
+        },
+        { "id": "huntsman-on-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "huntsman-on-4",
+          "description": "Show the YOU ARE info token & their new character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "fisherman",
+    "name": "Fisherman",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "Once per game, during the day, visit the Storyteller for some advice to help your team win.",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "slayer",
+    "name": "Slayer",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "Once per game, during the day, publicly choose a player: if they are the Demon, they die.",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "sage",
+    "name": "Sage",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "If the Demon kills you, you learn that it is 1 of 2 players.",
+    "firstNight": null,
+    "otherNights": {
+      "order": 56,
+      "helpText": "If the Demon killed the Sage, wake the Sage and point to 2 players, 1 of which is the Demon.",
+      "subActions": [
+        {
+          "id": "sage-on-1",
+          "description": "If the Demon killed the Sage, wake the Sage and point to 2 players, 1 of which is the Demon.",
+          "isConditional": true
+        }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "cannibal",
+    "name": "Cannibal",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "You have the ability of the recently killed executee. If they are evil, you are poisoned until a good player dies by execution.",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "drunk",
+    "name": "Drunk",
+    "type": "Outsider",
+    "defaultAlignment": "Good",
+    "abilityShort": "You do not know you are the Drunk. You think you are a Townsfolk character, but you are not.",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#42a5f5" },
+    "reminders": []
+  },
+  {
+    "id": "mutant",
+    "name": "Mutant",
+    "type": "Outsider",
+    "defaultAlignment": "Good",
+    "abilityShort": "If you are \"mad\" about being an Outsider, you might be executed.",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#42a5f5" },
+    "reminders": []
+  },
+  {
+    "id": "damsel",
+    "name": "Damsel",
+    "type": "Outsider",
+    "defaultAlignment": "Good",
+    "abilityShort": "All Minions know a Damsel is in play. If a Minion publicly guesses you (once), your team loses.",
+    "firstNight": {
+      "order": 44,
+      "helpText": "During Minion Info, show the Minions the Damsel token. If you haven't done this yet, do so now. If the Damsel was chosen by the Huntsman, show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "damsel-fn-1",
+          "description": "During Minion Info, show the Minions the Damsel token.",
+          "isConditional": false
+        },
+        {
+          "id": "damsel-fn-2",
+          "description": "If you haven't done this yet, do so now.",
+          "isConditional": true
+        },
+        {
+          "id": "damsel-fn-3",
+          "description": "If the Damsel was chosen by the Huntsman, show the YOU ARE info token & their new character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 61,
+      "helpText": "If the Damsel was chosen by the Huntsman, show the YOU ARE info token & their new character token.",
+      "subActions": [
+        {
+          "id": "damsel-on-1",
+          "description": "If the Damsel was chosen by the Huntsman, show the YOU ARE info token & their new character token.",
+          "isConditional": true
+        }
+      ]
+    },
+    "icon": { "placeholder": "#42a5f5" },
+    "reminders": []
+  },
+  {
+    "id": "klutz",
+    "name": "Klutz",
+    "type": "Outsider",
+    "defaultAlignment": "Good",
+    "abilityShort": "When you learn that you died, publicly choose 1 alive player: if they are evil, your team loses.",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#42a5f5" },
+    "reminders": []
+  },
+  {
+    "id": "golem",
+    "name": "Golem",
+    "type": "Outsider",
+    "defaultAlignment": "Good",
+    "abilityShort": "You may only nominate once per game. When you do, if the nominee is not the Demon, they die.",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#42a5f5" },
+    "reminders": []
+  },
+  {
+    "id": "baron",
+    "name": "Baron",
+    "type": "Minion",
+    "defaultAlignment": "Evil",
+    "abilityShort": "There are extra Outsiders in play. [+2 Outsiders]",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#d32f2f" },
+    "reminders": []
+  },
+  {
+    "id": "cerenovus",
+    "name": "Cerenovus",
+    "type": "Minion",
+    "defaultAlignment": "Evil",
+    "abilityShort": "Each night, choose a player & a good character: they are \"mad\" they are this character tomorrow, or might be executed.",
+    "firstNight": {
+      "order": 37,
+      "helpText": "The Cerenovus chooses a player & a character. Put the Cerenovus to sleep. Wake the target. Show the THIS CHARACTER SELECTED YOU token, the Cerenovus token, then the madness-character token.",
+      "subActions": [
+        {
+          "id": "cerenovus-fn-1",
+          "description": "The Cerenovus chooses a player & a character.",
+          "isConditional": false
+        },
+        {
+          "id": "cerenovus-fn-2",
+          "description": "Put the Cerenovus to sleep.",
+          "isConditional": false
+        },
+        { "id": "cerenovus-fn-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "cerenovus-fn-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU token, the Cerenovus token, then the madness-character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 21,
+      "helpText": "The Cerenovus chooses a player & a character. Put the Cerenovus to sleep. Wake the target. Show the THIS CHARACTER SELECTED YOU token, the Cerenovus token, then the madness-character token.",
+      "subActions": [
+        {
+          "id": "cerenovus-on-1",
+          "description": "The Cerenovus chooses a player & a character.",
+          "isConditional": false
+        },
+        {
+          "id": "cerenovus-on-2",
+          "description": "Put the Cerenovus to sleep.",
+          "isConditional": false
+        },
+        { "id": "cerenovus-on-3", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "cerenovus-on-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU token, the Cerenovus token, then the madness-character token.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#d32f2f" },
+    "reminders": []
+  },
+  {
+    "id": "scarletwoman",
+    "name": "Scarlet Woman",
+    "type": "Minion",
+    "defaultAlignment": "Evil",
+    "abilityShort": "If there are 5 or more players alive & the Demon dies, you become the Demon. (Travellers don't count)",
+    "firstNight": null,
+    "otherNights": {
+      "order": 26,
+      "helpText": "If the Scarlet Woman became the Demon today, show them the YOU ARE token, then the Demon token.",
+      "subActions": [
+        {
+          "id": "scarletwoman-on-1",
+          "description": "If the Scarlet Woman became the Demon today, show them the YOU ARE token, then the Demon token.",
+          "isConditional": true
+        }
+      ]
+    },
+    "icon": { "placeholder": "#d32f2f" },
+    "reminders": []
+  },
+  {
+    "id": "marionette",
+    "name": "Marionette",
+    "type": "Minion",
+    "defaultAlignment": "Evil",
+    "abilityShort": "You think you are a good character, but you are not. The Demon knows who you are. [You neighbor the Demon]",
+    "firstNight": {
+      "order": 21,
+      "helpText": "Wake the Demon. Show the THIS PLAYER IS & Marionette tokens. Point to the Marionette.",
+      "subActions": [
+        { "id": "marionette-fn-1", "description": "Wake the Demon.", "isConditional": false },
+        {
+          "id": "marionette-fn-2",
+          "description": "Show the THIS PLAYER IS & Marionette tokens.",
+          "isConditional": false
+        },
+        {
+          "id": "marionette-fn-3",
+          "description": "Point to the Marionette.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": null,
+    "icon": { "placeholder": "#d32f2f" },
+    "reminders": []
+  },
+  {
+    "id": "nodashii",
+    "name": "No Dashii",
+    "type": "Demon",
+    "defaultAlignment": "Evil",
+    "abilityShort": "Each night*, choose a player: they die. Your 2 Townsfolk neighbors are poisoned.",
+    "firstNight": null,
+    "otherNights": {
+      "order": 39,
+      "helpText": "The No Dashii chooses a player.",
+      "subActions": [
+        {
+          "id": "nodashii-on-1",
+          "description": "The No Dashii chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#b71c1c" },
+    "reminders": []
+  },
+  {
+    "id": "fanggu",
+    "name": "Fang Gu",
+    "type": "Demon",
+    "defaultAlignment": "Evil",
+    "abilityShort": "Each night*, choose a player: they die. The 1st Outsider this kills becomes an evil Fang Gu & you die instead. [+1 Outsider]",
+    "firstNight": null,
+    "otherNights": {
+      "order": 38,
+      "helpText": "The Fang Gu chooses a player. If they chose an Outsider (once only): Replace the Outsider token with the spare Fang Gu token. Put the Fang Gu to sleep. Wake the target. Show the YOU ARE and Fang Gu tokens & give a thumbs-down.",
+      "subActions": [
+        {
+          "id": "fanggu-on-1",
+          "description": "The Fang Gu chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "fanggu-on-2",
+          "description": "If they chose an Outsider (once only): Replace the Outsider token with the spare Fang Gu token.",
+          "isConditional": true
+        },
+        { "id": "fanggu-on-3", "description": "Put the Fang Gu to sleep.", "isConditional": false },
+        { "id": "fanggu-on-4", "description": "Wake the target.", "isConditional": false },
+        {
+          "id": "fanggu-on-5",
+          "description": "Show the YOU ARE and Fang Gu tokens & give a thumbs-down.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#b71c1c" },
+    "reminders": []
+  },
+  {
+    "id": "imp",
+    "name": "Imp",
+    "type": "Demon",
+    "defaultAlignment": "Evil",
+    "abilityShort": "Each night*, choose a player: they die. If you kill yourself this way, a Minion becomes the Imp.",
+    "firstNight": null,
+    "otherNights": {
+      "order": 33,
+      "helpText": "The Imp chooses a player. If the Imp chose themselves: Replace 1 alive Minion token with a spare Imp token. Put the old Imp to sleep. Wake the new Imp. Show the YOU ARE token, then show the Imp token.",
+      "subActions": [
+        { "id": "imp-on-1", "description": "The Imp chooses a player.", "isConditional": false },
+        {
+          "id": "imp-on-2",
+          "description": "If the Imp chose themselves: Replace 1 alive Minion token with a spare Imp token.",
+          "isConditional": true
+        },
+        { "id": "imp-on-3", "description": "Put the old Imp to sleep.", "isConditional": false },
+        { "id": "imp-on-4", "description": "Wake the new Imp.", "isConditional": false },
+        {
+          "id": "imp-on-5",
+          "description": "Show the YOU ARE token, then show the Imp token.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#b71c1c" },
+    "reminders": []
+  }
+]
