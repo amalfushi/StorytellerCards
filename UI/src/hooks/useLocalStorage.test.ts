@@ -63,7 +63,7 @@ describe('useLocalStorage', () => {
     expect(result.current[0]).toEqual(initial);
 
     act(() => {
-      result.current[1]({ players: ['Alice'], count: 1 });
+      result.current[1]({ players: ['Alice'] as never, count: 1 });
     });
 
     expect(result.current[0]).toEqual({ players: ['Alice'], count: 1 });

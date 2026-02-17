@@ -5,7 +5,13 @@ import IconButton from '@mui/material/IconButton';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useSwipeable } from 'react-swipeable';
-import type { NightOrderEntry, PlayerSeat, CharacterDef, NightProgress } from '@/types/index.ts';
+import type {
+  NightOrderEntry,
+  PlayerSeat,
+  CharacterDef,
+  NightProgress,
+  NightHistoryEntry,
+} from '@/types/index.ts';
 import { NightFlashcard } from './NightFlashcard.tsx';
 import { StructuralCard } from './StructuralCard.tsx';
 import { NightProgressBar } from './NightProgressBar.tsx';
@@ -17,8 +23,15 @@ export interface FlashcardCarouselProps {
   nightProgress: NightProgress;
   onUpdateProgress: (characterId: string, subActionIndex: number) => void;
   onUpdateNotes: (characterId: string, notes: string) => void;
+  onUpdateSelection?: (characterId: string, value: string | string[]) => void;
   onComplete: () => void;
   readOnly?: boolean;
+  /** All script characters for choice dropdowns */
+  scriptCharacters?: CharacterDef[];
+  /** Previous night's history entry (for displaying last night's selections) */
+  previousNightHistory?: NightHistoryEntry;
+  /** Callback when a dot is clicked to jump to that card */
+  onDotClick?: (index: number) => void;
 }
 
 /**
@@ -34,8 +47,12 @@ export function FlashcardCarousel({
   nightProgress,
   onUpdateProgress,
   onUpdateNotes,
+  onUpdateSelection,
   onComplete,
   readOnly = false,
+  scriptCharacters = [],
+  previousNightHistory,
+  onDotClick,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
   const [slideDir, setSlideDir] = useState<'none' | 'left' | 'right'>('none');
@@ -98,6 +115,22 @@ export function FlashcardCarousel({
     preventScrollOnSwipe: true,
   });
 
+  /** Jump to an arbitrary card index (for dot clicks). */
+  const goToIndex = useCallback(
+    (idx: number) => {
+      if (isAnimating.current || idx === currentIndex) return;
+      if (idx < 0 || idx >= totalCards) return;
+      isAnimating.current = true;
+      setSlideDir(idx > currentIndex ? 'left' : 'right');
+      setTimeout(() => {
+        setCurrentIndex(idx);
+        setSlideDir('none');
+        isAnimating.current = false;
+      }, 300);
+    },
+    [currentIndex, totalCards],
+  );
+
   /** Toggle a single sub-action checkbox for a given entry. */
   const handleToggle = useCallback(
     (entryId: string, subActionIndex: number) => {
@@ -114,6 +147,23 @@ export function FlashcardCarousel({
     [onUpdateNotes],
   );
 
+  /** Update selection for a given entry. */
+  const handleSelection = useCallback(
+    (entryId: string, value: string | string[]) => {
+      onUpdateSelection?.(entryId, value);
+    },
+    [onUpdateSelection],
+  );
+
+  /** Handle dot click navigation */
+  const handleDotClick = useCallback(
+    (idx: number) => {
+      onDotClick?.(idx);
+      goToIndex(idx);
+    },
+    [onDotClick, goToIndex],
+  );
+
   /** Render the correct card type for a given index. */
   const renderCard = (idx: number) => {
     if (idx < 0 || idx >= totalCards) return null;
@@ -121,6 +171,8 @@ export function FlashcardCarousel({
     const checked =
       nightProgress.subActionStates[entry.id] ?? new Array(entry.subActions.length).fill(false);
     const note = nightProgress.notes[entry.id] ?? '';
+    const selectionValue = nightProgress.selections?.[entry.id];
+    const prevSelection = previousNightHistory?.selections?.[entry.id];
 
     if (entry.type === 'structural') {
       return (
@@ -148,6 +200,11 @@ export function FlashcardCarousel({
         onNotesChange={(n) => handleNotes(entry.id, n)}
         isDead={isDead}
         readOnly={readOnly}
+        players={players}
+        scriptCharacters={scriptCharacters}
+        selectionValue={selectionValue}
+        onSelectionChange={(v) => handleSelection(entry.id, v)}
+        previousSelection={prevSelection}
       />
     );
   };
@@ -190,6 +247,7 @@ export function FlashcardCarousel({
         entries={entries}
         characterTypes={characterTypes}
         deadIds={deadIds}
+        onClick={handleDotClick}
       />
 
       {/* Swipeable card area */}

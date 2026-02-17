@@ -140,6 +140,16 @@ export interface Script {
 // Player / Seat
 // ──────────────────────────────────────────────
 
+/** A status token that can be placed on a player in the Grimoire. */
+export interface PlayerToken {
+  id: string;
+  type: 'drunk' | 'poisoned' | 'custom';
+  label: string;
+  /** Which character placed this token (optional). */
+  sourceCharacterId?: string;
+  color?: string;
+}
+
 /** A single player seat in a running game. */
 export interface PlayerSeat {
   /** Seat number (1–20). */
@@ -154,6 +164,8 @@ export interface PlayerSeat {
   /** IDs of active reminder tokens placed on this seat. */
   activeReminders: string[];
   isTraveller: boolean;
+  /** Status tokens placed on this player (drunk, poisoned, custom). */
+  tokens: PlayerToken[];
 }
 
 // ──────────────────────────────────────────────
@@ -199,6 +211,8 @@ export interface NightHistoryEntry {
   subActionStates: Record<string, boolean[]>;
   /** characterId → free-text notes. */
   notes: Record<string, string>;
+  /** characterId → selected value(s) from night choice dropdowns. */
+  selections: Record<string, string | string[]>;
 }
 
 /** Current in-flight night walkthrough progress. */
@@ -206,5 +220,7 @@ export interface NightProgress {
   currentCardIndex: number;
   subActionStates: Record<string, boolean[]>;
   notes: Record<string, string>;
+  /** characterId → selected value(s) from night choice dropdowns. */
+  selections: Record<string, string | string[]>;
   totalCards: number;
 }

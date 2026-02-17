@@ -1,9 +1,8 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import Box from '@mui/material/Box';
-import Fab from '@mui/material/Fab';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
-import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
+import type { CharacterDef } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 import { useNightOrder } from '@/hooks/useNightOrder.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -11,44 +10,80 @@ import { FlashcardCarousel } from './FlashcardCarousel.tsx';
 
 export interface NightPhaseOverlayProps {
   scriptCharacterIds: string[];
+  /** When true, the overlay is shown (controlled from parent, e.g. AppBar button). */
+  externalOpen?: boolean;
+  /** Called when the overlay wants to close (so parent can sync state). */
+  onClose?: () => void;
 }
 
 /**
  * Full-screen overlay that contains the Night Phase flashcard carousel.
  *
- * Visible when the game phase is Night and nightProgress is active.
- * Can be dismissed without losing progress; a "Resume Night" FAB
- * re-opens the overlay.
+ * Controlled via `externalOpen` / `onClose` props from the parent (AppBar button).
+ * When opened, auto-starts night progress if not already started.
  */
-export function NightPhaseOverlay({ scriptCharacterIds }: NightPhaseOverlayProps) {
+export function NightPhaseOverlay({
+  scriptCharacterIds,
+  externalOpen = false,
+  onClose,
+}: NightPhaseOverlayProps) {
   const { state, startNight, updateNightProgress, completeNight } = useGame();
   const { game, nightProgress } = state;
-  const { getCharacter } = useCharacterLookup();
+  const { getCharacter, getCharactersByIds } = useCharacterLookup();
 
   const isFirstNight = game?.isFirstNight ?? true;
-  const entries = useNightOrder(scriptCharacterIds, isFirstNight);
+  const allEntries = useNightOrder(scriptCharacterIds, isFirstNight);
 
-  const [overlayVisible, setOverlayVisible] = useState(true);
+  // M3-3: Filter night order to only characters assigned to players (keep structural entries)
+  const assignedCharIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const p of game?.players ?? []) {
+      if (p.characterId) ids.add(p.characterId);
+    }
+    return ids;
+  }, [game?.players]);
+
+  const entries = useMemo(
+    () => allEntries.filter((e) => e.type === 'structural' || assignedCharIds.has(e.id)),
+    [allEntries, assignedCharIds],
+  );
+
+  // Script characters for the choice dropdowns
+  const scriptCharacters: CharacterDef[] = useMemo(
+    () => getCharactersByIds(scriptCharacterIds),
+    [getCharactersByIds, scriptCharacterIds],
+  );
+
+  // Previous night's history entry (for showing last night's selections)
+  // const previousNightHistory = useMemo(()=> {
+  //   if (!game?.nightHistory.length) return undefined;
+  //   return game.nightHistory[game.nightHistory.length - 1];
+  // }, [game?.nightHistory]);
+  const previousNightHistory =
+    game && game.nightHistory?.length > 0
+      ? game.nightHistory[game.nightHistory.length - 1]
+      : undefined;
 
   const isNightPhase = game?.currentPhase === 'Night';
+  const [overlayVisible, setOverlayVisible] = useState(externalOpen && isNightPhase);
+
   const hasProgress = nightProgress !== null;
 
-  // Auto-start night progress when entering Night phase without progress
-  // This is triggered by the "Start Night" action in the PhaseBar
-  const shouldAutoStart = isNightPhase && !hasProgress;
-
-  /** Open overlay and start night if needed. */
-  const handleStartOrResume = useCallback(() => {
-    if (shouldAutoStart) {
-      startNight(entries.length);
+  // Sync externalOpen prop → internal state
+  useEffect(() => {
+    if (externalOpen && isNightPhase) {
+      if (!hasProgress) {
+        startNight(entries.length);
+      }
+      // setOverlayVisible(true);
     }
-    setOverlayVisible(true);
-  }, [shouldAutoStart, startNight, entries.length]);
+  }, [externalOpen, isNightPhase, hasProgress, startNight, entries.length]);
 
   /** Dismiss overlay but preserve progress. */
   const handleDismiss = useCallback(() => {
     setOverlayVisible(false);
-  }, []);
+    onClose?.();
+  }, [onClose]);
 
   /** Toggle a sub-action checkbox. */
   const handleUpdateProgress = useCallback(
@@ -72,85 +107,25 @@ export function NightPhaseOverlay({ scriptCharacterIds }: NightPhaseOverlayProps
     [updateNightProgress],
   );
 
+  /** Update selection for a character. */
+  const handleUpdateSelection = useCallback(
+    (characterId: string, value: string | string[]) => {
+      updateNightProgress(characterId, undefined, undefined, value);
+    },
+    [updateNightProgress],
+  );
+
   /** Complete the night, close overlay. */
   const handleComplete = useCallback(() => {
     completeNight();
     setOverlayVisible(false);
-  }, [completeNight]);
+    onClose?.();
+  }, [completeNight, onClose]);
 
   const players = useMemo(() => game?.players ?? [], [game?.players]);
 
-  // ── If not night phase, render nothing ──
-  if (!isNightPhase) return null;
-
-  // ── "Resume Night" FAB when overlay is dismissed but progress exists ──
-  if (hasProgress && !overlayVisible) {
-    return (
-      <Fab
-        color="primary"
-        onClick={() => setOverlayVisible(true)}
-        sx={{
-          position: 'fixed',
-          bottom: 80,
-          right: 16,
-          zIndex: 1200,
-          backgroundColor: '#1a237e',
-          '&:hover': { backgroundColor: '#283593' },
-        }}
-        aria-label="Resume Night"
-      >
-        <NightlightRoundIcon />
-      </Fab>
-    );
-  }
-
-  // ── "Start Night" FAB when night phase but no progress yet ──
-  if (!hasProgress && !overlayVisible) {
-    return (
-      <Fab
-        color="primary"
-        variant="extended"
-        onClick={handleStartOrResume}
-        sx={{
-          position: 'fixed',
-          bottom: 80,
-          right: 16,
-          zIndex: 1200,
-          backgroundColor: '#1a237e',
-          '&:hover': { backgroundColor: '#283593' },
-        }}
-        aria-label="Start Night"
-      >
-        <NightlightRoundIcon sx={{ mr: 1 }} />
-        Start Night
-      </Fab>
-    );
-  }
-
-  // ── No progress and overlay wants to be visible → auto-start ──
-  if (!hasProgress && overlayVisible) {
-    // Trigger start on next tick to avoid dispatching during render
-    // We show a loading-like state; the effect will fire via the FAB click
-    return (
-      <Fab
-        color="primary"
-        variant="extended"
-        onClick={handleStartOrResume}
-        sx={{
-          position: 'fixed',
-          bottom: 80,
-          right: 16,
-          zIndex: 1200,
-          backgroundColor: '#1a237e',
-          '&:hover': { backgroundColor: '#283593' },
-        }}
-        aria-label="Start Night"
-      >
-        <NightlightRoundIcon sx={{ mr: 1 }} />
-        Start Night
-      </Fab>
-    );
-  }
+  // Only render when night phase is active AND overlay should be visible
+  if (!isNightPhase || !hasProgress || !overlayVisible) return null;
 
   // ── Full overlay ──
   return (
@@ -193,7 +168,10 @@ export function NightPhaseOverlay({ scriptCharacterIds }: NightPhaseOverlayProps
           nightProgress={nightProgress!}
           onUpdateProgress={handleUpdateProgress}
           onUpdateNotes={handleUpdateNotes}
+          onUpdateSelection={handleUpdateSelection}
           onComplete={handleComplete}
+          scriptCharacters={scriptCharacters}
+          previousNightHistory={previousNightHistory}
         />
       </Box>
     </Box>

@@ -11,10 +11,13 @@ export interface NightProgressBarProps {
   characterTypes?: Record<string, string>;
   /** Set of entry ids whose players are dead, for hollow dots. */
   deadIds?: Set<string>;
+  /** Callback when a dot is clicked — jumps to that card index. */
+  onClick?: (index: number) => void;
 }
 
 /**
  * Compact progress indicator showing "X / Y" and a row of coloured dots.
+ * Each dot is clickable when an `onClick` handler is provided.
  */
 export function NightProgressBar({
   currentIndex,
@@ -22,6 +25,7 @@ export function NightProgressBar({
   entries,
   characterTypes = {},
   deadIds = new Set(),
+  onClick,
 }: NightProgressBarProps) {
   return (
     <Box
@@ -50,7 +54,7 @@ export function NightProgressBar({
       <Box
         sx={{
           display: 'flex',
-          gap: '3px',
+          gap: '4px',
           flexWrap: 'wrap',
           justifyContent: 'center',
           maxWidth: '100%',
@@ -70,15 +74,32 @@ export function NightProgressBar({
           return (
             <Box
               key={`${entry.id}-${i}`}
+              role={onClick ? 'button' : undefined}
+              tabIndex={onClick ? 0 : undefined}
+              aria-label={onClick ? `Go to card ${i + 1}: ${entry.name}` : undefined}
+              onClick={() => onClick?.(i)}
+              onKeyDown={(e) => {
+                if (onClick && (e.key === 'Enter' || e.key === ' ')) {
+                  e.preventDefault();
+                  onClick(i);
+                }
+              }}
               sx={{
-                width: isCurrent ? 10 : 6,
-                height: isCurrent ? 10 : 6,
+                width: isCurrent ? 18 : 14,
+                height: isCurrent ? 18 : 14,
                 borderRadius: '50%',
                 backgroundColor: isDead ? 'transparent' : dotColor,
-                border: isDead ? `1.5px solid ${dotColor}` : isCurrent ? `2px solid #fff` : 'none',
+                border: isDead ? `2px solid ${dotColor}` : isCurrent ? '2px solid #fff' : 'none',
                 opacity: isCurrent ? 1 : 0.6,
                 transition: 'all 0.2s ease',
                 flexShrink: 0,
+                cursor: onClick ? 'pointer' : 'default',
+                '&:hover': onClick
+                  ? {
+                      opacity: 1,
+                      transform: 'scale(1.2)',
+                    }
+                  : {},
               }}
             />
           );

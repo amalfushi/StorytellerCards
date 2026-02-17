@@ -83,6 +83,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Good',
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   },
   {
     seat: 2,
@@ -95,6 +96,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Evil',
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   },
   {
     seat: 3,
@@ -107,6 +109,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Good',
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   },
   {
     seat: 4,
@@ -119,6 +122,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Evil',
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   },
   {
     seat: 5,
@@ -131,6 +135,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Good',
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   },
   {
     seat: 6,
@@ -143,6 +148,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Good',
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   },
   {
     seat: 7,
@@ -155,6 +161,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Good',
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   },
   {
     seat: 8,
@@ -167,6 +174,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Evil',
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   },
   {
     seat: 9,
@@ -179,6 +187,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Good',
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   },
   {
     seat: 10,
@@ -191,6 +200,7 @@ export const mockPlayers: PlayerSeat[] = [
     startingAlignment: 'Good',
     activeReminders: [],
     isTraveller: true,
+    tokens: [],
   },
 ];
 
@@ -261,6 +271,7 @@ export const mockNightHistoryEntries: NightHistoryEntry[] = [
       noble: 'Shown Alice, Bob, Charlie — one is evil.',
       fortuneteller: 'Chose Alice and Bob — No.',
     },
+    selections: {},
   },
   {
     dayNumber: 2,
@@ -274,6 +285,7 @@ export const mockNightHistoryEntries: NightHistoryEntry[] = [
     notes: {
       imp: 'Killed Diana.',
     },
+    selections: {},
   },
   {
     dayNumber: 3,
@@ -286,6 +298,7 @@ export const mockNightHistoryEntries: NightHistoryEntry[] = [
       cerenovus: [true, true],
     },
     notes: {},
+    selections: {},
   },
 ];
 
@@ -298,6 +311,7 @@ export const mockManyNightHistoryEntries: NightHistoryEntry[] = [
     completedAt: '2026-02-16T01:00:00.000Z',
     subActionStates: { fortuneteller: [true, true], imp: [true] },
     notes: { fortuneteller: 'Chose Eve and Frank — Yes (poisoned).' },
+    selections: {},
   },
   {
     dayNumber: 5,
@@ -305,6 +319,7 @@ export const mockManyNightHistoryEntries: NightHistoryEntry[] = [
     completedAt: '2026-02-16T01:45:00.000Z',
     subActionStates: { fortuneteller: [true, true], imp: [true], cerenovus: [true, true] },
     notes: {},
+    selections: {},
   },
   {
     dayNumber: 6,
@@ -312,6 +327,7 @@ export const mockManyNightHistoryEntries: NightHistoryEntry[] = [
     completedAt: '2026-02-16T02:20:00.000Z',
     subActionStates: { fortuneteller: [true, true], imp: [true] },
     notes: { imp: 'Starpass attempted to Bob.' },
+    selections: {},
   },
   {
     dayNumber: 7,
@@ -319,6 +335,7 @@ export const mockManyNightHistoryEntries: NightHistoryEntry[] = [
     completedAt: '2026-02-16T03:00:00.000Z',
     subActionStates: { fortuneteller: [true, true], philosopher: [true], imp: [true] },
     notes: { philosopher: 'Became the Slayer.' },
+    selections: {},
   },
   {
     dayNumber: 8,
@@ -326,6 +343,7 @@ export const mockManyNightHistoryEntries: NightHistoryEntry[] = [
     completedAt: '2026-02-16T03:40:00.000Z',
     subActionStates: { fortuneteller: [true, true], imp: [true] },
     notes: {},
+    selections: {},
   },
 ];
 
@@ -405,6 +423,7 @@ export function generateMockPlayers(count: number): PlayerSeat[] {
       startingAlignment: isEvil ? Alignment.Evil : Alignment.Good,
       activeReminders: [],
       isTraveller: false,
+      tokens: [],
     };
   });
 }

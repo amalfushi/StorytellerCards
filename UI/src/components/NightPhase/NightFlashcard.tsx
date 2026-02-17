@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
@@ -7,6 +8,8 @@ import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
+import { NightChoiceSelector } from './NightChoiceSelector.tsx';
+import { parseHelpTextForChoice } from './NightChoiceHelper.ts';
 
 export interface NightFlashcardProps {
   entry: NightOrderEntry;
@@ -18,6 +21,16 @@ export interface NightFlashcardProps {
   onNotesChange: (notes: string) => void;
   isDead: boolean;
   readOnly?: boolean;
+  /** All players in the game (for choice dropdowns). */
+  players?: PlayerSeat[];
+  /** All script characters (for character choice dropdown). */
+  scriptCharacters?: CharacterDef[];
+  /** Current selection value for this character's choice. */
+  selectionValue?: string | string[];
+  /** Callback when selection changes. */
+  onSelectionChange?: (value: string | string[]) => void;
+  /** Previous night's selection for context display. */
+  previousSelection?: string | string[];
 }
 
 /**
@@ -36,10 +49,18 @@ export function NightFlashcard({
   onNotesChange,
   isDead,
   readOnly = false,
+  players = [],
+  scriptCharacters = [],
+  selectionValue,
+  onSelectionChange,
+  previousSelection,
 }: NightFlashcardProps) {
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
 
   const typeName = characterDef?.type ?? 'Unknown';
+
+  // Parse helpText to detect if this character needs a choice dropdown
+  const parsedChoice = useMemo(() => parseHelpTextForChoice(entry.helpText), [entry.helpText]);
 
   return (
     <Box
@@ -55,8 +76,9 @@ export function NightFlashcard({
         minHeight: 0,
         flex: 1,
         overflow: 'auto',
-        opacity: isDead ? 0.5 : 1,
-        transition: 'opacity 0.3s ease',
+        opacity: isDead ? 0.7 : 1,
+        filter: isDead ? 'saturate(0.3)' : 'none',
+        transition: 'opacity 0.3s ease, filter 0.3s ease',
       }}
     >
       {/* Ghost badge for dead players */}
@@ -122,6 +144,24 @@ export function NightFlashcard({
             border: '1px solid',
           }}
         />
+
+        {/* Short ability description */}
+        {characterDef?.abilityShort && (
+          <Typography
+            variant="body2"
+            sx={{
+              color: 'rgba(255,255,255,0.7)',
+              textAlign: 'center',
+              fontStyle: 'italic',
+              mt: 1,
+              px: 1,
+              fontSize: '0.85rem',
+              lineHeight: 1.4,
+            }}
+          >
+            {characterDef.abilityShort}
+          </Typography>
+        )}
       </Box>
 
       {/* Player info */}
@@ -157,6 +197,22 @@ export function NightFlashcard({
           readOnly={readOnly}
         />
       </Box>
+
+      {/* Night choice selector (if helpText requires a player/character choice) */}
+      {parsedChoice && onSelectionChange && (
+        <NightChoiceSelector
+          type={parsedChoice.type}
+          multiple={parsedChoice.multiple}
+          maxSelections={parsedChoice.maxSelections}
+          value={selectionValue ?? (parsedChoice.multiple ? [] : '')}
+          onChange={onSelectionChange}
+          players={players}
+          characters={scriptCharacters}
+          previousValue={previousSelection}
+          label={parsedChoice.label}
+          readOnly={readOnly}
+        />
+      )}
 
       <Divider sx={{ borderColor: 'rgba(255,255,255,0.12)', mt: 1, mb: 1.5 }} />
 

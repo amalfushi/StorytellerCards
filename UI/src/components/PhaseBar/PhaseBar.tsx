@@ -7,18 +7,14 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogActions from '@mui/material/DialogActions';
 import Button from '@mui/material/Button';
-import WbTwilightIcon from '@mui/icons-material/WbTwilight';
 import LightModeIcon from '@mui/icons-material/LightMode';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
 import { Phase } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 
 /** Phase metadata: label, icon, and background colour. */
 const PHASE_CONFIG = [
-  { phase: Phase.Dawn, label: 'Dawn', icon: <WbTwilightIcon fontSize="small" />, color: '#ff8f00' },
   { phase: Phase.Day, label: 'Day', icon: <LightModeIcon fontSize="small" />, color: '#fdd835' },
-  { phase: Phase.Dusk, label: 'Dusk', icon: <DarkModeIcon fontSize="small" />, color: '#7b1fa2' },
   {
     phase: Phase.Night,
     label: 'Night',
@@ -28,23 +24,23 @@ const PHASE_CONFIG = [
 ] as const;
 
 /**
- * Horizontal stepper showing the 4 game phases: Dawn → Day → Dusk → Night.
+ * Horizontal stepper showing the 2 game phases: Day ↔ Night.
  * Tapping a phase opens a confirmation dialog before advancing.
  *
- * - Dusk → Night triggers `START_NIGHT` on GameContext.
- * - Night → Dawn is NOT handled here (that's the "Complete Night" flow).
+ * - Day → Night triggers `START_NIGHT` on GameContext.
+ * - Night → Day is NOT handled here (that's the "Complete Night" flow).
  */
 export function PhaseBar() {
   const { state, setPhase, startNight } = useGame();
   const [pendingPhase, setPendingPhase] = useState<Phase | null>(null);
 
-  const currentPhase = state.game?.currentPhase ?? Phase.Dawn;
+  const currentPhase = state.game?.currentPhase ?? Phase.Day;
 
   const handleChipClick = (targetPhase: Phase) => {
     if (targetPhase === currentPhase) return;
 
-    // Block advancing from Night — that requires the Complete Night flow
-    if (currentPhase === Phase.Night && targetPhase === Phase.Dawn) return;
+    // Block advancing from Night → Day — that requires the Complete Night flow
+    if (currentPhase === Phase.Night && targetPhase === Phase.Day) return;
 
     setPendingPhase(targetPhase);
   };

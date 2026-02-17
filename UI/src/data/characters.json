@@ -587,5 +587,518 @@
     },
     "icon": { "placeholder": "#b71c1c" },
     "reminders": []
+  },
+  {
+    "id": "steward",
+    "name": "Steward",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 57,
+      "helpText": "Point to the player marked KNOW.",
+      "subActions": [
+        {
+          "id": "steward-fn-1",
+          "description": "Point to the player marked KNOW.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": null,
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "knight",
+    "name": "Knight",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 58,
+      "helpText": "Point to the 2 players marked KNOW.",
+      "subActions": [
+        {
+          "id": "knight-fn-1",
+          "description": "Point to the 2 players marked KNOW.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": null,
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "villageidiot",
+    "name": "Village Idiot",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 62,
+      "helpText": "If there are multiple Village Idiots, mark one as DRUNK. Wake the Village Idiots one at a time to choose a player. Give a thumb signal.",
+      "subActions": [
+        {
+          "id": "villageidiot-fn-1",
+          "description": "If there are multiple Village Idiots, mark one as DRUNK.",
+          "isConditional": true
+        },
+        {
+          "id": "villageidiot-fn-2",
+          "description": "Wake the Village Idiots one at a time to choose a player.",
+          "isConditional": false
+        },
+        { "id": "villageidiot-fn-3", "description": "Give a thumb signal.", "isConditional": false }
+      ]
+    },
+    "otherNights": {
+      "order": 79,
+      "helpText": "Wake the Village Idiots one at a time to choose a player. Give a thumb signal.",
+      "subActions": [
+        {
+          "id": "villageidiot-on-1",
+          "description": "Wake the Village Idiots one at a time to choose a player.",
+          "isConditional": false
+        },
+        { "id": "villageidiot-on-2", "description": "Give a thumb signal.", "isConditional": false }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "snakecharmer",
+    "name": "Snake Charmer",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 31,
+      "helpText": "The Snake Charmer chooses a player. If they chose the Demon: Show the YOU ARE & Demon tokens. Give a thumbs down. Swap the Snake Charmer & Demon tokens. Put the old Snake Charmer to sleep. Wake the old Demon. Show the YOU ARE and Snake Charmer tokens & give a thumbs up.",
+      "subActions": [
+        {
+          "id": "snakecharmer-fn-1",
+          "description": "The Snake Charmer chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "snakecharmer-fn-2",
+          "description": "If they chose the Demon: Show the YOU ARE & Demon tokens.",
+          "isConditional": true
+        },
+        { "id": "snakecharmer-fn-3", "description": "Give a thumbs down.", "isConditional": false },
+        {
+          "id": "snakecharmer-fn-4",
+          "description": "Swap the Snake Charmer & Demon tokens.",
+          "isConditional": false
+        },
+        {
+          "id": "snakecharmer-fn-5",
+          "description": "Put the old Snake Charmer to sleep.",
+          "isConditional": false
+        },
+        { "id": "snakecharmer-fn-6", "description": "Wake the old Demon.", "isConditional": false },
+        {
+          "id": "snakecharmer-fn-7",
+          "description": "Show the YOU ARE and Snake Charmer tokens & give a thumbs up.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 16,
+      "helpText": "The Snake Charmer chooses a player. If they chose the Demon: Show the YOU ARE & Demon tokens. Give a thumbs down. Swap the Snake Charmer & Demon tokens. Put the old Snake Charmer to sleep. Wake the old Demon. Show the YOU ARE and Snake Charmer tokens & give a thumbs up.",
+      "subActions": [
+        {
+          "id": "snakecharmer-on-1",
+          "description": "The Snake Charmer chooses a player.",
+          "isConditional": false
+        },
+        {
+          "id": "snakecharmer-on-2",
+          "description": "If they chose the Demon: Show the YOU ARE & Demon tokens.",
+          "isConditional": true
+        },
+        { "id": "snakecharmer-on-3", "description": "Give a thumbs down.", "isConditional": false },
+        {
+          "id": "snakecharmer-on-4",
+          "description": "Swap the Snake Charmer & Demon tokens.",
+          "isConditional": false
+        },
+        {
+          "id": "snakecharmer-on-5",
+          "description": "Put the old Snake Charmer to sleep.",
+          "isConditional": false
+        },
+        { "id": "snakecharmer-on-6", "description": "Wake the old Demon.", "isConditional": false },
+        {
+          "id": "snakecharmer-on-7",
+          "description": "Show the YOU ARE and Snake Charmer tokens & give a thumbs up.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "monk",
+    "name": "Monk",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": null,
+    "otherNights": {
+      "order": 17,
+      "helpText": "The Monk chooses a player.",
+      "subActions": [
+        { "id": "monk-on-1", "description": "The Monk chooses a player.", "isConditional": false }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "amnesiac",
+    "name": "Amnesiac",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 45,
+      "helpText": "Do whatever needs to be done to satisfy the Amnesiac's ability.",
+      "subActions": [
+        {
+          "id": "amnesiac-fn-1",
+          "description": "Do whatever needs to be done to satisfy the Amnesiac's ability.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 62,
+      "helpText": "Do whatever needs to be done to satisfy the Amnesiac's ability.",
+      "subActions": [
+        {
+          "id": "amnesiac-on-1",
+          "description": "Do whatever needs to be done to satisfy the Amnesiac's ability.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "seamstress",
+    "name": "Seamstress",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 56,
+      "helpText": "The Seamstress might choose 2 players. Nod or shake your head.",
+      "subActions": [
+        {
+          "id": "seamstress-fn-1",
+          "description": "The Seamstress might choose 2 players.",
+          "isConditional": false
+        },
+        {
+          "id": "seamstress-fn-2",
+          "description": "Nod or shake your head.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 76,
+      "helpText": "The Seamstress might choose 2 players. Nod or shake your head.",
+      "subActions": [
+        {
+          "id": "seamstress-on-1",
+          "description": "The Seamstress might choose 2 players.",
+          "isConditional": false
+        },
+        {
+          "id": "seamstress-on-2",
+          "description": "Nod or shake your head.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "farmer",
+    "name": "Farmer",
+    "type": "Townsfolk",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": null,
+    "otherNights": {
+      "order": 63,
+      "helpText": "If the Farmer died tonight, wake a living good player. Show the YOU ARE info token and a Farmer token.",
+      "subActions": [
+        {
+          "id": "farmer-on-1",
+          "description": "If the Farmer died tonight, wake a living good player.",
+          "isConditional": true
+        },
+        {
+          "id": "farmer-on-2",
+          "description": "Show the YOU ARE info token and a Farmer token.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#1976d2" },
+    "reminders": []
+  },
+  {
+    "id": "ogre",
+    "name": "Ogre",
+    "type": "Outsider",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 67,
+      "helpText": "The Ogre chooses a player.",
+      "subActions": [
+        { "id": "ogre-fn-1", "description": "The Ogre chooses a player.", "isConditional": false }
+      ]
+    },
+    "otherNights": null,
+    "icon": { "placeholder": "#1565c0" },
+    "reminders": []
+  },
+  {
+    "id": "goon",
+    "name": "Goon",
+    "type": "Outsider",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#1565c0" },
+    "reminders": []
+  },
+  {
+    "id": "recluse",
+    "name": "Recluse",
+    "type": "Outsider",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#1565c0" },
+    "reminders": []
+  },
+  {
+    "id": "poisoner",
+    "name": "Poisoner",
+    "type": "Minion",
+    "defaultAlignment": "Evil",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 27,
+      "helpText": "The Poisoner chooses a player.",
+      "subActions": [
+        {
+          "id": "poisoner-fn-1",
+          "description": "The Poisoner chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 10,
+      "helpText": "The Poisoner chooses a player.",
+      "subActions": [
+        {
+          "id": "poisoner-on-1",
+          "description": "The Poisoner chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#e53935" },
+    "reminders": []
+  },
+  {
+    "id": "harpy",
+    "name": "Harpy",
+    "type": "Minion",
+    "defaultAlignment": "Evil",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 39,
+      "helpText": "The Harpy chooses 2 players. Put the Harpy to sleep. Wake the 1st target. Show the THIS CHARACTER SELECTED YOU token, the Harpy token, then point to the 2nd target.",
+      "subActions": [
+        {
+          "id": "harpy-fn-1",
+          "description": "The Harpy chooses 2 players.",
+          "isConditional": false
+        },
+        { "id": "harpy-fn-2", "description": "Put the Harpy to sleep.", "isConditional": false },
+        { "id": "harpy-fn-3", "description": "Wake the 1st target.", "isConditional": false },
+        {
+          "id": "harpy-fn-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU token, the Harpy token, then point to the 2nd target.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 24,
+      "helpText": "The Harpy chooses 2 players. Put the Harpy to sleep. Wake the 1st target. Show the THIS CHARACTER SELECTED YOU token, the Harpy token, then point to the 2nd target.",
+      "subActions": [
+        {
+          "id": "harpy-on-1",
+          "description": "The Harpy chooses 2 players.",
+          "isConditional": false
+        },
+        { "id": "harpy-on-2", "description": "Put the Harpy to sleep.", "isConditional": false },
+        { "id": "harpy-on-3", "description": "Wake the 1st target.", "isConditional": false },
+        {
+          "id": "harpy-on-4",
+          "description": "Show the THIS CHARACTER SELECTED YOU token, the Harpy token, then point to the 2nd target.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#e53935" },
+    "reminders": []
+  },
+  {
+    "id": "spy",
+    "name": "Spy",
+    "type": "Minion",
+    "defaultAlignment": "Evil",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 66,
+      "helpText": "Show the Grimoire for as long as the Spy needs.",
+      "subActions": [
+        {
+          "id": "spy-fn-1",
+          "description": "Show the Grimoire for as long as the Spy needs.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 85,
+      "helpText": "Show the Grimoire for as long as the Spy needs.",
+      "subActions": [
+        {
+          "id": "spy-on-1",
+          "description": "Show the Grimoire for as long as the Spy needs.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#e53935" },
+    "reminders": []
+  },
+  {
+    "id": "mezepheles",
+    "name": "Mezepheles",
+    "type": "Minion",
+    "defaultAlignment": "Evil",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 40,
+      "helpText": "Show the secret word.",
+      "subActions": [
+        { "id": "mezepheles-fn-1", "description": "Show the secret word.", "isConditional": false }
+      ]
+    },
+    "otherNights": {
+      "order": 25,
+      "helpText": "If a good player said the secret word, wake the player. Show the YOU ARE info token & give a thumbs-down.",
+      "subActions": [
+        {
+          "id": "mezepheles-on-1",
+          "description": "If a good player said the secret word, wake the player.",
+          "isConditional": true
+        },
+        {
+          "id": "mezepheles-on-2",
+          "description": "Show the YOU ARE info token & give a thumbs-down.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#e53935" },
+    "reminders": []
+  },
+  {
+    "id": "kazali",
+    "name": "Kazali",
+    "type": "Demon",
+    "defaultAlignment": "Evil",
+    "abilityShort": "<TODO>",
+    "firstNight": {
+      "order": 7,
+      "helpText": "The Kazali chooses which players are which Minions. Wake each target. Show the YOU ARE and Minion tokens & give a thumbs-down.",
+      "subActions": [
+        {
+          "id": "kazali-fn-1",
+          "description": "The Kazali chooses which players are which Minions.",
+          "isConditional": false
+        },
+        { "id": "kazali-fn-2", "description": "Wake each target.", "isConditional": false },
+        {
+          "id": "kazali-fn-3",
+          "description": "Show the YOU ARE and Minion tokens & give a thumbs-down.",
+          "isConditional": false
+        }
+      ]
+    },
+    "otherNights": {
+      "order": 48,
+      "helpText": "The Kazali chooses a player.",
+      "subActions": [
+        {
+          "id": "kazali-on-1",
+          "description": "The Kazali chooses a player.",
+          "isConditional": false
+        }
+      ]
+    },
+    "icon": { "placeholder": "#b71c1c" },
+    "reminders": []
+  },
+  {
+    "id": "ojo",
+    "name": "Ojo",
+    "type": "Demon",
+    "defaultAlignment": "Evil",
+    "abilityShort": "<TODO>",
+    "firstNight": null,
+    "otherNights": {
+      "order": 43,
+      "helpText": "The Ojo chooses a character.",
+      "subActions": [
+        { "id": "ojo-on-1", "description": "The Ojo chooses a character.", "isConditional": false }
+      ]
+    },
+    "icon": { "placeholder": "#b71c1c" },
+    "reminders": []
+  },
+  {
+    "id": "spiritofivory",
+    "name": "Spirit of Ivory",
+    "type": "Fabled",
+    "defaultAlignment": "Good",
+    "abilityShort": "<TODO>",
+    "firstNight": null,
+    "otherNights": null,
+    "icon": { "placeholder": "#9c27b0" },
+    "reminders": []
   }
 ]

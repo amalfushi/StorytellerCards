@@ -9,6 +9,7 @@ import HowToVoteIcon from '@mui/icons-material/HowToVote';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
+import TokenIcon from '@mui/icons-material/Token';
 import type { PlayerSeat } from '@/types/index.ts';
 
 export interface PlayerQuickActionsProps {
@@ -20,6 +21,7 @@ export interface PlayerQuickActionsProps {
   onToggleGhostVote: (seat: number) => void;
   onEditCharacter: (seat: number) => void;
   onRemoveTraveller: (seat: number) => void;
+  onManageTokens?: (seat: number) => void;
 }
 
 /**
@@ -40,6 +42,7 @@ export function PlayerQuickActions({
   onToggleGhostVote,
   onEditCharacter,
   onRemoveTraveller,
+  onManageTokens,
 }: PlayerQuickActionsProps) {
   if (!player) return null;
 
@@ -62,6 +65,11 @@ export function PlayerQuickActions({
 
   const handleRemoveTraveller = () => {
     onRemoveTraveller(player.seat);
+    onClose();
+  };
+
+  const handleManageTokens = () => {
+    onManageTokens?.(player.seat);
     onClose();
   };
 
@@ -96,6 +104,17 @@ export function PlayerQuickActions({
           </ListItemText>
         </MenuItem>
       )}
+
+      {/* Manage Tokens */}
+      {onManageTokens && [
+        <Divider key="div-tokens" />,
+        <MenuItem key="tokens" onClick={handleManageTokens}>
+          <ListItemIcon>
+            <TokenIcon />
+          </ListItemIcon>
+          <ListItemText>Manage Tokens</ListItemText>
+        </MenuItem>,
+      ]}
 
       {/* Night-view only: edit character */}
       {showCharacters && [

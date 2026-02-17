@@ -92,15 +92,12 @@ export function HomePage() {
             {state.sessions.map((session) => (
               <ListItem key={session.id} disablePadding sx={{ mb: 1.5 }}>
                 <Card sx={{ width: '100%' }} elevation={2}>
-                  <CardActionArea onClick={() => handleOpenSession(session.id)}>
-                    <CardContent
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 2,
-                      }}
+                  <Box sx={{ display: 'flex', alignItems: 'stretch' }}>
+                    <CardActionArea
+                      onClick={() => handleOpenSession(session.id)}
+                      sx={{ flexGrow: 1 }}
                     >
-                      <Box sx={{ flexGrow: 1 }}>
+                      <CardContent>
                         <Typography variant="h6" component="div">
                           {session.name}
                         </Typography>
@@ -109,17 +106,18 @@ export function HomePage() {
                           {session.gameIds.length} {session.gameIds.length === 1 ? 'game' : 'games'}
                           {session.defaultScriptId ? ` · ${session.defaultScriptId}` : ''}
                         </Typography>
-                      </Box>
+                      </CardContent>
+                    </CardActionArea>
+                    <Box sx={{ display: 'flex', alignItems: 'center', px: 1 }}>
                       <IconButton
-                        edge="end"
                         aria-label="delete session"
                         onClick={(e) => handleDeleteSession(e, session.id)}
                         sx={{ color: 'error.main' }}
                       >
                         <DeleteIcon />
                       </IconButton>
-                    </CardContent>
-                  </CardActionArea>
+                    </Box>
+                  </Box>
                 </Card>
               </ListItem>
             ))}

@@ -1,21 +1,24 @@
-import { useEffect, useState, useMemo, useRef } from 'react';
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import Alert from '@mui/material/Alert';
 import AppBar from '@mui/material/AppBar';
 import Badge from '@mui/material/Badge';
 import Box from '@mui/material/Box';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
+import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import GroupsIcon from '@mui/icons-material/Groups';
 import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
-import type { Game, Phase } from '@/types/index.ts';
+import type { Game, Phase, Script } from '@/types/index.ts';
 import { useSession } from '@/context/SessionContext.tsx';
 import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -27,6 +30,7 @@ import { ScriptReferenceTab } from '@/components/ScriptViewer/ScriptReferenceTab
 import { NightOrderTab } from '@/components/NightOrder/NightOrderTab.tsx';
 import { NightPhaseOverlay } from '@/components/NightPhase/NightPhaseOverlay.tsx';
 import { NightHistoryDrawer } from '@/components/NightHistory/NightHistoryDrawer.tsx';
+import { CharacterAssignmentDialog } from '@/components/CharacterAssignment/CharacterAssignmentDialog.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
 
@@ -43,11 +47,13 @@ export function GameViewPage() {
   const { sessionId, gameId } = useParams<{ sessionId: string; gameId: string }>();
   const navigate = useNavigate();
   const { state: sessionState } = useSession();
-  const { state: gameState, loadGame } = useGame();
-  const { allCharacters } = useCharacterLookup();
+  const { state: gameState, loadGame, updatePlayer, saveGame } = useGame();
+  const { allCharacters, getCharactersByIds } = useCharacterLookup();
 
   const [tabIndex, setTabIndex] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [nightOverlayOpen, setNightOverlayOpen] = useState(false);
 
   // ── Day timer (lifted here so state survives tab switches) ──
   const dayTimer = useTimer();
@@ -90,15 +96,57 @@ export function GameViewPage() {
   // Derive loading: we found a game in localStorage but context hasn't received it yet
   const loading = !!initialGame && !gameState.game;
 
-  // Derive script character IDs from the game's script
-  // For the Boozling script, the scriptId on the game matches the script.
-  // We pull character IDs from the allCharacters list that belong to this script.
-  // Since we don't have a scripts registry yet, we use all characters in characters.json
-  // as the Boozling script set (Phase 0–2 only support Boozling).
-  const scriptCharacterIds = useMemo(() => allCharacters.map((ch) => ch.id), [allCharacters]);
+  // Load the script from localStorage using the game's scriptId
+  const script = useMemo<Script | null>(() => {
+    const scriptId = gameState.game?.scriptId;
+    if (!scriptId) return null;
+    try {
+      const raw = localStorage.getItem(`storyteller-script-${scriptId}`);
+      if (raw) return JSON.parse(raw) as Script;
+    } catch {
+      // Ignore parse errors
+    }
+    return null;
+  }, [gameState.game?.scriptId]);
+
+  // Derive script character IDs from the loaded script, falling back to all characters
+  const scriptCharacterIds = useMemo(() => {
+    if (script?.characterIds?.length) return script.characterIds;
+    return allCharacters.map((ch) => ch.id);
+  }, [script, allCharacters]);
+
+  // Script characters as CharacterDef[] for the assignment dialog
+  const scriptCharacterDefs = useMemo(
+    () => getCharactersByIds(scriptCharacterIds),
+    [getCharactersByIds, scriptCharacterIds],
+  );
 
   const game = gameState.game;
   const nightHistoryCount = game?.nightHistory.length ?? 0;
+
+  // Check if characters need to be assigned (all non-traveller players have empty characterId)
+  const needsCharacterAssignment = useMemo(() => {
+    if (!game) return false;
+    const nonTravellers = game.players.filter((p) => !p.isTraveller);
+    return nonTravellers.length > 0 && nonTravellers.every((p) => !p.characterId);
+  }, [game]);
+
+  // Handle confirming character assignments
+  const handleConfirmAssignments = useCallback(
+    (updatedPlayers: import('@/types/index.ts').PlayerSeat[]) => {
+      for (const p of updatedPlayers) {
+        if (p.characterId) {
+          updatePlayer(p.seat, {
+            characterId: p.characterId,
+            actualAlignment: p.actualAlignment,
+            startingAlignment: p.startingAlignment,
+          });
+        }
+      }
+      saveGame();
+    },
+    [updatePlayer, saveGame],
+  );
 
   if (loading) {
     return <LoadingState message="Loading game data…" />;
@@ -168,12 +216,46 @@ export function GameViewPage() {
             </Tooltip>
           )}
 
+          {/* M3-5: Night Phase button in AppBar */}
+          {game?.currentPhase === 'Night' && (
+            <Tooltip title={gameState.nightProgress ? 'Resume Night' : 'Start Night'}>
+              <IconButton
+                color="inherit"
+                aria-label={gameState.nightProgress ? 'Resume Night' : 'Start Night'}
+                onClick={() => setNightOverlayOpen(true)}
+                sx={{ mr: 0.5 }}
+              >
+                <NightlightRoundIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+
           <ShowCharactersToggle />
         </Toolbar>
       </AppBar>
 
       {/* ── PhaseBar ── */}
       <PhaseBar />
+
+      {/* ── Character Assignment Banner ── */}
+      {needsCharacterAssignment && (
+        <Alert
+          severity="info"
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              startIcon={<AssignmentIndIcon />}
+              onClick={() => setAssignDialogOpen(true)}
+            >
+              Setup Characters
+            </Button>
+          }
+          sx={{ borderRadius: 0 }}
+        >
+          Characters haven't been assigned yet. Set up characters before the first night!
+        </Alert>
+      )}
 
       {/* ── Tab content ── */}
       <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
@@ -218,11 +300,26 @@ export function GameViewPage() {
         />
       </BottomNavigation>
 
-      {/* Night Phase Overlay — self-manages visibility based on game phase */}
-      <NightPhaseOverlay scriptCharacterIds={scriptCharacterIds} />
+      {/* Night Phase Overlay — controlled via AppBar button */}
+      <NightPhaseOverlay
+        scriptCharacterIds={scriptCharacterIds}
+        externalOpen={nightOverlayOpen}
+        onClose={() => setNightOverlayOpen(false)}
+      />
 
       {/* Night History Drawer */}
       <NightHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
+
+      {/* Character Assignment Dialog */}
+      {game && (
+        <CharacterAssignmentDialog
+          open={assignDialogOpen}
+          onClose={() => setAssignDialogOpen(false)}
+          players={game.players}
+          scriptCharacters={scriptCharacterDefs}
+          onConfirm={handleConfirmAssignments}
+        />
+      )}
     </Box>
   );
 }

@@ -8,6 +8,7 @@ import Link from '@mui/material/Link';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 
 interface CharacterCardProps {
   character: CharacterDef;
@@ -20,6 +21,7 @@ interface CharacterCardProps {
  */
 export function CharacterCard({ character }: CharacterCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
   const typeColor = getCharacterTypeColor(character.type);
 
   return (
@@ -36,8 +38,12 @@ export function CharacterCard({ character }: CharacterCardProps) {
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 1.5, py: 0.5, minHeight: 48 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
-          {/* Coloured circle placeholder */}
+          {/* Coloured circle — click opens detail modal */}
           <Box
+            onClick={(e) => {
+              e.stopPropagation();
+              setDetailOpen(true);
+            }}
             sx={{
               width: 28,
               height: 28,
@@ -47,6 +53,8 @@ export function CharacterCard({ character }: CharacterCardProps) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              cursor: 'pointer',
+              '&:hover': { opacity: 0.8 },
             }}
           >
             <Typography
@@ -137,6 +145,13 @@ export function CharacterCard({ character }: CharacterCardProps) {
           </Box>
         )}
       </AccordionDetails>
+
+      {/* Character Detail Modal */}
+      <CharacterDetailModal
+        open={detailOpen}
+        character={character}
+        onClose={() => setDetailOpen(false)}
+      />
     </Accordion>
   );
 }

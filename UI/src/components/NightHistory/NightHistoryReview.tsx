@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import Box from '@mui/material/Box';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -11,24 +11,27 @@ import { FlashcardCarousel } from '@/components/NightPhase/FlashcardCarousel.tsx
 
 export interface NightHistoryReviewProps {
   historyEntry: NightHistoryEntry;
+  /** Index of this entry in game.nightHistory (for saving edits). */
+  historyIndex: number;
   isFirstNight: boolean;
   open: boolean;
   onClose: () => void;
 }
 
 /**
- * Full-screen overlay that renders a past night's flashcard carousel in read-only mode.
+ * Full-screen overlay that renders a past night's flashcard carousel.
  *
- * Reconstructs the {@link NightProgress} from the saved {@link NightHistoryEntry}
- * and reuses the existing {@link FlashcardCarousel} with `readOnly={true}`.
+ * M3-11: Now **editable** — checkmarks, notes, and selections can be modified
+ * and are saved back to the game's nightHistory via `updateNightHistory`.
  */
 export function NightHistoryReview({
   historyEntry,
+  historyIndex,
   isFirstNight,
   open,
   onClose,
 }: NightHistoryReviewProps) {
-  const { state } = useGame();
+  const { state, updateNightHistory } = useGame();
   const { getCharacter, allCharacters } = useCharacterLookup();
 
   // Derive the same script character IDs used in the game
@@ -37,23 +40,75 @@ export function NightHistoryReview({
   // Get the night order entries that match the historical night type
   const entries = useNightOrder(scriptCharacterIds, isFirstNight);
 
-  // Reconstruct NightProgress from history entry
+  // Local editable copy of the history entry
+  const [localEntry, setLocalEntry] = useState<NightHistoryEntry>(() => ({
+    ...historyEntry,
+    selections: historyEntry.selections ?? {},
+  }));
+
+  // Reconstruct NightProgress from local entry
   const nightProgress: NightProgress = useMemo(
     () => ({
       currentCardIndex: 0,
-      subActionStates: { ...historyEntry.subActionStates },
-      notes: { ...historyEntry.notes },
+      subActionStates: { ...localEntry.subActionStates },
+      notes: { ...localEntry.notes },
+      selections: { ...(localEntry.selections ?? {}) },
       totalCards: entries.length,
     }),
-    [historyEntry, entries.length],
+    [localEntry, entries.length],
   );
 
   const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
 
-  // No-ops since this is read-only
-  const noop = useCallback(() => {}, []);
-  const noopStr = useCallback((_id: string, _n: string) => {}, []);
-  const noopIdx = useCallback((_id: string, _i: number) => {}, []);
+  /** Toggle a sub-action checkbox and save. */
+  const handleUpdateProgress = useCallback(
+    (characterId: string, subActionIndex: number) => {
+      setLocalEntry((prev) => {
+        const current =
+          prev.subActionStates[characterId] ??
+          new Array(entries.find((e) => e.id === characterId)?.subActions.length ?? 0).fill(false);
+        const updated = [...current];
+        updated[subActionIndex] = !updated[subActionIndex];
+        const newEntry: NightHistoryEntry = {
+          ...prev,
+          subActionStates: { ...prev.subActionStates, [characterId]: updated },
+        };
+        updateNightHistory(historyIndex, newEntry);
+        return newEntry;
+      });
+    },
+    [entries, historyIndex, updateNightHistory],
+  );
+
+  /** Update notes and save. */
+  const handleUpdateNotes = useCallback(
+    (characterId: string, notes: string) => {
+      setLocalEntry((prev) => {
+        const newEntry: NightHistoryEntry = {
+          ...prev,
+          notes: { ...prev.notes, [characterId]: notes },
+        };
+        updateNightHistory(historyIndex, newEntry);
+        return newEntry;
+      });
+    },
+    [historyIndex, updateNightHistory],
+  );
+
+  /** Update selection and save. */
+  const handleUpdateSelection = useCallback(
+    (characterId: string, value: string | string[]) => {
+      setLocalEntry((prev) => {
+        const newEntry: NightHistoryEntry = {
+          ...prev,
+          selections: { ...(prev.selections ?? {}), [characterId]: value },
+        };
+        updateNightHistory(historyIndex, newEntry);
+        return newEntry;
+      });
+    },
+    [historyIndex, updateNightHistory],
+  );
 
   if (!open) return null;
 
@@ -100,21 +155,21 @@ export function NightHistoryReview({
           {nightLabel}
         </Typography>
         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', ml: 1, flexShrink: 0 }}>
-          Read Only
+          Editable
         </Typography>
       </Box>
 
-      {/* ── Carousel ── */}
+      {/* ── Carousel — now editable ── */}
       <Box sx={{ flex: 1, minHeight: 0 }}>
         <FlashcardCarousel
           entries={entries}
           players={players}
           characterLookup={getCharacter}
           nightProgress={nightProgress}
-          onUpdateProgress={noopIdx}
-          onUpdateNotes={noopStr}
-          onComplete={noop}
-          readOnly
+          onUpdateProgress={handleUpdateProgress}
+          onUpdateNotes={handleUpdateNotes}
+          onUpdateSelection={handleUpdateSelection}
+          onComplete={() => {}}
         />
       </Box>
     </Box>

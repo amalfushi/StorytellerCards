@@ -35,6 +35,20 @@ export function SubActionChecklist({
     [onToggle, readOnly],
   );
 
+  /**
+   * Determine indentation level for each sub-action.
+   * "If" lines (isConditional) stay at level 0.
+   * Lines immediately after an "If" line are continuation lines (indented).
+   */
+  const getIndentLevel = (index: number): number => {
+    if (index === 0) return 0;
+    // If THIS item is conditional (starts with "If"), it's at level 0
+    if (subActions[index].isConditional) return 0;
+    // If the immediate predecessor was conditional, this is a continuation (indented)
+    if (subActions[index - 1].isConditional) return 1;
+    return 0;
+  };
+
   return (
     <List dense disablePadding>
       {subActions.map((sa, index) => {
@@ -47,7 +61,7 @@ export function SubActionChecklist({
             disablePadding
             onClick={handleToggle(index)}
             sx={{
-              pl: sa.isConditional ? 3 : 0,
+              pl: getIndentLevel(index) * 3,
               cursor: readOnly ? 'default' : 'pointer',
               transition: 'opacity 0.25s ease, background-color 0.15s ease',
               opacity: checked ? 0.45 : 1,

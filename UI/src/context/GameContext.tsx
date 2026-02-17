@@ -1,6 +1,12 @@
 import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import type { Game, PlayerSeat, NightProgress, NightHistoryEntry } from '@/types/index.ts';
+import type {
+  Game,
+  PlayerSeat,
+  PlayerToken,
+  NightProgress,
+  NightHistoryEntry,
+} from '@/types/index.ts';
 import { Phase, Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -66,10 +72,14 @@ type GameAction =
         characterId: string;
         subActionStates?: boolean[];
         note?: string;
+        selection?: string | string[];
       };
     }
   | { type: 'COMPLETE_NIGHT' }
-  | { type: 'SAVE_GAME' };
+  | { type: 'SAVE_GAME' }
+  | { type: 'ADD_TOKEN'; payload: { seat: number; token: PlayerToken } }
+  | { type: 'REMOVE_TOKEN'; payload: { seat: number; tokenId: string } }
+  | { type: 'UPDATE_NIGHT_HISTORY'; payload: { index: number; entry: NightHistoryEntry } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -135,6 +145,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         startingAlignment: alignmentValue,
         activeReminders: [],
         isTraveller: true,
+        tokens: [],
       };
       return {
         ...state,
@@ -165,6 +176,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
           currentCardIndex: 0,
           subActionStates: {},
           notes: {},
+          selections: {},
           totalCards: action.payload.totalCards,
         },
       };
@@ -172,7 +184,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'UPDATE_NIGHT_PROGRESS': {
       if (!state.nightProgress) return state;
-      const { characterId, subActionStates, note } = action.payload;
+      const { characterId, subActionStates, note, selection } = action.payload;
       return {
         ...state,
         nightProgress: {
@@ -184,6 +196,10 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
             note !== undefined
               ? { ...state.nightProgress.notes, [characterId]: note }
               : state.nightProgress.notes,
+          selections:
+            selection !== undefined
+              ? { ...state.nightProgress.selections, [characterId]: selection }
+              : state.nightProgress.selections,
         },
       };
     }
@@ -196,11 +212,12 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         completedAt: new Date().toISOString(),
         subActionStates: { ...state.nightProgress.subActionStates },
         notes: { ...state.nightProgress.notes },
+        selections: { ...state.nightProgress.selections },
       };
       const updatedGame: Game = {
         ...state.game,
         nightHistory: [...state.game.nightHistory, historyEntry],
-        currentPhase: Phase.Dawn,
+        currentPhase: Phase.Day,
         currentDay: state.game.currentDay + 1,
         isFirstNight: false,
       };
@@ -218,6 +235,49 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         persistGame(state.game);
       }
       return state;
+    }
+
+    case 'ADD_TOKEN': {
+      if (!state.game) return state;
+      const { seat: tokenSeat, token } = action.payload;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: state.game.players.map((p) =>
+            p.seat === tokenSeat ? { ...p, tokens: [...(p.tokens ?? []), token] } : p,
+          ),
+        },
+      };
+    }
+
+    case 'REMOVE_TOKEN': {
+      if (!state.game) return state;
+      const { seat: rmSeat, tokenId } = action.payload;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: state.game.players.map((p) =>
+            p.seat === rmSeat
+              ? { ...p, tokens: (p.tokens ?? []).filter((t) => t.id !== tokenId) }
+              : p,
+          ),
+        },
+      };
+    }
+
+    case 'UPDATE_NIGHT_HISTORY': {
+      if (!state.game) return state;
+      const { index, entry } = action.payload;
+      const updatedHistory = [...state.game.nightHistory];
+      if (index >= 0 && index < updatedHistory.length) {
+        updatedHistory[index] = entry;
+      }
+      return {
+        ...state,
+        game: { ...state.game, nightHistory: updatedHistory },
+      };
     }
 
     default:
@@ -269,9 +329,17 @@ interface GameContextValue {
   ) => void;
   removeTraveller: (seat: number) => void;
   startNight: (totalCards: number) => void;
-  updateNightProgress: (characterId: string, subActionStates?: boolean[], note?: string) => void;
+  updateNightProgress: (
+    characterId: string,
+    subActionStates?: boolean[],
+    note?: string,
+    selection?: string | string[],
+  ) => void;
   completeNight: () => void;
   saveGame: () => void;
+  addToken: (seat: number, token: PlayerToken) => void;
+  removeToken: (seat: number, tokenId: string) => void;
+  updateNightHistory: (index: number, entry: NightHistoryEntry) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -349,10 +417,15 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateNightProgress = useCallback(
-    (characterId: string, subActionStates?: boolean[], note?: string) => {
+    (
+      characterId: string,
+      subActionStates?: boolean[],
+      note?: string,
+      selection?: string | string[],
+    ) => {
       dispatch({
         type: 'UPDATE_NIGHT_PROGRESS',
-        payload: { characterId, subActionStates, note },
+        payload: { characterId, subActionStates, note, selection },
       });
     },
     [],
@@ -364,6 +437,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const saveGame = useCallback(() => {
     dispatch({ type: 'SAVE_GAME' });
+  }, []);
+
+  const addToken = useCallback((seat: number, token: PlayerToken) => {
+    dispatch({ type: 'ADD_TOKEN', payload: { seat, token } });
+  }, []);
+
+  const removeToken = useCallback((seat: number, tokenId: string) => {
+    dispatch({ type: 'REMOVE_TOKEN', payload: { seat, tokenId } });
+  }, []);
+
+  const updateNightHistory = useCallback((index: number, entry: NightHistoryEntry) => {
+    dispatch({ type: 'UPDATE_NIGHT_HISTORY', payload: { index, entry } });
   }, []);
 
   const value: GameContextValue = {
@@ -380,6 +465,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     updateNightProgress,
     completeNight,
     saveGame,
+    addToken,
+    removeToken,
+    updateNightHistory,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

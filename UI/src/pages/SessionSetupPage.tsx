@@ -26,6 +26,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useSession } from '@/context/SessionContext.tsx';
 import { importScript } from '@/utils/scriptImporter.ts';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
+import { ScriptBuilder } from '@/components/ScriptBuilder/ScriptBuilder.tsx';
 import type { Script } from '@/types/index.ts';
 
 const MIN_PLAYERS = 5;
@@ -45,6 +46,7 @@ export function SessionSetupPage() {
   const [script, setScript] = useState<Script | null>(null);
   const [scriptError, setScriptError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  const [scriptBuilderOpen, setScriptBuilderOpen] = useState(false);
 
   // Initialize local state from session
   useEffect(() => {
@@ -222,7 +224,7 @@ export function SessionSetupPage() {
             sx={{ mb: 2 }}
           />
 
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
             <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
               Script: {script ? script.name : 'None selected'}
               {script?.author ? ` (by ${script.author})` : ''}
@@ -234,6 +236,14 @@ export function SessionSetupPage() {
               onClick={handleImportClick}
             >
               Import Script
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={() => setScriptBuilderOpen(true)}
+            >
+              Create Script
             </Button>
             <input
               ref={fileInputRef}
@@ -345,6 +355,18 @@ export function SessionSetupPage() {
             </>
           )}
         </Paper>
+
+        {/* ── Script Builder Dialog ── */}
+        <ScriptBuilder
+          open={scriptBuilderOpen}
+          onClose={() => setScriptBuilderOpen(false)}
+          onSave={(newScript) => {
+            setScript(newScript);
+            if (sessionId) {
+              updateSession(sessionId, { defaultScriptId: newScript.id });
+            }
+          }}
+        />
       </Container>
     </Box>
   );

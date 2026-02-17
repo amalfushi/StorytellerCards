@@ -3,7 +3,12 @@ import Box from '@mui/material/Box';
 import Fab from '@mui/material/Fab';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import AddIcon from '@mui/icons-material/Add';
-import type { CharacterDef, Alignment, PlayerSeat } from '@/types/index.ts';
+import type {
+  CharacterDef,
+  Alignment,
+  PlayerSeat,
+  PlayerToken as PlayerTokenType,
+} from '@/types/index.ts';
 import { Phase } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -14,6 +19,7 @@ import { TownSquareLayout } from '@/components/TownSquare/TownSquareLayout.tsx';
 import type { TokenPosition } from '@/components/TownSquare/TownSquareLayout.tsx';
 import { PlayerQuickActions } from '@/components/TownSquare/PlayerQuickActions.tsx';
 import { AddTravellerDialog } from '@/components/TownSquare/AddTravellerDialog.tsx';
+import { TokenManager } from '@/components/TownSquare/TokenManager.tsx';
 import type { UseTimerReturn } from '@/hooks/useTimer.ts';
 import { DayTimerFab } from '@/components/Timer/DayTimerFab.tsx';
 
@@ -43,7 +49,7 @@ const TOKEN_HALF = { large: 36, medium: 30, small: 24 } as const;
  *   border; tap opens `PlayerEditDialog`.
  */
 export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabProps) {
-  const { state, updatePlayer, addTraveller, removeTraveller } = useGame();
+  const { state, updatePlayer, addTraveller, removeTraveller, addToken, removeToken } = useGame();
   const { getCharacter, getCharactersByIds } = useCharacterLookup();
 
   const isTablet = useMediaQuery('(min-width:600px)');
@@ -97,6 +103,9 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
 
   // ── Add traveller dialog ──
   const [addTravellerOpen, setAddTravellerOpen] = useState(false);
+
+  // ── Token manager dialog ──
+  const [tokenPlayer, setTokenPlayer] = useState<PlayerSeat | null>(null);
 
   // ── Handlers ──
 
@@ -168,6 +177,28 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     setSelectedSeat(null);
   }, []);
 
+  const handleManageTokens = useCallback(
+    (seat: number) => {
+      const p = players.find((pl) => pl.seat === seat);
+      if (p) setTokenPlayer(p);
+    },
+    [players],
+  );
+
+  const handleAddToken = useCallback(
+    (seat: number, token: PlayerTokenType) => {
+      addToken(seat, token);
+    },
+    [addToken],
+  );
+
+  const handleRemoveToken = useCallback(
+    (seat: number, tokenId: string) => {
+      removeToken(seat, tokenId);
+    },
+    [removeToken],
+  );
+
   const handleAddTraveller = useCallback(
     (seat: number, playerName: string, characterId: string, alignment: 'Good' | 'Evil') => {
       addTraveller(seat, playerName, characterId, alignment);
@@ -230,6 +261,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         onToggleGhostVote={handleToggleGhostVote}
         onEditCharacter={handleEditCharacter}
         onRemoveTraveller={handleRemoveTraveller}
+        onManageTokens={handleManageTokens}
       />
 
       {/* ── Edit dialog (night view) ── */}
@@ -265,6 +297,15 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         existingPlayers={players}
         onClose={() => setAddTravellerOpen(false)}
         onAdd={handleAddTraveller}
+      />
+
+      {/* ── Token Manager Dialog ── */}
+      <TokenManager
+        open={tokenPlayer !== null}
+        player={tokenPlayer}
+        onClose={() => setTokenPlayer(null)}
+        onAddToken={handleAddToken}
+        onRemoveToken={handleRemoveToken}
       />
 
       {/* ── Day Timer FAB (visible during Day phase) ── */}

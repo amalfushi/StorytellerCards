@@ -27,6 +27,7 @@ export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
   const nightHistory: NightHistoryEntry[] = state.game?.nightHistory ?? [];
 
   const [reviewEntry, setReviewEntry] = useState<NightHistoryEntry | null>(null);
+  const [reviewIndex, setReviewIndex] = useState<number>(-1);
 
   const formatTime = (iso: string): string => {
     try {
@@ -87,7 +88,10 @@ export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
               return (
                 <ListItemButton
                   key={idx}
-                  onClick={() => setReviewEntry(entry)}
+                  onClick={() => {
+                    setReviewEntry(entry);
+                    setReviewIndex(idx);
+                  }}
                   sx={{
                     borderBottom: '1px solid rgba(255,255,255,0.05)',
                     '&:hover': { backgroundColor: 'rgba(255,255,255,0.04)' },
@@ -142,10 +146,11 @@ export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
         )}
       </Drawer>
 
-      {/* ── Review overlay ── */}
+      {/* ── Review overlay (now editable) ── */}
       {reviewEntry && (
         <NightHistoryReview
           historyEntry={reviewEntry}
+          historyIndex={reviewIndex}
           isFirstNight={reviewEntry.isFirstNight}
           open={true}
           onClose={() => setReviewEntry(null)}

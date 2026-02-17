@@ -252,6 +252,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
               startingAlignment: Alignment.Unknown,
               activeReminders: [],
               isTraveller: false,
+              tokens: [],
             }));
           } else {
             players = buildPlayersFromDefaults(session);
@@ -344,5 +345,6 @@ function buildPlayersFromDefaults(session: Session): PlayerSeat[] {
     startingAlignment: Alignment.Unknown,
     activeReminders: [],
     isTraveller: false,
+    tokens: [],
   }));
 }

@@ -3,6 +3,7 @@ import TableCell from '@mui/material/TableCell';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import HowToVoteIcon from '@mui/icons-material/HowToVote';
@@ -21,8 +22,13 @@ interface PlayerRowProps {
 
 /**
  * A single row in the PlayerList table.
- * In day view only seat, name, alive/dead, and ghost vote are shown.
- * In night view character name, type chip, and alignment indicator are added.
+ *
+ * Column order:
+ * Seat | Player Name | Type (pill) | Icon | Character Name | abilityShort | Alive | Alignment | Ghost Vote
+ *
+ * Day view hides character-specific columns.
+ * If a player's actualAlignment differs from their character's defaultAlignment,
+ * the type pill gets a thick coloured border to signal the mismatch.
  */
 export function PlayerRow({
   player,
@@ -41,6 +47,23 @@ export function PlayerRow({
     : undefined;
   const travellerBorderRight = player.isTraveller
     ? `3px solid ${characterColors.travellerEvil}`
+    : undefined;
+
+  // M3-6: Alignment mismatch border on the type pill
+  // Evil Townsfolk/Outsider → red border on blue pill
+  // Good Minion/Demon → blue border on red pill
+  const hasMismatch =
+    character &&
+    player.actualAlignment !== 'Unknown' &&
+    ((player.actualAlignment === 'Evil' &&
+      (character.type === 'Townsfolk' || character.type === 'Outsider')) ||
+      (player.actualAlignment === 'Good' &&
+        (character.type === 'Minion' || character.type === 'Demon')));
+
+  const mismatchBorder = hasMismatch
+    ? player.actualAlignment === 'Evil'
+      ? `3px solid ${characterColors.demon}`
+      : `3px solid ${characterColors.townsfolk}`
     : undefined;
 
   return (
@@ -66,9 +89,6 @@ export function PlayerRow({
       {/* Player Name */}
       <TableCell sx={{ px: 1, fontWeight: 500 }}>{player.playerName}</TableCell>
 
-      {/* Character Name (night view only) */}
-      {showCharacters && <TableCell sx={{ px: 1 }}>{character?.name ?? '—'}</TableCell>}
-
       {/* Type chip (night view only) */}
       {showCharacters && (
         <TableCell sx={{ px: 1 }}>
@@ -82,11 +102,60 @@ export function PlayerRow({
                 fontWeight: 600,
                 fontSize: '0.7rem',
                 height: 22,
+                border: mismatchBorder ?? 'none',
               }}
             />
           ) : (
             '—'
           )}
+        </TableCell>
+      )}
+
+      {/* Character icon (night view only) */}
+      {showCharacters && (
+        <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
+          {character ? (
+            <Box
+              sx={{
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                bgcolor: typeColor,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                mx: 'auto',
+              }}
+            >
+              <Typography
+                sx={{ color: '#fff', fontWeight: 700, fontSize: '0.65rem', lineHeight: 1 }}
+              >
+                {character.name.charAt(0)}
+              </Typography>
+            </Box>
+          ) : (
+            '—'
+          )}
+        </TableCell>
+      )}
+
+      {/* Character Name (night view only) */}
+      {showCharacters && <TableCell sx={{ px: 1 }}>{character?.name ?? '—'}</TableCell>}
+
+      {/* Ability short (night view only) */}
+      {showCharacters && (
+        <TableCell
+          sx={{
+            px: 1,
+            maxWidth: 180,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            fontSize: '0.75rem',
+            color: 'text.secondary',
+          }}
+        >
+          {character?.abilityShort ?? '—'}
         </TableCell>
       )}
 

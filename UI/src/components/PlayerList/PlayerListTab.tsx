@@ -89,8 +89,14 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
                 #
               </TableCell>
               <TableCell sx={{ px: 1 }}>Player</TableCell>
-              {showCharacters && <TableCell sx={{ px: 1 }}>Character</TableCell>}
               {showCharacters && <TableCell sx={{ px: 1 }}>Type</TableCell>}
+              {showCharacters && (
+                <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
+                  Icon
+                </TableCell>
+              )}
+              {showCharacters && <TableCell sx={{ px: 1 }}>Character</TableCell>}
+              {showCharacters && <TableCell sx={{ px: 1 }}>Ability</TableCell>}
               <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
                 Alive
               </TableCell>
