@@ -198,3 +198,8 @@ UI/storybook-static
 
 # Data directory (JSON file storage)
 API/data/
+  
+# ============================================================  
+# Agent Context (AI handoff docs, not source code)  
+# ============================================================  
+.roo/ 

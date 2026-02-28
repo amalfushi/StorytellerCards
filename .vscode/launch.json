@@ -1,0 +1,51 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch UI (Chrome)",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/UI/src",
+      "preLaunchTask": "Dev: UI"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Storybook (Chrome)",
+      "url": "http://localhost:6006",
+      "webRoot": "${workspaceFolder}/UI",
+      "preLaunchTask": "Storybook"
+    },
+    {
+      "type": "go",
+      "request": "launch",
+      "name": "Debug Go API",
+      "program": "${workspaceFolder}/API/cmd/server",
+      "cwd": "${workspaceFolder}/API"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug UI Tests",
+      "program": "${workspaceFolder}/UI/node_modules/.bin/vitest",
+      "args": ["run", "--reporter=verbose"],
+      "cwd": "${workspaceFolder}/UI",
+      "console": "integratedTerminal"
+    },
+    {
+      "type": "go",
+      "request": "launch",
+      "name": "Debug Go Tests",
+      "mode": "test",
+      "program": "${workspaceFolder}/API/...",
+      "cwd": "${workspaceFolder}/API"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack (UI + API)",
+      "configurations": ["Launch UI (Chrome)", "Debug Go API"]
+    }
+  ]
+}

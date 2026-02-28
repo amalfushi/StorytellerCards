@@ -1,0 +1,113 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    // ── Run tasks ──────────────────────────────────────────────
+    {
+      "label": "Dev: UI",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}/UI" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "dev" }
+    },
+    {
+      "label": "Dev: API",
+      "type": "shell",
+      "command": "go run ./cmd/server",
+      "options": { "cwd": "${workspaceFolder}/API" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "dev" }
+    },
+    {
+      "label": "Dev: Both",
+      "type": "shell",
+      "command": "npm run dev",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Storybook",
+      "type": "shell",
+      "command": "npm run storybook",
+      "options": { "cwd": "${workspaceFolder}/UI" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+
+    // ── Test tasks ─────────────────────────────────────────────
+    {
+      "label": "Test: UI",
+      "type": "shell",
+      "command": "npm test",
+      "options": { "cwd": "${workspaceFolder}/UI" },
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Test: UI (Watch)",
+      "type": "shell",
+      "command": "npm run test:watch",
+      "options": { "cwd": "${workspaceFolder}/UI" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Test: API",
+      "type": "shell",
+      "command": "go test ./...",
+      "options": { "cwd": "${workspaceFolder}/API" },
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Test: All",
+      "type": "shell",
+      "command": "npm test",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+
+    // ── Lint tasks ─────────────────────────────────────────────
+    {
+      "label": "Lint: UI",
+      "type": "shell",
+      "command": "npm run lint",
+      "options": { "cwd": "${workspaceFolder}/UI" },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Lint: API",
+      "type": "shell",
+      "command": "go vet ./...",
+      "options": { "cwd": "${workspaceFolder}/API" },
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+
+    // ── Build tasks ────────────────────────────────────────────
+    {
+      "label": "Build: UI",
+      "type": "shell",
+      "command": "npm run build",
+      "options": { "cwd": "${workspaceFolder}/UI" },
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Build: Storybook",
+      "type": "shell",
+      "command": "npm run build-storybook",
+      "options": { "cwd": "${workspaceFolder}/UI" },
+      "group": "build",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    }
+  ]
+}
