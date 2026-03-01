@@ -1,6 +1,6 @@
-# Storyteller Cards — Agent Context
+# Storyteller Cards — AI Agent Context
 
-> **Read this first.** This is the primary context file for any AI agent (Roo Code) picking up this project.
+> **Read this first.** This is the primary context file for any AI agent picking up this project.
 
 ## Project Overview
 
@@ -71,21 +71,21 @@ See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) fo
 
 | File | Purpose |
 |------|---------|
-| [`plans/architecture-plan.md`](plans/architecture-plan.md) | Full architecture design |
+| [`docs/milestone0/architecture-plan.md`](docs/milestone0/architecture-plan.md) | Full architecture design |
 | [`UI/src/types/index.ts`](UI/src/types/index.ts) | All TypeScript types |
 | [`UI/src/context/GameContext.tsx`](UI/src/context/GameContext.tsx) | Game state management |
 | [`UI/src/context/SessionContext.tsx`](UI/src/context/SessionContext.tsx) | Session state management |
 | [`UI/src/data/characters.json`](UI/src/data/characters.json) | 43 character definitions |
 | [`UI/src/data/nightOrder.json`](UI/src/data/nightOrder.json) | Master night order (168 entries) |
-| [`milestone3.md`](milestone3.md) | Current pending feedback items |
+| [`docs/milestone3/milestone3.md`](docs/milestone3/milestone3.md) | Current pending feedback items |
 
 ## Related Documentation
 
-- [Progress Tracking](.roo/progress.md) — what's done, what's in progress, what's next
-- [Game Data Model](.roo/design-specs/game-model.md) — Session → Game → Player hierarchy and data shapes
-- [UI Architecture](.roo/design-specs/ui-architecture.md) — component tree, routes, context providers
-- [Night Phase System](.roo/design-specs/night-phase.md) — the core feature, in detail
-- [BotC Domain Knowledge](.roo/design-specs/botc-domain.md) — Blood on the Clocktower game rules needed to understand this app
+- [Progress Tracking](docs/progress.md) — what's done, what's in progress, what's next
+- [Game Data Model](docs/game-model.md) — Session → Game → Player hierarchy and data shapes
+- [UI Architecture](docs/ui-architecture.md) — component tree, routes, context providers
+- [Night Phase System](docs/night-phase.md) — the core feature, in detail
+- [BotC Domain Knowledge](docs/botc-domain.md) — Blood on the Clocktower game rules needed to understand this app
 
 ## First Steps on New Machine
 
@@ -94,4 +94,4 @@ See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) fo
 3. `cd UI && npx eslint .` — check for lint errors
 4. `cd UI && npm test` — check test status
 5. `npm run dev` (from `StorytellerCards/`) — run and manually test in browser
-6. Read [`progress.md`](.roo/progress.md) for what was interrupted and what needs attention
+6. Read [`progress.md`](docs/progress.md) for what was interrupted and what needs attention

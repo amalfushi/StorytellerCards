@@ -27,3 +27,39 @@ export function getNightSummary(entry: NightHistoryEntry): {
 
   return { totalSubActions, completedSubActions, hasNotes };
 }
+
+/**
+ * Merge partial updates into an existing `NightHistoryEntry`.
+ *
+ * Shallow-merges `subActionStates`, `notes`, and `selections` from `updates`
+ * into the existing entry. Fields not present in `updates` are left unchanged.
+ * The `dayNumber`, `isFirstNight`, and `completedAt` fields are never modified.
+ */
+export function mergeNightHistoryEntry(
+  existing: NightHistoryEntry,
+  updates: Partial<Pick<NightHistoryEntry, 'subActionStates' | 'notes' | 'selections'>>,
+): NightHistoryEntry {
+  return {
+    ...existing,
+    subActionStates: updates.subActionStates
+      ? { ...existing.subActionStates, ...updates.subActionStates }
+      : existing.subActionStates,
+    notes: updates.notes ? { ...existing.notes, ...updates.notes } : existing.notes,
+    selections: updates.selections
+      ? { ...(existing.selections ?? {}), ...updates.selections }
+      : existing.selections,
+  };
+}
+
+/**
+ * Find a night history entry by `dayNumber` and `isFirstNight`.
+ *
+ * Returns the index of the matching entry, or `-1` if not found.
+ */
+export function findNightHistoryIndex(
+  history: NightHistoryEntry[],
+  dayNumber: number,
+  isFirstNight: boolean,
+): number {
+  return history.findIndex((e) => e.dayNumber === dayNumber && e.isFirstNight === isFirstNight);
+}

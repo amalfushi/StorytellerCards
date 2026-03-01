@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { filterNightOrder } from './nightOrderFilter';
-import type { NightOrderEntry } from '../types/index';
+import type { NightOrderEntry, PlayerSeat } from '../types/index';
+import { Alignment } from '../types/index';
 
 /** Helper to create a structural entry. */
 function structural(id: string): NightOrderEntry {
@@ -23,6 +24,23 @@ function character(id: string, order = 0): NightOrderEntry {
     name: id.charAt(0).toUpperCase() + id.slice(1),
     helpText: `${id} help text`,
     subActions: [],
+  };
+}
+
+/** Helper to create a minimal PlayerSeat. */
+function player(seat: number, characterId: string, alive = true): PlayerSeat {
+  return {
+    seat,
+    playerName: `Player ${seat}`,
+    characterId,
+    alive,
+    ghostVoteUsed: false,
+    visibleAlignment: Alignment.Unknown,
+    actualAlignment: Alignment.Good,
+    startingAlignment: Alignment.Good,
+    activeReminders: [],
+    isTraveller: false,
+    tokens: [],
   };
 }
 
@@ -92,5 +110,51 @@ describe('filterNightOrder', () => {
   it('handles empty night order array', () => {
     const result = filterNightOrder([], ['noble'], true);
     expect(result).toEqual([]);
+  });
+
+  describe('with players parameter', () => {
+    const allScriptIds = ['poisoner', 'washerwoman', 'librarian', 'noble', 'pixie'];
+
+    it('filters to only characters assigned to players', () => {
+      const players = [player(1, 'noble'), player(2, 'pixie')];
+      const result = filterNightOrder(masterFirstNight, allScriptIds, true, players);
+
+      const ids = result.map((e) => e.id);
+      expect(ids).toEqual(['dusk', 'minioninfo', 'demoninfo', 'noble', 'pixie', 'dawn']);
+    });
+
+    it('excludes unassigned script characters when players are provided', () => {
+      // Script has 5 characters but only 2 are assigned to players
+      const players = [player(1, 'washerwoman'), player(2, 'poisoner')];
+      const result = filterNightOrder(masterFirstNight, allScriptIds, true, players);
+
+      const charIds = result.filter((e) => e.type === 'character').map((e) => e.id);
+      expect(charIds).toEqual(['poisoner', 'washerwoman']);
+      // librarian, noble, pixie should NOT appear
+      expect(charIds).not.toContain('librarian');
+      expect(charIds).not.toContain('noble');
+      expect(charIds).not.toContain('pixie');
+    });
+
+    it('keeps structural entries even with players', () => {
+      const players = [player(1, 'noble')];
+      const result = filterNightOrder(masterFirstNight, allScriptIds, true, players);
+
+      const structuralIds = result.filter((e) => e.type === 'structural').map((e) => e.id);
+      expect(structuralIds).toEqual(['dusk', 'minioninfo', 'demoninfo', 'dawn']);
+    });
+
+    it('returns only structural entries when no players have characters', () => {
+      const players = [player(1, '')];
+      const result = filterNightOrder(masterFirstNight, allScriptIds, true, players);
+
+      expect(result.every((e) => e.type === 'structural')).toBe(true);
+    });
+
+    it('without players parameter falls back to script-level filtering', () => {
+      const result = filterNightOrder(masterFirstNight, allScriptIds, true);
+      const charIds = result.filter((e) => e.type === 'character').map((e) => e.id);
+      expect(charIds).toEqual(['poisoner', 'washerwoman', 'librarian', 'noble', 'pixie']);
+    });
   });
 });

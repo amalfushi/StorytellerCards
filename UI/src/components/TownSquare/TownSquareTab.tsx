@@ -19,7 +19,7 @@ import { TownSquareLayout } from '@/components/TownSquare/TownSquareLayout.tsx';
 import type { TokenPosition } from '@/components/TownSquare/TownSquareLayout.tsx';
 import { PlayerQuickActions } from '@/components/TownSquare/PlayerQuickActions.tsx';
 import { AddTravellerDialog } from '@/components/TownSquare/AddTravellerDialog.tsx';
-import { TokenManager } from '@/components/TownSquare/TokenManager.tsx';
+import { TokenManager, TokenBadges } from '@/components/TownSquare/TokenManager.tsx';
 import type { UseTimerReturn } from '@/hooks/useTimer.ts';
 import { DayTimerFab } from '@/components/Timer/DayTimerFab.tsx';
 
@@ -134,7 +134,14 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
   const handleToggleAlive = useCallback(
     (seat: number) => {
       const p = players.find((pl) => pl.seat === seat);
-      if (p) updatePlayer(seat, { alive: !p.alive });
+      if (!p) return;
+      if (p.alive) {
+        // Killing: mark dead, ghostVoteUsed stays false (they get one ghost vote)
+        updatePlayer(seat, { alive: false, ghostVoteUsed: false });
+      } else {
+        // Resurrecting: mark alive, reset ghostVoteUsed
+        updatePlayer(seat, { alive: true, ghostVoteUsed: false });
+      }
     },
     [players, updatePlayer],
   );
@@ -208,22 +215,37 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
 
   // ── Render token callback (memoised) ──
 
+  const centerX = dims.width / 2;
+  const centerY = dims.height / 2;
+
   const renderToken = useCallback(
-    (player: PlayerSeat, _position: TokenPosition) => {
+    (player: PlayerSeat, position: TokenPosition) => {
       const characterDef = player.characterId ? getCharacter(player.characterId) : undefined;
+      const playerTokens = player.tokens ?? [];
 
       return (
-        <PlayerToken
-          player={player}
-          characterDef={characterDef}
-          showCharacters={showCharacters}
-          isSelected={selectedSeat === player.seat}
-          onClick={(e: React.MouseEvent<HTMLElement>) => handleTokenClick(player, e)}
-          size={tokenSize}
-        />
+        <Box sx={{ position: 'relative' }}>
+          <PlayerToken
+            player={player}
+            characterDef={characterDef}
+            showCharacters={showCharacters}
+            isSelected={selectedSeat === player.seat}
+            onClick={(e: React.MouseEvent<HTMLElement>) => handleTokenClick(player, e)}
+            size={tokenSize}
+          />
+          {playerTokens.length > 0 && (
+            <TokenBadges
+              tokens={playerTokens}
+              tileX={position.x}
+              tileY={position.y}
+              centerX={centerX}
+              centerY={centerY}
+            />
+          )}
+        </Box>
       );
     },
-    [getCharacter, showCharacters, selectedSeat, handleTokenClick, tokenSize],
+    [getCharacter, showCharacters, selectedSeat, handleTokenClick, tokenSize, centerX, centerY],
   );
 
   return (
@@ -306,6 +328,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         onClose={() => setTokenPlayer(null)}
         onAddToken={handleAddToken}
         onRemoveToken={handleRemoveToken}
+        characterDef={tokenPlayer?.characterId ? getCharacter(tokenPlayer.characterId) : undefined}
       />
 
       {/* ── Day Timer FAB (visible during Day phase) ── */}

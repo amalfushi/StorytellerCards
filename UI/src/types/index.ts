@@ -21,9 +21,7 @@ export const Alignment = {
 export type Alignment = (typeof Alignment)[keyof typeof Alignment];
 
 export const Phase = {
-  Dawn: 'Dawn',
   Day: 'Day',
-  Dusk: 'Dusk',
   Night: 'Night',
 } as const;
 export type Phase = (typeof Phase)[keyof typeof Phase];

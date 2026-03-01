@@ -39,7 +39,7 @@ import { useTimer } from '@/hooks/useTimer.ts';
  *
  * Layout:
  * - AppBar (session name, back button, ShowCharactersToggle)
- * - PhaseBar (Dawn → Day → Dusk → Night stepper)
+ * - PhaseBar (Day ↔ Night toggle)
  * - Tab content (flex-grow, scrollable)
  * - BottomNavigation (Town Square | Players | Script | Night Order)
  */

@@ -11,19 +11,9 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Dawn phase — first phase of the day cycle. */
-export const Dawn: Story = {
-  decorators: [withMockGameContext({ game: { currentPhase: Phase.Dawn } as never })],
-};
-
 /** Day phase — main daytime activity. */
 export const Day: Story = {
   decorators: [withMockGameContext({ game: { currentPhase: Phase.Day } as never })],
-};
-
-/** Dusk phase — transitioning to night. */
-export const Dusk: Story = {
-  decorators: [withMockGameContext({ game: { currentPhase: Phase.Dusk } as never })],
 };
 
 /** Night phase — nighttime actions in progress. */

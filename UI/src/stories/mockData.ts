@@ -213,6 +213,35 @@ export const evePlayer = mockPlayers[4]; // Drunk, dead + ghost vote used
 export const irisPlayer = mockPlayers[8]; // No character assigned
 export const travJackPlayer = mockPlayers[9]; // Traveller
 
+/** M3-6: Alignment-mismatch mock players for story testing. */
+export const evilTownsfolkPlayer: PlayerSeat = {
+  seat: 11,
+  playerName: 'Mallory',
+  characterId: 'noble',
+  alive: true,
+  ghostVoteUsed: false,
+  visibleAlignment: 'Unknown',
+  actualAlignment: Alignment.Evil,
+  startingAlignment: Alignment.Good,
+  activeReminders: [],
+  isTraveller: false,
+  tokens: [],
+};
+
+export const goodDemonPlayer: PlayerSeat = {
+  seat: 12,
+  playerName: 'Victor',
+  characterId: 'imp',
+  alive: true,
+  ghostVoteUsed: false,
+  visibleAlignment: 'Unknown',
+  actualAlignment: Alignment.Good,
+  startingAlignment: Alignment.Evil,
+  activeReminders: [],
+  isTraveller: false,
+  tokens: [],
+};
+
 // ──────────────────────────────────────────────
 // Filtered night order (simulating a Boozling script game)
 // ──────────────────────────────────────────────

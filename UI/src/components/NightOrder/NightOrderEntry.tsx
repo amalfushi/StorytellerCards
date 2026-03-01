@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Badge from '@mui/material/Badge';
@@ -8,6 +9,7 @@ import type {
   CharacterDef,
 } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 
 interface NightOrderEntryProps {
   entry: NightOrderEntryType;
@@ -23,6 +25,8 @@ interface NightOrderEntryProps {
  * abbreviated help text, and the assigned player if present.
  */
 export function NightOrderEntry({ entry, character, assignedPlayer }: NightOrderEntryProps) {
+  const [detailOpen, setDetailOpen] = useState(false);
+
   // Structural entry — render as divider card
   if (entry.type === 'structural') {
     return (
@@ -104,6 +108,9 @@ export function NightOrderEntry({ entry, character, assignedPlayer }: NightOrder
 
       {/* Character icon placeholder */}
       <Box
+        onClick={() => {
+          if (character) setDetailOpen(true);
+        }}
         sx={{
           width: 32,
           height: 32,
@@ -113,6 +120,8 @@ export function NightOrderEntry({ entry, character, assignedPlayer }: NightOrder
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          cursor: character ? 'pointer' : 'default',
+          '&:hover': character ? { opacity: 0.8 } : {},
         }}
       >
         <Typography variant="caption" sx={{ color: '#fff', fontWeight: 700, fontSize: '0.6rem' }}>
@@ -160,6 +169,12 @@ export function NightOrderEntry({ entry, character, assignedPlayer }: NightOrder
           {shortHelp}
         </Typography>
       </Box>
+      {/* Character Detail Modal */}
+      <CharacterDetailModal
+        open={detailOpen}
+        character={character ?? null}
+        onClose={() => setDetailOpen(false)}
+      />
     </Box>
   );
 }

@@ -101,16 +101,18 @@ export function CharacterDetailModal({ open, character, onClose }: CharacterDeta
           {character.abilityShort}
         </Typography>
 
-        {/* Detailed ability (if available) */}
-        {character.abilityDetailed && (
-          <>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              Detailed Rules
-            </Typography>
-            <Typography variant="body2" sx={{ mb: 2, whiteSpace: 'pre-wrap' }}>
-              {character.abilityDetailed}
-            </Typography>
-          </>
+        {/* Detailed ability */}
+        <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+          Detailed Rules
+        </Typography>
+        {character.abilityDetailed ? (
+          <Typography variant="body2" sx={{ mb: 2, whiteSpace: 'pre-wrap' }}>
+            {character.abilityDetailed}
+          </Typography>
+        ) : (
+          <Typography variant="body2" sx={{ mb: 2, fontStyle: 'italic' }} color="text.disabled">
+            Detailed rules not yet available.
+          </Typography>
         )}
 
         <Divider sx={{ my: 1.5 }} />

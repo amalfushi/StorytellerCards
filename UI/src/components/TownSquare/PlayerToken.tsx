@@ -1,9 +1,10 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 
 // ──────────────────────────────────────────────
 // Size presets (px) based on player count
@@ -62,6 +63,8 @@ export const PlayerToken = memo(function PlayerToken({
   onClick,
   size,
 }: PlayerTokenProps) {
+  const [detailOpen, setDetailOpen] = useState(false);
+
   const aliveStatus = player.alive ? 'alive' : 'dead';
   const ariaLabel = `${player.playerName}, Seat ${player.seat}, ${aliveStatus}`;
 
@@ -113,11 +116,19 @@ export const PlayerToken = memo(function PlayerToken({
   // For the traveller gradient border we need an inner wrapper
   const useTravellerWrapper = showCharacters && isTraveller;
 
+  const handleIconClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (characterDef) {
+      setDetailOpen(true);
+    }
+  };
+
   const tokenContent = (
     <>
       {/* ── Night view: character icon placeholder ── */}
       {showCharacters && (
         <Box
+          onClick={handleIconClick}
           sx={{
             width: s.icon,
             height: s.icon,
@@ -127,6 +138,8 @@ export const PlayerToken = memo(function PlayerToken({
             alignItems: 'center',
             justifyContent: 'center',
             flexShrink: 0,
+            cursor: 'pointer',
+            '&:hover': { opacity: 0.8 },
           }}
         >
           <Typography
@@ -264,29 +277,47 @@ export const PlayerToken = memo(function PlayerToken({
   if (useTravellerWrapper) {
     // Gradient border wrapper for rounded corners on traveller tokens
     return (
+      <>
+        <Box
+          sx={outerSx}
+          onClick={onClick}
+          onKeyDown={handleKeyDown}
+          role="button"
+          tabIndex={0}
+          aria-label={ariaLabel}
+        >
+          <Box sx={innerSx}>{tokenContent}</Box>
+        </Box>
+
+        {/* Character Detail Modal */}
+        <CharacterDetailModal
+          open={detailOpen}
+          character={characterDef ?? null}
+          onClose={() => setDetailOpen(false)}
+        />
+      </>
+    );
+  }
+
+  return (
+    <>
       <Box
-        sx={outerSx}
+        sx={{ ...outerSx, ...innerSx }}
         onClick={onClick}
         onKeyDown={handleKeyDown}
         role="button"
         tabIndex={0}
         aria-label={ariaLabel}
       >
-        <Box sx={innerSx}>{tokenContent}</Box>
+        {tokenContent}
       </Box>
-    );
-  }
 
-  return (
-    <Box
-      sx={{ ...outerSx, ...innerSx }}
-      onClick={onClick}
-      onKeyDown={handleKeyDown}
-      role="button"
-      tabIndex={0}
-      aria-label={ariaLabel}
-    >
-      {tokenContent}
-    </Box>
+      {/* Character Detail Modal */}
+      <CharacterDetailModal
+        open={detailOpen}
+        character={characterDef ?? null}
+        onClose={() => setDetailOpen(false)}
+      />
+    </>
   );
 });

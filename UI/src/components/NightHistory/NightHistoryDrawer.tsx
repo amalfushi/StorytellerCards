@@ -4,9 +4,11 @@ import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItemButton from '@mui/material/ListItemButton';
+import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
+import EditIcon from '@mui/icons-material/Edit';
 import NotesIcon from '@mui/icons-material/Notes';
 import type { NightHistoryEntry } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
@@ -99,6 +101,9 @@ export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
                     px: 2,
                   }}
                 >
+                  <ListItemIcon sx={{ minWidth: 36 }}>
+                    <EditIcon sx={{ fontSize: 18, color: 'rgba(255,255,255,0.35)' }} />
+                  </ListItemIcon>
                   <ListItemText
                     primary={label}
                     secondary={

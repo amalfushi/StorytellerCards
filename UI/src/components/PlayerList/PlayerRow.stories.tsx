@@ -9,7 +9,10 @@ import {
   evePlayer,
   travJackPlayer,
   irisPlayer,
+  evilTownsfolkPlayer,
+  goodDemonPlayer,
   imp,
+  noble,
   fortuneTeller,
   drunk,
 } from '../../stories/mockData';
@@ -92,5 +95,29 @@ export const NoCharacterAssigned: Story = {
     player: irisPlayer,
     showCharacters: true,
     character: undefined,
+  },
+};
+
+/**
+ * Evil Townsfolk — alignment mismatch.
+ * Blue Townsfolk pill with a thick red border indicating Evil actual alignment.
+ */
+export const EvilTownsfolk: Story = {
+  args: {
+    player: evilTownsfolkPlayer,
+    showCharacters: true,
+    character: noble,
+  },
+};
+
+/**
+ * Good Demon — alignment mismatch.
+ * Dark-red Demon pill with a thick blue border indicating Good actual alignment.
+ */
+export const GoodDemon: Story = {
+  args: {
+    player: goodDemonPlayer,
+    showCharacters: true,
+    character: imp,
   },
 };

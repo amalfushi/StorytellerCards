@@ -17,7 +17,7 @@ const defaultMockGame: Game = {
   sessionId: 'story-session-1',
   scriptId: 'boozling',
   currentDay: 1,
-  currentPhase: Phase.Dawn,
+  currentPhase: Phase.Day,
   isFirstNight: true,
   players: mockPlayers,
   nightHistory: [],
