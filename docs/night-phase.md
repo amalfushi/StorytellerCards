@@ -6,17 +6,25 @@
 
 During the Night phase of Blood on the Clocktower, the Storyteller must wake each character individually in a specific order and resolve their ability. The Night Phase Flashcards guide the Storyteller through this process with swipeable cards showing exactly what to do for each character.
 
-## Night Order Filtering
+## Night Order Derivation & Filtering
 
-The master [`nightOrder.json`](../UI/src/data/nightOrder.json) contains 168 entries covering ALL BotC characters. For any given game, this is filtered down to only the characters assigned to players in that game.
+Night order is **derived** from individual character files rather than a separate master list. Each character's [`firstNight`](../UI/src/types/index.ts) and [`otherNights`](../UI/src/types/index.ts) fields include an `order` number that determines their position in the night sequence.
+
+The [`buildNightOrder()`](../UI/src/data/characters/_nightOrder.ts) function:
+1. Collects all characters that have a night action for the given phase
+2. Converts each into a `NightOrderEntry` with `order`, `type: 'character'`, `id`, `name`, `helpText`, and `subActions`
+3. Merges with **structural** entries (Minion Info, Demon Info) from [`_nightOrder.ts`](../UI/src/data/characters/_nightOrder.ts)
+4. Sorts by `order` ascending
+
+For any given game, the derived order is then filtered down to only the characters assigned to players.
 
 Filter logic in [`nightOrderFilter.ts`](../UI/src/utils/nightOrderFilter.ts):
-1. Start with the master night order (`firstNight` or `otherNights` depending on `isFirstNight`)
+1. Start with the derived night order from `buildNightOrder(allCharacters, isFirstNight)`
 2. Keep all **structural** entries (Minion Info, Demon Info)
 3. Keep only **character** entries whose `id` matches a character assigned to a player in the current game
 4. When the optional `players?: PlayerSeat[]` parameter is provided, filters to only characters assigned to actual players (not all script characters)
 
-The [`useNightOrder.ts`](../UI/src/hooks/useNightOrder.ts) hook passes the current players array through to the filter. 11 tests in [`nightOrderFilter.test.ts`](../UI/src/utils/nightOrderFilter.test.ts) verify the filtering logic including player-based filtering.
+The [`useNightOrder.ts`](../UI/src/hooks/useNightOrder.ts) hook calls `buildNightOrder()` and passes the result through the filter with the current players array. 11 tests in [`nightOrderFilter.test.ts`](../UI/src/utils/nightOrderFilter.test.ts) verify the filtering logic including player-based filtering.
 
 ## Flashcard Structure
 
@@ -81,13 +89,25 @@ Dawn and Dusk structural cards were removed in M3-4 since phases are now a simpl
 ## Night Choice Selectors
 
 [`NightChoiceSelector.tsx`](../UI/src/components/NightPhase/NightChoiceSelector.tsx) renders dropdown UI for character abilities that involve choosing.
-[`NightChoiceHelper.ts`](../UI/src/components/NightPhase/NightChoiceHelper.ts) parses help text to determine what choices are needed.
 
-The helper's `parseHelpTextForChoices()` function returns `ParsedChoice[]`, supporting compound choices (e.g., "chooses a player & a character"). [`NightFlashcard.tsx`](../UI/src/components/NightPhase/NightFlashcard.tsx) renders multiple selectors when compound choices are detected.
+### Declarative Night Choices (M6)
+
+Night choices are now **declaratively defined** on each character's `NightAction` via the `choices?: NightChoice[]` field. Each `NightChoice` specifies:
+
+```typescript
+interface NightChoice {
+  type: NightChoiceType;    // 'player' | 'livingPlayer' | 'deadPlayer' | 'character' | 'alignment' | 'yesno'
+  label: string;            // e.g. "Choose 2 players"
+  maxSelections: number;    // e.g. 2
+}
+```
+
+[`NightFlashcard.tsx`](../UI/src/components/NightPhase/NightFlashcard.tsx) reads `choices` directly from the character's `NightAction`. If `choices` is present and non-empty, it uses them directly. If absent (legacy data), it falls back to regex parsing via [`NightChoiceHelper.ts`](../UI/src/components/NightPhase/NightChoiceHelper.ts) `parseHelpTextForChoices()` for backward compatibility.
 
 For characters whose ability involves choosing (e.g., "choose a player", "choose 2 players", "choose a character"):
 - Dropdown populated with appropriate options (living players, all players, characters, alignments)
 - Multi-select for "choose N" abilities
+- Compound choices supported (e.g., Cerenovus: player + character)
 - Previous night's selection shown as read-only reference
 - Selections saved to `NightProgress.selections` and `NightHistoryEntry.selections`
 
@@ -130,11 +150,15 @@ Night history is **editable** — the Storyteller can fix misclicks in past nigh
 ## Data Flow Summary
 
 ```
-nightOrder.json (168 entries)
-    ↓ filter by assigned characters
+Character .ts files (43 characters, each with firstNight/otherNights order)
+    + _nightOrder.ts structural entries (MinionInfo, DemonInfo)
+    ↓ buildNightOrder(allCharacters, isFirstNight)
+Full derived night order (NightOrderEntry[])
+    ↓ filterNightOrder() — filter by assigned characters
 Filtered entries for this game
     ↓ render as flashcards
 NightPhaseOverlay → FlashcardCarousel → NightFlashcard[]
+    ↓ choices from NightAction.choices (or regex fallback)
     ↓ user interacts (checkmarks, notes, selections)
 NightProgress (in-flight state)
     ↓ "Complete Night"

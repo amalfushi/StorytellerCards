@@ -7,15 +7,17 @@ import type {
   NightHistoryEntry,
 } from '../types';
 import { Alignment, CharacterType } from '../types';
-import charactersData from '../data/characters.json';
-import nightOrderData from '../data/nightOrder.json';
+import { allCharacters, buildNightOrder } from '../data/characters/index.ts';
 
 // ──────────────────────────────────────────────
 // Characters
 // ──────────────────────────────────────────────
 
-export const mockCharacters: CharacterDef[] = charactersData as CharacterDef[];
-export const mockNightOrder = nightOrderData as NightOrderData;
+export const mockCharacters: CharacterDef[] = allCharacters;
+export const mockNightOrder: NightOrderData = {
+  firstNight: buildNightOrder(allCharacters, true),
+  otherNights: buildNightOrder(allCharacters, false),
+};
 
 /** Specific characters referenced in stories. */
 export const fortuneTeller = mockCharacters.find((c) => c.id === 'fortuneteller')!;
@@ -29,7 +31,7 @@ export const huntsman = mockCharacters.find((c) => c.id === 'huntsman')!;
 
 /**
  * Mock Traveller character — "Spirit of Ivory".
- * Not in characters.json; created here so stories can demonstrate
+ * Not in the character barrel; created here so stories can demonstrate
  * the split blue/red traveller border and alignment-coloured outline.
  */
 export const spiritOfIvory: CharacterDef = {

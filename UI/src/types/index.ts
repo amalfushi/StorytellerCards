@@ -33,6 +33,16 @@ export const VoteStatus = {
 } as const;
 export type VoteStatus = (typeof VoteStatus)[keyof typeof VoteStatus];
 
+export const NightChoiceType = {
+  Player: 'player',
+  LivingPlayer: 'livingPlayer',
+  DeadPlayer: 'deadPlayer',
+  Character: 'character',
+  Alignment: 'alignment',
+  YesNo: 'yesno',
+} as const;
+export type NightChoiceType = (typeof NightChoiceType)[keyof typeof NightChoiceType];
+
 // ──────────────────────────────────────────────
 // Character definition (master, read-only data)
 // ──────────────────────────────────────────────
@@ -56,6 +66,16 @@ export interface NightSubAction {
   isConditional: boolean;
 }
 
+/** A declarative description of a single interactive choice within a night action. */
+export interface NightChoice {
+  /** What kind of selection this represents. */
+  type: NightChoiceType;
+  /** Maximum number of selections (e.g. 2 for "choose 2 players"). */
+  maxSelections: number;
+  /** Label shown above the selector (e.g. "Choose 2 players"). */
+  label: string;
+}
+
 /** Full storyteller instructions for one night phase. */
 export interface NightAction {
   /** Position in the master night order. */
@@ -64,6 +84,11 @@ export interface NightAction {
   helpText: string;
   /** Broken-down individual instruction steps. */
   subActions: NightSubAction[];
+  /**
+   * Declarative list of interactive choices for this night action.
+   * Replaces regex parsing of helpText. Absent in legacy data (treated as empty).
+   */
+  choices?: NightChoice[];
 }
 
 /** A reminder token that can be placed on the Grimoire. */
@@ -71,6 +96,40 @@ export interface ReminderToken {
   id: string;
   text: string;
   icon?: string;
+}
+
+// ──────────────────────────────────────────────
+// M6 extension types
+// ──────────────────────────────────────────────
+
+/** Describes how a character modifies the standard player-count distribution. */
+export interface SetupModification {
+  /** Human-readable description of the modification. */
+  description: string;
+}
+
+/** A pre-game decision the Storyteller must make for this character. */
+export interface StorytellerSetup {
+  /** Human-readable description of what the ST needs to decide. */
+  description: string;
+  /** Unique key for this setup step (used for state tracking). */
+  id: string;
+}
+
+/** Describes how a Fabled or Loric character overrides standard game rules. */
+export interface GameRuleOverride {
+  /** Human-readable description of the override. */
+  description: string;
+  /** Unique key for this rule override. */
+  id: string;
+}
+
+/** A jinx interaction between two characters (stub for M5). */
+export interface Jinx {
+  /** ID of the other character involved in the jinx. */
+  characterId: string;
+  /** Description of the interaction / rule override. */
+  description: string;
 }
 
 /** Master character definition – immutable reference data. */
@@ -92,6 +151,17 @@ export interface CharacterDef {
   otherNights: NightAction | null;
   icon?: CharacterIcon;
   reminders: ReminderToken[];
+
+  // ── M6 extensions (all optional for backward compat) ──
+
+  /** Setup modifications this character causes (e.g., Baron: +2 Outsiders). */
+  setupModification?: SetupModification;
+  /** Steps the Storyteller must complete during game setup. */
+  storytellerSetup?: StorytellerSetup[];
+  /** Game rule overrides (for Fabled/Loric characters). */
+  gameRuleOverrides?: GameRuleOverride[];
+  /** Jinx interactions with other characters (M5). */
+  jinxes?: Jinx[];
 }
 
 // ──────────────────────────────────────────────
@@ -114,7 +184,7 @@ export interface NightOrderEntry {
   subActions: NightSubAction[];
 }
 
-/** Top-level shape of the nightOrder.json data file. */
+/** Top-level shape of the night-order data returned by buildNightOrder(). */
 export interface NightOrderData {
   firstNight: NightOrderEntry[];
   otherNights: NightOrderEntry[];

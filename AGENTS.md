@@ -38,8 +38,9 @@ cd UI && npm run storybook  # Storybook (localhost:6006)
 - **Day/Night visibility toggle**: Day view hides character info from players; Night view shows everything
 - **Night flashcard sub-actions**: individual checkmarks per instruction step, reset each night
 - **Night history**: every completed night saved for review
-- **Characters**: defined in [`characters.json`](UI/src/data/characters.json) (43 characters)
-- **Night order**: defined in [`nightOrder.json`](UI/src/data/nightOrder.json) (168 entries, master for ALL BotC characters)
+- **Characters**: individual `.ts` files in [`UI/src/data/characters/`](UI/src/data/characters/index.ts) (43 characters), organized by type subdirectory, accessed via barrel export
+- **Night order**: derived from character files via [`buildNightOrder()`](UI/src/data/characters/_nightOrder.ts) — no separate master JSON file
+- **Night choices**: declarative `NightChoice` schema on `NightAction.choices`, with regex fallback via `NightChoiceHelper.ts`
 - **Scripts**: JSON arrays — `[{id: "_meta", name, author}, "characterid1", "characterid2", ...]`
 - **Unknown characters**: handled with `getFallbackCharacter()` fallback (shows `<TODO>` for missing data)
 - **No Redux** — hooks + Context only
@@ -75,8 +76,8 @@ See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) fo
 | [`UI/src/types/index.ts`](UI/src/types/index.ts) | All TypeScript types |
 | [`UI/src/context/GameContext.tsx`](UI/src/context/GameContext.tsx) | Game state management |
 | [`UI/src/context/SessionContext.tsx`](UI/src/context/SessionContext.tsx) | Session state management |
-| [`UI/src/data/characters.json`](UI/src/data/characters.json) | 43 character definitions |
-| [`UI/src/data/nightOrder.json`](UI/src/data/nightOrder.json) | Master night order (168 entries) |
+| [`UI/src/data/characters/index.ts`](UI/src/data/characters/index.ts) | Character registry barrel (43 characters) |
+| [`UI/src/data/characters/_nightOrder.ts`](UI/src/data/characters/_nightOrder.ts) | Night order derivation + structural entries |
 | [`docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md`](docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md) | Current pending feedback items |
 
 ## Related Documentation

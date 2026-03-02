@@ -62,8 +62,30 @@ export function NightFlashcard({
 
   const typeName = characterDef?.type ?? 'Unknown';
 
-  // Parse helpText to detect if this character needs choice dropdown(s)
-  const parsedChoices = useMemo(() => parseHelpTextForChoices(entry.helpText), [entry.helpText]);
+  // Prefer explicit choices from the character definition; fall back to regex parsing
+  const parsedChoices = useMemo(() => {
+    // Try to get explicit choices from the character definition's night action
+    const nightAction = characterDef
+      ? characterDef.firstNight?.order === entry.order
+        ? characterDef.firstNight
+        : characterDef.otherNights?.order === entry.order
+          ? characterDef.otherNights
+          : null
+      : null;
+
+    if (nightAction?.choices && nightAction.choices.length > 0) {
+      // Map NightChoice to ParsedChoice format for compatibility
+      return nightAction.choices.map((c) => ({
+        type: c.type,
+        multiple: c.maxSelections > 1,
+        maxSelections: c.maxSelections,
+        label: c.label,
+      }));
+    }
+
+    // Fallback to regex parsing for characters without explicit choices
+    return parseHelpTextForChoices(entry.helpText);
+  }, [characterDef, entry.helpText, entry.order]);
 
   const isCompound = parsedChoices.length > 1;
 

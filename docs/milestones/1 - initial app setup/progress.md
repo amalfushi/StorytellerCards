@@ -13,8 +13,8 @@ Vite + React + TypeScript + MUI + ESLint + Prettier + Husky + Storybook
 ## Phase 1: Data Layer
 
 - TypeScript types in [`types/index.ts`](../../UI/src/types/index.ts)
-- 43 character definitions in [`characters.json`](../../UI/src/data/characters.json)
-- 168 night order entries in [`nightOrder.json`](../../UI/src/data/nightOrder.json)
+- 43 character definitions — originally in `characters.json`, restructured to individual `.ts` files in [`UI/src/data/characters/`](../../UI/src/data/characters/index.ts) (M6)
+- Night order — originally in `nightOrder.json`, now derived from character files via [`buildNightOrder()`](../../UI/src/data/characters/_nightOrder.ts) (M6)
 - Script importer: [`scriptImporter.ts`](../../UI/src/utils/scriptImporter.ts)
 - Night order filter: [`nightOrderFilter.ts`](../../UI/src/utils/nightOrderFilter.ts)
 - Sort rules: [`scriptSortRules.ts`](../../UI/src/utils/scriptSortRules.ts)
