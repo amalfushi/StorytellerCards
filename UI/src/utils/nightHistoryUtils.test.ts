@@ -4,7 +4,7 @@ import {
   mergeNightHistoryEntry,
   findNightHistoryIndex,
 } from './nightHistoryUtils';
-import type { NightHistoryEntry } from '../types/index';
+import type { NightHistoryEntry, PlayerToken } from '../types/index';
 
 function makeEntry(
   subActionStates: Record<string, boolean[]>,
@@ -20,6 +20,10 @@ function makeEntry(
     selections: {},
     ...overrides,
   };
+}
+
+function makeToken(id: string, type: PlayerToken['type'], label: string): PlayerToken {
+  return { id, type, label };
 }
 
 describe('getNightSummary', () => {
@@ -182,5 +186,61 @@ describe('findNightHistoryIndex', () => {
 
   it('returns -1 for empty history', () => {
     expect(findNightHistoryIndex([], 1, true)).toBe(-1);
+  });
+});
+
+describe('NightHistoryEntry tokenSnapshot', () => {
+  it('can store a tokenSnapshot on a history entry', () => {
+    const tokens: PlayerToken[] = [
+      makeToken('t1', 'drunk', 'Drunk'),
+      makeToken('t2', 'poisoned', 'Poisoned'),
+    ];
+    const entry = makeEntry({ noble: [true, true] }, {}, { tokenSnapshot: { noble: tokens } });
+
+    expect(entry.tokenSnapshot).toBeDefined();
+    expect(entry.tokenSnapshot!.noble).toHaveLength(2);
+    expect(entry.tokenSnapshot!.noble[0].label).toBe('Drunk');
+    expect(entry.tokenSnapshot!.noble[1].type).toBe('poisoned');
+  });
+
+  it('preserves tokenSnapshot through mergeNightHistoryEntry', () => {
+    const tokens: PlayerToken[] = [makeToken('t1', 'drunk', 'Drunk')];
+    const existing = makeEntry({ noble: [false] }, {}, { tokenSnapshot: { noble: tokens } });
+    const result = mergeNightHistoryEntry(existing, {
+      subActionStates: { noble: [true] },
+    });
+
+    // tokenSnapshot should be preserved since merge spreads existing fields
+    expect(result.tokenSnapshot).toBeDefined();
+    expect(result.tokenSnapshot!.noble).toHaveLength(1);
+    expect(result.tokenSnapshot!.noble[0].label).toBe('Drunk');
+  });
+
+  it('handles entry without tokenSnapshot (backward compatibility)', () => {
+    const entry = makeEntry({ noble: [true] });
+
+    expect(entry.tokenSnapshot).toBeUndefined();
+
+    const summary = getNightSummary(entry);
+    expect(summary.totalSubActions).toBe(1);
+    expect(summary.completedSubActions).toBe(1);
+  });
+
+  it('stores tokens for multiple characters', () => {
+    const entry = makeEntry(
+      { noble: [true], imp: [true, false] },
+      {},
+      {
+        tokenSnapshot: {
+          noble: [makeToken('t1', 'drunk', 'Drunk')],
+          imp: [makeToken('t2', 'poisoned', 'Poisoned'), makeToken('t3', 'custom', 'Spy info')],
+        },
+      },
+    );
+
+    expect(Object.keys(entry.tokenSnapshot!)).toHaveLength(2);
+    expect(entry.tokenSnapshot!.noble).toHaveLength(1);
+    expect(entry.tokenSnapshot!.imp).toHaveLength(2);
+    expect(entry.tokenSnapshot!.imp[1].label).toBe('Spy info');
   });
 });

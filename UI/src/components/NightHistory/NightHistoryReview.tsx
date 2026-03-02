@@ -37,8 +37,27 @@ export function NightHistoryReview({
   // Derive the same script character IDs used in the game
   const scriptCharacterIds = useMemo(() => allCharacters.map((ch) => ch.id), [allCharacters]);
 
+  // Overlay snapshotted tokens from the history entry onto players so
+  // the review flashcards show tokens that were active during that night
+  // rather than current (live) tokens.
+  const players = useMemo(() => {
+    const livePlayers = state.game?.players ?? [];
+    const snapshot = historyEntry.tokenSnapshot;
+    if (!snapshot) return livePlayers;
+    return livePlayers.map((p) => {
+      const snapshotTokens = snapshot[p.characterId];
+      if (snapshotTokens !== undefined) {
+        return { ...p, tokens: snapshotTokens };
+      }
+      // Character had no tokens at that point in time
+      return { ...p, tokens: [] };
+    });
+  }, [state.game?.players, historyEntry.tokenSnapshot]);
+
   // Get the night order entries that match the historical night type
-  const entries = useNightOrder(scriptCharacterIds, isFirstNight);
+  // F3-10: Pass players so the night order only includes in-play characters,
+  // matching the live NightPhaseOverlay behaviour (M3-3).
+  const entries = useNightOrder(scriptCharacterIds, isFirstNight, players);
 
   // Local editable copy of the history entry
   const [localEntry, setLocalEntry] = useState<NightHistoryEntry>(() => ({
@@ -57,8 +76,6 @@ export function NightHistoryReview({
     }),
     [localEntry, entries.length],
   );
-
-  const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
 
   /** Toggle a sub-action checkbox and save. */
   const handleUpdateProgress = useCallback(

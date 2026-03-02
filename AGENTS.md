@@ -71,13 +71,13 @@ See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) fo
 
 | File | Purpose |
 |------|---------|
-| [`docs/milestone0/architecture-plan.md`](docs/milestone0/architecture-plan.md) | Full architecture design |
+| [`docs/milestones/1 - initial app setup/architecture-plan.md`](docs/milestones/1 - initial app setup/architecture-plan.md) | Full architecture design |
 | [`UI/src/types/index.ts`](UI/src/types/index.ts) | All TypeScript types |
 | [`UI/src/context/GameContext.tsx`](UI/src/context/GameContext.tsx) | Game state management |
 | [`UI/src/context/SessionContext.tsx`](UI/src/context/SessionContext.tsx) | Session state management |
 | [`UI/src/data/characters.json`](UI/src/data/characters.json) | 43 character definitions |
 | [`UI/src/data/nightOrder.json`](UI/src/data/nightOrder.json) | Master night order (168 entries) |
-| [`docs/milestone3/milestone3.md`](docs/milestone3/milestone3.md) | Current pending feedback items |
+| [`docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md`](docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md) | Current pending feedback items |
 
 ## Related Documentation
 

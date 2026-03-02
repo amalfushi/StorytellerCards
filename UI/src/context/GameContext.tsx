@@ -206,6 +206,13 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'COMPLETE_NIGHT': {
       if (!state.game || !state.nightProgress) return state;
+      // Snapshot each player's tokens keyed by characterId
+      const tokenSnapshot: Record<string, PlayerToken[]> = {};
+      for (const player of state.game.players) {
+        if (player.tokens && player.tokens.length > 0) {
+          tokenSnapshot[player.characterId] = [...player.tokens];
+        }
+      }
       const historyEntry: NightHistoryEntry = {
         dayNumber: state.game.currentDay,
         isFirstNight: state.game.isFirstNight,
@@ -213,6 +220,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         subActionStates: { ...state.nightProgress.subActionStates },
         notes: { ...state.nightProgress.notes },
         selections: { ...state.nightProgress.selections },
+        tokenSnapshot,
       };
       const updatedGame: Game = {
         ...state.game,

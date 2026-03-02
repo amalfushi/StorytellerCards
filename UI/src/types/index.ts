@@ -211,6 +211,8 @@ export interface NightHistoryEntry {
   notes: Record<string, string>;
   /** characterId → selected value(s) from night choice dropdowns. */
   selections: Record<string, string | string[]>;
+  /** characterId → snapshot of player tokens active when this night was completed. */
+  tokenSnapshot?: Record<string, PlayerToken[]>;
 }
 
 /** Current in-flight night walkthrough progress. */

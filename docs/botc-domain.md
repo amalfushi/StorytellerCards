@@ -4,12 +4,12 @@
 
 ## The Game
 
-Blood on the Clocktower (BotC) is a social deduction game for 5–20 players. One player is the **Storyteller** (game master) who runs the game. All other players receive a secret character with a secret role.
+Blood on the Clocktower (BotC) is a social deduction game for 5–20 players + one person running the game called the **StoryTeller** (game master).  All players receive a secret character with a secret role.
 
 ## Teams
 
 - **Good team**: Townsfolk + Outsiders. Goal: execute the Demon.
-- **Evil team**: Minions + Demons. Goal: reduce the town to 2 living players (or fewer).
+- **Evil team**: Minions + Demons. Goal: reduce the town to only evil players alive.  The game can end earlier if the evil team outnumbers or ties the number of possible votes left amongst the living good team + possible ghost votes.
 - The Storyteller is neutral — they facilitate the game.
 
 ## Character Types
@@ -47,8 +47,8 @@ Some characters modify this (e.g., Baron: +2 Outsiders, −2 Townsfolk). See [`p
 
 A **Script** is a curated subset of characters used for a specific game. Examples:
 - **Trouble Brewing** (beginner, official)
-- **Boozling** (custom, used for this project's development — see [`Boozling.json`](milestone0/Boozling.json))
-- **One in One Out** (custom — see [`OneInOneOut.json`](milestone2/OneInOneOut.json))
+- **Boozling** (custom, used for this project's development — see [`Boozling.json`](milestones/1 - initial app setup/Boozling.json))
+- **One in One Out** (custom — see [`OneInOneOut.json`](milestones/2 - basic botc setup/OneInOneOut.json))
 
 Scripts define which characters *could* appear in a game. The actual characters assigned depend on player count.
 

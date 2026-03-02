@@ -6,13 +6,14 @@
 
 | Milestone | Description | Status | Details |
 |-----------|------------|--------|---------|
-| M0 | Project scaffolding, data layer, core UI, night flashcards, Go API, polish | ✅ Complete | [details](milestone0/progress.md) |
-| M1 | Code quality, testing, dev tooling, documentation | ✅ Complete | [details](milestone0/progress.md) |
-| M2 | Bug fixes, character assignment, script importing | ✅ Complete | [details](milestone2/progress.md) |
-| M3 | Night phase improvements, token system, script builder, UI polish | ✅ Complete | [details](milestone3/progress.md) |
+| M0 | Project scaffolding, data layer, core UI, night flashcards, Go API, polish | ✅ Complete | [details](milestones/1 - initial app setup/progress.md) |
+| M1 | Code quality, testing, dev tooling, documentation | ✅ Complete | [details](milestones/1 - initial app setup/progress.md) |
+| M2 | Bug fixes, character assignment, script importing | ✅ Complete | [details](milestones/2 - basic botc setup/progress.md) |
+| M3 | Night phase improvements, token system, script builder, UI polish | ✅ Complete (+ Feedback Rounds 1 & 2) | [details](milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/progress.md) |
 | M4 | Multi-demon support | 📋 Planned | — |
 | M5 | Jinxes | 📋 Planned | — |
 | M6 | Character file restructuring (individual .ts files, wiki scraping) | 📋 Planned | — |
+| M7 | Testing Improvements | 📋 Planned | [details](milestones/7 - testing improvements/milestone7.md) |
 
 ## Key Design Decisions
 
@@ -27,4 +28,4 @@
 
 - TypeScript: 0 errors
 - ESLint: 0 errors, 0 warnings
-- Tests: 48/48 passing (5 test files)
+- Tests: 52/52 passing (5 test files)

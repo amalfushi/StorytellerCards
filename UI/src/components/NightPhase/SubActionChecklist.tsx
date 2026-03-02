@@ -83,6 +83,8 @@ export function SubActionChecklist({
                 tabIndex={-1}
                 size="small"
                 aria-label={`${sa.isConditional ? 'Conditional: ' : ''}${sa.description}`}
+                onClick={(e) => e.stopPropagation()}
+                onChange={handleToggle(index)}
                 sx={{
                   color: 'rgba(255,255,255,0.5)',
                   '&.Mui-checked': { color: '#66bb6a' },

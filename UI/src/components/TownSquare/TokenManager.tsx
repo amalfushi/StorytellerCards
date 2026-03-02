@@ -12,7 +12,7 @@ import type { PlayerSeat, PlayerToken, CharacterDef } from '@/types/index.ts';
 import { generateId } from '@/utils/idGenerator.ts';
 
 // ──────────────────────────────────────────────
-// Token colour constants
+// Token colour constants & limits
 // ──────────────────────────────────────────────
 
 const TOKEN_COLORS = {
@@ -20,6 +20,9 @@ const TOKEN_COLORS = {
   poisoned: '#7b1fa2', // purple
   custom: '#ff9800', // orange fallback
 } as const;
+
+/** Maximum number of custom tokens a single player can hold. */
+const MAX_CUSTOM_TOKENS = 10;
 
 // ──────────────────────────────────────────────
 // TokenBadges — visual display around player tile
@@ -58,8 +61,13 @@ export function TokenBadges({ tokens, tileX, tileY, centerX, centerY }: TokenBad
 
   // Distance from tile centre to each badge
   const badgeDistance = 40;
-  // Angular offset between consecutive badges (in radians, ~35°)
-  const offsetStep = (35 * Math.PI) / 180;
+  // Angular offset between consecutive badges — shrinks as token count grows
+  // so that many badges (up to 12) still fit without excessive overlap.
+  const maxStep = 35; // degrees for ≤3 tokens
+  const minStep = 18; // degrees floor for many tokens
+  const stepDeg =
+    tokens.length <= 3 ? maxStep : Math.max(minStep, maxStep - (tokens.length - 3) * 2);
+  const offsetStep = (stepDeg * Math.PI) / 180;
 
   return (
     <>
@@ -143,16 +151,30 @@ export function TokenManager({
   const tokens = player.tokens ?? [];
   const reminders = characterDef?.reminders ?? [];
 
-  const handleAddPreset = (type: 'drunk' | 'poisoned', label: string, color: string) => {
-    onAddToken(player.seat, {
-      id: generateId(),
-      type,
-      label,
-      color,
-    });
+  // Lookup existing drunk / poisoned tokens for toggle behaviour
+  const existingDrunk = tokens.find((t) => t.type === 'drunk');
+  const existingPoisoned = tokens.find((t) => t.type === 'poisoned');
+
+  // Count of custom tokens (includes character reminders that use type 'custom')
+  const customTokenCount = tokens.filter((t) => t.type === 'custom').length;
+
+  /** Toggle a preset token: if it already exists, remove it; otherwise add it. */
+  const handleTogglePreset = (type: 'drunk' | 'poisoned', label: string, color: string) => {
+    const existing = type === 'drunk' ? existingDrunk : existingPoisoned;
+    if (existing) {
+      onRemoveToken(player.seat, existing.id);
+    } else {
+      onAddToken(player.seat, {
+        id: generateId(),
+        type,
+        label,
+        color,
+      });
+    }
   };
 
   const handleAddReminder = (text: string) => {
+    if (customTokenCount >= MAX_CUSTOM_TOKENS) return;
     onAddToken(player.seat, {
       id: generateId(),
       type: 'custom',
@@ -164,6 +186,7 @@ export function TokenManager({
 
   const handleAddCustom = () => {
     if (!customLabel.trim()) return;
+    if (customTokenCount >= MAX_CUSTOM_TOKENS) return;
     onAddToken(player.seat, {
       id: generateId(),
       type: 'custom',
@@ -205,23 +228,23 @@ export function TokenManager({
           </Box>
         )}
 
-        {/* Preset buttons */}
+        {/* Preset toggle buttons (on/off — max 1 each) */}
         <Typography variant="subtitle2" gutterBottom>
-          Add Token
+          Status Tokens
         </Typography>
         <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
           <Button
-            variant="outlined"
+            variant={existingDrunk ? 'contained' : 'outlined'}
             size="small"
-            onClick={() => handleAddPreset('drunk', 'Drunk', TOKEN_COLORS.drunk)}
+            onClick={() => handleTogglePreset('drunk', 'Drunk', TOKEN_COLORS.drunk)}
             sx={{ textTransform: 'none' }}
           >
             🍺 Drunk
           </Button>
           <Button
-            variant="outlined"
+            variant={existingPoisoned ? 'contained' : 'outlined'}
             size="small"
-            onClick={() => handleAddPreset('poisoned', 'Poisoned', TOKEN_COLORS.poisoned)}
+            onClick={() => handleTogglePreset('poisoned', 'Poisoned', TOKEN_COLORS.poisoned)}
             sx={{ textTransform: 'none' }}
           >
             ☠️ Poisoned
@@ -253,7 +276,11 @@ export function TokenManager({
         {/* Custom token input */}
         <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
           <TextField
-            label="Custom token"
+            label={
+              customTokenCount >= MAX_CUSTOM_TOKENS
+                ? `Limit reached (${MAX_CUSTOM_TOKENS})`
+                : 'Custom token'
+            }
             size="small"
             fullWidth
             value={customLabel}
@@ -261,16 +288,22 @@ export function TokenManager({
             onKeyDown={(e) => {
               if (e.key === 'Enter') handleAddCustom();
             }}
+            disabled={customTokenCount >= MAX_CUSTOM_TOKENS}
           />
           <Button
             variant="contained"
             size="small"
             onClick={handleAddCustom}
-            disabled={!customLabel.trim()}
+            disabled={!customLabel.trim() || customTokenCount >= MAX_CUSTOM_TOKENS}
           >
             Add
           </Button>
         </Box>
+        {customTokenCount >= MAX_CUSTOM_TOKENS && (
+          <Typography variant="caption" color="warning.main" sx={{ mt: 0.5, display: 'block' }}>
+            Maximum of {MAX_CUSTOM_TOKENS} custom tokens reached.
+          </Typography>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>

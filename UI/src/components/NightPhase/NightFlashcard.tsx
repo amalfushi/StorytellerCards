@@ -8,6 +8,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { TokenChips } from '@/components/common/TokenChips.tsx';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
 import { parseHelpTextForChoices } from './NightChoiceHelper.ts';
@@ -247,6 +248,13 @@ export function NightFlashcard({
             {characterDef.abilityShort}
           </Typography>
         )}
+
+        {/* Active tokens indicator (F3-18) */}
+        {playerSeat && playerSeat.tokens.length > 0 && (
+          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
+            <TokenChips tokens={playerSeat.tokens} size="medium" />
+          </Box>
+        )}
       </Box>
 
       {/* Player info */}
@@ -277,7 +285,7 @@ export function NightFlashcard({
         sx={{ borderColor: 'rgba(255,255,255,0.12)', mb: 1, position: 'relative', zIndex: 1 }}
       />
 
-      {/* Sub-action checklist */}
+      {/* Sub-action checklist + choice selectors inline */}
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', position: 'relative', zIndex: 1 }}>
         <SubActionChecklist
           subActions={entry.subActions}
@@ -285,28 +293,28 @@ export function NightFlashcard({
           onToggle={onToggleSubAction}
           readOnly={readOnly}
         />
-      </Box>
 
-      {/* Night choice selector(s) — rendered for each parsed choice config */}
-      {parsedChoices.length > 0 && onSelectionChange && (
-        <Box sx={{ position: 'relative', zIndex: 1 }}>
-          {parsedChoices.map((choice, idx) => (
-            <NightChoiceSelector
-              key={`${entry.id}-choice-${idx}`}
-              type={choice.type}
-              multiple={choice.multiple}
-              maxSelections={choice.maxSelections}
-              value={getCompoundValue(idx)}
-              onChange={(v) => handleCompoundChange(idx, v)}
-              players={players}
-              characters={scriptCharacters}
-              previousValue={getCompoundPrev(idx)}
-              label={choice.label}
-              readOnly={readOnly}
-            />
-          ))}
-        </Box>
-      )}
+        {/* Night choice selector(s) — directly below instruction steps */}
+        {parsedChoices.length > 0 && onSelectionChange && (
+          <Box>
+            {parsedChoices.map((choice, idx) => (
+              <NightChoiceSelector
+                key={`${entry.id}-choice-${idx}`}
+                type={choice.type}
+                multiple={choice.multiple}
+                maxSelections={choice.maxSelections}
+                value={getCompoundValue(idx)}
+                onChange={(v) => handleCompoundChange(idx, v)}
+                players={players}
+                characters={scriptCharacters}
+                previousValue={getCompoundPrev(idx)}
+                label={choice.label}
+                readOnly={readOnly}
+              />
+            ))}
+          </Box>
+        )}
+      </Box>
 
       <Divider
         sx={{

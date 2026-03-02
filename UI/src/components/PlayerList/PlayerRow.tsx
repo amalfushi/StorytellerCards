@@ -12,6 +12,7 @@ import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { characterColors } from '@/theme/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { TokenChips } from '@/components/common/TokenChips.tsx';
 
 interface PlayerRowProps {
   player: PlayerSeat;
@@ -78,10 +79,6 @@ export function PlayerRow({
           cursor: showCharacters ? 'pointer' : 'default',
           borderLeft: travellerBorder,
           borderRight: travellerBorderRight,
-          textDecoration: isDead ? 'line-through' : 'none',
-          '& td': {
-            textDecoration: isDead ? 'line-through' : 'none',
-          },
         }}
       >
         {/* Seat # */}
@@ -151,7 +148,14 @@ export function PlayerRow({
         {/* Character Name (night view only) */}
         {showCharacters && <TableCell sx={{ px: 1 }}>{character?.name ?? '—'}</TableCell>}
 
-        {/* Ability short (night view only) */}
+        {/* Active tokens (night view only, F3-17) */}
+        {showCharacters && (
+          <TableCell sx={{ px: 1 }}>
+            {player.tokens.length > 0 ? <TokenChips tokens={player.tokens} /> : '—'}
+          </TableCell>
+        )}
+
+        {/* Ability short (night view only) — strikethrough when dead */}
         {showCharacters && (
           <TableCell
             sx={{
@@ -162,6 +166,7 @@ export function PlayerRow({
               whiteSpace: 'nowrap',
               fontSize: '0.75rem',
               color: 'text.secondary',
+              textDecoration: isDead ? 'line-through' : 'none',
             }}
           >
             {character?.abilityShort ?? '—'}

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { action } from '@storybook/addon-actions';
+import { action } from 'storybook/actions';
 import { NightProgressBar } from './NightProgressBar';
 import { mockFirstNightEntries } from '../../stories/mockData';
 import Box from '@mui/material/Box';
@@ -89,8 +89,8 @@ export const Clickable: Story = {
   },
 };
 
-/** Condensed "worm" view — demonstrates scaling behaviour with 10+ entries. */
-export const CondensedWorm: Story = {
+/** Scrollable carousel — demonstrates horizontal scroll behaviour with 10+ entries. */
+export const ScrollableCarousel: Story = {
   args: {
     currentIndex: Math.floor(mockFirstNightEntries.length / 2),
     totalCards: mockFirstNightEntries.length,

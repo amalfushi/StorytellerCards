@@ -8,12 +8,14 @@ import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.t
 
 // ──────────────────────────────────────────────
 // Size presets (px) based on player count
+// F3-6: Enlarged defaults — old "large" is now "medium",
+//       all fonts increased ~30%.
 // ──────────────────────────────────────────────
 
 const SIZE_MAP = {
-  large: { box: 72, icon: 28, nameFont: '0.7rem', metaFont: '0.6rem' },
-  medium: { box: 60, icon: 24, nameFont: '0.65rem', metaFont: '0.55rem' },
-  small: { box: 48, icon: 20, nameFont: '0.58rem', metaFont: '0.5rem' },
+  large: { box: 88, icon: 34, nameFont: '0.91rem', metaFont: '0.78rem' },
+  medium: { box: 72, icon: 28, nameFont: '0.91rem', metaFont: '0.78rem' },
+  small: { box: 60, icon: 24, nameFont: '0.85rem', metaFont: '0.72rem' },
 } as const;
 
 export type TokenSize = keyof typeof SIZE_MAP;
@@ -38,6 +40,22 @@ function alignmentBorderColor(alignment: Alignment): string {
       return '#9e9e9e';
   }
 }
+
+/** Subtle transparent background tint based on alignment (F3-6c). */
+function alignmentBgTint(alignment: Alignment): string | undefined {
+  switch (alignment) {
+    case Alignment.Good:
+      return 'rgba(25, 118, 210, 0.10)';
+    case Alignment.Evil:
+      return 'rgba(211, 47, 47, 0.10)';
+    default:
+      return undefined;
+  }
+}
+
+/** F3-11: Split blue/red transparent gradient for traveller backgrounds. */
+const TRAVELLER_BG_TINT =
+  'linear-gradient(to right, rgba(25, 118, 210, 0.10) 50%, rgba(211, 47, 47, 0.10) 50%)';
 
 /**
  * Abbreviate a character name for compact display.
@@ -78,6 +96,11 @@ export const PlayerToken = memo(function PlayerToken({
   const isDead = !player.alive;
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
 
+  // F3-6c: Determine alignment tint — use actualAlignment in night view,
+  // visibleAlignment in day view (though day view typically won't show it).
+  const effectiveAlignment = showCharacters ? player.actualAlignment : player.visibleAlignment;
+  const bgTint = alignmentBgTint(effectiveAlignment);
+
   // Border logic
   const borderWidth = 2;
   const isTraveller = player.isTraveller;
@@ -90,22 +113,22 @@ export const PlayerToken = memo(function PlayerToken({
   const travellerGradient = 'linear-gradient(to right, #1976d2 50%, #d32f2f 50%)';
 
   const borderStyle = (() => {
-    if (!showCharacters) {
-      // Day view — neutral border
-      return {
-        border: `${borderWidth}px solid`,
-        borderColor: isDead ? '#bdbdbd' : '#e0e0e0',
-      };
-    }
+    // F3-13: Travellers always show split-colour border (even in day view),
+    // because traveller status is public knowledge.
     if (isTraveller) {
-      // Traveller: split-colour border via background-clip trick
       return {
         border: 'none',
         backgroundImage: travellerGradient,
         backgroundOrigin: 'border-box' as const,
         backgroundClip: 'border-box' as const,
-        // We use a pseudo-element approach via padding + inner background
         padding: `${borderWidth}px`,
+      };
+    }
+    if (!showCharacters) {
+      // Day view — neutral border for non-travellers
+      return {
+        border: `${borderWidth}px solid`,
+        borderColor: isDead ? '#bdbdbd' : '#e0e0e0',
       };
     }
     return {
@@ -113,8 +136,8 @@ export const PlayerToken = memo(function PlayerToken({
     };
   })();
 
-  // For the traveller gradient border we need an inner wrapper
-  const useTravellerWrapper = showCharacters && isTraveller;
+  // F3-13: Travellers always use the wrapper (day AND night)
+  const useTravellerWrapper = isTraveller;
 
   const handleIconClick = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -246,6 +269,15 @@ export const PlayerToken = memo(function PlayerToken({
     </>
   );
 
+  // F3-11: Travellers get a split blue/red background tint;
+  // other types use alignment-based tint.
+  const resolvedBg = (() => {
+    if (isDead) return { bgcolor: 'grey.200' } as const;
+    if (isTraveller) return { background: TRAVELLER_BG_TINT } as const;
+    if (bgTint) return { bgcolor: bgTint } as const;
+    return { bgcolor: 'background.paper' } as const;
+  })();
+
   const innerSx = {
     display: 'flex',
     flexDirection: 'column' as const,
@@ -258,13 +290,15 @@ export const PlayerToken = memo(function PlayerToken({
     overflow: 'hidden',
     cursor: 'pointer',
     userSelect: 'none' as const,
-    borderRadius: '12px',
-    bgcolor: isDead ? 'grey.200' : 'background.paper',
+    borderRadius: '10px', // F3-12: slightly smaller than outer to nest inside border
+    ...resolvedBg,
   };
 
+  // F3-12: Use minHeight instead of fixed height so traveller tokens
+  // (which have extra content from the gradient-border wrapper) can grow.
   const outerSx = {
     width: s.box,
-    height: s.box,
+    minHeight: s.box,
     borderRadius: '12px',
     opacity: isDead ? 0.45 : 1,
     transition: 'opacity 0.2s, box-shadow 0.15s',

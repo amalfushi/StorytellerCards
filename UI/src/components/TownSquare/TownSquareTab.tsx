@@ -37,7 +37,7 @@ function tokenSizeForCount(count: number): TokenSize {
 }
 
 /** Half-size of the token box (used as padding inset for the layout). */
-const TOKEN_HALF = { large: 36, medium: 30, small: 24 } as const;
+const TOKEN_HALF = { large: 44, medium: 36, small: 30 } as const;
 
 /**
  * Town Square tab — the signature circular / ovoid "clock face" layout.
@@ -105,7 +105,10 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
   const [addTravellerOpen, setAddTravellerOpen] = useState(false);
 
   // ── Token manager dialog ──
-  const [tokenPlayer, setTokenPlayer] = useState<PlayerSeat | null>(null);
+  const [tokenSeat, setTokenSeat] = useState<number | null>(null);
+  /** Derive the current player from live state so the dialog always sees fresh tokens. */
+  const tokenPlayer =
+    tokenSeat !== null ? (players.find((p) => p.seat === tokenSeat) ?? null) : null;
 
   // ── Handlers ──
 
@@ -184,13 +187,9 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     setSelectedSeat(null);
   }, []);
 
-  const handleManageTokens = useCallback(
-    (seat: number) => {
-      const p = players.find((pl) => pl.seat === seat);
-      if (p) setTokenPlayer(p);
-    },
-    [players],
-  );
+  const handleManageTokens = useCallback((seat: number) => {
+    setTokenSeat(seat);
+  }, []);
 
   const handleAddToken = useCallback(
     (seat: number, token: PlayerTokenType) => {
@@ -325,7 +324,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
       <TokenManager
         open={tokenPlayer !== null}
         player={tokenPlayer}
-        onClose={() => setTokenPlayer(null)}
+        onClose={() => setTokenSeat(null)}
         onAddToken={handleAddToken}
         onRemoveToken={handleRemoveToken}
         characterDef={tokenPlayer?.characterId ? getCharacter(tokenPlayer.characterId) : undefined}
