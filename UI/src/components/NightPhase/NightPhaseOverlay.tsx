@@ -32,21 +32,8 @@ export function NightPhaseOverlay({
   const { getCharacter, getCharactersByIds } = useCharacterLookup();
 
   const isFirstNight = game?.isFirstNight ?? true;
-  const allEntries = useNightOrder(scriptCharacterIds, isFirstNight);
-
-  // M3-3: Filter night order to only characters assigned to players (keep structural entries)
-  const assignedCharIds = useMemo(() => {
-    const ids = new Set<string>();
-    for (const p of game?.players ?? []) {
-      if (p.characterId) ids.add(p.characterId);
-    }
-    return ids;
-  }, [game?.players]);
-
-  const entries = useMemo(
-    () => allEntries.filter((e) => e.type === 'structural' || assignedCharIds.has(e.id)),
-    [allEntries, assignedCharIds],
-  );
+  const players = useMemo(() => game?.players ?? [], [game?.players]);
+  const entries = useNightOrder(scriptCharacterIds, isFirstNight, players);
 
   // Script characters for the choice dropdowns
   const scriptCharacters: CharacterDef[] = useMemo(
@@ -65,23 +52,27 @@ export function NightPhaseOverlay({
       : undefined;
 
   const isNightPhase = game?.currentPhase === 'Night';
-  const [overlayVisible, setOverlayVisible] = useState(externalOpen && isNightPhase);
+  // Track whether the user explicitly dismissed the overlay (reset when externalOpen flips)
+  const [dismissed, setDismissed] = useState(false);
 
   const hasProgress = nightProgress !== null;
 
-  // Sync externalOpen prop → internal state
+  // Reset dismissed flag when externalOpen changes; auto-start night progress
   useEffect(() => {
     if (externalOpen && isNightPhase) {
       if (!hasProgress) {
         startNight(entries.length);
       }
-      // setOverlayVisible(true);
+      queueMicrotask(() => setDismissed(false));
     }
   }, [externalOpen, isNightPhase, hasProgress, startNight, entries.length]);
 
+  // Derive visibility from prop + dismissed flag (no setState needed for opening)
+  const overlayVisible = externalOpen && isNightPhase && !dismissed;
+
   /** Dismiss overlay but preserve progress. */
   const handleDismiss = useCallback(() => {
-    setOverlayVisible(false);
+    setDismissed(true);
     onClose?.();
   }, [onClose]);
 
@@ -118,11 +109,9 @@ export function NightPhaseOverlay({
   /** Complete the night, close overlay. */
   const handleComplete = useCallback(() => {
     completeNight();
-    setOverlayVisible(false);
+    setDismissed(true);
     onClose?.();
   }, [completeNight, onClose]);
-
-  const players = useMemo(() => game?.players ?? [], [game?.players]);
 
   // Only render when night phase is active AND overlay should be visible
   if (!isNightPhase || !hasProgress || !overlayVisible) return null;

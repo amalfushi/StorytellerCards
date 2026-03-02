@@ -274,12 +274,12 @@ export function FlashcardCarousel({
               color: 'rgba(255,255,255,0.6)',
               backgroundColor: 'rgba(0,0,0,0.3)',
               '&:hover': { backgroundColor: 'rgba(0,0,0,0.5)' },
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
             }}
-            size="small"
+            size="medium"
           >
-            <ChevronLeftIcon />
+            <ChevronLeftIcon sx={{ fontSize: '1.8rem' }} />
           </IconButton>
         )}
         {currentIndex < totalCards - 1 && (
@@ -294,12 +294,12 @@ export function FlashcardCarousel({
               color: 'rgba(255,255,255,0.6)',
               backgroundColor: 'rgba(0,0,0,0.3)',
               '&:hover': { backgroundColor: 'rgba(0,0,0,0.5)' },
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
             }}
-            size="small"
+            size="medium"
           >
-            <ChevronRightIcon />
+            <ChevronRightIcon sx={{ fontSize: '1.8rem' }} />
           </IconButton>
         )}
 

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
@@ -7,9 +7,11 @@ import Typography from '@mui/material/Typography';
 import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { TokenChips } from '@/components/common/TokenChips.tsx';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
-import { parseHelpTextForChoice } from './NightChoiceHelper.ts';
+import { parseHelpTextForChoices } from './NightChoiceHelper.ts';
 
 export interface NightFlashcardProps {
   entry: NightOrderEntry;
@@ -55,12 +57,67 @@ export function NightFlashcard({
   onSelectionChange,
   previousSelection,
 }: NightFlashcardProps) {
+  const [detailOpen, setDetailOpen] = useState(false);
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
 
   const typeName = characterDef?.type ?? 'Unknown';
 
-  // Parse helpText to detect if this character needs a choice dropdown
-  const parsedChoice = useMemo(() => parseHelpTextForChoice(entry.helpText), [entry.helpText]);
+  // Parse helpText to detect if this character needs choice dropdown(s)
+  const parsedChoices = useMemo(() => parseHelpTextForChoices(entry.helpText), [entry.helpText]);
+
+  const isCompound = parsedChoices.length > 1;
+
+  /**
+   * For compound choices (e.g. player + character), we store values as an array
+   * where each element corresponds to one selector's value.
+   * For single choices, we keep the original string | string[] format.
+   */
+  const getCompoundValue = useCallback(
+    (index: number): string | string[] => {
+      if (!isCompound) {
+        // Single choice — use selectionValue directly
+        const choice = parsedChoices[0];
+        if (!choice) return '';
+        return selectionValue ?? (choice.multiple ? [] : '');
+      }
+      // Compound — selectionValue should be string[] with one entry per selector
+      if (!Array.isArray(selectionValue)) return '';
+      return (selectionValue[index] as string) ?? '';
+    },
+    [isCompound, parsedChoices, selectionValue],
+  );
+
+  const getCompoundPrev = useCallback(
+    (index: number): string | string[] | undefined => {
+      if (!isCompound) return previousSelection;
+      if (!Array.isArray(previousSelection)) return undefined;
+      return (previousSelection[index] as string) ?? undefined;
+    },
+    [isCompound, previousSelection],
+  );
+
+  const handleCompoundChange = useCallback(
+    (index: number, value: string | string[]) => {
+      if (!onSelectionChange) return;
+      if (!isCompound) {
+        onSelectionChange(value);
+        return;
+      }
+      // Build new compound array
+      const current = Array.isArray(selectionValue)
+        ? [...selectionValue]
+        : new Array(parsedChoices.length).fill('');
+      // Ensure the array is large enough
+      while (current.length < parsedChoices.length) current.push('');
+      current[index] = value;
+      onSelectionChange(current);
+    },
+    [onSelectionChange, isCompound, selectionValue, parsedChoices.length],
+  );
+
+  // For dead players, desaturate only the background — keep content fully readable
+  const deadBgColor = 'rgba(40, 40, 45, 0.95)';
+  const aliveBgColor = 'rgba(30, 30, 50, 0.95)';
 
   return (
     <Box
@@ -69,18 +126,30 @@ export function NightFlashcard({
         display: 'flex',
         flexDirection: 'column',
         borderRadius: 3,
-        bgcolor: 'rgba(30, 30, 50, 0.95)',
-        boxShadow: '0 8px 32px rgba(0,0,0,0.5)',
+        bgcolor: isDead ? deadBgColor : aliveBgColor,
+        boxShadow: isDead ? '0 8px 32px rgba(0,0,0,0.4)' : '0 8px 32px rgba(0,0,0,0.5)',
         p: 2.5,
         mx: 1,
         minHeight: 0,
         flex: 1,
         overflow: 'auto',
-        opacity: isDead ? 0.7 : 1,
-        filter: isDead ? 'saturate(0.3)' : 'none',
-        transition: 'opacity 0.3s ease, filter 0.3s ease',
+        transition: 'background-color 0.3s ease, box-shadow 0.3s ease',
       }}
     >
+      {/* Desaturated background overlay for dead players */}
+      {isDead && (
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            borderRadius: 3,
+            background: 'rgba(0, 0, 0, 0.15)',
+            filter: 'saturate(0.2)',
+            pointerEvents: 'none',
+            zIndex: 0,
+          }}
+        />
+      )}
       {/* Ghost badge for dead players */}
       {isDead && (
         <Box
@@ -98,8 +167,20 @@ export function NightFlashcard({
       )}
 
       {/* Character icon placeholder */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mb: 2 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          mb: 2,
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
         <Box
+          onClick={() => {
+            if (characterDef) setDetailOpen(true);
+          }}
           sx={{
             width: 80,
             height: 80,
@@ -114,6 +195,10 @@ export function NightFlashcard({
             fontWeight: 'bold',
             color: '#fff',
             textTransform: 'uppercase',
+            filter: isDead ? 'saturate(0.2) brightness(0.7)' : 'none',
+            transition: 'filter 0.3s ease',
+            cursor: characterDef ? 'pointer' : 'default',
+            '&:hover': characterDef ? { opacity: 0.85 } : {},
           }}
         >
           {entry.name.charAt(0)}
@@ -137,11 +222,12 @@ export function NightFlashcard({
           label={typeName}
           size="small"
           sx={{
-            backgroundColor: `${typeColor}33`,
-            color: typeColor,
+            backgroundColor: isDead ? 'rgba(128,128,128,0.2)' : `${typeColor}33`,
+            color: isDead ? 'rgba(200,200,200,0.7)' : typeColor,
             fontWeight: 600,
-            borderColor: typeColor,
+            borderColor: isDead ? 'rgba(200,200,200,0.3)' : typeColor,
             border: '1px solid',
+            transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
           }}
         />
 
@@ -162,6 +248,13 @@ export function NightFlashcard({
             {characterDef.abilityShort}
           </Typography>
         )}
+
+        {/* Active tokens indicator (F3-18) */}
+        {playerSeat && playerSeat.tokens.length > 0 && (
+          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
+            <TokenChips tokens={playerSeat.tokens} size="medium" />
+          </Box>
+        )}
       </Box>
 
       {/* Player info */}
@@ -172,6 +265,8 @@ export function NightFlashcard({
           gap: 0.75,
           mb: 1.5,
           px: 0.5,
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <PersonIcon sx={{ fontSize: 18, color: 'rgba(255,255,255,0.6)' }} />
@@ -186,38 +281,55 @@ export function NightFlashcard({
         )}
       </Box>
 
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.12)', mb: 1 }} />
+      <Divider
+        sx={{ borderColor: 'rgba(255,255,255,0.12)', mb: 1, position: 'relative', zIndex: 1 }}
+      />
 
-      {/* Sub-action checklist */}
-      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto' }}>
+      {/* Sub-action checklist + choice selectors inline */}
+      <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', position: 'relative', zIndex: 1 }}>
         <SubActionChecklist
           subActions={entry.subActions}
           checkedStates={checkedStates}
           onToggle={onToggleSubAction}
           readOnly={readOnly}
         />
+
+        {/* Night choice selector(s) — directly below instruction steps */}
+        {parsedChoices.length > 0 && onSelectionChange && (
+          <Box>
+            {parsedChoices.map((choice, idx) => (
+              <NightChoiceSelector
+                key={`${entry.id}-choice-${idx}`}
+                type={choice.type}
+                multiple={choice.multiple}
+                maxSelections={choice.maxSelections}
+                value={getCompoundValue(idx)}
+                onChange={(v) => handleCompoundChange(idx, v)}
+                players={players}
+                characters={scriptCharacters}
+                previousValue={getCompoundPrev(idx)}
+                label={choice.label}
+                readOnly={readOnly}
+              />
+            ))}
+          </Box>
+        )}
       </Box>
 
-      {/* Night choice selector (if helpText requires a player/character choice) */}
-      {parsedChoice && onSelectionChange && (
-        <NightChoiceSelector
-          type={parsedChoice.type}
-          multiple={parsedChoice.multiple}
-          maxSelections={parsedChoice.maxSelections}
-          value={selectionValue ?? (parsedChoice.multiple ? [] : '')}
-          onChange={onSelectionChange}
-          players={players}
-          characters={scriptCharacters}
-          previousValue={previousSelection}
-          label={parsedChoice.label}
-          readOnly={readOnly}
-        />
-      )}
-
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.12)', mt: 1, mb: 1.5 }} />
+      <Divider
+        sx={{
+          borderColor: 'rgba(255,255,255,0.12)',
+          mt: 1,
+          mb: 1.5,
+          position: 'relative',
+          zIndex: 1,
+        }}
+      />
 
       {/* Notes field */}
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+      <Box
+        sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, position: 'relative', zIndex: 1 }}
+      >
         <Typography
           variant="body2"
           sx={{ color: 'rgba(255,255,255,0.5)', mt: 0.75, flexShrink: 0 }}
@@ -250,6 +362,12 @@ export function NightFlashcard({
           }}
         />
       </Box>
+      {/* Character Detail Modal */}
+      <CharacterDetailModal
+        open={detailOpen}
+        character={characterDef ?? null}
+        onClose={() => setDetailOpen(false)}
+      />
     </Box>
   );
 }

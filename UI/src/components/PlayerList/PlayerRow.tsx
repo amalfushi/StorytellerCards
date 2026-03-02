@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import Chip from '@mui/material/Chip';
@@ -10,6 +11,8 @@ import HowToVoteIcon from '@mui/icons-material/HowToVote';
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { characterColors } from '@/theme/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { TokenChips } from '@/components/common/TokenChips.tsx';
 
 interface PlayerRowProps {
   player: PlayerSeat;
@@ -38,6 +41,7 @@ export function PlayerRow({
   onToggleGhostVote,
   onRowClick,
 }: PlayerRowProps) {
+  const [detailOpen, setDetailOpen] = useState(false);
   const typeColor = character ? getCharacterTypeColor(character.type) : '#9e9e9e';
   const isDead = !player.alive;
 
@@ -50,15 +54,14 @@ export function PlayerRow({
     : undefined;
 
   // M3-6: Alignment mismatch border on the type pill
-  // Evil Townsfolk/Outsider → red border on blue pill
-  // Good Minion/Demon → blue border on red pill
+  // Compare player's actualAlignment to the character's defaultAlignment.
+  // If they differ, draw a thick border in the player's actual alignment colour.
+  // e.g. Evil Townsfolk → blue pill with red border; Good Demon → red pill with blue border.
   const hasMismatch =
     character &&
     player.actualAlignment !== 'Unknown' &&
-    ((player.actualAlignment === 'Evil' &&
-      (character.type === 'Townsfolk' || character.type === 'Outsider')) ||
-      (player.actualAlignment === 'Good' &&
-        (character.type === 'Minion' || character.type === 'Demon')));
+    character.defaultAlignment !== 'Unknown' &&
+    player.actualAlignment !== character.defaultAlignment;
 
   const mismatchBorder = hasMismatch
     ? player.actualAlignment === 'Evil'
@@ -67,154 +70,173 @@ export function PlayerRow({
     : undefined;
 
   return (
-    <TableRow
-      hover
-      onClick={() => showCharacters && onRowClick(player.seat)}
-      sx={{
-        opacity: isDead ? 0.5 : 1,
-        cursor: showCharacters ? 'pointer' : 'default',
-        borderLeft: travellerBorder,
-        borderRight: travellerBorderRight,
-        textDecoration: isDead ? 'line-through' : 'none',
-        '& td': {
-          textDecoration: isDead ? 'line-through' : 'none',
-        },
-      }}
-    >
-      {/* Seat # */}
-      <TableCell align="center" sx={{ width: 40, px: 1 }}>
-        {player.seat}
-      </TableCell>
-
-      {/* Player Name */}
-      <TableCell sx={{ px: 1, fontWeight: 500 }}>{player.playerName}</TableCell>
-
-      {/* Type chip (night view only) */}
-      {showCharacters && (
-        <TableCell sx={{ px: 1 }}>
-          {character ? (
-            <Chip
-              label={character.type}
-              size="small"
-              sx={{
-                bgcolor: typeColor,
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: '0.7rem',
-                height: 22,
-                border: mismatchBorder ?? 'none',
-              }}
-            />
-          ) : (
-            '—'
-          )}
+    <>
+      <TableRow
+        hover
+        onClick={() => showCharacters && onRowClick(player.seat)}
+        sx={{
+          opacity: isDead ? 0.5 : 1,
+          cursor: showCharacters ? 'pointer' : 'default',
+          borderLeft: travellerBorder,
+          borderRight: travellerBorderRight,
+        }}
+      >
+        {/* Seat # */}
+        <TableCell align="center" sx={{ width: 40, px: 1 }}>
+          {player.seat}
         </TableCell>
-      )}
 
-      {/* Character icon (night view only) */}
-      {showCharacters && (
-        <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
-          {character ? (
-            <Box
-              sx={{
-                width: 24,
-                height: 24,
-                borderRadius: '50%',
-                bgcolor: typeColor,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-              }}
-            >
-              <Typography
-                sx={{ color: '#fff', fontWeight: 700, fontSize: '0.65rem', lineHeight: 1 }}
+        {/* Player Name */}
+        <TableCell sx={{ px: 1, fontWeight: 500 }}>{player.playerName}</TableCell>
+
+        {/* Type chip (night view only) */}
+        {showCharacters && (
+          <TableCell sx={{ px: 1 }}>
+            {character ? (
+              <Chip
+                label={character.type}
+                size="small"
+                sx={{
+                  bgcolor: typeColor,
+                  color: '#fff',
+                  fontWeight: 600,
+                  fontSize: '0.7rem',
+                  height: 22,
+                  border: mismatchBorder ?? 'none',
+                }}
+              />
+            ) : (
+              '—'
+            )}
+          </TableCell>
+        )}
+
+        {/* Character icon (night view only) */}
+        {showCharacters && (
+          <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
+            {character ? (
+              <Box
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDetailOpen(true);
+                }}
+                sx={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  bgcolor: typeColor,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  cursor: 'pointer',
+                  '&:hover': { opacity: 0.8 },
+                }}
               >
-                {character.name.charAt(0)}
-              </Typography>
-            </Box>
-          ) : (
-            '—'
-          )}
-        </TableCell>
-      )}
+                <Typography
+                  sx={{ color: '#fff', fontWeight: 700, fontSize: '0.65rem', lineHeight: 1 }}
+                >
+                  {character.name.charAt(0)}
+                </Typography>
+              </Box>
+            ) : (
+              '—'
+            )}
+          </TableCell>
+        )}
 
-      {/* Character Name (night view only) */}
-      {showCharacters && <TableCell sx={{ px: 1 }}>{character?.name ?? '—'}</TableCell>}
+        {/* Character Name (night view only) */}
+        {showCharacters && <TableCell sx={{ px: 1 }}>{character?.name ?? '—'}</TableCell>}
 
-      {/* Ability short (night view only) */}
-      {showCharacters && (
-        <TableCell
-          sx={{
-            px: 1,
-            maxWidth: 180,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            fontSize: '0.75rem',
-            color: 'text.secondary',
-          }}
-        >
-          {character?.abilityShort ?? '—'}
-        </TableCell>
-      )}
+        {/* Active tokens (night view only, F3-17) */}
+        {showCharacters && (
+          <TableCell sx={{ px: 1 }}>
+            {player.tokens.length > 0 ? <TokenChips tokens={player.tokens} /> : '—'}
+          </TableCell>
+        )}
 
-      {/* Alive/Dead toggle */}
-      <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
-        <IconButton
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleAlive(player.seat);
-          }}
-          color={player.alive ? 'success' : 'error'}
-          aria-label={player.alive ? 'Mark as dead' : 'Mark as alive'}
-        >
-          {player.alive ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-        </IconButton>
-      </TableCell>
-
-      {/* Alignment indicator (night view only) */}
-      {showCharacters && (
-        <TableCell align="center" sx={{ width: 32, px: 0.5 }}>
-          <Box
+        {/* Ability short (night view only) — strikethrough when dead */}
+        {showCharacters && (
+          <TableCell
             sx={{
-              width: 14,
-              height: 14,
-              borderRadius: '50%',
-              mx: 'auto',
-              bgcolor:
-                player.actualAlignment === 'Good'
-                  ? characterColors.townsfolk
-                  : player.actualAlignment === 'Evil'
-                    ? characterColors.demon
-                    : '#9e9e9e',
+              px: 1,
+              maxWidth: 180,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              fontSize: '0.75rem',
+              color: 'text.secondary',
+              textDecoration: isDead ? 'line-through' : 'none',
             }}
-          />
-        </TableCell>
-      )}
+          >
+            {character?.abilityShort ?? '—'}
+          </TableCell>
+        )}
 
-      {/* Ghost Vote */}
-      <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
-        {isDead && (
+        {/* Alive/Dead toggle */}
+        <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
           <IconButton
             size="small"
             onClick={(e) => {
               e.stopPropagation();
-              onToggleGhostVote(player.seat);
+              onToggleAlive(player.seat);
             }}
-            color={player.ghostVoteUsed ? 'default' : 'primary'}
-            aria-label={player.ghostVoteUsed ? 'Ghost vote used' : 'Ghost vote available'}
+            color={player.alive ? 'success' : 'error'}
+            aria-label={player.alive ? 'Mark as dead' : 'Mark as alive'}
           >
-            <HowToVoteIcon
-              fontSize="small"
+            {player.alive ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+          </IconButton>
+        </TableCell>
+
+        {/* Alignment indicator (night view only) */}
+        {showCharacters && (
+          <TableCell align="center" sx={{ width: 32, px: 0.5 }}>
+            <Box
               sx={{
-                opacity: player.ghostVoteUsed ? 0.3 : 1,
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                mx: 'auto',
+                bgcolor:
+                  player.actualAlignment === 'Good'
+                    ? characterColors.townsfolk
+                    : player.actualAlignment === 'Evil'
+                      ? characterColors.demon
+                      : '#9e9e9e',
               }}
             />
-          </IconButton>
+          </TableCell>
         )}
-      </TableCell>
-    </TableRow>
+
+        {/* Ghost Vote */}
+        <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
+          {isDead && (
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleGhostVote(player.seat);
+              }}
+              color={player.ghostVoteUsed ? 'default' : 'primary'}
+              aria-label={player.ghostVoteUsed ? 'Ghost vote used' : 'Ghost vote available'}
+            >
+              <HowToVoteIcon
+                fontSize="small"
+                sx={{
+                  opacity: player.ghostVoteUsed ? 0.3 : 1,
+                }}
+              />
+            </IconButton>
+          )}
+        </TableCell>
+      </TableRow>
+
+      {/* Character Detail Modal */}
+      <CharacterDetailModal
+        open={detailOpen}
+        character={character ?? null}
+        onClose={() => setDetailOpen(false)}
+      />
+    </>
   );
 }

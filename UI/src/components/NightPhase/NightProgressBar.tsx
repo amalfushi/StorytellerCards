@@ -1,7 +1,16 @@
+import { useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { NightOrderEntry } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+
+/** Threshold above which the scrollable carousel activates. */
+const SCROLL_THRESHOLD = 10;
+
+/** Base size for inactive dots (px). */
+const DOT_SIZE = 12;
+/** Size for the active dot (px). */
+const ACTIVE_DOT_SIZE = 16;
 
 export interface NightProgressBarProps {
   currentIndex: number;
@@ -17,7 +26,11 @@ export interface NightProgressBarProps {
 
 /**
  * Compact progress indicator showing "X / Y" and a row of coloured dots.
+ *
  * Each dot is clickable when an `onClick` handler is provided.
+ * For 10+ cards, dots are displayed in a horizontally scrollable
+ * container that auto-scrolls to keep the active dot centred, keeping
+ * all dots at full size for easy tapping on mobile.
  */
 export function NightProgressBar({
   currentIndex,
@@ -27,6 +40,23 @@ export function NightProgressBar({
   deadIds = new Set(),
   onClick,
 }: NightProgressBarProps) {
+  const isScrollable = entries.length > SCROLL_THRESHOLD;
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll the active dot into view when it changes
+  useEffect(() => {
+    if (!isScrollable || !scrollRef.current) return;
+    const container = scrollRef.current;
+    const activeDot = container.children[currentIndex] as HTMLElement | undefined;
+    if (!activeDot) return;
+    const containerRect = container.getBoundingClientRect();
+    const dotRect = activeDot.getBoundingClientRect();
+    const scrollLeft = activeDot.offsetLeft - container.offsetWidth / 2 + dotRect.width / 2;
+    container.scrollTo({ left: Math.max(0, scrollLeft), behavior: 'smooth' });
+    // Only need containerRect reference for layout — suppress lint
+    void containerRect;
+  }, [currentIndex, isScrollable]);
+
   return (
     <Box
       aria-label="Night progress"
@@ -50,14 +80,27 @@ export function NightProgressBar({
         {currentIndex + 1} / {totalCards}
       </Typography>
 
-      {/* Dot row */}
+      {/* Dot row — scrollable for 10+ entries, centred for fewer */}
       <Box
+        ref={scrollRef}
         sx={{
           display: 'flex',
-          gap: '4px',
-          flexWrap: 'wrap',
-          justifyContent: 'center',
+          gap: '8px',
+          alignItems: 'center',
           maxWidth: '100%',
+          ...(isScrollable
+            ? {
+                overflowX: 'auto',
+                whiteSpace: 'nowrap',
+                scrollbarWidth: 'none', // Firefox
+                '&::-webkit-scrollbar': { display: 'none' }, // Chrome/Safari
+                WebkitOverflowScrolling: 'touch',
+                px: 1,
+              }
+            : {
+                flexWrap: 'wrap',
+                justifyContent: 'center',
+              }),
         }}
       >
         {entries.map((entry, i) => {
@@ -71,12 +114,16 @@ export function NightProgressBar({
               ? getCharacterTypeColor(charType)
               : '#9e9e9e';
 
+          const size = isCurrent ? ACTIVE_DOT_SIZE : DOT_SIZE;
+
           return (
             <Box
               key={`${entry.id}-${i}`}
               role={onClick ? 'button' : undefined}
               tabIndex={onClick ? 0 : undefined}
-              aria-label={onClick ? `Go to card ${i + 1}: ${entry.name}` : undefined}
+              aria-label={
+                onClick ? `Go to card ${i + 1} of ${totalCards}: ${entry.name}` : undefined
+              }
               onClick={() => onClick?.(i)}
               onKeyDown={(e) => {
                 if (onClick && (e.key === 'Enter' || e.key === ' ')) {
@@ -85,21 +132,27 @@ export function NightProgressBar({
                 }
               }}
               sx={{
-                width: isCurrent ? 18 : 14,
-                height: isCurrent ? 18 : 14,
+                width: size,
+                height: size,
+                minWidth: size,
+                minHeight: size,
                 borderRadius: '50%',
                 backgroundColor: isDead ? 'transparent' : dotColor,
                 border: isDead ? `2px solid ${dotColor}` : isCurrent ? '2px solid #fff' : 'none',
                 opacity: isCurrent ? 1 : 0.6,
-                transition: 'all 0.2s ease',
+                transition: 'all 0.25s ease',
                 flexShrink: 0,
                 cursor: onClick ? 'pointer' : 'default',
                 '&:hover': onClick
                   ? {
                       opacity: 1,
-                      transform: 'scale(1.2)',
+                      transform: 'scale(1.25)',
                     }
                   : {},
+                '&:focus-visible': {
+                  outline: '2px solid #90caf9',
+                  outlineOffset: 2,
+                },
               }}
             />
           );

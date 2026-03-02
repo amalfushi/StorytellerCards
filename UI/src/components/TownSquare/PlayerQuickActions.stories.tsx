@@ -2,7 +2,7 @@ import { useRef, useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Button from '@mui/material/Button';
 import { PlayerQuickActions } from './PlayerQuickActions';
-import { alicePlayer, charliePlayer, travJackPlayer } from '../../stories/mockData';
+import { alicePlayer, charliePlayer, evePlayer, travJackPlayer } from '../../stories/mockData';
 import type { PlayerSeat } from '../../types';
 
 const noop = () => {};
@@ -81,6 +81,11 @@ export const DeadPlayerDay: Story = {
 /** Quick actions for a traveller — includes "Remove Traveller" option. */
 export const TravellerActions: Story = {
   render: () => <AnchoredQuickActions player={travJackPlayer} showCharacters={false} />,
+};
+
+/** Dead player with ghost vote already used — shows "Restore Ghost Vote" option. */
+export const DeadPlayerGhostVoteUsed: Story = {
+  render: () => <AnchoredQuickActions player={evePlayer} showCharacters={false} />,
 };
 
 /** Night view quick actions — adds "Edit Character" option. */

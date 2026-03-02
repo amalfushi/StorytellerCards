@@ -4,12 +4,12 @@
 
 ## The Game
 
-Blood on the Clocktower (BotC) is a social deduction game for 5–20 players. One player is the **Storyteller** (game master) who runs the game. All other players receive a secret character with a secret role.
+Blood on the Clocktower (BotC) is a social deduction game for 5–20 players + one person running the game called the **StoryTeller** (game master).  All players receive a secret character with a secret role.
 
 ## Teams
 
 - **Good team**: Townsfolk + Outsiders. Goal: execute the Demon.
-- **Evil team**: Minions + Demons. Goal: reduce the town to 2 living players (or fewer).
+- **Evil team**: Minions + Demons. Goal: reduce the town to only evil players alive.  The game can end earlier if the evil team outnumbers or ties the number of possible votes left amongst the living good team + possible ghost votes.
 - The Storyteller is neutral — they facilitate the game.
 
 ## Character Types
@@ -41,14 +41,14 @@ For each total player count, there's a fixed distribution:
 | 14 | 9 | 1 | 3 | 1 |
 | 15 | 9 | 2 | 3 | 1 |
 
-Some characters modify this (e.g., Baron: +2 Outsiders, −2 Townsfolk). See [`playerCountRules.ts`](../../UI/src/data/playerCountRules.ts).
+Some characters modify this (e.g., Baron: +2 Outsiders, −2 Townsfolk). See [`playerCountRules.ts`](../UI/src/data/playerCountRules.ts).
 
 ## Scripts
 
 A **Script** is a curated subset of characters used for a specific game. Examples:
 - **Trouble Brewing** (beginner, official)
-- **Boozling** (custom, used for this project's development — see [`Boozling.json`](../../Boozling.json))
-- **One in One Out** (custom — see [`OneInOneOut.json`](../../OneInOneOut.json))
+- **Boozling** (custom, used for this project's development — see [`Boozling.json`](milestones/1 - initial app setup/Boozling.json))
+- **One in One Out** (custom — see [`OneInOneOut.json`](milestones/2 - basic botc setup/OneInOneOut.json))
 
 Scripts define which characters *could* appear in a game. The actual characters assigned depend on player count.
 
@@ -64,8 +64,8 @@ Scripts define which characters *could* appear in a game. The actual characters 
 - **Public info**: player names, seat positions, who is alive/dead
 - **Secret info**: characters, alignments (only Storyteller sees these)
 - Players discuss, accuse, and vote to execute someone
-- The [`ShowCharactersToggle`](../../UI/src/components/common/ShowCharactersToggle.tsx) controls this Day/Night visibility in the app
-- Day has a discussion timer ([`DayTimer`](../../UI/src/components/Timer/DayTimer.tsx))
+- The [`ShowCharactersToggle`](../UI/src/components/common/ShowCharactersToggle.tsx) controls this Day/Night visibility in the app
+- Day has a discussion timer ([`DayTimer`](../UI/src/components/Timer/DayTimer.tsx))
 
 ### Night Phase
 - The Storyteller "puts the town to sleep" (everyone closes eyes)
@@ -90,7 +90,7 @@ In the physical game, the Storyteller has a **Grimoire** — a hidden book with 
 ### Status Effects
 - **Drunk**: character thinks they have an ability but it does nothing (they get false info)
 - **Poisoned**: same effect as drunk, but caused by another character's ability
-- These are tracked via [`PlayerToken`](../../UI/src/types/index.ts) on each `PlayerSeat`
+- These are tracked via [`PlayerToken`](../UI/src/types/index.ts) on each `PlayerSeat`
 
 ### Death
 - Dead players can still participate in Day discussions
@@ -101,7 +101,7 @@ In the physical game, the Storyteller has a **Grimoire** — a hidden book with 
 - Can join or leave the game at any time
 - Get assigned an alignment by the Storyteller (not by the script)
 - Have special rules for execution (exile instead of execution)
-- Added via [`AddTravellerDialog`](../../UI/src/components/TownSquare/AddTravellerDialog.tsx)
+- Added via [`AddTravellerDialog`](../UI/src/components/TownSquare/AddTravellerDialog.tsx)
 
 ### Reminder Tokens
 In the physical game, small tokens are placed near player tokens to track ongoing effects:
@@ -110,7 +110,7 @@ In the physical game, small tokens are placed near player tokens to track ongoin
 - "Dead" — placed when a character dies
 - Character-specific reminders (e.g., Fortune Teller's "Red Herring")
 
-The app tracks these in `PlayerSeat.activeReminders` and `PlayerSeat.tokens`. The [`TokenManager`](../../UI/src/components/TownSquare/TokenManager.tsx) (M3-12) handles placement in the Town Square view.
+The app tracks these in `PlayerSeat.activeReminders` and `PlayerSeat.tokens`. The [`TokenManager`](../UI/src/components/TownSquare/TokenManager.tsx) (M3-12) handles placement in the Town Square view.
 
 ## Why the Storyteller Needs This App
 

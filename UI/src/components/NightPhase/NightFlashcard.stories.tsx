@@ -127,3 +127,40 @@ export const MinionCard: Story = {
     isDead: false,
   },
 };
+
+// ────────────────────────────────────────────────────────
+// Token stories (F3-18)
+// ────────────────────────────────────────────────────────
+
+/** Player with a Drunk token — purple "Drunk" chip below ability text. */
+export const WithDrunkToken: Story = {
+  args: {
+    entry: fortuneTellerFirstNightEntry,
+    playerSeat: {
+      ...charliePlayer,
+      alive: true,
+      tokens: [{ id: 'tok-drunk-1', type: 'drunk', label: 'Drunk', color: '#1976d2' }],
+    },
+    characterDef: fortuneTeller,
+    checkedStates: [false, false],
+    isDead: false,
+  },
+};
+
+/** Player with Poisoned + custom tokens — multiple chips below ability text. */
+export const WithMultipleTokens: Story = {
+  args: {
+    entry: impOtherNightEntry,
+    playerSeat: {
+      ...bobPlayer,
+      tokens: [
+        { id: 'tok-poisoned-1', type: 'poisoned', label: 'Poisoned', color: '#7b1fa2' },
+        { id: 'tok-custom-1', type: 'custom', label: 'Is the Drunk', color: '#ff9800' },
+        { id: 'tok-custom-2', type: 'custom', label: 'Mad', color: '#e91e63' },
+      ],
+    },
+    characterDef: imp,
+    checkedStates: [false, false, false, false, false],
+    isDead: false,
+  },
+};

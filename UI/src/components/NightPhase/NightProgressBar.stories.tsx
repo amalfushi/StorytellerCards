@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { action } from 'storybook/actions';
 import { NightProgressBar } from './NightProgressBar';
 import { mockFirstNightEntries } from '../../stories/mockData';
 import Box from '@mui/material/Box';
@@ -76,5 +77,23 @@ export const SmallGame: Story = {
     entries: mockFirstNightEntries.slice(0, 5),
     characterTypes: buildCharacterTypes(mockFirstNightEntries.slice(0, 5)),
     deadIds: new Set<string>(),
+  },
+};
+
+/** Clickable dots — click any dot to see the action logged. */
+export const Clickable: Story = {
+  args: {
+    currentIndex: 4,
+    totalCards: mockFirstNightEntries.length,
+    onClick: action('onDotClick'),
+  },
+};
+
+/** Scrollable carousel — demonstrates horizontal scroll behaviour with 10+ entries. */
+export const ScrollableCarousel: Story = {
+  args: {
+    currentIndex: Math.floor(mockFirstNightEntries.length / 2),
+    totalCards: mockFirstNightEntries.length,
+    onClick: action('onDotClick'),
   },
 };

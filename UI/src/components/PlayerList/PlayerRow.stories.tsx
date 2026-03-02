@@ -8,10 +8,15 @@ import {
   charliePlayer,
   evePlayer,
   travJackPlayer,
+  evilTravellerPlayer,
   irisPlayer,
+  evilTownsfolkPlayer,
+  goodDemonPlayer,
   imp,
+  noble,
   fortuneTeller,
   drunk,
+  spiritOfIvory,
 } from '../../stories/mockData';
 
 const noop = () => {};
@@ -77,12 +82,21 @@ export const GhostVoteUsed: Story = {
   },
 };
 
-/** Traveller player — has split blue/red border (TravJack). */
-export const TravellerPlayer: Story = {
+/** Traveller player (Good) — split blue/red border, Spirit of Ivory character data shown. */
+export const TravellerPlayerGood: Story = {
   args: {
     player: travJackPlayer,
     showCharacters: true,
-    character: undefined, // Angel is not in our mock characters
+    character: spiritOfIvory,
+  },
+};
+
+/** Traveller player (Evil-aligned) — split border + red alignment dot, demonstrates ST-assigned evil alignment. */
+export const TravellerPlayerEvil: Story = {
+  args: {
+    player: evilTravellerPlayer,
+    showCharacters: true,
+    character: spiritOfIvory,
   },
 };
 
@@ -91,6 +105,74 @@ export const NoCharacterAssigned: Story = {
   args: {
     player: irisPlayer,
     showCharacters: true,
+    character: undefined,
+  },
+};
+
+/**
+ * Evil Townsfolk — alignment mismatch.
+ * Blue Townsfolk pill with a thick red border indicating Evil actual alignment.
+ */
+export const EvilTownsfolk: Story = {
+  args: {
+    player: evilTownsfolkPlayer,
+    showCharacters: true,
+    character: noble,
+  },
+};
+
+/**
+ * Good Demon — alignment mismatch.
+ * Dark-red Demon pill with a thick blue border indicating Good actual alignment.
+ */
+export const GoodDemon: Story = {
+  args: {
+    player: goodDemonPlayer,
+    showCharacters: true,
+    character: imp,
+  },
+};
+
+// ────────────────────────────────────────────────────────
+// Token stories (F3-17)
+// ────────────────────────────────────────────────────────
+
+/** Night view — player with a Drunk token showing purple chip. */
+export const WithDrunkToken: Story = {
+  args: {
+    player: {
+      ...alicePlayer,
+      tokens: [{ id: 'tok-drunk-1', type: 'drunk', label: 'Drunk', color: '#1976d2' }],
+    },
+    showCharacters: true,
+    character: noble,
+  },
+};
+
+/** Night view — player with Poisoned + 2 custom tokens. */
+export const WithMultipleTokens: Story = {
+  args: {
+    player: {
+      ...bobPlayer,
+      tokens: [
+        { id: 'tok-poisoned-1', type: 'poisoned', label: 'Poisoned', color: '#7b1fa2' },
+        { id: 'tok-custom-1', type: 'custom', label: 'Is the Drunk', color: '#ff9800' },
+        { id: 'tok-custom-2', type: 'custom', label: 'Mad', color: '#e91e63' },
+      ],
+    },
+    showCharacters: true,
+    character: imp,
+  },
+};
+
+/** Day view — tokens are hidden (secret info). */
+export const DayViewWithTokens: Story = {
+  args: {
+    player: {
+      ...alicePlayer,
+      tokens: [{ id: 'tok-drunk-1', type: 'drunk', label: 'Drunk', color: '#1976d2' }],
+    },
+    showCharacters: false,
     character: undefined,
   },
 };

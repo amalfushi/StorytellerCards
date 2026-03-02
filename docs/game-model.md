@@ -1,6 +1,6 @@
 # Game Data Model
 
-> All types are defined in [`UI/src/types/index.ts`](../../UI/src/types/index.ts).
+> All types are defined in [`UI/src/types/index.ts`](../UI/src/types/index.ts).
 
 ## Entity Hierarchy
 
@@ -13,7 +13,7 @@ Session
 │
 └── Game
     ├── id, sessionId, scriptId
-    ├── currentDay, currentPhase (Day|Night|Dawn|Dusk)
+     ├── currentDay, currentPhase (Day|Night)
     ├── isFirstNight: boolean
     ├── nightHistory: NightHistoryEntry[]
     │
@@ -59,7 +59,7 @@ Scripts are JSON files following the official BotC script tool format:
 ]
 ```
 
-The first element has `id: "_meta"` with script metadata. All other elements are character ID strings. The [`scriptImporter.ts`](../../UI/src/utils/scriptImporter.ts) utility parses this into a `Script` object.
+The first element has `id: "_meta"` with script metadata. All other elements are character ID strings. The [`scriptImporter.ts`](../UI/src/utils/scriptImporter.ts) utility parses this into a `Script` object.
 
 ## Character Types and Alignments
 
@@ -83,7 +83,7 @@ Defined as `as const` objects (not enums):
 
 ## Character Definition (`CharacterDef`)
 
-Defined in [`characters.json`](../../UI/src/data/characters.json) (43 characters). Each entry:
+Defined in [`characters.json`](../UI/src/data/characters.json) (43 characters). Each entry:
 
 ```typescript
 interface CharacterDef {
@@ -105,7 +105,7 @@ Unknown characters (not in `characters.json`) are handled by `getFallbackCharact
 
 ## Night Order Structure
 
-Defined in [`nightOrder.json`](../../UI/src/data/nightOrder.json) (168 entries total). Two arrays: `firstNight` and `otherNights`.
+Defined in [`nightOrder.json`](../UI/src/data/nightOrder.json) (168 entries total). Two arrays: `firstNight` and `otherNights`.
 
 Each entry is either:
 - **`structural`**: Phase markers like `dusk`, `dawn`, `minioninfo`, `demoninfo`
@@ -122,7 +122,7 @@ interface NightOrderEntry {
 }
 ```
 
-The [`nightOrderFilter.ts`](../../UI/src/utils/nightOrderFilter.ts) utility filters the master list to only the characters present in the active game's script.
+The [`nightOrderFilter.ts`](../UI/src/utils/nightOrderFilter.ts) utility filters the master list to only the characters present in the active game's script.
 
 ## Night Progress & History
 
@@ -153,7 +153,7 @@ Sub-action checkmarks reset at the start of each night. History records are save
 
 ## Player Count Distribution
 
-Defined in [`playerCountRules.ts`](../../UI/src/data/playerCountRules.ts). For each player count (5–20), specifies how many Townsfolk, Outsiders, Minions, and Demons should be assigned. Some characters modify these counts (e.g., Baron adds +2 Outsiders, –2 Townsfolk).
+Defined in [`playerCountRules.ts`](../UI/src/data/playerCountRules.ts). For each player count (5–20), specifies how many Townsfolk, Outsiders, Minions, and Demons should be assigned. Some characters modify these counts (e.g., Baron adds +2 Outsiders, –2 Townsfolk).
 
 ## Phase Flow
 
@@ -161,7 +161,7 @@ Defined in [`playerCountRules.ts`](../../UI/src/data/playerCountRules.ts). For e
 Day ←→ Night
 ```
 
-Phases are defined as: `Dawn`, `Day`, `Dusk`, `Night` — but **Dawn and Dusk are being removed** per M3-4 as they add no value to the Storyteller's workflow. After removal, it will be a simple Day ↔ Night toggle.
+Phases are `Day` and `Night` only — a simple toggle. Dawn and Dusk were removed in M3-4 as they added no value to the Storyteller's workflow.
 
 ## Player Tokens
 
@@ -175,4 +175,6 @@ interface PlayerToken {
 }
 ```
 
-Two default token types (`drunk`, `poisoned`) plus arbitrary custom tokens. Tokens display around the player's tile in Town Square, radiating from the angle that points toward center. Implementation in [`TokenManager.tsx`](../../UI/src/components/TownSquare/TokenManager.tsx) (partially complete — M3-12).
+Two default token types (`drunk`, `poisoned`) plus arbitrary custom tokens. Drunk and Poisoned are distinguished because they have different sources and different clearing logic.
+
+Tokens display around the player's tile in Town Square using atan2-based center-facing positioning with alternating clockwise/counterclockwise fan-out. The [`TokenBadges`](../UI/src/components/TownSquare/TokenManager.tsx) component renders the visual badges; the [`TokenManager`](../UI/src/components/TownSquare/TokenManager.tsx) dialog provides Drunk/Poisoned toggles, character-specific reminder tokens, and custom text tokens.

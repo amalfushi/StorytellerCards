@@ -2,6 +2,9 @@
   "name": "storyteller-cards-monorepo",
   "private": true,
   "scripts": {
+    "install:all": "npm install && concurrently --names UI,API --prefix-colors cyan,green \"cd UI && npm install\" \"cd API && go mod download\"",
+    "install:ui": "cd UI && npm install",
+    "install:api": "cd API && go mod download",
     "dev": "concurrently --names UI,API --prefix-colors cyan,green \"cd UI && npm run dev\" \"cd API && go run ./cmd/server\"",
     "dev:ui": "cd UI && npm run dev",
     "dev:api": "cd API && go run ./cmd/server",

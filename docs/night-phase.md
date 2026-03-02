@@ -8,17 +8,19 @@ During the Night phase of Blood on the Clocktower, the Storyteller must wake eac
 
 ## Night Order Filtering
 
-The master [`nightOrder.json`](../../UI/src/data/nightOrder.json) contains 168 entries covering ALL BotC characters. For any given game, this is filtered down to only the characters assigned to players in that game.
+The master [`nightOrder.json`](../UI/src/data/nightOrder.json) contains 168 entries covering ALL BotC characters. For any given game, this is filtered down to only the characters assigned to players in that game.
 
-Filter logic in [`nightOrderFilter.ts`](../../UI/src/utils/nightOrderFilter.ts):
+Filter logic in [`nightOrderFilter.ts`](../UI/src/utils/nightOrderFilter.ts):
 1. Start with the master night order (`firstNight` or `otherNights` depending on `isFirstNight`)
-2. Keep all **structural** entries (Dusk, Dawn, Minion Info, Demon Info)
+2. Keep all **structural** entries (Minion Info, Demon Info)
 3. Keep only **character** entries whose `id` matches a character assigned to a player in the current game
-4. **Planned (M3-3)**: Currently filters to script characters; should filter to *assigned* characters only
+4. When the optional `players?: PlayerSeat[]` parameter is provided, filters to only characters assigned to actual players (not all script characters)
+
+The [`useNightOrder.ts`](../UI/src/hooks/useNightOrder.ts) hook passes the current players array through to the filter. 11 tests in [`nightOrderFilter.test.ts`](../UI/src/utils/nightOrderFilter.test.ts) verify the filtering logic including player-based filtering.
 
 ## Flashcard Structure
 
-Each [`NightFlashcard`](../../UI/src/components/NightPhase/NightFlashcard.tsx) shows:
+Each [`NightFlashcard`](../UI/src/components/NightPhase/NightFlashcard.tsx) shows:
 
 ```
 ┌──────────────────────────────┐
@@ -40,12 +42,12 @@ Each [`NightFlashcard`](../../UI/src/components/NightPhase/NightFlashcard.tsx) s
 └──────────────────────────────┘
 ```
 
-- **Background color**: Based on character type (see color scheme in [`agents.md`](../agents.md))
-- **Dead players**: Very desaturated background (planned M3-3)
+- **Background color**: Based on character type (see color scheme in [`AGENTS.md`](../AGENTS.md))
+- **Dead players**: Desaturated background via targeted CSS applied in [`NightFlashcard.tsx`](../UI/src/components/NightPhase/NightFlashcard.tsx)
 
 ## Sub-Action Checklist
 
-[`SubActionChecklist.tsx`](../../UI/src/components/NightPhase/SubActionChecklist.tsx)
+[`SubActionChecklist.tsx`](../UI/src/components/NightPhase/SubActionChecklist.tsx)
 
 Each character's night action is broken into individual checkable steps (`NightSubAction`):
 
@@ -68,18 +70,20 @@ States are stored in `NightProgress.subActionStates` as `Record<string, boolean[
 
 ## Structural Cards
 
-[`StructuralCard.tsx`](../../UI/src/components/NightPhase/StructuralCard.tsx)
+[`StructuralCard.tsx`](../UI/src/components/NightPhase/StructuralCard.tsx)
 
 Non-character cards in the night order:
-- **Dusk** — beginning of night (being removed per M3-4)
-- **Dawn** — end of night (being removed per M3-4)
 - **Minion Info** — first night only, show Minions who each other are and who the Demon is
 - **Demon Info** — first night only, show Demon who the Minions are and give false info
 
+Dawn and Dusk structural cards were removed in M3-4 since phases are now a simple Day/Night toggle.
+
 ## Night Choice Selectors
 
-[`NightChoiceSelector.tsx`](../../UI/src/components/NightPhase/NightChoiceSelector.tsx) (M3-10, partially complete)
-[`NightChoiceHelper.ts`](../../UI/src/components/NightPhase/NightChoiceHelper.ts) (M3-10, partially complete)
+[`NightChoiceSelector.tsx`](../UI/src/components/NightPhase/NightChoiceSelector.tsx) renders dropdown UI for character abilities that involve choosing.
+[`NightChoiceHelper.ts`](../UI/src/components/NightPhase/NightChoiceHelper.ts) parses help text to determine what choices are needed.
+
+The helper's `parseHelpTextForChoices()` function returns `ParsedChoice[]`, supporting compound choices (e.g., "chooses a player & a character"). [`NightFlashcard.tsx`](../UI/src/components/NightPhase/NightFlashcard.tsx) renders multiple selectors when compound choices are detected.
 
 For characters whose ability involves choosing (e.g., "choose a player", "choose 2 players", "choose a character"):
 - Dropdown populated with appropriate options (living players, all players, characters, alignments)
@@ -89,7 +93,7 @@ For characters whose ability involves choosing (e.g., "choose a player", "choose
 
 ## Night Progress Tracking
 
-[`NightProgress`](../../UI/src/types/index.ts) tracks the in-flight state:
+[`NightProgress`](../UI/src/types/index.ts) tracks the in-flight state:
 
 ```typescript
 interface NightProgress {
@@ -101,9 +105,9 @@ interface NightProgress {
 }
 ```
 
-The carousel ([`FlashcardCarousel.tsx`](../../UI/src/components/NightPhase/FlashcardCarousel.tsx)) manages swipe navigation and the progress bar ([`NightProgressBar.tsx`](../../UI/src/components/NightPhase/NightProgressBar.tsx)) shows position.
+The carousel ([`FlashcardCarousel.tsx`](../UI/src/components/NightPhase/FlashcardCarousel.tsx)) manages swipe navigation and the progress bar ([`NightProgressBar.tsx`](../UI/src/components/NightPhase/NightProgressBar.tsx)) shows position.
 
-**Planned (M3-7)**: Pagination dots should be larger and clickable to jump directly to a card.
+Pagination dots are enlarged with 8px gap, clickable to jump directly to any card, with proper aria-labels and focus-visible styling. For 10+ entries, a condensed worm pattern is used via the `dotScale()` helper to prevent overflow. Stories: Clickable, CondensedWorm.
 
 ## Complete Night Flow
 
@@ -117,10 +121,11 @@ When the Storyteller finishes all cards and presses "Complete Night":
 
 ## Night History
 
-- [`NightHistoryDrawer.tsx`](../../UI/src/components/NightHistory/NightHistoryDrawer.tsx) — opens from the AppBar, lists all completed nights
-- [`NightHistoryReview.tsx`](../../UI/src/components/NightHistory/NightHistoryReview.tsx) — shows a read-only flashcard carousel for a selected past night
+- [`NightHistoryDrawer.tsx`](../UI/src/components/NightHistory/NightHistoryDrawer.tsx) — opens from the AppBar, lists all completed nights; edit icon on each entry
+- [`NightHistoryReview.tsx`](../UI/src/components/NightHistory/NightHistoryReview.tsx) — flashcard carousel for reviewing and editing past nights
+- [`nightHistoryUtils.ts`](../UI/src/utils/nightHistoryUtils.ts) — utility functions: `mergeNightHistoryEntry()` for merging edited entries back, `findNightHistoryIndex()` for locating entries by day/night type. 15 tests in [`nightHistoryUtils.test.ts`](../UI/src/utils/nightHistoryUtils.test.ts).
 
-**Planned (M3-11)**: Night history should be editable to fix misclicks — not truly read-only.
+Night history is **editable** — the Storyteller can fix misclicks in past night records.
 
 ## Data Flow Summary
 

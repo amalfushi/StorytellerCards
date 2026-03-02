@@ -1,17 +1,24 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import type { CharacterDef, Script } from '@/types/index.ts';
 import { CharacterType } from '@/types/index.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { sortScriptCharacters } from '@/utils/scriptSortRules.ts';
+import { generateId } from '@/utils/idGenerator.ts';
 
 export interface ScriptBuilderProps {
   open: boolean;
@@ -29,27 +36,45 @@ const TYPE_ORDER: string[] = [
 /**
  * Dialog for creating a custom script by toggling characters on/off.
  * Characters are listed grouped by type with a search filter.
+ * Two tabs: "Browse" for selecting characters, "Selection" for reviewing.
  */
 export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
   const { allCharacters } = useCharacterLookup();
   const [search, setSearch] = useState('');
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [scriptName, setScriptName] = useState('');
+  const [author, setAuthor] = useState('');
+  const [activeTab, setActiveTab] = useState(0);
 
-  // Filter to non-Traveller/Fabled/Loric game characters
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (open) {
+      queueMicrotask(() => {
+        setSearch('');
+        setSelectedIds(new Set());
+        setScriptName('');
+        setAuthor('');
+        setActiveTab(0);
+      });
+    }
+  }, [open]);
+
+  // Filter to non-Traveller/Fabled/Loric game characters, sorted by script rules
   const gameCharacters = useMemo(
     () =>
-      allCharacters.filter(
-        (c) =>
-          c.type === CharacterType.Townsfolk ||
-          c.type === CharacterType.Outsider ||
-          c.type === CharacterType.Minion ||
-          c.type === CharacterType.Demon,
+      sortScriptCharacters(
+        allCharacters.filter(
+          (c) =>
+            c.type === CharacterType.Townsfolk ||
+            c.type === CharacterType.Outsider ||
+            c.type === CharacterType.Minion ||
+            c.type === CharacterType.Demon,
+        ),
       ),
     [allCharacters],
   );
 
-  // Group by type
+  // Group by type (preserving sort order within groups)
   const grouped = useMemo(() => {
     const groups = new Map<string, CharacterDef[]>();
     for (const type of TYPE_ORDER) {
@@ -61,6 +86,15 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
     }
     return groups;
   }, [gameCharacters]);
+
+  // Total counts per type (for "X/total" display)
+  const totalCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const [type, chars] of grouped) {
+      counts[type] = chars.length;
+    }
+    return counts;
+  }, [grouped]);
 
   // Search filter
   const filteredGrouped = useMemo(() => {
@@ -76,7 +110,7 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
     return filtered;
   }, [grouped, search]);
 
-  // Composition counts
+  // Composition counts (selected per type)
   const composition = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const type of TYPE_ORDER) counts[type] = 0;
@@ -87,6 +121,21 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
     return counts;
   }, [selectedIds, gameCharacters]);
 
+  // Selected characters grouped by type (for the selection tab)
+  const selectedGrouped = useMemo(() => {
+    const groups = new Map<string, CharacterDef[]>();
+    for (const type of TYPE_ORDER) {
+      groups.set(type, []);
+    }
+    for (const ch of gameCharacters) {
+      if (selectedIds.has(ch.id)) {
+        const list = groups.get(ch.type);
+        if (list) list.push(ch);
+      }
+    }
+    return groups;
+  }, [gameCharacters, selectedIds]);
+
   const toggleCharacter = useCallback((id: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -96,13 +145,14 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
     });
   }, []);
 
+  const canSave = scriptName.trim().length > 0 && selectedIds.size > 0;
+
   const handleSave = () => {
-    const name = scriptName.trim() || 'Custom Script';
-    const id = name.toLowerCase().replace(/\s+/g, '-') + '-' + Date.now();
+    if (!canSave) return;
     const script: Script = {
-      id,
-      name,
-      author: 'Custom',
+      id: generateId(),
+      name: scriptName.trim(),
+      author: author.trim() || 'Custom',
       characterIds: Array.from(selectedIds),
     };
     // Save to localStorage
@@ -122,33 +172,34 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
           Create Script
         </Typography>
       </DialogTitle>
-      <DialogContent dividers>
-        {/* Script name */}
-        <TextField
-          label="Script Name"
-          fullWidth
-          size="small"
-          value={scriptName}
-          onChange={(e) => setScriptName(e.target.value)}
-          sx={{ mb: 2 }}
-        />
+      <DialogContent dividers sx={{ p: 0 }}>
+        {/* Script name & author */}
+        <Box sx={{ px: 2, pt: 2 }}>
+          <TextField
+            label="Script Name"
+            fullWidth
+            size="small"
+            value={scriptName}
+            onChange={(e) => setScriptName(e.target.value)}
+            required
+            sx={{ mb: 1.5 }}
+          />
+          <TextField
+            label="Author (optional)"
+            fullWidth
+            size="small"
+            value={author}
+            onChange={(e) => setAuthor(e.target.value)}
+            sx={{ mb: 1.5 }}
+          />
+        </Box>
 
-        {/* Search */}
-        <TextField
-          label="Search characters…"
-          fullWidth
-          size="small"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          sx={{ mb: 2 }}
-        />
-
-        {/* Composition summary */}
-        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
+        {/* Composition summary chips */}
+        <Box sx={{ px: 2, display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
           {TYPE_ORDER.map((type) => (
             <Chip
               key={type}
-              label={`${type}: ${composition[type]}`}
+              label={`${type}: ${composition[type]}/${totalCounts[type]}`}
               size="small"
               sx={{
                 bgcolor: `${getCharacterTypeColor(type)}22`,
@@ -165,50 +216,208 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
           />
         </Box>
 
-        {/* Character groups */}
-        {TYPE_ORDER.map((type) => {
-          const chars = filteredGrouped.get(type) ?? [];
-          if (chars.length === 0) return null;
-          const color = getCharacterTypeColor(type);
+        {/* Tabs */}
+        <Tabs
+          value={activeTab}
+          onChange={(_, v: number) => setActiveTab(v)}
+          variant="fullWidth"
+          sx={{ borderBottom: 1, borderColor: 'divider' }}
+        >
+          <Tab label="Browse Characters" />
+          <Tab label={`Selection (${selectedIds.size})`} />
+        </Tabs>
 
-          return (
-            <Box key={type} sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color, mb: 0.5 }}>
-                {type} ({chars.length})
-              </Typography>
-              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-                {chars.map((ch) => {
-                  const isSelected = selectedIds.has(ch.id);
-                  return (
-                    <Chip
-                      key={ch.id}
-                      label={ch.name}
-                      size="small"
-                      onClick={() => toggleCharacter(ch.id)}
-                      sx={{
-                        bgcolor: isSelected ? color : 'transparent',
-                        color: isSelected ? '#fff' : 'text.primary',
-                        border: `1px solid ${color}`,
-                        fontWeight: isSelected ? 600 : 400,
-                        cursor: 'pointer',
-                        '&:hover': {
-                          bgcolor: isSelected ? color : `${color}22`,
-                        },
-                      }}
-                    />
-                  );
-                })}
-              </Box>
-            </Box>
-          );
-        })}
+        {/* Tab panels */}
+        <Box sx={{ px: 2, pt: 1.5, pb: 1, maxHeight: 400, overflowY: 'auto' }}>
+          {activeTab === 0 && (
+            <BrowsePanel
+              search={search}
+              onSearchChange={setSearch}
+              filteredGrouped={filteredGrouped}
+              selectedIds={selectedIds}
+              onToggle={toggleCharacter}
+            />
+          )}
+          {activeTab === 1 && (
+            <SelectionPanel selectedGrouped={selectedGrouped} onToggle={toggleCharacter} />
+          )}
+        </Box>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button variant="contained" onClick={handleSave} disabled={selectedIds.size === 0}>
+        <Button variant="contained" onClick={handleSave} disabled={!canSave}>
           Save Script ({selectedIds.size} chars)
         </Button>
       </DialogActions>
     </Dialog>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Sub-component: Browse panel (select/deselect)
+// ──────────────────────────────────────────────
+
+function BrowsePanel({
+  search,
+  onSearchChange,
+  filteredGrouped,
+  selectedIds,
+  onToggle,
+}: {
+  search: string;
+  onSearchChange: (value: string) => void;
+  filteredGrouped: Map<string, CharacterDef[]>;
+  selectedIds: Set<string>;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <>
+      <TextField
+        label="Search characters…"
+        fullWidth
+        size="small"
+        value={search}
+        onChange={(e) => onSearchChange(e.target.value)}
+        sx={{ mb: 1.5 }}
+      />
+
+      {TYPE_ORDER.map((type) => {
+        const chars = filteredGrouped.get(type) ?? [];
+        if (chars.length === 0) return null;
+        const color = getCharacterTypeColor(type);
+
+        return (
+          <Box key={type} sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color, mb: 0.5 }}>
+              {type} ({chars.length})
+            </Typography>
+            {chars.map((ch) => {
+              const isSelected = selectedIds.has(ch.id);
+              return (
+                <CharacterRow
+                  key={ch.id}
+                  character={ch}
+                  selected={isSelected}
+                  color={color}
+                  onToggle={onToggle}
+                />
+              );
+            })}
+          </Box>
+        );
+      })}
+    </>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Sub-component: Selection panel (review)
+// ──────────────────────────────────────────────
+
+function SelectionPanel({
+  selectedGrouped,
+  onToggle,
+}: {
+  selectedGrouped: Map<string, CharacterDef[]>;
+  onToggle: (id: string) => void;
+}) {
+  const hasAny = Array.from(selectedGrouped.values()).some((arr) => arr.length > 0);
+
+  if (!hasAny) {
+    return (
+      <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+        No characters selected yet. Use the Browse tab to add characters.
+      </Typography>
+    );
+  }
+
+  return (
+    <>
+      {TYPE_ORDER.map((type) => {
+        const chars = selectedGrouped.get(type) ?? [];
+        if (chars.length === 0) return null;
+        const color = getCharacterTypeColor(type);
+
+        return (
+          <Box key={type} sx={{ mb: 1.5 }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 700, color, mb: 0.5 }}>
+              {type} ({chars.length})
+            </Typography>
+            <Divider sx={{ mb: 0.5 }} />
+            {chars.map((ch) => (
+              <CharacterRow key={ch.id} character={ch} selected color={color} onToggle={onToggle} />
+            ))}
+          </Box>
+        );
+      })}
+    </>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Sub-component: single character row
+// ──────────────────────────────────────────────
+
+function CharacterRow({
+  character,
+  selected,
+  color,
+  onToggle,
+}: {
+  character: CharacterDef;
+  selected: boolean;
+  color: string;
+  onToggle: (id: string) => void;
+}) {
+  return (
+    <FormControlLabel
+      sx={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        mx: 0,
+        mb: 0.25,
+        '& .MuiFormControlLabel-label': { flex: 1, minWidth: 0 },
+      }}
+      control={
+        <Checkbox
+          checked={selected}
+          onChange={() => onToggle(character.id)}
+          size="small"
+          sx={{
+            color,
+            '&.Mui-checked': { color },
+            mt: -0.5,
+          }}
+        />
+      }
+      label={
+        <Box>
+          <Typography variant="body2" sx={{ fontWeight: 600, lineHeight: 1.3 }}>
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-block',
+                width: 8,
+                height: 8,
+                borderRadius: '50%',
+                bgcolor: color,
+                mr: 0.75,
+                verticalAlign: 'middle',
+              }}
+            />
+            {character.name}
+          </Typography>
+          {character.abilityShort && character.abilityShort !== '<TODO>' && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: 'block', lineHeight: 1.3, mt: 0.25 }}
+            >
+              {character.abilityShort}
+            </Typography>
+          )}
+        </Box>
+      }
+    />
   );
 }

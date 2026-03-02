@@ -2,9 +2,24 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { TownSquareLayout } from './TownSquareLayout';
-import { generateMockPlayers } from '../../stories/mockData';
-import type { PlayerSeat } from '../../types';
+import { TokenBadges } from './TokenManager';
+import {
+  generateMockPlayers,
+  worstCase20Players,
+  mockCharacters,
+  spiritOfIvory,
+} from '../../stories/mockData';
+import type { PlayerSeat, CharacterDef } from '../../types';
 import type { TokenPosition } from './TownSquareLayout';
+
+/**
+ * Simple coloured placeholder for a player token.
+ * Shows the seat number inside a small circle.
+ */
+/** Build a character lookup map including the mock traveller. */
+const characterMap = new Map<string, CharacterDef>();
+mockCharacters.forEach((ch) => characterMap.set(ch.id, ch));
+characterMap.set(spiritOfIvory.id, spiritOfIvory);
 
 /**
  * Simple coloured placeholder for a player token.
@@ -38,10 +53,82 @@ function TokenPlaceholder({ player }: { player: PlayerSeat }) {
   );
 }
 
+/**
+ * Richer token that shows character name + alignment colour.
+ * Used by worst-case stories for the "visible info" (night view) variant.
+ */
+function RichTokenPlaceholder({ player }: { player: PlayerSeat }) {
+  const ch = characterMap.get(player.characterId);
+  const isDead = !player.alive;
+  const borderColor =
+    player.actualAlignment === 'Evil'
+      ? '#d32f2f'
+      : player.actualAlignment === 'Good'
+        ? '#1976d2'
+        : '#9e9e9e';
+  return (
+    <Box
+      sx={{
+        width: 48,
+        height: 48,
+        borderRadius: '12px',
+        bgcolor: isDead ? '#e0e0e0' : '#fff',
+        border: `2px solid ${borderColor}`,
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '0.7rem',
+        fontWeight: 600,
+        boxShadow: '0 1px 4px rgba(0,0,0,0.2)',
+        opacity: isDead ? 0.45 : 1,
+      }}
+    >
+      <Typography sx={{ fontSize: '0.5rem', fontWeight: 700, color: borderColor, lineHeight: 1.1 }}>
+        {ch ? ch.name.slice(0, 7) : '?'}
+      </Typography>
+      <Typography sx={{ fontSize: '0.55rem', color: 'text.secondary', lineHeight: 1.1 }}>
+        {player.playerName}
+      </Typography>
+      <Typography sx={{ fontSize: '0.5rem', color: 'text.disabled', lineHeight: 1 }}>
+        {player.seat}
+        {isDead ? ' 💀' : ''}
+      </Typography>
+    </Box>
+  );
+}
+
 /** Default renderToken callback using TokenPlaceholder. */
 const renderToken = (player: PlayerSeat, _position: TokenPosition) => (
   <TokenPlaceholder player={player} />
 );
+
+/**
+ * Rich renderToken that also renders TokenBadges for players with tokens.
+ * Uses the layout's position to compute badge angles relative to the
+ * container centre (passed via closure).
+ */
+function createRichTokenWithBadges(containerWidth: number, containerHeight: number) {
+  const centerX = containerWidth / 2;
+  const centerY = containerHeight / 2;
+
+  return (player: PlayerSeat, position: TokenPosition) => (
+    <Box sx={{ position: 'relative' }}>
+      <RichTokenPlaceholder player={player} />
+      {player.tokens.length > 0 && (
+        <Box sx={{ position: 'absolute', left: '50%', top: '50%' }}>
+          <TokenBadges
+            tokens={player.tokens}
+            tileX={position.x}
+            tileY={position.y}
+            centerX={centerX}
+            centerY={centerY}
+          />
+        </Box>
+      )}
+    </Box>
+  );
+}
 
 const meta = {
   title: 'TownSquare/TownSquareLayout',
@@ -123,5 +210,65 @@ export const OvoidTwentyPlayers: Story = {
     shape: 'ovoid',
     containerWidth: 375,
     containerHeight: 500,
+  },
+};
+
+// ────────────────────────────────────────────────────────
+// Worst-case scenarios (F3-4) — 20 realistic players
+// ────────────────────────────────────────────────────────
+
+/**
+ * Worst-case circle layout — 20 players, hidden character info (day view).
+ * Names only, no character data visible.
+ */
+export const WorstCaseCircleHidden: Story = {
+  args: {
+    players: worstCase20Players,
+    shape: 'circle',
+    containerWidth: 600,
+    containerHeight: 600,
+    renderToken,
+  },
+};
+
+/**
+ * Worst-case circle layout — 20 players, visible character info (night view).
+ * Shows character names, alignment borders, alive/dead states, and token badges.
+ */
+export const WorstCaseCircleVisible: Story = {
+  args: {
+    players: worstCase20Players,
+    shape: 'circle',
+    containerWidth: 600,
+    containerHeight: 600,
+    renderToken: createRichTokenWithBadges(600, 600),
+  },
+};
+
+/**
+ * Worst-case ovoid layout — 20 players, hidden character info (day view).
+ * Phone portrait dimensions; names only.
+ */
+export const WorstCaseOvoidHidden: Story = {
+  args: {
+    players: worstCase20Players,
+    shape: 'ovoid',
+    containerWidth: 375,
+    containerHeight: 500,
+    renderToken,
+  },
+};
+
+/**
+ * Worst-case ovoid layout — 20 players, visible character info (night view).
+ * Phone portrait; shows character names, alignment borders, alive/dead states, and token badges.
+ */
+export const WorstCaseOvoidVisible: Story = {
+  args: {
+    players: worstCase20Players,
+    shape: 'ovoid',
+    containerWidth: 800,
+    containerHeight: 400,
+    renderToken: createRichTokenWithBadges(375, 500),
   },
 };
