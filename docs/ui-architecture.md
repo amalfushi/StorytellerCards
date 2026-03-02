@@ -116,12 +116,48 @@ Triggered from the header bar button (moved from FAB in M3-5; uses `dismissed` f
 
 - [`ScriptBuilder.tsx`](../UI/src/components/ScriptBuilder/ScriptBuilder.tsx) — create scripts in-app on the Session Setup page. Features: author field, two-tab Browse/Selection layout, composition count chips showing Townsfolk/Outsider/Minion/Demon counts, proper sorting via `sortScriptCharacters()`, state reset on dialog close via `queueMicrotask`, validation and proper ID generation.
 
+## Data Layer
+
+### Character Data (M6 restructuring)
+
+Character definitions are stored as individual TypeScript files in [`UI/src/data/characters/`](../UI/src/data/characters/), organized by type:
+
+```
+UI/src/data/characters/
+├── index.ts              ← barrel export: allCharacters, characterMap, getCharacter(), buildNightOrder
+├── _nightOrder.ts        ← structural entries (MinionInfo, DemonInfo) + buildNightOrder()
+├── townsfolk/            ← 21 character .ts files
+├── outsider/             ← 8 character .ts files
+├── minion/               ← 8 character .ts files
+├── demon/                ← 5 character .ts files
+├── fabled/               ← 1 character .ts file
+└── traveller/            ← .gitkeep placeholder (future)
+```
+
+The barrel file [`index.ts`](../UI/src/data/characters/index.ts) exports:
+- `allCharacters` — flat array of all 43 `CharacterDef` objects
+- `characterMap` — `Map<string, CharacterDef>` built once at module load
+- `getCharacter(id)` — lookup by ID (returns `undefined` if not found)
+- `buildNightOrder(characters, isFirstNight)` — derives `NightOrderEntry[]` from character definitions + structural entries
+
+Night order is **derived** from character files, not stored separately. Each character's `firstNight` and `otherNights` fields include an `order` number. The [`buildNightOrder()`](../UI/src/data/characters/_nightOrder.ts) function merges character entries with structural entries (Minion Info, Demon Info) and sorts by order.
+
+### New M6 Types
+
+Added to [`types/index.ts`](../UI/src/types/index.ts):
+- `NightChoiceType` — `as const` object: `player`, `livingPlayer`, `deadPlayer`, `character`, `alignment`, `yesno`
+- `NightChoice` — declarative description of a night action choice (type, label, maxSelections)
+- `SetupModification` — how a character modifies player-count distribution
+- `StorytellerSetup` — pre-game decisions the ST must make
+- `GameRuleOverride` — Fabled/Loric rule overrides
+- `Jinx` — jinx interactions between characters (stub for M5)
+
 ## Key Hooks
 
 | Hook | File | Purpose |
 |------|------|---------|
-| `useCharacterLookup` | [`useCharacterLookup.ts`](../UI/src/hooks/useCharacterLookup.ts) | Character ID → CharacterDef lookup map |
-| `useNightOrder` | [`useNightOrder.ts`](../UI/src/hooks/useNightOrder.ts) | Filtered night order for active script |
+| `useCharacterLookup` | [`useCharacterLookup.ts`](../UI/src/hooks/useCharacterLookup.ts) | Character ID → CharacterDef lookup map (imports from barrel, no `useMemo` needed) |
+| `useNightOrder` | [`useNightOrder.ts`](../UI/src/hooks/useNightOrder.ts) | Filtered night order for active script (calls `buildNightOrder()` instead of importing JSON) |
 | `useTimer` | [`useTimer.ts`](../UI/src/hooks/useTimer.ts) | Countdown timer logic |
 | `useLocalStorage` | [`useLocalStorage.ts`](../UI/src/hooks/useLocalStorage.ts) | Persistent state in localStorage |
 | `useApiSync` | [`useApiSync.ts`](../UI/src/hooks/useApiSync.ts) | Sync localStorage state with Go API |

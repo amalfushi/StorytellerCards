@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-01
+> Last updated: 2026-03-02
 
 ## Milestone Overview
 
@@ -12,19 +12,19 @@
 | M3 | Night phase improvements, token system, script builder, UI polish | ✅ Complete (+ Feedback Rounds 1 & 2) | [details](milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/progress.md) |
 | M4 | Multi-demon support | 📋 Planned | — |
 | M5 | Jinxes | 📋 Planned | — |
-| M6 | Character file restructuring (individual .ts files, wiki scraping) | 📋 Planned | — |
+| M6 | Character data restructuring (individual .ts files, declarative night choices) | ✅ Complete | [details](milestones/6 - character restructuring/progress.md) |
 | M7 | Testing Improvements | 📋 Planned | [details](milestones/7 - testing improvements/milestone7.md) |
 
 ## Key Design Decisions
 
 - **Multi-demon support** → deferred to M4
 - **Jinxes** → deferred to M5
-- **Character file restructuring** (individual .ts files, wiki scraping) → deferred to M6
+- **Character data restructured in M6** — individual `.ts` files per character, night order derived from character definitions via `buildNightOrder()`, declarative `NightChoice` schema replaces regex parsing
 - **Simple Day/Night toggle** — Dawn/Dusk removed in M3 (don't add value)
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M3 completion)
+## Verification (as of M6 completion)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors, 0 warnings

@@ -1,7 +1,10 @@
 import { useMemo } from 'react';
 import type { CharacterDef } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
-import charactersData from '@/data/characters.json';
+import {
+  allCharacters as allCharactersRegistry,
+  getCharacter as getCharacterFromRegistry,
+} from '@/data/characters/index.ts';
 
 /**
  * Convert a raw character ID into a human-readable display name.
@@ -37,7 +40,7 @@ export function getFallbackCharacter(id: string): CharacterDef {
 
 /**
  * Hook that provides fast character lookup by ID from the master character data.
- * Loads `characters.json` once and memoises the lookup map.
+ * Uses the barrel-exported character registry from `@/data/characters/index.ts`.
  *
  * When a character ID is not found in the master data, `getCharacter` returns
  * a fallback definition with a placeholder name and grey styling.
@@ -47,28 +50,20 @@ export function useCharacterLookup(): {
   getCharactersByIds: (ids: string[]) => CharacterDef[];
   allCharacters: CharacterDef[];
 } {
-  const allCharacters = useMemo(() => charactersData as CharacterDef[], []);
-
-  const characterMap = useMemo(() => {
-    const map = new Map<string, CharacterDef>();
-    for (const char of allCharacters) {
-      map.set(char.id, char);
-    }
-    return map;
-  }, [allCharacters]);
+  const allCharacters = useMemo(() => allCharactersRegistry, []);
 
   const getCharacter = useMemo(
     () =>
       (id: string): CharacterDef | undefined =>
-        characterMap.get(id) ?? getFallbackCharacter(id),
-    [characterMap],
+        getCharacterFromRegistry(id) ?? getFallbackCharacter(id),
+    [],
   );
 
   const getCharactersByIds = useMemo(
     () =>
       (ids: string[]): CharacterDef[] =>
-        ids.map((id) => characterMap.get(id) ?? getFallbackCharacter(id)),
-    [characterMap],
+        ids.map((id) => getCharacterFromRegistry(id) ?? getFallbackCharacter(id)),
+    [],
   );
 
   return { getCharacter, getCharactersByIds, allCharacters };

@@ -83,7 +83,7 @@ Defined as `as const` objects (not enums):
 
 ## Character Definition (`CharacterDef`)
 
-Defined in [`characters.json`](../UI/src/data/characters.json) (43 characters). Each entry:
+Defined as individual TypeScript files in [`UI/src/data/characters/`](../UI/src/data/characters/) (43 characters), organized by type subdirectory (`townsfolk/`, `outsider/`, `minion/`, `demon/`, `fabled/`). Accessed via the barrel export in [`index.ts`](../UI/src/data/characters/index.ts).
 
 ```typescript
 interface CharacterDef {
@@ -98,17 +98,47 @@ interface CharacterDef {
   otherNights: NightAction | null;
   icon?: CharacterIcon;
   reminders: ReminderToken[];
+
+  // ── M6 extensions (all optional) ──
+  setupModification?: SetupModification;   // e.g., Baron: +2 Outsiders
+  storytellerSetup?: StorytellerSetup[];   // pre-game ST decisions
+  gameRuleOverrides?: GameRuleOverride[];  // Fabled/Loric rule changes
+  jinxes?: Jinx[];                         // character interactions (M5 stub)
 }
 ```
 
-Unknown characters (not in `characters.json`) are handled by `getFallbackCharacter()` which returns a placeholder with `<TODO>` markers.
+The `NightAction` interface also gained an optional `choices` field in M6:
+
+```typescript
+interface NightAction {
+  order: number;
+  helpText: string;
+  subActions: NightSubAction[];
+  choices?: NightChoice[];  // declarative night choices (M6)
+}
+```
+
+Unknown characters (not in the character registry) are handled by `getFallbackCharacter()` which returns a placeholder with `<TODO>` markers.
+
+### M6 Extension Types
+
+| Type | Purpose | Example |
+|------|---------|---------|
+| `SetupModification` | Character modifies player-count distribution | Baron: `{ description: "+2 Outsiders, -2 Townsfolk" }` |
+| `StorytellerSetup` | Pre-game decision the ST must make | Drunk: ST assigns a Townsfolk identity |
+| `GameRuleOverride` | Fabled/Loric rule changes | Spirit of Ivory: game rule modification |
+| `Jinx` | Interaction between two characters | Spy + Damsel interaction (stub for M5) |
+| `NightChoice` | Declarative choice selector for night actions | Fortune Teller: `{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }` |
+| `NightChoiceType` | `as const` object for choice types | `'player'`, `'livingPlayer'`, `'deadPlayer'`, `'character'`, `'alignment'`, `'yesno'` |
 
 ## Night Order Structure
 
-Defined in [`nightOrder.json`](../UI/src/data/nightOrder.json) (168 entries total). Two arrays: `firstNight` and `otherNights`.
+Night order is **derived** from character definitions via [`buildNightOrder()`](../UI/src/data/characters/_nightOrder.ts) rather than stored in a separate file. Each character's `firstNight.order` and `otherNights.order` fields provide the canonical position.
+
+Structural entries (Minion Info, Demon Info) are defined in [`_nightOrder.ts`](../UI/src/data/characters/_nightOrder.ts). The `buildNightOrder()` function merges character entries with structural entries and sorts by order.
 
 Each entry is either:
-- **`structural`**: Phase markers like `dusk`, `dawn`, `minioninfo`, `demoninfo`
+- **`structural`**: Phase markers like `minioninfo`, `demoninfo`
 - **`character`**: An actual character's night action
 
 ```typescript
@@ -122,7 +152,7 @@ interface NightOrderEntry {
 }
 ```
 
-The [`nightOrderFilter.ts`](../UI/src/utils/nightOrderFilter.ts) utility filters the master list to only the characters present in the active game's script.
+The [`nightOrderFilter.ts`](../UI/src/utils/nightOrderFilter.ts) utility filters the derived order to only the characters present in the active game's script.
 
 ## Night Progress & History
 
