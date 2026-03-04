@@ -12,7 +12,28 @@ const preview: Preview = {
       },
     },
     a11y: {
-      test: 'todo',
+      test: 'error',
+    },
+    viewport: {
+      viewports: {
+        mobile: {
+          name: 'Mobile (iPhone SE)',
+          styles: { width: '375px', height: '667px' },
+        },
+        mobileLarge: {
+          name: 'Mobile Large (iPhone 14)',
+          styles: { width: '390px', height: '844px' },
+        },
+        tablet: {
+          name: 'Tablet (iPad)',
+          styles: { width: '768px', height: '1024px' },
+        },
+        desktop: {
+          name: 'Desktop',
+          styles: { width: '1280px', height: '800px' },
+        },
+      },
+      defaultViewport: 'mobile',
     },
   },
   decorators: [

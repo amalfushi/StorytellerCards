@@ -40,6 +40,16 @@ const meta = {
     characterTypes,
     deadIds,
   },
+  argTypes: {
+    currentIndex: {
+      control: { type: 'range', min: 0, max: 20, step: 1 },
+      description: 'Index of the currently active night order card',
+    },
+    totalCards: {
+      control: { type: 'range', min: 1, max: 25, step: 1 },
+      description: 'Total number of cards in the night order',
+    },
+  },
 } satisfies Meta<typeof NightProgressBar>;
 
 export default meta;

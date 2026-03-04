@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { within, userEvent, expect } from 'storybook/test';
 import Button from '@mui/material/Button';
 import { PlayerQuickActions } from './PlayerQuickActions';
 import { alicePlayer, charliePlayer, evePlayer, travJackPlayer } from '../../stories/mockData';
@@ -91,4 +92,20 @@ export const DeadPlayerGhostVoteUsed: Story = {
 /** Night view quick actions — adds "Edit Character" option. */
 export const NightViewActions: Story = {
   render: () => <AnchoredQuickActions player={alicePlayer} showCharacters={true} />,
+};
+
+// ────────────────────────────────────────────────────────
+// Interaction test (P2-3)
+// ────────────────────────────────────────────────────────
+
+/** Clicking the "Mark as Dead" menu item in the auto-opened menu. */
+export const ClickMarkAsDead: Story = {
+  render: () => <AnchoredQuickActions player={alicePlayer} showCharacters={false} />,
+  play: async () => {
+    // Menu renders in a portal on document.body
+    const body = within(document.body);
+    const markDead = await body.findByText('Mark as Dead');
+    await expect(markDead).toBeInTheDocument();
+    await userEvent.click(markDead);
+  },
 };

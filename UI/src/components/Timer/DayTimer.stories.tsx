@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { within, userEvent, expect } from 'storybook/test';
 import { DayTimer } from './DayTimer';
 import type { UseTimerReturn } from '@/hooks/useTimer';
 
@@ -104,5 +105,41 @@ export const Expired: Story = {
       totalDuration: 300,
       isExpired: true,
     }),
+  },
+};
+
+
+// ────────────────────────────────────────────────────────
+// Interaction test (P2-3)
+// ────────────────────────────────────────────────────────
+
+/** Clicking a preset chip in idle state. */
+export const ClickPreset: Story = {
+  args: {
+    timer: mockTimer(),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Find the "5 min" preset chip and click it
+    const chip = canvas.getByText('5 min');
+    await expect(chip).toBeInTheDocument();
+    await userEvent.click(chip);
+  },
+};
+
+/** Clicking the pause button while running. */
+export const ClickPause: Story = {
+  args: {
+    timer: mockTimer({
+      timeRemaining: 225,
+      totalDuration: 300,
+      isRunning: true,
+    }),
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const pauseButton = canvas.getByRole('button', { name: /pause timer/i });
+    await expect(pauseButton).toBeInTheDocument();
+    await userEvent.click(pauseButton);
   },
 };

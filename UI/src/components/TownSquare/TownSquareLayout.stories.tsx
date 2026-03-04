@@ -140,6 +140,25 @@ const meta = {
   parameters: {
     layout: 'centered',
   },
+  argTypes: {
+    containerWidth: {
+      control: { type: 'range', min: 200, max: 1200, step: 25 },
+      description: 'Width of the layout container (px)',
+    },
+    containerHeight: {
+      control: { type: 'range', min: 200, max: 1200, step: 25 },
+      description: 'Height of the layout container (px)',
+    },
+    tokenRadius: {
+      control: { type: 'range', min: 12, max: 48, step: 2 },
+      description: 'Half-width of the token for edge padding (px)',
+    },
+    shape: {
+      control: { type: 'select' },
+      options: ['circle', 'ovoid'],
+      description: 'Layout shape — circle for tablets, ovoid for phones',
+    },
+  },
 } satisfies Meta<typeof TownSquareLayout>;
 
 export default meta;
@@ -270,5 +289,25 @@ export const WorstCaseOvoidVisible: Story = {
     containerWidth: 800,
     containerHeight: 400,
     renderToken: createRichTokenWithBadges(375, 500),
+  },
+};
+
+// ────────────────────────────────────────────────────────
+// Responsive viewport variants (P2-2)
+// ────────────────────────────────────────────────────────
+
+/** Tablet viewport — ovoid 10-player layout at iPad size. */
+export const TabletViewport: Story = {
+  ...OvoidTenPlayers,
+  parameters: {
+    viewport: { defaultViewport: 'tablet' },
+  },
+};
+
+/** Desktop viewport — circle 10-player layout at desktop size. */
+export const DesktopViewport: Story = {
+  ...CircleTenPlayers,
+  parameters: {
+    viewport: { defaultViewport: 'desktop' },
   },
 };

@@ -164,3 +164,16 @@ export const WithMultipleTokens: Story = {
     isDead: false,
   },
 };
+
+// ────────────────────────────────────────────────────────
+// Responsive viewport variant (P2-2)
+// ────────────────────────────────────────────────────────
+
+/** Tablet viewport — alive player card at iPad size. */
+export const TabletViewport: Story = {
+  ...AlivePlayer,
+  parameters: {
+    ...AlivePlayer.parameters,
+    viewport: { defaultViewport: 'tablet' },
+  },
+};

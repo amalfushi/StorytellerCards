@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-02
+> Last updated: 2026-03-04
 
 ## Milestone Overview
 
@@ -13,7 +13,7 @@
 | M4 | Multi-demon support | 📋 Planned | — |
 | M5 | Jinxes | 📋 Planned | — |
 | M6 | Character data restructuring (individual .ts files, declarative night choices) | ✅ Complete | [details](milestones/6 - character restructuring/progress.md) |
-| M7 | Testing Improvements | 📋 Planned | [details](milestones/7 - testing improvements/milestone7.md) |
+| M7 | Testing Improvements | ✅ Complete (Phases 1-5) | [details](milestones/7 - testing improvements/milestone7.md) |
 
 ## Key Design Decisions
 
@@ -24,8 +24,10 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M6 completion)
+## Verification (as of M7 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors, 0 warnings
-- Tests: 52/52 passing (5 test files)
+- Tests: 1187/1187 passing (54 test files)
+- Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
+- Storybook: 17 story files with ~80+ stories including `play()` interaction tests

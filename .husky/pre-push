@@ -7,10 +7,16 @@ API_CHANGED=$(git diff --name-only @{push}.. -- API/ 2>/dev/null || git diff --n
 FAILED=0
 
 if [ -n "$UI_CHANGED" ]; then
-  echo "🧪 UI changes detected — running tests..."
-  cd UI && npm test
+  echo "🧪 UI changes detected — running tests with coverage..."
+  cd UI && npm run test:coverage
   if [ $? -ne 0 ]; then FAILED=1; fi
   cd ..
+
+  # Auto-commit coverage report if tests passed
+  if [ $FAILED -eq 0 ]; then
+    git add UI/coverage/coverage-summary.json
+    git diff --cached --quiet UI/coverage/coverage-summary.json || git commit --no-verify -m "chore: update coverage report"
+  fi
 fi
 
 if [ -n "$API_CHANGED" ]; then

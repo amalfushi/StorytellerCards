@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { within, userEvent, expect, fn } from 'storybook/test';
 import { AddTravellerDialog } from './AddTravellerDialog';
 import { mockPlayers } from '../../stories/mockData';
 
@@ -28,5 +29,37 @@ export const Open: Story = {
 export const WithSeatsAvailable: Story = {
   args: {
     existingPlayers: mockPlayers,
+  },
+};
+
+// ────────────────────────────────────────────────────────
+// Interaction test (P2-3)
+// ────────────────────────────────────────────────────────
+
+/** Fill in the form and verify the Add button becomes enabled. */
+export const FormInteraction: Story = {
+  args: {
+    existingPlayers: [],
+    onAdd: fn(),
+    onClose: fn(),
+  },
+  play: async () => {
+    // Dialog renders in a portal on document.body
+    const body = within(document.body);
+
+    // The "Add Traveller" button should initially be disabled (no input)
+    const addButton = await body.findByRole('button', { name: /add traveller/i });
+    await expect(addButton).toBeDisabled();
+
+    // Fill in character name
+    const charInput = body.getByLabelText(/traveller character name/i);
+    await userEvent.type(charInput, 'Scapegoat');
+
+    // Fill in player name
+    const playerInput = body.getByLabelText(/player name/i);
+    await userEvent.type(playerInput, 'TestPlayer');
+
+    // Now the Add button should be enabled
+    await expect(addButton).toBeEnabled();
   },
 };
