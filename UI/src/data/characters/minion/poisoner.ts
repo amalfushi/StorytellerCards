@@ -5,7 +5,12 @@ export const poisoner: CharacterDef = {
   name: 'Poisoner',
   type: 'Minion',
   defaultAlignment: 'Evil',
-  abilityShort: '<TODO>',
+  abilityShort: 'Each night, choose a player: they are poisoned tonight and tomorrow day.',
+  abilityDetailed: `The Poisoner secretly disrupts character abilities.
+• Each night, the Poisoner chooses someone to poison for that night and the entire next day.
+• A poisoned player has no ability, but the Storyteller pretends they do. They do not affect the game in any real way. However, to keep up the illusion that the poisoned player is not poisoned, the Storyteller wakes them at the appropriate time and goes through the motions as if they were not poisoned. If their ability gives them information, the Storyteller may give them false information.
+• If a poisoned player uses a "once per game" ability while poisoned, they cannot use their ability again.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Poisoner',
   firstNight: {
     order: 27,
     helpText: 'The Poisoner chooses a player.',
@@ -30,6 +35,11 @@ export const poisoner: CharacterDef = {
     ],
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
-  icon: { placeholder: '#e53935' },
+  icon: {
+    small: '/icons/characters/poisonerIcon.png',
+    medium: '/icons/characters/poisonerIcon.png',
+    large: '/icons/characters/poisonerIcon.png',
+    placeholder: '#e53935',
+  },
   reminders: [],
 };

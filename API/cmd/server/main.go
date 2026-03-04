@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"syscall"
 	"time"
 
@@ -25,9 +24,8 @@ func main() {
 		port = "3001"
 	}
 
-	// Resolve data and character paths relative to the executable
+	// Resolve data path relative to the executable
 	baseDir := "data"
-	charPath := filepath.Join("..", "UI", "src", "data", "characters.json")
 
 	store := storage.New(baseDir)
 	if err := store.EnsureDirectories(); err != nil {
@@ -41,7 +39,6 @@ func main() {
 	sessions := handlers.NewSessions(store)
 	games := handlers.NewGames(store)
 	scripts := handlers.NewScripts(store)
-	characters := handlers.NewCharacters(charPath)
 
 	// Router
 	r := chi.NewRouter()
@@ -74,8 +71,6 @@ func main() {
 		r.Get("/scripts", scripts.List)
 		r.Get("/scripts/{id}", scripts.Get)
 
-		// Characters
-		r.Get("/characters", characters.List)
 	})
 
 	// Health check

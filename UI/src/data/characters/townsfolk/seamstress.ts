@@ -5,7 +5,12 @@ export const seamstress: CharacterDef = {
   name: 'Seamstress',
   type: 'Townsfolk',
   defaultAlignment: 'Good',
-  abilityShort: '<TODO>',
+  abilityShort:
+    'Once per game, at night, choose 2 players (not yourself): you learn if they are the same alignment.',
+  abilityDetailed: `The Seamstress learns whether 2 players are on the same team as each other.
+• They only get this information once per game, so they had best choose wisely when and who.
+• They may choose alive or dead players or even Travellers.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Seamstress',
   firstNight: {
     order: 56,
     helpText: 'The Seamstress might choose 2 players. Nod or shake your head.',
@@ -40,6 +45,11 @@ export const seamstress: CharacterDef = {
     ],
     choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
   },
-  icon: { placeholder: '#1976d2' },
+  icon: {
+    small: '/icons/characters/seamstressIcon.png',
+    medium: '/icons/characters/seamstressIcon.png',
+    large: '/icons/characters/seamstressIcon.png',
+    placeholder: '#1976d2',
+  },
   reminders: [],
 };

@@ -1,31 +1,37 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-02
+> Last updated: 2026-03-03
 
 ## Milestone Overview
 
 | Milestone | Description | Status | Details |
 |-----------|------------|--------|---------|
-| M0 | Project scaffolding, data layer, core UI, night flashcards, Go API, polish | ✅ Complete | [details](milestones/1 - initial app setup/progress.md) |
-| M1 | Code quality, testing, dev tooling, documentation | ✅ Complete | [details](milestones/1 - initial app setup/progress.md) |
-| M2 | Bug fixes, character assignment, script importing | ✅ Complete | [details](milestones/2 - basic botc setup/progress.md) |
-| M3 | Night phase improvements, token system, script builder, UI polish | ✅ Complete (+ Feedback Rounds 1 & 2) | [details](milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/progress.md) |
+| M0 | Project scaffolding, data layer, core UI, night flashcards, Go API, polish | ✅ Complete | [details](milestones/1%20-%20initial%20app%20setup/progress.md) |
+| M1 | Code quality, testing, dev tooling, documentation | ✅ Complete | [details](milestones/1%20-%20initial%20app%20setup/progress.md) |
+| M2 | Bug fixes, character assignment, script importing | ✅ Complete | [details](milestones/2%20-%20basic%20botc%20setup/progress.md) |
+| M3 | Night phase improvements, token system, script builder, UI polish | ✅ Complete (+ Feedback Rounds 1 & 2) | [details](milestones/3%20-%20tokens,%20breadcrumbs,%20characterModal,%20errorCheckpoints/progress.md) |
 | M4 | Multi-demon support | 📋 Planned | — |
 | M5 | Jinxes | 📋 Planned | — |
-| M6 | Character data restructuring (individual .ts files, declarative night choices) | ✅ Complete | [details](milestones/6 - character restructuring/progress.md) |
-| M7 | Testing Improvements | 📋 Planned | [details](milestones/7 - testing improvements/milestone7.md) |
+| M6 | Character data restructuring (individual .ts files, declarative night choices) | ✅ Complete (cleanup done in M8) | [details](milestones/6%20-%20character%20restructuring/progress.md) |
+| M7 | Testing Improvements | 📋 Planned | [details](milestones/7%20-%20testing%20improvements/milestone7.md) |
+| M8 | Wiki scraping — populate remaining characters + download icons | ✅ Complete (M8.1 + M8.2) | [details](milestones/8%20-%20wiki%20scraping/progress.md) |
 
 ## Key Design Decisions
 
 - **Multi-demon support** → deferred to M4
 - **Jinxes** → deferred to M5
-- **Character data restructured in M6** — individual `.ts` files per character, night order derived from character definitions via `buildNightOrder()`, declarative `NightChoice` schema replaces regex parsing
+- **Character data restructured in M6** — individual `.ts` files per character, night order derived from character definitions via `buildNightOrder()`, declarative `NightChoice` schema on all characters
+- **Wiki scraping in M8** — 136 new characters generated from BotC wiki XML dumps + nightOrder.json. 178 character icons downloaded from wiki (M8.2)
 - **Simple Day/Night toggle** — Dawn/Dusk removed in M3 (don't add value)
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M6 completion)
+## Verification (as of M8 completion)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors, 0 warnings
 - Tests: 52/52 passing (5 test files)
+- Go build: success
+- Go tests: all passing
+- Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)
+- Character icons: 179/179 downloaded

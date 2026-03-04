@@ -7,6 +7,13 @@ export const fanggu: CharacterDef = {
   defaultAlignment: 'Evil',
   abilityShort:
     'Each night*, choose a player: they die. The 1st Outsider this kills becomes an evil Fang Gu & you die instead. [+1 Outsider]',
+  abilityDetailed: `The Fang Gu possesses Outsiders.
+• The first time a Fang Gu attacks and kills an Outsider, the Fang Gu dies, and the Outsider becomes a Fang Gu and turns evil.
+• This can only happen once per game. If the new Fang Gu attacks an Outsider, the Outsider dies as normal.
+• The new Fang Gu counts as the Demon, and good wins if they die. They do not learn which players are Minions.
+• There is an extra Outsider in play.
+• If the Fang Gu attacks an Outsider but that Outsider does not die, that Outsider does not become an evil Fang Gu and the Fang Gu does not die.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Fang_Gu',
   firstNight: null,
   otherNights: {
     order: 38,
@@ -42,7 +49,12 @@ export const fanggu: CharacterDef = {
     ],
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
-  icon: { placeholder: '#b71c1c' },
+  icon: {
+    small: '/icons/characters/fangguIcon.png',
+    medium: '/icons/characters/fangguIcon.png',
+    large: '/icons/characters/fangguIcon.png',
+    placeholder: '#b71c1c',
+  },
   reminders: [],
   storytellerSetup: [
     {

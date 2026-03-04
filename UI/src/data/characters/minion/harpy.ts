@@ -5,7 +5,15 @@ export const harpy: CharacterDef = {
   name: 'Harpy',
   type: 'Minion',
   defaultAlignment: 'Evil',
-  abilityShort: '<TODO>',
+  abilityShort:
+    'Each night, choose 2 players: tomorrow, the 1st player is mad that the 2nd is evil, or one or both might die.',
+  abilityDetailed: `The Harpy creates discord and distrust between good players.
+• At night, the Harpy player chooses one player at a time, not two at once.
+• A player chosen by the Harpy is affected by the ability until the next Harpy choice.
+• If the Storyteller decides to kill players with the Harpy ability, they do not need to kill both. The Storyteller can decide to kill only one, or none.
+• The Harpy can choose a dead player. If so, the Storyteller can kill just the living player, since dead players can not die again.
+• The order of deaths due to the Harpy ability can be chosen by the Storyteller, should that be important.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Harpy',
   firstNight: {
     order: 39,
     helpText:
@@ -64,6 +72,11 @@ export const harpy: CharacterDef = {
     ],
     choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
   },
-  icon: { placeholder: '#e53935' },
+  icon: {
+    small: '/icons/characters/harpyIcon.png',
+    medium: '/icons/characters/harpyIcon.png',
+    large: '/icons/characters/harpyIcon.png',
+    placeholder: '#e53935',
+  },
   reminders: [],
 };
