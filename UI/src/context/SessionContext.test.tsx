@@ -32,7 +32,7 @@ const makeSession = (overrides: Partial<Session> = {}): Session => ({
   ...overrides,
 });
 
-const makeGame = (overrides: Partial<Game> = {}): Game => ({
+const _makeGame = (overrides: Partial<Game> = {}): Game => ({
   id: 'game-1',
   sessionId: 'session-1',
   scriptId: 'boozling',

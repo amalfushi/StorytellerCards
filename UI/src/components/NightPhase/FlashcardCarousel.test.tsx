@@ -141,9 +141,6 @@ describe('FlashcardCarousel', () => {
   it('does not show previous button on first card', () => {
     render(<FlashcardCarousel {...defaultProps} />);
     // On first card, there should be no "previous" button (ChevronLeft)
-    // The next button should be present
-    const buttons = screen.queryAllByRole('button');
-    // Filter for icon buttons with chevron (the nav buttons)
     // On first card, only the "next" arrow should exist
     const svgIcons = document.querySelectorAll('[data-testid="ChevronLeftIcon"]');
     expect(svgIcons).toHaveLength(0);

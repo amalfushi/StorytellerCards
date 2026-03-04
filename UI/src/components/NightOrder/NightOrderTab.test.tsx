@@ -125,12 +125,8 @@ vi.mock('@/context/GameContext.tsx', () => ({
   }),
 }));
 
-// Track which night type was requested
-let lastIsFirstNight = true;
-
 vi.mock('@/hooks/useNightOrder.ts', () => ({
   useNightOrder: (_ids: string[], isFirstNight: boolean) => {
-    lastIsFirstNight = isFirstNight;
     return isFirstNight ? firstNightEntries : otherNightEntries;
   },
 }));

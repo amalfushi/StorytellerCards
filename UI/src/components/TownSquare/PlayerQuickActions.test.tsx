@@ -103,7 +103,7 @@ describe('PlayerQuickActions', () => {
   });
 
   it('renders nothing when anchorEl is null', () => {
-    const { container } = render(
+    render(
       <PlayerQuickActions
         anchorEl={null}
         player={alivePlayer}

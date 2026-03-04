@@ -55,21 +55,6 @@ const nobleCharacter: CharacterDef = {
   reminders: [],
 };
 
-const impCharacter: CharacterDef = {
-  id: 'imp',
-  name: 'Imp',
-  type: CharacterType.Demon,
-  defaultAlignment: Alignment.Evil,
-  abilityShort: 'Each night*, choose a player: they die.',
-  firstNight: null,
-  otherNights: {
-    order: 24,
-    helpText: 'The Imp points to a player.',
-    subActions: [{ id: 'imp-1', description: 'The Imp points', isConditional: false }],
-  },
-  reminders: [],
-};
-
 const alivePlayer: PlayerSeat = {
   seat: 1,
   playerName: 'Alice',
@@ -134,19 +119,6 @@ const playerWithTokens: PlayerSeat = {
   ],
 };
 
-const travellerPlayer: PlayerSeat = {
-  seat: 10,
-  playerName: 'TravJack',
-  characterId: 'spiritofivory',
-  alive: true,
-  ghostVoteUsed: false,
-  visibleAlignment: Alignment.Good,
-  actualAlignment: Alignment.Good,
-  startingAlignment: Alignment.Good,
-  activeReminders: [],
-  isTraveller: true,
-  tokens: [],
-};
 
 // ──────────────────────────────────────────────
 // Helper — wraps PlayerRow in a Table for valid DOM

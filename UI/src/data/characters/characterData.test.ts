@@ -180,7 +180,6 @@ describe('Cross-character validations', () => {
 
   it('has unique firstNight order numbers', () => {
     const firstNightChars = allCharacters.filter((c) => c.firstNight !== null);
-    const orders = firstNightChars.map((c) => c.firstNight!.order);
     const seen = new Map<number, string[]>();
 
     for (const char of firstNightChars) {

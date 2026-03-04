@@ -33,8 +33,8 @@ vi.mock('@/components/TownSquare/TownSquareLayout.tsx', () => ({
   TownSquareLayout: ({
     players,
     renderToken,
-    containerWidth,
-    containerHeight,
+    containerWidth: _containerWidth,
+    containerHeight: _containerHeight,
   }: {
     players: PlayerSeat[];
     renderToken: (player: PlayerSeat, pos: { x: number; y: number; angle: number }) => React.ReactNode;
@@ -170,7 +170,7 @@ const mockGame: Game = {
 
 function renderWithGameContext(
   ui: React.ReactElement,
-  game: Game = mockGame,
+  _game: Game = mockGame,
 ) {
   return render(
     <GameProvider>

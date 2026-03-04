@@ -41,17 +41,6 @@ const nobleCharacter: CharacterDef = {
   reminders: [],
 };
 
-const impCharacter: CharacterDef = {
-  id: 'imp',
-  name: 'Imp',
-  type: CharacterType.Demon,
-  defaultAlignment: Alignment.Evil,
-  abilityShort: 'Each night*, choose a player: they die.',
-  firstNight: null,
-  otherNights: null,
-  reminders: [],
-};
-
 const alivePlayer: PlayerSeat = {
   seat: 1,
   playerName: 'Alice',

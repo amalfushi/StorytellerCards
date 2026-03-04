@@ -111,7 +111,19 @@ See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) fo
 | `cd UI && npm test` | Run all tests (fast, no coverage) |
 | `cd UI && npm run test:watch` | Watch mode (development) |
 | `cd UI && npm run test:coverage` | Run with coverage report + threshold enforcement (pre-push) |
+| `cd UI && npx tsc --noEmit` | TypeScript compilation check (0 errors required) |
+| `cd UI && npx eslint .` | Lint check (0 errors required) |
 | `cd UI && npx storybook dev` | Run Storybook for visual testing |
+
+### Development Checklist
+
+Before completing any code task (using `attempt_completion`), agents **MUST** run and pass all three:
+
+1. `cd UI && npx tsc --noEmit` — TypeScript compilation (0 errors)
+2. `cd UI && npx eslint .` — Linting (0 errors)
+3. `cd UI && npm test` — All tests pass
+
+The pre-push hook enforces test coverage thresholds automatically, but **linting and TypeScript checks are the agent's responsibility** during development. See [`docs/testing.md`](docs/testing.md) for full details.
 
 ### Coverage Thresholds
 Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:

@@ -9,7 +9,10 @@ FAILED=0
 if [ -n "$UI_CHANGED" ]; then
   echo "🧪 UI changes detected — running tests with coverage..."
   cd UI && npm run test:coverage
-  if [ $? -ne 0 ]; then FAILED=1; fi
+  if [ $? -ne 0 ]; then
+    echo "❌ Tests/coverage failed"
+    FAILED=1
+  fi
   cd ..
 
   # Auto-commit coverage report if tests passed

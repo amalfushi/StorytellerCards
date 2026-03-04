@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, within } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { PlayerEditDialog } from '@/components/PlayerList/PlayerEditDialog.tsx';
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';

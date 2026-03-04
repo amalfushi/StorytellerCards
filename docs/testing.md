@@ -359,11 +359,25 @@ Current thresholds (set ~5% below baseline):
 
 ## CI / Pre-push Checklist
 
-The pre-push hook (`.husky/pre-push`) runs automatically on `git push`:
+The pre-push hook ([`.husky/pre-push`](../.husky/pre-push)) runs **automatically** on `git push`:
 
-1. ✅ All tests pass
-2. ✅ Coverage thresholds met
-3. TypeScript compiles (`npx tsc --noEmit`)
-4. ESLint passes (`npx eslint .`)
+1. ✅ Detects UI/API file changes
+2. ✅ Runs `npm run test:coverage` (all tests + threshold enforcement)
+3. ✅ Auto-commits `coverage-summary.json` if changed
+4. ✅ Runs Go tests if API files changed
 
-The pre-commit hook runs lint checks on staged files.
+The pre-commit hook runs lint checks on staged files via Husky.
+
+> **Note:** The pre-push hook does NOT run linting or TypeScript checks — those are the agent's responsibility during development (see below).
+
+## Agent Development Workflow
+
+Before completing any code task (using `attempt_completion`), agents **MUST** run these checks:
+
+1. `cd UI && npx tsc --noEmit` — TypeScript compilation (0 errors required)
+2. `cd UI && npx eslint .` — Linting (0 errors required)
+3. `cd UI && npm test` — All tests pass
+
+These can be run in parallel for efficiency. All three must pass before the task is considered complete.
+
+The pre-push hook enforces test coverage thresholds automatically, but **linting and TypeScript checks are the agent's responsibility** during development.
