@@ -255,15 +255,15 @@ package.json
 {
   "scripts": {
     "test": "vitest",
-    "test-storybook": "vitest --project=storybook"
+    "test:storybook": "vitest --project=storybook"
   }
 }
 
-In this example, we've added two scripts: test to run all tests in your project (you may already have this), and test-storybook to run only your Storybook tests. The --project=storybook flag tells Vitest to run the tests for the Storybook project.
+In this example, we've added two scripts: test to run all tests in your project (you may already have this), and test:storybook to run only your Storybook tests. The --project=storybook flag tells Vitest to run the tests for the Storybook project.
 
 Then, run this command to run your tests (in watch mode, by default) using the Vitest CLI:
 
-npm run test-storybook
+npm run test:storybook
 
 Debugging
 
