@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-03
+> Last updated: 2026-03-04
 
 ## Milestone Overview
 
@@ -12,8 +12,8 @@
 | M3 | Night phase improvements, token system, script builder, UI polish | ✅ Complete (+ Feedback Rounds 1 & 2) | [details](milestones/3%20-%20tokens,%20breadcrumbs,%20characterModal,%20errorCheckpoints/progress.md) |
 | M4 | Multi-demon support | 📋 Planned | — |
 | M5 | Jinxes | 📋 Planned | — |
-| M6 | Character data restructuring (individual .ts files, declarative night choices) | ✅ Complete (cleanup done in M8) | [details](milestones/6%20-%20character%20restructuring/progress.md) |
-| M7 | Testing Improvements | 📋 Planned | [details](milestones/7%20-%20testing%20improvements/milestone7.md) |
+| M6 | Character data restructuring (individual .ts files, declarative night choices) | ✅ Complete | [details](milestones/6 - character restructuring/progress.md) |
+| M7 | Testing Improvements | ✅ Complete (Phases 1-5) | [details](milestones/7 - testing improvements/milestone7.md) |
 | M8 | Wiki scraping — populate remaining characters + download icons | ✅ Complete (M8.1 + M8.2) | [details](milestones/8%20-%20wiki%20scraping/progress.md) |
 
 ## Key Design Decisions
@@ -26,11 +26,13 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M8 completion)
+## Verification (as of M7 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors, 0 warnings
-- Tests: 52/52 passing (5 test files)
+- Tests: 1205/1205 passing (54 test files)
+- Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
+- Storybook: 17 story files with ~80+ stories including `play()` interaction tests
 - Go build: success
 - Go tests: all passing
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)

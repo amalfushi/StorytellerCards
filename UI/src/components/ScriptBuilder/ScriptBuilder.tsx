@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -46,17 +46,17 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
   const [author, setAuthor] = useState('');
   const [activeTab, setActiveTab] = useState(0);
 
-  // Reset state when dialog opens
+  // Reset state when dialog transitions from closed → open (not on initial mount)
+  const prevOpenRef = useRef(open);
   useEffect(() => {
-    if (open) {
-      queueMicrotask(() => {
-        setSearch('');
-        setSelectedIds(new Set());
-        setScriptName('');
-        setAuthor('');
-        setActiveTab(0);
-      });
+    if (open && !prevOpenRef.current) {
+      setSearch('');
+      setSelectedIds(new Set());
+      setScriptName('');
+      setAuthor('');
+      setActiveTab(0);
     }
+    prevOpenRef.current = open;
   }, [open]);
 
   // Filter to non-Traveller/Fabled/Loric game characters, sorted by script rules

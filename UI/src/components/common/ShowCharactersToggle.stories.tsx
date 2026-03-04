@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { within, userEvent, expect } from 'storybook/test';
 import { ShowCharactersToggle } from './ShowCharactersToggle';
 import { withMockGameContext } from '../../stories/decorators';
 import AppBar from '@mui/material/AppBar';
@@ -33,4 +34,23 @@ export const DayMode: Story = {
 /** Night mode — showCharacters is true, eye icon is glowing gold. */
 export const NightMode: Story = {
   decorators: [withMockGameContext({ showCharacters: true })],
+};
+
+// ────────────────────────────────────────────────────────
+// Interaction test (P2-3)
+// ────────────────────────────────────────────────────────
+
+/** Clicking the toggle switches from day → night mode (shows character info). */
+export const ToggleClick: Story = {
+  decorators: [withMockGameContext({ showCharacters: false })],
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // Initially in day mode — the button says "Show character info"
+    const toggleButton = canvas.getByRole('button', { name: /show character info/i });
+    await expect(toggleButton).toBeInTheDocument();
+    await userEvent.click(toggleButton);
+    // After click, label changes to "Hide character info"
+    const hiddenButton = canvas.getByRole('button', { name: /hide character info/i });
+    await expect(hiddenButton).toBeInTheDocument();
+  },
 };

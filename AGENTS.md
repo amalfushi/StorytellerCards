@@ -14,8 +14,8 @@ The app manages a hierarchy: **Sessions** (containers) → **Games** → **Playe
 |-------|-----------|
 | UI | React 19 + TypeScript + Vite 6 + MUI Core (free tier) |
 | State | React Context + `useReducer` + `localStorage` (primary), Go API (secondary sync) |
-| Testing | Vitest (52 unit tests), Storybook 8 (75+ stories) |
-| Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests) |
+| Testing | Vitest (1205 tests across 54 files), Storybook 8 (~80+ stories with `play()` interaction tests) |
+| Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests + coverage) |
 | API | Go + Chi router, JSON file storage, 90-day auto-cleanup |
 | PWA | `manifest.json`, icons, mobile meta tags |
 
@@ -79,6 +79,65 @@ See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) fo
 | [`UI/src/data/characters/index.ts`](UI/src/data/characters/index.ts) | Character registry barrel (179 characters) |
 | [`UI/src/data/characters/_nightOrder.ts`](UI/src/data/characters/_nightOrder.ts) | Night order derivation + structural entries |
 | [`docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md`](docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md) | Current pending feedback items |
+
+## Testing Requirements
+
+### Policy: Every File Gets Tests
+- Every new `.ts` or `.tsx` file must have a corresponding `.test.ts` or `.test.tsx` file with meaningful tests
+- Every milestone must include tests for its changes, or confirm existing tests cover the changes
+- Run `cd UI && npm test` before completing any code task — all tests must pass
+
+### Exceptions
+- Individual character data files in `UI/src/data/characters/` — covered by the structural validation test in [`characterData.test.ts`](UI/src/data/characters/characterData.test.ts) which auto-validates all characters
+- Pure re-export barrel files (e.g., `index.ts` that only re-exports)
+- Character `setupModification`/`storytellerSetup` behavior tests — deferred until those fields have game-state actions
+
+### Test Patterns
+- **Unit tests**: `vitest` with `jsdom` environment, `@testing-library/react` for components
+- **Factory helpers**: Create `make*()` functions for test data (see existing tests for patterns)
+- **Context testing**: Use `renderHook()` with Provider wrapper for hook/context tests
+- **Component testing**: Basic render test + key props test + interaction tests for interactive components
+- **Character validation**: The structural validation test in `characterData.test.ts` dynamically validates all characters — adding new characters automatically includes them
+
+### Storybook Requirements
+- Visual components must have Storybook stories (`.stories.tsx`)
+- Interactive components should have `play()` interaction tests in stories
+- Use responsive viewport variants for layout-critical components
+- Stories should have JSDoc comments explaining each scenario
+
+### Running Tests
+| Command | Purpose |
+|---------|---------|
+| `cd UI && npm test` | Run all tests (fast, no coverage) |
+| `cd UI && npm run test:watch` | Watch mode (development) |
+| `cd UI && npm run test:coverage` | Run with coverage report + threshold enforcement (pre-push) |
+| `cd UI && npx tsc --noEmit` | TypeScript compilation check (0 errors required) |
+| `cd UI && npx eslint .` | Lint check (0 errors required) |
+| `cd UI && npx storybook dev` | Run Storybook for visual testing |
+
+### Development Checklist
+
+Before completing any code task (using `attempt_completion`), agents **MUST** run and pass all three:
+
+1. `cd UI && npx tsc --noEmit` — TypeScript compilation (0 errors)
+2. `cd UI && npx eslint .` — Linting (0 errors)
+3. `cd UI && npm test` — All tests pass
+
+The pre-push hook enforces test coverage thresholds automatically, but **linting and TypeScript checks are the agent's responsibility** during development. See [`docs/testing.md`](docs/testing.md) for full details.
+
+### Coverage Thresholds
+Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
+- Statements: 77% (baseline: 82.87%)
+- Branches: 74% (baseline: 79.95%)
+- Functions: 69% (baseline: 74.08%)
+- Lines: 79% (baseline: 84.66%)
+
+See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
+
+### Current Test Stats (as of M7 Complete)
+- **1187 tests** across **54 test files** — all passing
+- **17 story files** with **~80+ stories** including `play()` interaction tests
+- **0 TypeScript errors**, **0 ESLint errors**
 
 ## Related Documentation
 

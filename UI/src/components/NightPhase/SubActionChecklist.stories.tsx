@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { within, userEvent, expect, fn } from 'storybook/test';
 import { SubActionChecklist } from './SubActionChecklist';
 import { fortuneTeller, philosopher } from '../../stories/mockData';
 import Box from '@mui/material/Box';
@@ -72,5 +73,26 @@ export const ReadOnly: Story = {
     subActions: [...fortuneTeller.firstNight!.subActions, ...fortuneTeller.otherNights!.subActions],
     checkedStates: [true, true, false, false],
     readOnly: true,
+  },
+};
+
+// ────────────────────────────────────────────────────────
+// Interaction test (P2-3)
+// ────────────────────────────────────────────────────────
+
+/** Clicking a checkbox item calls onToggle with the correct index. */
+export const ToggleInteraction: Story = {
+  args: {
+    subActions: fortuneTeller.firstNight!.subActions,
+    checkedStates: [false, false],
+    onToggle: fn(),
+  },
+  play: async ({ canvasElement, args }) => {
+    const canvas = within(canvasElement);
+    const checkboxes = canvas.getAllByRole('checkbox');
+    await expect(checkboxes.length).toBeGreaterThan(0);
+    // Click the first unchecked checkbox
+    await userEvent.click(checkboxes[0]);
+    await expect(args.onToggle).toHaveBeenCalledWith(0);
   },
 };

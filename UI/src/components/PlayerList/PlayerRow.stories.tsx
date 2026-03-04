@@ -176,3 +176,15 @@ export const DayViewWithTokens: Story = {
     character: undefined,
   },
 };
+
+// ────────────────────────────────────────────────────────
+// Responsive viewport variant (P2-2)
+// ────────────────────────────────────────────────────────
+
+/** Tablet viewport — night view row at iPad size. */
+export const TabletViewport: Story = {
+  ...NightView,
+  parameters: {
+    viewport: { defaultViewport: 'tablet' },
+  },
+};
