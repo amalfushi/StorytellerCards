@@ -5,7 +5,14 @@ export const mezepheles: CharacterDef = {
   name: 'Mezepheles',
   type: 'Minion',
   defaultAlignment: 'Evil',
-  abilityShort: '<TODO>',
+  abilityShort:
+    'You start knowing a secret word. The 1st good player to say this word becomes evil that night.',
+  abilityDetailed: `The Mezepheles offers good players a choice: to turn evil or not.
+• On the first night, the Mezepheles learns a secret word from the Storyteller.
+• If a good player says this word, either publicly or privately, they turn evil that night. The Storyteller needs to hear this player actually say the word before turning them evil.
+• The Mezepheles does not learn if a player turns evil. The good player learns if they turn evil, but not until that night.
+• If the Mezepheles is sober and healthy at night, the good player turns evil even if the Mezepheles was drunk or poisoned when the good player spoke the secret word. If the Mezepheles is drunk or poisoned at night when a player would turn evil, the player stays good—the Mezepheles has “used their ability” and may not turn a player evil later on.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Mezepheles',
   firstNight: {
     order: 40,
     helpText: 'Show the secret word.',
@@ -34,6 +41,11 @@ export const mezepheles: CharacterDef = {
       },
     ],
   },
-  icon: { placeholder: '#e53935' },
+  icon: {
+    small: '/icons/characters/mezephelesIcon.png',
+    medium: '/icons/characters/mezephelesIcon.png',
+    large: '/icons/characters/mezephelesIcon.png',
+    placeholder: '#e53935',
+  },
   reminders: [],
 };

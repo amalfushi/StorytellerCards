@@ -6,7 +6,9 @@
 
 ---
 
-## Status: ✅ Complete
+## Status: ✅ Complete (Phases 1–5 of 7)
+
+Phases 6 (Deprecate Regex) and 7 (Cleanup) were partially completed. Remaining items intentionally deferred — see [Deferred Items](#deferred-items) below and the [M6 Deferred Cleanup](../../progress.md) section in the main progress tracker.
 
 ---
 
@@ -61,18 +63,24 @@ Each character file includes:
 | [`NightFlashcard.tsx`](../../UI/src/components/NightPhase/NightFlashcard.tsx) | Reads `choices` from `NightAction` directly; falls back to regex parsing via `NightChoiceHelper.ts` for characters without explicit choices |
 | [`mockData.ts`](../../UI/src/stories/mockData.ts) | Imports from barrel instead of JSON |
 
-### Phase 5: Cleanup
+### Phase 5: Cleanup (Partial)
 
 - Removed `UI/src/data/characters.json`
 - Removed `UI/src/data/nightOrder.json`
 - Added `UI/src/data/characters/traveller/.gitkeep` placeholder for future traveller characters
 
-## What Was NOT Done (Deferred)
+## Deferred Items
 
-- **Wiki scraping** for the ~125 characters not yet in the registry — future milestone
-- **Removal of `NightChoiceHelper.ts`** — kept as regex fallback for backward compatibility
-- **Removal of `ParsedChoice` type** from `NightChoiceSelector.tsx` — kept alongside `NightChoice` during transition
-- **Loric subdirectory** — not created (no Loric characters yet)
+The following items from M6 Phases 6 and 7 were intentionally deferred. They are tracked in [`docs/progress.md`](../../progress.md) under "M6 Deferred Cleanup".
+
+| Item | Reason for Deferral | Target |
+|------|---------------------|--------|
+| Remove [`NightChoiceHelper.ts`](../../UI/src/components/NightPhase/NightChoiceHelper.ts) (regex fallback) | Still needed as fallback for characters without declarative `choices` — will be unnecessary after M8 populates all characters | After M8 |
+| Remove `ParsedChoice` type from [`NightChoiceSelector.tsx`](../../UI/src/components/NightPhase/NightChoiceSelector.tsx) | Used by regex fallback path | After M8 |
+| Remove local `NightChoiceType` from [`NightChoiceSelector.tsx`](../../UI/src/components/NightPhase/NightChoiceSelector.tsx) | Co-exists with canonical type in `types/index.ts`; removal requires updating the regex fallback path | After M8 |
+| Decouple [`mockData.ts`](../../UI/src/stories/mockData.ts) from real character data | Currently imports from barrel; works fine but couples stories to real data | Low priority |
+| Remove or fix [`characters.go`](../../API/internal/handlers/characters.go) endpoint | References deleted `characters.json` — endpoint is broken at runtime; API is "dumb" so removing it is the right approach | M8 or separate cleanup |
+| Create `loric/` character subdirectory | No Loric characters implemented yet | M8 |
 
 ## Files Changed
 
@@ -83,3 +91,9 @@ Each character file includes:
 | New character files | 43 files in `UI/src/data/characters/{townsfolk,outsider,minion,demon,fabled}/` |
 | Updated consumers | [`useCharacterLookup.ts`](../../UI/src/hooks/useCharacterLookup.ts), [`useNightOrder.ts`](../../UI/src/hooks/useNightOrder.ts), [`NightFlashcard.tsx`](../../UI/src/components/NightPhase/NightFlashcard.tsx), [`mockData.ts`](../../UI/src/stories/mockData.ts) |
 | Removed | `UI/src/data/characters.json`, `UI/src/data/nightOrder.json` |
+
+## Verification
+
+- TypeScript: 0 errors (`npx tsc --noEmit`)
+- ESLint: 0 errors, 0 warnings (`npx eslint .`)
+- Tests: 52/52 passing (5 test files)

@@ -6,6 +6,12 @@ export const highpriestess: CharacterDef = {
   type: 'Townsfolk',
   defaultAlignment: 'Good',
   abilityShort: 'Each night, learn which player the Storyteller believes you should talk to most.',
+  abilityDetailed: `The High Priestess acts on intuition.
+• The High Priestess can be shown the same player multiple times in a row, or a different player every night.
+• The shown player can be alive or dead.
+• The shown player can be good or evil.
+• There are no official criteria that determine which player the Storyteller must show to the High Priestess. It is up to the Storyteller’s judgement as to what they think will most benefit the High Priestess and the good team in general. It could be because the player has important information that has not been revealed yet. Or because the player is evil and has a bluff that doesn’t make sense. Or because the player is trustworthy and needs to be trusted more. Or because the player is good but on the wrong track and needs to be corrected. Or something new.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/High_Priestess',
   firstNight: {
     order: 68,
     helpText: 'Point to a player.',
@@ -28,6 +34,11 @@ export const highpriestess: CharacterDef = {
       },
     ],
   },
-  icon: { placeholder: '#1976d2' },
+  icon: {
+    small: '/icons/characters/highpriestessIcon.png',
+    medium: '/icons/characters/highpriestessIcon.png',
+    large: '/icons/characters/highpriestessIcon.png',
+    placeholder: '#1976d2',
+  },
   reminders: [],
 };

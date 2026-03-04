@@ -1,0 +1,979 @@
+<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.11/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.11/ http://www.mediawiki.org/xml/export-0.11.xsd" version="0.11" xml:lang="en">
+  <siteinfo>
+    <sitename>Blood on the Clocktower Wiki</sitename>
+    <dbname>wiki</dbname>
+    <base>https://wiki.bloodontheclocktower.com/Main_Page</base>
+    <generator>MediaWiki 1.39.2</generator>
+    <case>first-letter</case>
+    <namespaces>
+      <namespace key="-2" case="first-letter">Media</namespace>
+      <namespace key="-1" case="first-letter">Special</namespace>
+      <namespace key="0" case="first-letter" />
+      <namespace key="1" case="first-letter">Talk</namespace>
+      <namespace key="2" case="first-letter">User</namespace>
+      <namespace key="3" case="first-letter">User talk</namespace>
+      <namespace key="4" case="first-letter">Blood on the Clocktower Wiki</namespace>
+      <namespace key="5" case="first-letter">Blood on the Clocktower Wiki talk</namespace>
+      <namespace key="6" case="first-letter">File</namespace>
+      <namespace key="7" case="first-letter">File talk</namespace>
+      <namespace key="8" case="first-letter">MediaWiki</namespace>
+      <namespace key="9" case="first-letter">MediaWiki talk</namespace>
+      <namespace key="10" case="first-letter">Template</namespace>
+      <namespace key="11" case="first-letter">Template talk</namespace>
+      <namespace key="12" case="first-letter">Help</namespace>
+      <namespace key="13" case="first-letter">Help talk</namespace>
+      <namespace key="14" case="first-letter">Category</namespace>
+      <namespace key="15" case="first-letter">Category talk</namespace>
+    </namespaces>
+  </siteinfo>
+  <page>
+    <title>Tor</title>
+    <ns>0</ns>
+    <id>413</id>
+    <revision>
+      <id>2919</id>
+      <parentid>2914</parentid>
+      <timestamp>2025-11-03T09:49:40Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>2919</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="2939" sha1="j5kf3zpcvjqv2s6u3tkn25coeffe9w8" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_tor.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;Loric&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Chloe McDougall&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;25/10/2025&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+            &lt;p class='flavour'&gt;"With thunder as my voice and lightning as my blade, I, the eternal guardian, feast upon the fools who dare approach the forbidden gate. Behold, my sacred goal! To purge the beetle from the belly of the rocky earth, to ensnare it in a net of stars on the hilltop where heaven meets earth."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Players don't know their character or alignment. They learn them when they die."
+
+Tor removes all knowledge of who is who.
+* Players do not know which character they are.
+* Players do not draw tokens from the bag. The Storyteller puts them directly in the Grimoire at the start of the game.
+* Character abilities work as normal. Players are woken and prompted to use their ability if needed.
+* When a player dies, they learn their character and alignment. Even if they are drunk or poisoned, this information is correct.
+* The Demon and Minions do not know each other.
+
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+During setup, do not pass the bag to the players. Instead, draw the character tokens from the bag and place them in order in the Grimoire.
+
+If a player dies during the day, privately tell them what character and alignment they are. If a player dies at night, wake them, show them the '''YOU ARE''' info token, their character token, the '''YOU ARE''' info token, and either a thumbs up or a thumbs down.
+
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				Julian, Alex, Evin, Lachlan, Sarah, Marianna and Amy do not know which character they are. Evin wakes each night and learns a thumbs up, but does not know why. Sarah wakes each night to choose a player, but does not know why. Amy wakes each night to choose a player, but does not know why. Sarah is executed and learns that she is the good {{Good|Monk}}. Lachlan, guessing that he might be the {{Good|Slayer}}, publicly says that he is the {{Good|Slayer}}, and chooses Amy. Amy dies. Evin was the {{Good|General}}, Lachlan was the {{Good|Slayer}} and Amy was the {{Evil|Imp}}.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Loric]]</text>
+      <sha1>j5kf3zpcvjqv2s6u3tkn25coeffe9w8</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Big Wig</title>
+    <ns>0</ns>
+    <id>414</id>
+    <revision>
+      <id>2920</id>
+      <parentid>2916</parentid>
+      <timestamp>2025-11-03T09:49:55Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>2920</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="2993" sha1="6yaauv9g06idcximcvozn5ff2sg3hnl" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_big_wig.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;Loric&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Chloe McDougall&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;25/10/2025&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+            &lt;p class='flavour'&gt;“Vanity asks ‘Is it popular?’&lt;br&gt;
+Cowardice asks ‘Is it safe?’&lt;br&gt;
+Conscience asks ‘Is it right?’&lt;br&gt;
+Who among us will ask:&lt;br&gt;
+‘Is it true?’”
+&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each nominee chooses a player: until voting, only they may speak &amp; they are mad the nominee is good or they might die."
+
+The Big Wig gives nominees a defence lawyer.
+* When nominated, that player must choose a player to speak on their behalf. They may choose living or dead players.
+* Other players are not allowed to speak during this period. This includes the nominated player. If necessary, the Storyteller may use the Hell’s Librarian to enforce this.
+* If the chosen player is mad that the nominee is evil, or not mad enough that the nominee is good, the Storyteller might kill that player.
+* Being mad that ‘the nominee should not be executed’ might be similar enough to being mad that ‘the nominee is good’ to avoid being killed by the Storyteller.
+* The Storyteller will make it obvious when the period of silence begins. It ends when voting begins.
+* The player chosen by the nominee may vote for the nominee.
+
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+Each time a player is nominated, ask them to choose a player. Declare that this player is the only player allowed to speak until the vote begins. During this period, if this player is not mad that the nominee is good, they might '''die'''.
+
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				Alex is claiming to be the {{Good|Sailor}}, and is nominated. Alex chooses Evin to speak on his behalf. Evin makes a convincing argument that Alex actually is the {{Good|Sailor}}, and that Julian should be executed instead. Evin lives.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Marianna is the {{Good|Hermit}}, but has not told many people that she is the {{Good|Hermit}}. When nominated, she chooses Alex to defend her. Alex says that Marianna is probably a Minion and that it doesn’t matter if Marianna dies or not. Alex dies due to the Big Wig ability.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Loric]]</text>
+      <sha1>6yaauv9g06idcximcvozn5ff2sg3hnl</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Bootlegger</title>
+    <ns>0</ns>
+    <id>330</id>
+    <revision>
+      <id>2951</id>
+      <parentid>2924</parentid>
+      <timestamp>2025-11-19T15:22:28Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Summary */</comment>
+      <origin>2951</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="2801" sha1="3acoyzbnily4hhzfd7r276225rvck2r" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_bootlegger.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;Loric&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Chloe McDougall&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;28/04/2023&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+            &lt;p class='flavour'&gt;"I've got the latest shipment from home, a brew I'd like to call 'Barrowfog'. Wanna try?"&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"This script has homebrew characters or rules."
+
+Add the Bootlegger to include homebrew characters or rules.
+* The Bootlegger allows Storytellers to use characters they, or others, have created that are not official characters or allows them to use non-standard rules in the game.
+* If there are homebrew characters on the character sheet, or homebrew rules in effect, the Storyteller tells all players what they are before play begins.
+* The Bootlegger allows for multiple characters or rules to be in effect at once.
+* As long as there is at least one homebrew character on the current script, this Loric will be in play and can only be removed by switching to a script that does not contain any homebrew characters.
+* The Bootlegger is designed for use in the official app only.
+* Bootlegger, despite many claims to the contrary, defeated {{Loric|Homebrewy McHomebrewface}}, “the people’s choice”, in a hotly contested poll to decide the Loric's name.
+
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+At the start of the game, if there are homebrew characters on the character sheet or you are running homebrew rules, declare that the Bootlegger is in play and inform the group of all the homebrew characters and/or rules you are using in this game.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The character sheet contains the homebrew character the {{Joke|Peasant}}. The Storyteller announces that the Bootlegger is in play and then explains how the {{Joke|Peasant}} works.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Storyteller has a homebrew or house rule. The Storyteller announces that the Bootlegger is in play and explains what the homebrew rule is and how it will affect the game.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Loric]]</text>
+      <sha1>3acoyzbnily4hhzfd7r276225rvck2r</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Gardener</title>
+    <ns>0</ns>
+    <id>333</id>
+    <revision>
+      <id>2928</id>
+      <parentid>2895</parentid>
+      <timestamp>2025-11-03T09:53:56Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>2928</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="2604" sha1="oxrlojhkfvhim03jjidux8r6htfkjwz" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_gardener.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;Loric&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Z. Benetatos&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;28/04/2023&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Oh now, this won't do. We've got the monkshood mixed in with the wolfsbane and the hemlock is smothering the hellebore! Oh dear me, we'd better start over. Fetch my shears."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"The Storyteller assigns 1 or more players' characters."
+
+Use the Gardener to assign characters to particular players.
+* After the Storyteller has put the Gardener into play, they can manually assign and edit which characters are going to be given to which seated players before sending them out.
+* If a player has an issue with a particular character, you may use the Gardener to affect setup so that player doesn’t draw the relevant token.
+* The Gardener can also be useful if a particular player has drawn evil many times over a single session.
+* The Gardener is designed for use in the official app only.
+
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+At the start of the game, declare that the Gardener is in play. 
+
+Before character tokens are sent out to players, decide what characters the players affected by Gardener will have. Assign, or swap, the relevant players to the characters you have decided.
+
+Then, send the characters to players in the game.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+The {{Evil|Vizier}} is on the script and Ida doesn’t like playing as outed evil. To ensure that Ida doesn’t receive the {{Evil|Vizier}} token, the Storyteller puts the Gardener into play and assigns Ida directly as the {{Evil|Poisoner}} instead.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+Robin has been evil every game today. The Storyteller puts the Gardener into play and assigns Robin directly as the {{Good|Chef}} instead.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Loric]]</text>
+      <sha1>oxrlojhkfvhim03jjidux8r6htfkjwz</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Storm Catcher</title>
+    <ns>0</ns>
+    <id>265</id>
+    <revision>
+      <id>2952</id>
+      <parentid>2930</parentid>
+      <timestamp>2025-11-19T15:22:47Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Explanation */</comment>
+      <origin>2952</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="5367" sha1="8gjrmj2gc2t0qx1d6jzb6mcevr4lisw" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_stormcatcher.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;Loric&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;John Grist&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;28/08/2020&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"At dawn, the temple’s long shadow creeps to the fountain. At dusk, the obelisk blocks the red glare, cooling warm water under the archway. All lines converge here. A storm is coming, and this, this pebbled and lush and holy place between the apple trees, is the eye."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Name a good character. If in play, they can only die by execution, but evil players learn which player it is."
+
+Use the Storm Catcher to focus the game on a particular good character.
+* If you want to construct a script based around the actions or information of one particular good character, if you want to have this character in every game (''or at least have an evil player bluffing as this character''), you can use the Storm Catcher. Your chosen character will play a big part in the game, will be the focus of a lot of group discussion, and will probably live until the final day.
+* The Storyteller declares that one character can’t die, unless by execution. This character may be in play, or not in play. If it is in play, this good player lives as long as the good players want them to, since evil players cannot kill them. If it is not in play, all evil players learn this, so any evil player can easily bluff as this character. (''They don’t have to, but they can.'')
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At the start of the game, declare that the Storm Catcher is in play. Add the Storm Catcher token to the Grimoire. Declare which good character is favoured by the Storm Catcher. If the favoured character is in play, mark them with the Storm Catcher’s '''SAFE''' reminder.
+
+During the first night, wake each evil player in turn. If a good character is marked with the Storm Catcher’s '''SAFE''' reminder, show the evil player the '''THIS PLAYER IS''' info token, the good character token, point to the good player, then put the evil player to sleep. If no one is marked with the Storm Catcher’s '''SAFE''' reminder, show the evil player the '''THESE CHARACTERS ARE NOT IN PLAY''' info token and the good character token, then put the evil player to sleep.
+
+If the character marked with the Storm Catcher’s '''SAFE''' reminder is executed, they die. If they would die by other means, they remain alive.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Storyteller has built a script based on the {{Good|General}}, so says that “the Storm Catcher favours the {{Good|General}}”. The {{Good|General}} is in play. At night, the {{Evil|Imp}} and the {{Evil|Godfather}} both attack the {{Good|General}}, who does not die. After 5 days of information and discussion, the town decides to execute the {{Good|General}}. They die.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Storyteller wants a game based around the {{Good|Empath}}’s information, so declares that “The Storm Catcher favours the {{Good|Empath}}”. There is no {{Good|Empath}} in play. Because the evil players learn this, the {{Evil|Poisoner}} chooses to bluff as the {{Good|Empath}}.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Explanation ==
+
+The Storm Catcher is a Loric that works especially well with custom scripts, allowing you to play a game "based" around a particular character without that character's presence becoming easy to metagame. This good character is protected from death at night by the Storyteller's favour, giving them some survivability. To counter this powerful boon, the evil team will always be aware of who the player is so that they can work to undermine and execute them as soon as possible.
+
+Naming a character with Storm Catcher does not mean you have to put that character in - this will open it up as a free bluff for the evil team instead, since they will know nobody in play has that power.
+
+Use the Storm Catcher to make a character feel special - if you've built your entire game around interesting interactions with the {{Good|Slayer}} for example, it can be a bummer to lose your {{Good|Slayer}} day 2 to a lucky Demon hit. By giving a character your protection, you not only open up the number of strategies available to that player (good OR evil), but also ensure that the group will give that character special consideration in their deliberations.
+
+Note that Storm Catcher only works for good characters - unfortunately, evil characters will have to carry themselves on charm alone. 
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Loric]]</text>
+      <sha1>8gjrmj2gc2t0qx1d6jzb6mcevr4lisw</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Zenomancer</title>
+    <ns>0</ns>
+    <id>421</id>
+    <revision>
+      <id>3024</id>
+      <timestamp>2025-11-20T23:30:22Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>Created page with "__NOTOC__ &lt;div class="row"&gt;  	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;  		&lt;div id='character-details'&gt;  			[[File:icon_zenomancer.png|250px]] 			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;  			&lt;table style="width: 90%; margin: 0 auto;"&gt; 				&lt;tr&gt; 					&lt;td&gt;Type&lt;/td&gt; 					&lt;td&gt;Loric&lt;/td&gt; 				&lt;/tr&gt; 				&lt;tr&gt; 					&lt;td&gt;Artist&lt;/td&gt; 					&lt;td&gt;Chloe McDouga..."</comment>
+      <origin>3024</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="3704" sha1="ps724lg8078jc0rh83cid9wb2r67bnr" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_zenomancer.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;Loric&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Chloe McDougall&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;20/11/2025&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+            &lt;p class='flavour'&gt;"The universe is a verb not a noun, they say, and it is turtles, turtles all the way down. Turtles all the way down, my friend, turtles all the way down."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"One or more players each have a goal. When achieved, that player learns a piece of true info."
+
+The '''Zenomancer''' gives mini quests.
+* One or more players may be given goals by the Storyteller. These goals are given privately. They may be given goals at the beginning of the game, or at some time during the game. Different players may be given goals at different times.
+* A goal can be anything. It can be something to do with the game, or something beyond the game.
+* The Storyteller is the judge of when a goal is achieved. When this happens, the player learns one piece of information about the game. This is true even if they are drunk or poisoned, since this is due to the Zenomancer, not their character.
+* Goals may clash, or may not be achieved.
+* Usually, 1 to 3 goals will be given throughout the game, and most goals will be given at the beginning of the game.
+* Players may bluff that they have been given goals, or bluff that they have achieved a goal.
+* Any player may be given a goal, even Travellers and dead players.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+At any time, communicate to a player that they have a goal. Either tell them privately, or wake them at night and show them a written note. Mark this player with the Zenomancer’s '''GOAL''' reminder. 
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt; 
+Add “...without telling anyone your goal” to make your goals more interesting. Most goals are more fun for the player if they are unable to communicate it.
+&lt;/div&gt; 
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				Alex is the {{Evil|Pit-Hag}}. He is given the goal “create an evil Outsider”. Alex turns the {{Evil|Witch}} into the {{Good|Sweetheart}}, and learns that Lewis is the drunk {{Good|Sage}}.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Evin is given the goal “convince Sarah that she is the {{Evil|Marionette}}”. The Storyteller judges that Sarah is adequately confused about whether she is the {{Evil|Marionette}} or not. Evin learns that there is no {{Evil|Marionette}} in play. Meanwhile, Ben has the goal “nominate and execute a Minion”. This does not happen, and Ben does not get his Zenomancer information.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Julian has the goal to “steal all the comfy pillows from the couch, without touching them”. Amy has the same goal. Amy convinces Marianna to engage Julian in a private chat while Abdallah steals the pillows and gives them to her. Amy learns that the Demon is a {{Evil|Fang Gu}}.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Loric]]</text>
+      <sha1>ps724lg8078jc0rh83cid9wb2r67bnr</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Hindu</title>
+    <ns>0</ns>
+    <id>423</id>
+    <revision>
+      <id>3042</id>
+      <parentid>3041</parentid>
+      <timestamp>2025-12-19T10:48:34Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Examples */</comment>
+      <origin>3042</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="3035" sha1="13u1inbwshrn2l57tc6ncjwsxba1yjb" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_hindu.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;Loric&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Chloe McDougall&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;18/12/2025&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+            &lt;p class='flavour'&gt;“चत्वारो मृत्युमध्ये पतन्ति,&lt;br&gt;
+चत्वारो यात्री पुनरुद्गताः।&lt;br&gt;
+चत्वारो धर्मे स्थितचित्तवृत्तेः,&lt;br&gt;
+चत्वार एषां न पुनः क्षयः॥”
+&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"The first 4 players to die are immediately reincarnated as Travellers of the same alignment."
+
+The Hindu gives players that die early a new life.
+* The first four players to die become Travellers.
+* It doesn’t matter how the players died.
+* The Storyteller chooses which Traveller the player becomes. This is different to the normal rule that players choose their Traveller. The players’ alignment stays the same as it was before death.
+* If the script has five recommended Travellers, the Storyteller chooses from those.
+* Death is never simultaneous. For example, if the Shabaloth kills two players at night, it kills one, then the other.
+* If the Demon is one of the first four players to die, the game ends and good wins.
+
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+If a player dies, they become a Traveller character of your choice. Declare which Traveller they are.
+
+When four players have died and become Travellers, players die as normal.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt; 
+
+'''Optional rule''': If the Demon becomes a Traveller, a Minion becomes the Demon.
+
+&lt;/div&gt; 
+
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				Julian is a {{Good|Princess}}. He is executed and becomes the {{Traveler|Gangster}}.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Lachlan is the {{Good|Sweetheart}}. He dies and becomes the {{Traveler|Cacklejack}}. Nobody is drunk because the {{Good|Sweetheart}} is no longer in play. Evin is the {{Good|Engineer}}. He dies and becomes the {{Traveler|Judge}}. That night, the {{Evil|Po}} kills Marianna, Abdallah, and Lewis. Marianna becomes the {{Traveler|Gnome}} and Abdallah becomes the {{Traveler|Harlot}}.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Loric]]</text>
+      <sha1>13u1inbwshrn2l57tc6ncjwsxba1yjb</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Pope</title>
+    <ns>0</ns>
+    <id>425</id>
+    <revision>
+      <id>3043</id>
+      <timestamp>2026-01-16T10:28:46Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>Created page with "__NOTOC__ &lt;div class="row"&gt;  	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;  		&lt;div id='character-details'&gt;  			[[File:icon_pope.png|250px]] 			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;  			&lt;table style="width: 90%; margin: 0 auto;"&gt; 				&lt;tr&gt; 					&lt;td&gt;Type&lt;/td&gt; 					&lt;td&gt;Loric&lt;/td&gt; 				&lt;/tr&gt; 				&lt;tr&gt; 					&lt;td&gt;Artist&lt;/td&gt; 					&lt;td&gt;Chloe McDougall&lt;/td..."</comment>
+      <origin>3043</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="2750" sha1="eppp3czoia8nksaprbeix5s3vb86w1k" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_pope.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;Loric&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Chloe McDougall&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;15/01/2026&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+            &lt;p class='flavour'&gt;"...Pulcherrimae."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"There are duplicate good characters in play. They might also be bluffs."
+
+The Pope creates duplicate character claims.
+* A Townsfolk or an Outsider, or both, have multiple copies in play.
+* There may be one character that has multiple copies in play, or multiple characters that have multiple copies in play.
+* There may be 2 characters that are the same, or as many as the Storyteller has tokens to accommodate.
+* These characters might be a part of the 3 bluffs given to the Demon.
+* The Storyteller will need multiple copies of the game, or at least some way to access identical character tokens, in order to run this character... for now.
+* Duplicate Outsider characters may cause an unusual number of Outsiders. Duplicate Townsfolk characters may not.
+
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+During setup, swap any Townsfolk tokens for duplicates of an in-play Townsfolk or Outsider character token. You may do this more than once.
+
+During the '''DEMON INFO''' step, you may give the Demon one, two, or three of these duplicate character tokens as bluffs.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt; 
+
+Think carefully about giving in-play characters as bluffs to the Demon. Some characters may make the game too difficult for the evil team.
+
+&lt;/div&gt; 
+
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				Doug, Ben, and Sarah are all {{Good|Empath}}s. Doug learns a “1”. Ben learns a “0”. Sarah learns a “2”.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Lewis and Abdallah are {{Good|General}}s. Evin is the {{Good|Drunk}} who thinks he is a {{Good|General}}. Alex and Julian are {{Good|Zealot}}s, and Marianna is the {{Evil|Xaan}} bluffing as a {{Good|Zealot}}.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Loric]]</text>
+      <sha1>eppp3czoia8nksaprbeix5s3vb86w1k</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Ventriloquist</title>
+    <ns>0</ns>
+    <id>427</id>
+    <revision>
+      <id>3055</id>
+      <parentid>3054</parentid>
+      <timestamp>2026-02-13T09:06:35Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>3055</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="3595" sha1="3nw3h0zrthua32xgcn7siv8vj3igtap" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_ventriloquist.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;Loric&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Lachlan Bastiaen&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;12/02/2026&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+            &lt;p class='flavour'&gt;"Well, folks, gather ‘round! This here’s my pal Charlie, and he’s got a mouth on him that’d make a mule blush. But don’t worry folks, I do all the talkin’... or do I?"&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"If a player is mad as a fresh character during their nomination, they might not die if executed today."
+
+The Ventriloquist rewards players for lying about who they are.
+* Being "mad as a fresh character" means to claim to be a character that is different to a character that you have previously claimed to be.
+* A player benefits from the Ventriloquist only if they are mad as a fresh character during the time that they are nominated.
+* It doesn’t matter what their real character is. Players may be mad as a fake character then later mad as their real character, mad as their real character then later mad as a fake character, or mad as two fake characters.
+* If the player does not die, they learn this after the execution happens. They don’t learn whether it was due to the Ventriloquist or not.
+* The Storyteller judges whether the player is mad or not, and might let them die even if they were convincingly mad.
+* This can protect the Demon, but the Storyteller will not protect the Demon if that means that evil wins.
+* A player is only protected from dying on the same day that they were mad as a fresh character. 
+
+
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+When a player is nominated, before the vote is completed, if they are mad as a character that is different from a character they have been mad as previously, even if either character is their true character, and that player becomes '''about to die''', mark them with the '''MAD''' reminder.
+
+If an execution occurs, and the executee is marked '''MAD''' due to the Ventriloquist, declare that they are executed and you may declare that they do not die.
+
+&lt;/div&gt; 
+
+		&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				Abdallah is the {{Good|Gambler}}. On the 1st day, he is mad that he is the {{Good|Gambler}}. When nominated, he is mad that he is the {{Good|Hatter}}. Later that day, Abdallah is executed and does not die.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Marianna is the {{Good|Professor}}. She has been claiming to be the {{Good|Empath}} all game. When nominated, she claims to be the {{Good|Huntsman}}. When executed, Marianna does not die.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Julian is the {{Good|Hermit}}. Julian is quiet for 3 days. When nominated, Julian is mad as the {{Good|Knight}}, and says that Evin and Alex are not the Demon. When executed, Julian dies, because he was not mad as a fresh character.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Loric]]</text>
+      <sha1>3nw3h0zrthua32xgcn7siv8vj3igtap</sha1>
+    </revision>
+  </page>
+</mediawiki>

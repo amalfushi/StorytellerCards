@@ -7,6 +7,11 @@ export const imp: CharacterDef = {
   defaultAlignment: 'Evil',
   abilityShort:
     'Each night*, choose a player: they die. If you kill yourself this way, a Minion becomes the Imp.',
+  abilityDetailed: `The Imp kills a player each night, and can make copies of itself... for a terrible price.
+• On each night except the first, the Imp chooses a player to kill. Because most characters act after the Demon, that player will probably not get to use their ability tonight.
+• The Imp, because they're a Demon, knows which players are their Minions, and knows three not-in-play good characters that they can safely bluff as.
+• If the Imp dies, the game ends and good wins. However, if the Imp kills themself at night, they die and an alive Minion becomes an Imp. This new Imp does not act that same night, but is now the Imp in every other way—they kill each night, and lose if they die.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Imp',
   firstNight: null,
   otherNights: {
     order: 33,
@@ -42,7 +47,12 @@ export const imp: CharacterDef = {
     ],
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
-  icon: { placeholder: '#b71c1c' },
+  icon: {
+    small: '/icons/characters/impIcon.png',
+    medium: '/icons/characters/impIcon.png',
+    large: '/icons/characters/impIcon.png',
+    placeholder: '#b71c1c',
+  },
   reminders: [],
   storytellerSetup: [
     {

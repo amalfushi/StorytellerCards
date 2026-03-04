@@ -5,7 +5,12 @@ export const snakecharmer: CharacterDef = {
   name: 'Snake Charmer',
   type: 'Townsfolk',
   defaultAlignment: 'Good',
-  abilityShort: '<TODO>',
+  abilityShort:
+    'Each night, choose an alive player: a chosen Demon swaps characters & alignments with you & is then poisoned.',
+  abilityDetailed: `The Snake Charmer learns player after player that is not the Demon... but becomes the Demon if they get either too greedy or too bold.
+• Each night, they choose a player. If that player is not the Demon, nothing happens. If they are the Demon, the Snake Charmer becomes that Demon and turns evil, and the Demon becomes good and poisoned permanently.
+• If the Philosopher has the Snake Charmer ability and becomes the Demon, the Demon becomes a poisoned Philosopher.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Snake_Charmer',
   firstNight: {
     order: 31,
     helpText:
@@ -92,6 +97,11 @@ export const snakecharmer: CharacterDef = {
     ],
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
-  icon: { placeholder: '#1976d2' },
+  icon: {
+    small: '/icons/characters/snakecharmerIcon.png',
+    medium: '/icons/characters/snakecharmerIcon.png',
+    large: '/icons/characters/snakecharmerIcon.png',
+    placeholder: '#1976d2',
+  },
   reminders: [],
 };

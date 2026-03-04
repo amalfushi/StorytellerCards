@@ -1,0 +1,1725 @@
+<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.11/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.11/ http://www.mediawiki.org/xml/export-0.11.xsd" version="0.11" xml:lang="en">
+  <siteinfo>
+    <sitename>Blood on the Clocktower Wiki</sitename>
+    <dbname>wiki</dbname>
+    <base>https://wiki.bloodontheclocktower.com/Main_Page</base>
+    <generator>MediaWiki 1.39.2</generator>
+    <case>first-letter</case>
+    <namespaces>
+      <namespace key="-2" case="first-letter">Media</namespace>
+      <namespace key="-1" case="first-letter">Special</namespace>
+      <namespace key="0" case="first-letter" />
+      <namespace key="1" case="first-letter">Talk</namespace>
+      <namespace key="2" case="first-letter">User</namespace>
+      <namespace key="3" case="first-letter">User talk</namespace>
+      <namespace key="4" case="first-letter">Blood on the Clocktower Wiki</namespace>
+      <namespace key="5" case="first-letter">Blood on the Clocktower Wiki talk</namespace>
+      <namespace key="6" case="first-letter">File</namespace>
+      <namespace key="7" case="first-letter">File talk</namespace>
+      <namespace key="8" case="first-letter">MediaWiki</namespace>
+      <namespace key="9" case="first-letter">MediaWiki talk</namespace>
+      <namespace key="10" case="first-letter">Template</namespace>
+      <namespace key="11" case="first-letter">Template talk</namespace>
+      <namespace key="12" case="first-letter">Help</namespace>
+      <namespace key="13" case="first-letter">Help talk</namespace>
+      <namespace key="14" case="first-letter">Category</namespace>
+      <namespace key="15" case="first-letter">Category talk</namespace>
+    </namespaces>
+  </siteinfo>
+  <page>
+    <title>Fibbin</title>
+    <ns>0</ns>
+    <id>260</id>
+    <revision>
+      <id>1477</id>
+      <parentid>1155</parentid>
+      <timestamp>2023-05-08T11:27:14Z</timestamp>
+      <contributor>
+        <username>Edd</username>
+        <id>3</id>
+      </contributor>
+      <origin>1477</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="3772" sha1="ikkls2q1r4m6glcau5a1gyv02x69a8w" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_fibbin.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Tee-hee-hee.&lt;br&gt;
+				Tee. Hee. Hee."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Once per game, 1 good player might get incorrect information."
+
+Add the Fibbin if your script has too much information or no possibility of misinformation.
+* If you create a character list and it has no characters that cause drunkenness, poisoning, or other ways for information to be false, then you may want to add the Fibbin. Whilst it is not necessary, even a minor chance of a good player’s information being incorrect can drastically help the evil players bluff.
+* The Fibbin does not make an ability fail in the way that drunkenness and poisoning do. It only affects abilities that provide information from the Storyteller signaling to a player during the night or telling them something.
+* If the game ends before you have given a good player incorrect information, that’s okay.
+* Some characters get false information due to their ability. The Fibbin can make this information true.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At the start of the game, declare that the Fibbin is in play. Add the Fibbin token to the Grimoire.
+
+Once per game, when a good player gains information from an ability, you can give them incorrect information. '''The Fibbin loses their ability'''—put their '''NO ABILITY''' reminder token by their token.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				On the first night, all players get correct information. On the second night, the {{Good|Empath}} learns they are neighbouring one evil player, but both their neighbours are actually good. For the rest of the game, all good players get correct information.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The {{Good|Virgin}} is nominated by a Townsfolk. This Townsfolk is executed immediately because the Fibbin cannot make an ability malfunction. Later, the {{Good|Monk}} protects a player. Again, the {{Good|Monk}}'s ability cannot fail due to the Fibbin ability. Later, the {{Good|Ravenkeeper}} dies at night and gets false information, because information from an ability can be affected by the Fibbin ability.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Explanation ==
+
+If you create a game using the Script online character list creator, and it has no characters that cause drunkenness, poisoning or other way for information to be false, then you may want to add the Fibbin. Whilst it is not necessary, even a minor possibility of a good player's information being incorrect can drastically help the evil players bluff successfully.
+
+The Fibbin can't make a character power fail in the way that drunkenness and poisoning do. It can only affect character abilities that gain information due to you signalling to them during the night, or telling them something verbally. 
+
+If the game ends before you have given a good player false information, that's ok.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>ikkls2q1r4m6glcau5a1gyv02x69a8w</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Duchess</title>
+    <ns>0</ns>
+    <id>261</id>
+    <revision>
+      <id>1485</id>
+      <parentid>1156</parentid>
+      <timestamp>2023-05-08T11:28:42Z</timestamp>
+      <contributor>
+        <username>Edd</username>
+        <id>3</id>
+      </contributor>
+      <origin>1485</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="4706" sha1="ayx21bxi3o1nabt3l6l0a8r93w9z883" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_duchess.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Caitlin Murphy&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"We shall entertain between the hours of 6 and 7 precisely. Tea at 6:15. Scones at 6:45. Do not be late. Formal wear applies, as always."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each day, 3 players may choose to visit you. At night*, each visitor learns how many visitors are evil, but 1 gets false info."
+
+Add the Duchess if your script has too little information or too much misinformation. 
+* Sometimes, you may want to create a character list using the Script Tool that has hardly any good characters that gain information directly. Whilst having an abundance of abilities and a lack of information can be fun for some players, other players like something more. The Duchess adds regular information to such a game.
+* Each player that visits the Duchess learns how many visitors are evil, including themself. However, one visitor of the Storyteller’s choice will get false information.
+* Players that visit the Duchess still get to use their ability normally. The Duchess does not make their ability give false information.
+* The players decide amongst themselves which players will be the three players to visit. If exactly three visitors cannot be decided upon, then the Duchess does not act tonight.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At the start of the game, declare that the Duchess is in play. Add the Duchess token and their reminders to the Grimoire. Each day, any player may volunteer to visit the Duchess tonight.
+
+If exactly three players volunteer to visit the Duchess tonight, then mark two of them with a '''VISITOR''' reminder and one of them with a '''FALSE INFO''' reminder. If more or less than three players volunteer to visit, do not add these reminders.
+
+At night, wake each player marked '''VISITOR''' or '''FALSE INFO''' one at a time. Show the woken player the Duchess token. If the woken player is marked VISITOR, show them fingers (''0, 1, 2, or 3'') equaling the number of evil players who are marked either '''VISITOR''' or '''FALSE INFO'''. If the woken player is marked '''FALSE INFO''', show them any number of fingers except the correct number. Put the woken player to sleep.
+
+Remove the Duchess at any time, declaring when you do so.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The {{Good|Soldier}}, {{Good|Pacifist}}, and {{Good|Sage}} visit the Duchess. The {{Good|Soldier}} and {{Good|Pacifist}} learn a "0.” The {{Good|Sage}} learns a "1.”
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The {{Good|Mutant}}, {{Good|Butler}}, and {{Evil|Po}} visit the Duchess. The {{Good|Mutant}} learns a "1,” the {{Good|Butler}} learns a "2," and the {{Evil|Po}} learns a "1.”
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The {{Evil|Mastermind}}, {{Evil|Imp}}, and {{Good|Minstrel}} visit the Duchess. The {{Evil|Mastermind}} learns a "2,” the {{Evil|Imp}} learns a "1," and the {{Good|Minstrel}} learns a "2.”
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Explanation ==
+
+Sometimes, you may want to create a character list using the Script tool that has hardly any good characters that gain information directly. Whilst having an abundance of power and a lack of information can be fun for some players, others like something more. The Duchess adds regular information to such a game.
+
+It is the responsibility of the players to decide among themselves which players will be the 3 players to visit. If exactly 3 visitors can not be decided upon, then the Duchess does not act tonight. 
+
+Each player that visits the Duchess learns how many visitors are evil, including themselves. However, 1 visitor will definitely get false information - it is your choice whom. Players that visit the Duchess still get to use their character ability normally. The Duchess does not make their character ability give false information.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>ayx21bxi3o1nabt3l6l0a8r93w9z883</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Sentinel</title>
+    <ns>0</ns>
+    <id>262</id>
+    <revision>
+      <id>1486</id>
+      <parentid>1157</parentid>
+      <timestamp>2023-05-08T11:28:49Z</timestamp>
+      <contributor>
+        <username>Edd</username>
+        <id>3</id>
+      </contributor>
+      <origin>1486</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="3645" sha1="plil7933g0v5ufh4smfxutjxdbkatvj" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_sentinel.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Caitlin Murphy&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Name, please.&lt;br&gt;
+				Papers, please.&lt;br&gt;
+				Weapons, please."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"There might be 1 extra or 1 fewer Outsider in play."
+
+Add the Sentinel to your script to keep the number of Outsiders in play mysterious. 
+* The official character lists are carefully constructed so that the number of Outsiders is never completely known, which lets evil players safely bluff as Outsiders. Many of the games you create using the Script Tool will not have this luxury. If, for one reason or another, the number of Outsiders in a game will become certain, the Storyteller can add a Sentinel. This will confuse matters and help the evil team either bluff as Outsiders or make existing Outsiders look suspicious.
+* Games with a Sentinel in play might have one more Outsider than normal. They may have one less. They may have the normal amount. It is up to the Storyteller.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At the start of the game, declare that the Sentinel is in play. Add the Sentinel token to the Grimoire.
+
+While setting up the game, before putting character tokens in the bag, add an Outsider token and remove a Townsfolk token, remove an Outsider token and add a Townsfolk token, or do neither.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				There are seven players in this game. There are no characters on the character list that add Outsiders. The Demon bluffs as the {{Good|Saint}}. A Sentinel is in play, so the good players are not sure if there is actually a {{Good|Saint}} or not.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				There are nine players in this game. Even though a {{Evil|Baron}} is on the character list, the good players know no {{Evil|Baron}} is in play because the {{Evil|Witch}} just killed a player, so there should be just two Outsiders in play. However, the Outsiders cannot be trusted because a Sentinel is in play. Indeed, there is one less Outsider than normal in this game, and the {{Evil|Witch}} is bluffing as the {{Good|Butler}}.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Explanation ==
+
+The official character lists are carefully constructed so that the number of Outsiders is never completely known, which lets evil players safely bluff as Outsiders. Many of the games you create using the Script Tool will not have this luxury. If, for one reason or another, the number of Outsiders in a game will become certain, the Storyteller can add a Sentinel. This will confuse matters and help the evil team either bluff as Outsiders or make existing Outsiders look suspicious.
+
+Games with a Sentinel in play might have one more Outsider than normal. They may have one less. They may have the normal amount. It is up to the Storyteller.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>plil7933g0v5ufh4smfxutjxdbkatvj</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Djinn</title>
+    <ns>0</ns>
+    <id>264</id>
+    <revision>
+      <id>3032</id>
+      <parentid>3028</parentid>
+      <timestamp>2025-12-08T11:27:30Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Townsfolk */</comment>
+      <origin>3032</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="22281" sha1="9rqj54cz14tchivbgmq8wqay1beihin" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_djinn.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;John Grist&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"نحن لسنا هنا.&lt;br&gt;
+				انت لست حقيقي.&lt;br&gt;
+				كل شيء هو وهم.&lt;br&gt;
+				أسئلتك هي جبل نار في يوم صافٍ."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Use the Djinn's special rule. All players know what it is."
+
+Add the Djinn to all games with a jinx icon on the script. The Djinn resolves jinxes by creating a unique rule.
+* When creating a character list using the Script Tool, some character combinations will be marked as unusual. These two characters are jinxed—they have abilities that clash or contradict each other in some way. The Djinn creates a special rule that allows these characters to work well together. Some jinxed characters even work better with the Djinn in play!
+* The Djinn’s special rule is described by the Script Tool online, and is printed out automatically when you create a script with a character combination that is jinxed.
+* There are many different Djinn special rules. Each is tailored to a specific pair of jinxed characters.
+* If there are jinxed characters on the character sheet, even if there are no jinxed characters in play, the Storyteller tells all players what the Djinn’s special rule is at the start of the game.
+* The Djinn may have several special rules at once. If there are multiple pairs of jinxed characters on the character sheet, the players learn all the Djinn’s special rules.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At the start of the game, if there are jinxed characters on the character sheet, declare that the Djinn is in play and inform the group of all Djinn special rules for this game. (''Do this even if there are no jinxed characters in play.'')
+
+Follow the Djinn instructions as listed on the Script Tool printout.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The {{Evil|Pit-Hag}} and the {{Good|Heretic}} are Jinxed. At the start of the game, the Storyteller reads out the Djinn's special rule: “A {{Evil|Pit-Hag}} cannot create a {{Good|Heretic}}.” Later in the game, the {{Evil|Pit-Hag}} tries to create a {{Good|Heretic}}. The Storyteller shakes their head, and the {{Evil|Pit-Hag}} must choose another character to create. 
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The {{Good|Spy}} and the {{Evil|Magician}} are Jinxed. At the start of the game, the Storyteller reads out the Djinn's special rule: "When the {{Good|Spy}} sees the grimoire, the Demon and the {{Evil|Magician}}'s character tokens are removed." There is no {{Good|Spy}} and no {{Evil|Magician}} in play, but the Storyteller reads this aloud anyway so that the good team doesn't know which Minion is in play.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Explanation ==
+
+When creating a character list using the Script Tool, some character combinations will be marked as unusual with a little character symbol under one of the characters you have selected. These two characters are Jinxed&amp;mdash;they have abilities that clash or contradict each other in some way. The Djinn creates a special rule that allows these characters to work well together. Some jinxed characters even work &lt;em&gt;better&lt;/em&gt; with the Djinn in play!
+
+The Djinn's special rule is described by the Script Tool online, and is printed out automatically when you create a script with a character combination that is jinxed. There are many different Djinn special rules. Each is tailored to a specific pair of jinxed characters. If there are jinxed characters on the character sheet, even if there are no jinxed characters in play, the Storyteller tells all players what the Djinn's special rule is at the start of the game. 
+
+The Djinn may have several special rules at once. If there are multiple pairs of jinxed characters on the character sheet, the players learn all the Djinn's special rules.
+
+== Djinn Special Rules ==
+
+This section will get updated as more characters are made available.
+
+The Djinn special rule allows Jinxed characters to both be on the same script, and even both in play at the same time. If your script has jinxed characters, let your players know the Djinn special rule(s) at the beginning of the game, whether or not Jinxed characters are in play.
+
+=== Townsfolk ===
+* {{Good|Alchemist}} / {{Evil|Boffin}} : If the Alchemist has the Boffin ability, the Alchemist does not learn what ability the Demon has.
+* {{Good|Alchemist}} / {{Evil|Marionette}}: An Alchemist-Marionette has no Marionette ability &amp; the Marionette is in play.
+* {{Good|Alchemist}} / {{Evil|Mastermind}}: An Alchemist-Mastermind has no Mastermind ability &amp; the Mastermind is not-in-play.
+* {{Good|Alchemist}} / {{Evil|Organ Grinder}}: If the Alchemist has the Organ Grinder ability, the Organ Grinder is in play. If both are sober, both are drunk.
+* {{Good|Alchemist}} / {{Good|Spy}}: An Alchemist-Spy has no Spy ability &amp; a Spy is in play. After each execution, a living Alchemist-Spy may publicly guess a living player as the Spy. If correct, the Demon must choose the Spy tonight.
+* {{Good|Alchemist}} / {{Evil|Summoner}}: The Alchemist-Summoner does not get bluffs, and chooses which Demon but not which player. If they die before this happens, evil wins. [No Demon]
+* {{Good|Alchemist}} / {{Evil|Wraith}}: An Alchemist-Wraith has no Wraith ability &amp; a Wraith is in play. After each execution, a living Alchemist-Wraith may publicly guess a living player as the Wraith. If correct, the Demon must choose the Wraith tonight.
+* {{Good|Alchemist}} / {{Evil|Widow}}: An Alchemist-Widow has no Widow ability &amp; a Widow is in play. After each execution, a living Alchemist-Widow may publicly guess a living player as the Widow. If correct, the Demon must choose the Widow tonight.
+* {{Good|Bounty Hunter}} / {{Evil|Kazali}}: If the Kazali turns the Bounty Hunter into a Minion, an evil Townsfolk is not created.
+* {{Good|Bounty Hunter}} / {{Good|Philosopher}}: If the Philosopher gains the Bounty Hunter ability, a Townsfolk might turn evil.
+* {{Good|Cannibal}} / {{Good|Butler}}: If the Cannibal gains the Butler ability, the Cannibal learns this.
+* {{Good|Cannibal}} / {{Good|Juggler}}: If the Juggler guesses on their first day and dies by execution, tonight the living Cannibal learns how many guesses the Juggler got correct.
+* {{Good|Cannibal}} / {{Good|Princess}}: If the Cannibal nominated, executed, &amp; killed the Princess today, the Demon doesn’t kill tonight.
+* {{Good|Cannibal}} / {{Good|Zealot}}: If the Cannibal gains the Zealot ability, the Cannibal learns this.
+* {{Good|Mathematician}} / {{Good|Chambermaid}}: The Chambermaid can detect if the Mathematician will wake tonight.
+* {{Good|Mathematician}} / {{Good|Drunk}}: The Mathematician might learn if the Drunk's ability yielded false info or failed to work properly.
+* {{Good|Mathematician}} / {{Good|Lunatic}}: The Mathematician might learn if the Lunatic attacks a different player than the real Demon attacked.
+* {{Good|Mathematician}} / {{Evil|Marionette}}: The Mathematician might learn if the Marionette's ability yielded false info or failed to work properly.
+* {{Good|Magician}} / {{Evil|Legion}}: The Magician wakes with Legion and might register as evil. Legion knows if a Magician is in play, but not which player it is.
+* {{Good|Magician}} / {{Evil|Marionette}}: If the Magician is alive, the Demon doesn't know which neighbor is the Marionette.
+* {{Evil|Magician}} / {{Good|Spy}}: When the Spy sees the Grimoire, the Demon and Magician's character tokens are removed.
+* {{Good|Magician}} / {{Evil|Vizier}}: If the Vizier is in play, the Magician has no ability but is immune to the Vizier's ability.
+* {{Good|Magician}} / {{Evil|Widow}}: When the Widow sees the Grimoire, the Demon and Magician's character tokens are removed.
+* {{Good|Magician}} / {{Evil|Wraith}}: After each execution, the living Magician may publicly guess a living player as the Wraith. If correct, the Demon must choose the Wraith tonight.
+
+=== Outsiders ===
+* {{Good|Butler}} / {{Evil|Organ Grinder}}: If the Organ Grinder is causing eyes closed voting, the Butler may raise their hand to vote but their vote is only counted if their master voted too.
+* {{Good|Heretic}} / {{Evil|Baron}}: Only 1 jinxed character can be in play.
+* {{Good|Heretic}} / {{Evil|Godfather}}: Only 1 jinxed character can be in play.
+* {{Good|Heretic}} / {{Evil|Lleech}}: Only 1 jinxed character can be in play.
+* {{Good|Heretic}} / {{Evil|Pit-Hag}}: Only 1 jinxed character can be in play.
+* {{Good|Heretic}} / {{Good|Spy}}: Only 1 jinxed character can be in play.
+* {{Good|Heretic}} / {{Evil|Widow}}: Only 1 jinxed character can be in play.
+* {{Good|Plague Doctor}} / {{Evil|Baron}}: If the Storyteller would gain the Baron ability, up to two players become Outsiders.
+* {{Good|Plague Doctor}} / {{Evil|Boomdandy}}: If the Storyteller would gain the Boomdandy ability, a player becomes the Boomdandy.
+* {{Good|Plague Doctor}} / {{Evil|Evil Twin}}: If the Storyteller would gain the Evil Twin ability, a player becomes the Evil Twin.
+* {{Good|Plague Doctor}} / {{Evil|Fearmonger}}: If the Storyteller would gain the Fearmonger ability, a Minion gains it, and learns this.
+* {{Good|Plague Doctor}} / {{Evil|Goblin}}: If the Storyteller would gain the Goblin ability, a Minion gains it, and learns this.
+* {{Good|Plague Doctor}} / {{Evil|Marionette}}: If the Storyteller would gain the Marionette ability, one of the Demon's good neighbors becomes the Marionette.
+* {{Good|Plague Doctor}} / {{Evil|Scarlet Woman}}: If the Storyteller would gain the Scarlet Woman ability, a Minion gains it, and learns this.
+* {{Good|Plague Doctor}} / {{Good|Spy}}: If the Storyteller would gain the Spy ability, a Minion gains it, and learns this.
+* {{Good|Plague Doctor}} / {{Evil|Wraith}}: If the Storyteller would gain the Wraith ability, a Minion gains it, and learns this.
+* {{Good|Recluse}} / {{Good|Ogre}}: If the Recluse registers as evil to the Ogre, the Ogre learns that they are evil.
+* {{Good|Recluse}} / {{Good|Sage}}: The Recluse might register as the Demon to the Sage.
+
+=== Minions ===
+* {{Evil|Boffin}} / {{Good|Cult Leader}}: If the Demon has the Cult Leader ability, they can’t turn good due to this ability.
+* {{Evil|Boffin}} / {{Good|Drunk}}: The Demon cannot have the Drunk ability.
+* {{Evil|Boffin}} / {{Good|Goon}}: If the Demon has the Goon ability, they can’t turn good due to this ability.
+* {{Evil|Boffin}} / {{Good|Heretic}}: The Demon cannot have the Heretic ability.
+* {{Evil|Boffin}} / {{Good|Ogre}}: The Demon cannot have the Ogre ability.
+* {{Evil|Boffin}} / {{Good|Politician}}: The Demon cannot have the Politician ability.
+* {{Evil|Boffin}} / {{Good|Village Idiot}}: If there is a spare token, the Boffin can give the Demon the Village Idiot ability.
+* {{Evil|Cerenovus}} / {{Evil|Goblin}}: The Cerenovus may choose to make a player mad that they are the Goblin.
+* {{Evil|Marionette}} / {{Good|Balloonist}}: If the Marionette thinks that they are the Balloonist, an Outsider might have been added during setup.
+* {{Evil|Marionette}} / {{Good|Huntsman}}: If the Marionette thinks that they are the Huntsman, the Damsel was added during setup.
+* {{Evil|Marionette}} / {{Evil|Kazali}}: If there would be a Marionette in play, they enter play after the Demon &amp; must start as their neighbor.
+* {{Evil|Marionette}} / {{Evil|Lil' Monsta}}: If there would be a Marionette in play, they enter play after the Demon &amp; must start as their neighbor.
+* {{Evil|Marionette}} / {{Evil|Summoner}}: If there would be a Marionette in play, they enter play after the Demon &amp; must start as their neighbor.
+* {{Evil|Mastermind}} / {{Evil|Vigormortis}}: A Mastermind that has their ability keeps it if the Vigormortis dies.
+* {{Evil|Pit-Hag}} / {{Good|Cult Leader}}: If the Pit-Hag turns an evil player into the Cult Leader, they can't turn good due to their own ability.
+* {{Evil|Pit-Hag}} / {{Good|Damsel}}: If a Pit-Hag creates a Damsel, the Storyteller chooses which player it is.
+* {{Evil|Pit-Hag}} / {{Good|Goon}}: If the Pit-Hag turns an evil player into the Goon, they can't turn good due to their own ability.
+* {{Evil|Pit-Hag}} / {{Good|Ogre}}: If the Pit-Hag turns an evil player into the Ogre, they can't turn good due to their own ability.
+* {{Evil|Pit-Hag}} / {{Good|Politician}}: If the Pit-Hag turns an evil player into the Politician, they can't turn good due to their own ability.
+* {{Evil|Pit-Hag}} / {{Good|Village Idiot}}: If there is a spare token, the Pit-Hag can create an extra Village Idiot. If so, the drunk Village Idiot might change.
+* {{Evil|Scarlet Woman}} / {{Evil|Al-Hadikhia}}: If there would be two Demons, one of which was the Scarlet Woman, the Scarlet Woman becomes the Scarlet Woman again.
+* {{Evil|Scarlet Woman}} / {{Evil|Fang Gu}}: If there would be two Demons, one of which was the Scarlet Woman, the Scarlet Woman remains the Scarlet Woman.
+* {{Good|Spy}} / {{Good|Damsel}}: If the Spy is (or has been) in play, the Damsel is poisoned.
+* {{Good|Spy}} / {{Good|Ogre}}: The Spy registers as evil to the Ogre.
+* {{Good|Spy}} / {{Good|Poppy Grower}}: If the Poppy Grower has their ability, the Spy does not see the Grimoire.
+* {{Evil|Summoner}} / {{Good|Clockmaker}}: The Summoner registers as the Demon to the Clockmaker.
+* {{Evil|Summoner}} / {{Good|Courtier}}: If the living Summoner has no ability, the Storyteller has the Summoner ability.
+* {{Evil|Summoner}} / {{Good|Engineer}}: If the living Summoner is removed from play, the Storyteller has the Summoner ability.
+* {{Evil|Summoner}} / {{Good|Hatter}}: If the Summoner creates a second living Demon, deaths tonight are arbitrary.
+* {{Evil|Summoner}} / {{Evil|Kazali}}: If the Summoner creates a second living Demon, deaths tonight are arbitrary.
+* {{Evil|Summoner}} / {{Evil|Lord of Typhon}}: If a Lord of Typhon is summoned, they must neighbor a Minion &amp; their other neighbor becomes an evil Minion.
+* {{Evil|Summoner}} / {{Evil|Pit-Hag}}: If the Summoner creates a second living Demon, deaths tonight are arbitrary.
+* {{Evil|Summoner}} / {{Good|Poppy Grower}}: If the Poppy Grower is alive on the 3rd night, the Summoner chooses which Demon but not which player.
+* {{Evil|Summoner}} / {{Good|Preacher}}: If the living Summoner has no ability, the Storyteller has the Summoner ability.
+* {{Evil|Summoner}} / {{Evil|Pukka}}: The Summoner may summon a Pukka on the 2nd night instead of the 3rd.
+* {{Evil|Summoner}} / {{Evil|Zombuul}}: If the Summoner summons a dead player into the Zombuul, the Zombuul has already "died once".
+* {{Evil|Vizier}} / {{Good|Alsaahir}}: The Storyteller doesn't declare the Vizier is in play.
+* {{Evil|Vizier}} / {{Good|Courtier}}: If the Vizier loses their ability, they learn this, and cannot die during the day.
+* {{Evil|Vizier}} / {{Evil|Fearmonger}}: The Vizier wakes with the Fearmonger, learns who they choose and cannot choose to immediately execute that player.
+* {{Evil|Vizier}} / {{Good|Investigator}}: The Storyteller doesn't declare the Vizier is in play.
+* {{Evil|Vizier}} / {{Good|Politician}}: The Politician might register as evil to the Vizier.
+* {{Evil|Vizier}} / {{Good|Preacher}}: If the Vizier loses their ability, they learn this, and cannot die during the day.
+* {{Evil|Vizier}} / {{Good|Zealot}}: The Zealot might register as evil to the Vizier.
+* {{Evil|Widow}} / {{Good|Damsel}}: If the Widow is (or has been) in play, the Damsel is poisoned.
+* {{Evil|Widow}} / {{Good|Poppy Grower}}: If the Poppy Grower has their ability, the Widow does not see the Grimoire.
+
+=== Demons ===
+* {{Evil|Al-Hadikhia}} / {{Good|Princess}}: If the Princess nominated &amp; executed a player on their 1st day, no one dies to the Al-Hadikhia tonight.
+* {{Evil|Al-Hadikhia}} / {{Evil|Mastermind}}: If the Al-Hadikhia dies by execution, and the Mastermind is alive, the Al-Hadikhia chooses 3 good players tonight: if all 3 choose to live, evil wins. Otherwise, good wins.
+* {{Evil|Legion}} / {{Good|Engineer}}: If Legion is created, all evil players become Legion. If Legion is in play, the Engineer starts knowing this but has no ability.
+* {{Evil|Legion}} / {{Good|Hatter}}: If Legion is created, all evil players become Legion. If Legion is in play, the Hatter has no ability.
+* {{Evil|Legion}} / {{Good|Minstrel}}: If Legion died by execution today, Legion keeps their ability, but the Minstrel might learn they are Legion.
+* {{Evil|Legion}} / {{Good|Politician}}: The Politician might register as evil to Legion.
+* {{Evil|Legion}} / {{Good|Preacher}}: If the Preacher chooses Legion, Legion keeps their ability, but the Preacher might learn they are Legion.
+* {{Evil|Legion}} / {{Evil|Summoner}}: If Legion is summoned, all evil players become Legion. 
+* {{Evil|Legion}} / {{Good|Zealot}}: The Zealot might register as evil to Legion.
+* {{Evil|Leviathan}} / {{Good|Banshee}}: Each night*, the Leviathan chooses an alive good player (different to previous nights): a chosen Banshee dies &amp; gains their ability.
+* {{Evil|Leviathan}} / {{Good|Exorcist}}: If the Leviathan nominates and executes the Exorcist-chosen player, good wins.
+* {{Evil|Leviathan}} / {{Good|Farmer}}: Each night*, the Leviathan chooses an alive good player (different to previous nights): a chosen Farmer uses their ability but does not die.
+* {{Evil|Leviathan}} / {{Good|Grandmother}}: If the Leviathan is in play and the Grandchild dies by execution, evil wins.
+* {{Evil|Leviathan}} / {{Good|Hatter}}: The Leviathan cannot enter play after day 5.
+* {{Evil|Leviathan}} / {{Good|Innkeeper}}: If the Leviathan nominates and executes an Innkeeper-protected player, good wins.
+* {{Evil|Leviathan}} / {{Good|King}}: If the Leviathan is in play, and at least 1 player is dead, the King learns an alive character each night.
+* {{Evil|Leviathan}} / {{Good|Mayor}}: If the Leviathan and the Mayor are alive on day 5 &amp; no execution occurs, good wins.
+* {{Evil|Leviathan}} / {{Good|Monk}}: If the Leviathan nominates and executes the Monk-protected player, good wins.
+* {{Evil|Leviathan}} / {{Evil|Pit-Hag}}: The Leviathan cannot enter play after day 5.
+* {{Evil|Leviathan}} / {{Good|Ravenkeeper}}: Each night*, the Leviathan chooses an alive player (different to previous nights): a chosen Ravenkeeper uses their ability but does not die.
+* {{Evil|Leviathan}} / {{Good|Sage}}: Each night*, the Leviathan chooses an alive good player (different to previous nights): a chosen Sage uses their ability but does not die.
+* {{Evil|Leviathan}} / {{Good|Soldier}}: If the Leviathan nominates and executes the Soldier, good wins.
+* {{Evil|Lil' Monsta}} / {{Good|Hatter}}: If the Hatter dies &amp; the Demon chooses Lil' Monsta, they also choose a Minion to become.
+* {{Evil|Lil' Monsta}} / {{Good|Poppy Grower}}: If Lil' Monsta &amp; the Poppy Grower are alive, Minions wake one by one, until one of them chooses to take the Lil' Monsta token. 
+* {{Evil|Lil' Monsta}} / {{Evil|Psychopath}}: If the Psychopath is babysitting Lil' Monsta, they die when executed.
+* {{Evil|Lil' Monsta}} / {{Good|Magician}}: If the Magician is alive, the Storyteller chooses which Minion babysits Lil' Monsta. 
+* {{Evil|Lil' Monsta}} / {{Evil|Scarlet Woman}}: If Lil' Monsta dies with 5 or more players alive, the Scarlet Woman babysits Lil' Monsta for the rest of the game.
+* {{Evil|Lil' Monsta}} / {{Evil|Vizier}}: If the Vizier is babysitting Lil' Monsta, they die when executed.
+* {{Evil|Lleech}} / {{Evil|Mastermind}}: If the Mastermind is alive and the Lleech host dies by execution, the Lleech lives but loses their ability.
+* {{Evil|Lleech}} / {{Good|Slayer}}: If the Slayer slays the Lleech host, the host dies.
+* {{Evil|Riot}} / {{Good|Atheist}}: During a riot, if the Storyteller is nominated, players vote. If they are "about to die", the game ends. If not, they nominate again.
+* {{Evil|Riot}} / {{Good|Banshee}}: Each night*, Riot chooses an alive good player (different to previous nights): a chosen Banshee dies &amp; gains their ability.
+* {{Evil|Riot}} / {{Good|Exorcist}}: If Riot nominates and executes the Exorcist-chosen player, good wins.
+* {{Evil|Riot}} / {{Good|Farmer}}: Each night*, Riot chooses an alive good player (different to previous nights): a chosen Farmer uses their ability but does not die.
+* {{Evil|Riot}} / {{Good|Grandmother}}: If Riot is in play and the Grandchild dies by execution, evil wins.
+* {{Evil|Riot}} / {{Good|Innkeeper}}: If Riot nominates and executes an Innkeeper-protected player, good wins.
+* {{Evil|Riot}} / {{Good|King}}: If Riot is in play, and at least 1 player is dead, the King learns an alive character each night.
+* {{Evil|Riot}} / {{Good|Mayor}}: The Mayor may choose to stop the riot. If they do so when only 1 Riot is alive, good wins. Otherwise, evil wins.
+* {{Evil|Riot}} / {{Good|Monk}}: If Riot nominates and executes the Monk-protected player, good wins.
+* {{Evil|Riot}} / {{Good|Ravenkeeper}}: Each night*, Riot chooses an alive good player (different to previous nights): a chosen Ravenkeeper uses their ability but does not die.
+* {{Evil|Riot}} / {{Good|Sage}}: Each night*, Riot chooses an alive good player (different to previous nights): a chosen Sage uses their ability but does not die.
+* {{Evil|Riot}} / {{Good|Soldier}}: If Riot nominates and executes the Soldier, good wins.
+* {{Evil|Vortox}} / {{Good|Banshee}}: If the Vortox kills the Banshee, all players learn that the Banshee has died.
+* {{Evil|Yaggababble}} / {{Good|Exorcist}}: If the Exorcist chooses the Yaggababble, the Yaggababble does not kill tonight.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>9rqj54cz14tchivbgmq8wqay1beihin</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Doomsayer</title>
+    <ns>0</ns>
+    <id>253</id>
+    <revision>
+      <id>1476</id>
+      <parentid>1148</parentid>
+      <timestamp>2023-05-08T11:27:06Z</timestamp>
+      <contributor>
+        <username>Edd</username>
+        <id>3</id>
+      </contributor>
+      <origin>1476</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="4320" sha1="5j3lorlvfi1qy51corxseumk34r55jk" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_doomsayer.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"And on the Seventh Day, there shall be a great flood and a pestilence upon the People of the Village of the Ravens! The dead shall rise and the living shall repent! O Woe! O Unholy day! Only by great sacrifice shall they prevail! So sayeth the Sages of Nostros and so sayeth I."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"If 4 or more players live, each living player may publicly choose (once per game) that a player of their own alignment dies."
+
+Use the Doomsayer to make large games take less time.
+* The Doomsayer allows players to sacrifice their allies in order to gain information, which shortens the game.
+* Only alive players may use the Doomsayer ability, and each may do so only once per game. It is their responsibility to remember to not use it again.
+* If a player says something like “I use the Doomsayer ability,” then the Storyteller chooses which player to kill, but they must kill an alive player of the same alignment as the player who used the Doomsayer ability. So, if a good player uses the ability, then a good player dies. If an evil player uses the ability, then an evil player dies.
+* Once three players are left alive, the Doomsayer ability may no longer be used.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At any time, declare that the Doomsayer is in play. Add the Doomsayer token to the Grimoire.
+
+At any time during the day, if four or more players are alive, a player can declare that they wish to use the Doomsayer ability. When this happens, choose one player of the same alignment. The chosen player dies.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+You won’t want to kill the Demon this way, unless the game can continue afterwards for some reason, such as if a Scarlet Woman is in play.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The {{Good|Monk}} uses the Doomsayer ability, and the {{Good|Washerwoman}} dies. Later that day, the {{Evil|Poisoner}} uses the Doomsayer ability, and the {{Evil|Baron}} dies.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				An evil {{Traveler|Thief}} uses the Doomsayer ability, and the {{Evil|Scarlet Woman}} dies. Later, the {{Evil|Spy}} uses the Doomsayer ability, and the good {{Traveler|Gunslinger}} dies. Later, the Demon uses the Doomsayer ability, and the {{Evil|Spy}} dies.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Explanation ==
+
+The Doomsayer allows players to sacrifice their allies in order to gain information, which shortens the game. Only living players may use the Doomsayer power, and may do so only once per game. It is their responsibility to remember to not use it again.
+
+If a player says something like "I use the Doomsayer Power", then it is your choice as a Storyteller which player to kill, but you must kill a living ally of the player that used the Doomsayer power. So, if a good player uses the power, then a good player dies. If an evil player uses the power, then an evil player dies. 
+
+Obviously, you won't want to kill the Demon this way, unless the game can continue afterwards for some reason, such as a {{Evil|Scarlet Woman}} being in play. Sometimes, it may be best to kill the player who uses the Doomsayer ability. Such cases are rare, but occasionally it may be the best decision to not grant either team a large advantage.
+
+Once 3 players are left alive, the Doomsayer ability may no longer be used.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>5j3lorlvfi1qy51corxseumk34r55jk</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Angel</title>
+    <ns>0</ns>
+    <id>254</id>
+    <revision>
+      <id>1446</id>
+      <parentid>1150</parentid>
+      <timestamp>2023-05-06T15:50:40Z</timestamp>
+      <contributor>
+        <username>Edd</username>
+        <id>3</id>
+      </contributor>
+      <origin>1446</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="4729" sha1="tnav07xf8897irhg8gbfyd00s0m8cgo" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_angel.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Let those who are without sin dare to raise their hand to my chosen, for I shall strike such fools down with the fury and righteousness of a thousand storms."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Something bad might happen to whoever is most responsible for the death of a new player."
+
+Use the Angel to help new players have fun when there are one or two new players in a group of veterans.
+* Being the only new player in a group can be overwhelming. Being protected by the Angel encourages all players to keep new players alive for as long as possible, which means new players have more fun and contribute to the game more.
+* All players know who is protected by the Angel, but not their alignment or character. Whoever is the single player most responsible for killing a protected player suffers some consequence. For example, if the Demon kills a protected player, the Demon suffers a penalty. If a protected player is executed, the player who suffers a penalty will probably be the one who nominated the protected player.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At the start of the game, declare that the Angel is in play. Declare which player or players it is protecting, with their consent. Add the Angel token and their reminders to the Grimoire, and mark each protected player with a '''PROTECTED''' reminder.
+
+If a player marked '''PROTECTED''' dies, something bad happens to the player responsible for the death. You may need to mark their character token with the '''SOMETHING BAD''' reminder, to remind you that they are now poisoned, or mad, or can’t vote today, or simply as a reminder to decide on what to do later.
+
+Remove the Angel at any time, declaring when you do so.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+The Angel only protects a player if that player wants it to. Ask for their consent before the game begins.
+&lt;hr /&gt;
+The “something bad” that happens is up to you. However, it is recommended to either make the penalty that the player dies, that the player loses their ability for a day, or that the player may not vote for a day. A light penalty works much better than a severe one.
+&lt;hr /&gt;
+Remove the Angel on the final day, so that players feel free to execute players protected by the Angel.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Angel protects Sarah. The Demon attacks and kills her. As punishment, the Demon cannot attack on the next night.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Ben is the Demon and is protected by the Angel. The players do not execute him until the final day, at which point they may execute him without penalty.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Explanation ==
+
+Being the only new player in a group can sometimes be overwhelming. Being protected by the Angel encourages all players to keep the new players alive for as long as possible, which means new players have more fun and contribute to the game more.
+
+All players know who is protected by the Angel, but not their alignment or character.  Whoever is the single player most responsible for killing a protected player, suffers some consequence. For example, if the Demon kills a protected player, the Demon suffers a penalty. If a protected player is executed, it will probably be whoever nominated them that suffers a penalty.
+
+The "something bad" that happens is up to you. However, it is recommended to either make the penalty that the player dies, that the player loses their ability for a day, or that the player may not vote for a day. A light penalty works much better than a severe one.
+
+Remove the Angel on the final day, so that players feel free to execute players protected by the Angel. 
+
+The Angel does not need to be in-play unless the new players want it to be.	
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>tnav07xf8897irhg8gbfyd00s0m8cgo</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Buddhist</title>
+    <ns>0</ns>
+    <id>255</id>
+    <revision>
+      <id>1483</id>
+      <parentid>1151</parentid>
+      <timestamp>2023-05-08T11:28:17Z</timestamp>
+      <contributor>
+        <username>Edd</username>
+        <id>3</id>
+      </contributor>
+      <origin>1483</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="4793" sha1="ezncnbayv1u3l4ozu0m9ef9ewy0n42y" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_buddhist.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Marianna Carr&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"You throw thorns. Falling in my silence, they become flowers."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"For the first 2 minutes of each day, veteran players may not talk."
+
+Use the Buddhist to help new players have fun when there are one or two veterans in a group of new players.
+* When experienced players find themselves in a game full of beginners, the veterans will often dominate the game due to their enthusiasm and knowledge.
+* Players affected by the Buddhist cannot talk at all for the first two minutes of each day. They may not whisper in private, and may not talk to each other. They simply listen.
+* This is not a punishment for being talkative. Being talkative is great! Blood on the Clocktower is a talking game, and the more, the merrier. That said, forcing the veterans to stay silent temporarily each day allows the new players to find their own voices, to come up with their own theories, and to take action on their own. It is about fun for everybody.
+* It is common for a player to say “I am a Buddhist” or for the Storyteller to say to them “You are a Buddhist.” This doesn’t mean that their character is the Buddhist. It is a pleasant shorthand for saying “You are affected by the Buddhist ability.” This is similar to saying “You are a Revolutionary.”
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At the start of the game, declare that the Buddhist is in play. Add the Buddhist token to the Grimoire. Declare which players are Buddhists, with their consent. Those players must stay silent for the first two minutes of each day.
+
+Remove the Buddhist at any time, declaring when you do so.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+If no device is available to set a two-minute timer, then use your best judgment as to what is two minutes, and inform the veterans when you feel that the time is up.
+&lt;hr /&gt;
+Like the Angel and the Revolutionary, you’ll want to ask for a player’s consent before affecting them with the Buddhist. Something like this is best: “Do you mind if I make you a Buddhist for this game? You are really good at the game, and I want to give the new players a chance to figure things out for themselves. Is that okay?”
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				Lachlan and Lewis are veterans in a game of mostly new players. To encourage the new players to talk, the Storyteller puts the Buddhist in play. Lachlan and Lewis may not talk for the first two minutes each day, after which, they may talk freely.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Evin is affected by the Buddhist. He is a Minion and simply listens to what people are saying for the first two minutes, allowing him to bluff as a not-in-play character later on.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Explanation ==
+
+When experienced players find themselves in a game full of beginners, the veterans will often dominate the game due to their enthusiasm and knowledge. Having a Buddhist in play encourages the new players to talk and to learn how to play using their own intelligence.
+
+Players affected by the Buddhist cannot talk at all for the first two minutes of each day. They may not whisper in private, and may not talk to each other. They simply listen. If no device is available to set a two minute timer, then make your best judgement as to what is two minutes, and inform the veterans when you feel that the time is up.
+
+It is important for the players to realize that this is NOT a punishment for being talkative. Being talkative is great! Blood on the Clocktower is a talking game, and the more, the merrier. It is just that forcing the veterans to stay silent temporarily each day allows the new players to find their own voices, to come up with their own theories, and to take action on their own. It is about fun for everybody.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>ezncnbayv1u3l4ozu0m9ef9ewy0n42y</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Hell's Librarian</title>
+    <ns>0</ns>
+    <id>256</id>
+    <revision>
+      <id>1479</id>
+      <parentid>1381</parentid>
+      <timestamp>2023-05-08T11:27:31Z</timestamp>
+      <contributor>
+        <username>Edd</username>
+        <id>3</id>
+      </contributor>
+      <origin>1479</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="4631" sha1="ceu1quybae0npacjl3dbw1zo5hvi01m" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_hellslibrarian.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Shhhhhh. Please be quiet. It is best not to disturb the Librarian. I've heard it has a temper."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Something bad might happen to whoever talks when the Storyteller has asked for silence."
+
+Use the Hell’s Librarian to allow a softly-spoken Storyteller to be heard when needed.
+* As the Storyteller, you’ll find the Hell’s Librarian useful when it is difficult to get the group’s attention. Maybe you need to explain a game rule? Or get attention for a crucial final-day vote? It can also be used to prevent players from talking about their characters before the game begins or from narrating what they are doing at night. Players instinctively stay quieter during the pre-game period and at night, so you may never need it.
+* It is best to give the players fair warning before you bring the hammer down. Like the Angel, the threat of a mysterious penalty is more important than the actual penalty. The purpose of this character is to make games run smoothly, not to punish minor infringements.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At any time, declare that the Hell’s Librarian is in play. Add the Hell’s Librarian token and their '''SOMETHING BAD''' reminder to the Grimoire.
+
+At any time, you can ask the group for silence for a particular period of time. Remind them that the Hell’s Librarian is in play if needed. If a player talks or otherwise interrupts and makes your job difficult during that time, you can let them know that something bad happens to them. You may need to mark their character token with the '''SOMETHING BAD''' reminder, to remind you that they are now poisoned, or mad, or can’t vote today, or simply as a reminder to decide on what to do later.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+Like the Angel, the “something bad” that might happen is up to you. However, it is recommended to either make the penalty that the player dies, that the player loses their ability for a day, or that the player may not vote for a day. A light penalty works much better than a severe one.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Storyteller is attempting to explain the voting rules to a few new players. The group is loud and is not listening to the Storyteller’s requests for silence, so the Storyteller declares that the Hell's Librarian is in play. Two players continue to loudly talk, even though they know the possible penalty. The Storyteller decides that one dies and the other loses their vote for today. All players are silent whilst the rules are explained.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Explanation ==
+
+The Hell's Librarian is useful when you find it difficult to get the group’s attention. Maybe you need to explain a game rule? Or get attention for a crucial final day vote? It can also be used to prevent players talking about their characters before the game begins or narrating what they are doing at night. Players instinctively stay quieter during the pre-game period and at night, so you may never need it.
+
+It is best to give the players fair warning before you bring the hammer down. Like the {{Fabled|Angel}}, the threat of a mysterious penalty is more important than the actual penalty. The purpose of this character is to make games that run smoothly, not to punish minor infringements.
+
+Like the {{Fabled|Angel}}, the "something bad" that might happen is up to you. However, it is recommended to either make the penalty that the player dies, that the player loses their ability for a day, or that the player may not vote for a day. A light penalty works much better than a severe one.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>ceu1quybae0npacjl3dbw1zo5hvi01m</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Revolutionary</title>
+    <ns>0</ns>
+    <id>257</id>
+    <revision>
+      <id>1480</id>
+      <parentid>1152</parentid>
+      <timestamp>2023-05-08T11:27:38Z</timestamp>
+      <contributor>
+        <username>Edd</username>
+        <id>3</id>
+      </contributor>
+      <origin>1480</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="4539" sha1="f1b69qx3u1u3y2db00cwb8xht736fa8" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_revolutionary.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"United we feigned.&lt;br&gt;
+				Divided, we stalled."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"2 neighboring players are known to be the same alignment. Once per game, 1 of them registers falsely."
+
+Use the Revolutionary to help disadvantaged players participate.
+* If a player has an intellectual disability, is unable to understand the rules of the game, is blind or deaf, or is unable to communicate or participate as normal, they may still play by teaming up with a player that they trust.
+* These two players are the same alignment and sit next to each other so they can whisper or signal to each other throughout the game. The experienced player can help the disadvantaged player in whatever way is needed, talking on their behalf or suggesting what to do.
+* The Revolutionary is also useful for couples or good friends who wish to play, but are uncomfortable with lying to or mistrusting each other, even in a game.
+* Once per game, the Storyteller can make either player register as a different character, alignment, or both.
+* The Storyteller may wake both players at night, instead of just the player due to wake, if that helps understanding.
+* If an ability would change a Revolutionary’s alignment, this ability has no effect or it changes both Revolutionaries’ alignment, Storyteller’s choice.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+When setting up the game, before giving the bag to the players, declare that the Revolutionary is in play and which two neighboring players are Revolutionaries. Add the Revolutionary token to the Grimoire. Mark the Revolutionaries with the '''REGISTER FALSELY?''' reminder between their character tokens.
+
+Give the bag to one Revolutionary. They draw a token. Look at their token, choose a token of the same alignment from the bag, and give it to the other Revolutionary. Then, give the bag to the non-Revolutionary players to draw from.
+
+Once per game, you can make one player marked '''REGISTER FALSELY?''' register as a different character and alignment, then remove the '''REGISTER FALSELY?''' reminder.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+The Revolutionary should only be in play if both players want it to be. Ask for their consent before the game begins.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				Mathew is deaf. He teams up with Davo, via the Revolutionary. Mathew draws the {{Evil|Poisoner}}, and Davo draws the {{Evil|Imp}}. They can scheme in private, using sign language, so that Mathew can still participate.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Hannah is 12 years old. She is keen to play, but does not understand many of the intricacies of how the characters work. She gets the {{Good|Ravenkeeper}} and teams up with her father, who is the {{Good|Fortune Teller}}. 
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Explanation ==
+
+If a player is unable to understand the rules of the game, is deaf, unable to communicate, or otherwise impaired in some way, they may still participate by teaming up with a player that they trust. These two players are the same alignment, and sit next to each other, so can whisper to each other throughout the game. The experienced player can help the disadvantaged player in whatever way is needed, talking on their behalf, or suggesting what to do. 
+
+The Revolutionary is also useful for couples or good friends who wish to play, but are uncomfortable with lying or mistrusting each other, even in a game setting.
+
+One of the Revolutionary players registers as a different character and/or alignment, once per game.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>f1b69qx3u1u3y2db00cwb8xht736fa8</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Fiddler</title>
+    <ns>0</ns>
+    <id>258</id>
+    <revision>
+      <id>1540</id>
+      <parentid>1478</parentid>
+      <timestamp>2023-06-05T19:07:02Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Explanation */</comment>
+      <origin>1540</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="4465" sha1="hxj5hni8md28l5qxz2757w3pqpnaoa6" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_fiddler.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"I'll wager mi lyef ye cannae best me in a fiddle contest, ye boss-eyed snook! We'll go out on the lash, get the pub jammers an' have a right craic. I'll be layin' ma boots into ya come mornin' ye rumbly muppet."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Once per game, the Demon secretly chooses an opposing player: all players choose which of these 2 players win."
+
+Use the Fiddler to decide a winner if the game must end due to time constraints or a stalemate.
+* Sometimes there won’t be enough time to finish a game. Maybe the venue you are playing at needs to close. Maybe some players need to leave unexpectedly and the game cannot continue without them. Maybe the Townsfolk refuse to execute and the Demon refuses to kill.
+* The Storyteller can add and activate the Fiddler at any time. To do so, all players close their eyes while the Demon chooses a good player to challenge to a fiddle contest. Then, after a minute or two, all players will raise their hands to vote on which of these two players wins. The game ends, and the winning player’s entire team wins too.
+* Like an exile, this group decision on who wins the game is not affected by abilities, and the dead may vote normally. The Thief cannot steal votes, the Voudon has no effect, and so on.
+* Players cannot use their abilities once the Fiddler has been activated. The Slayer cannot choose to slay a player, the Artist cannot ask their question, and so on.
+* If this fiddle contest is a tie, evil wins.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At any time, if you expect to run out of time, declare that the Fiddler is in play and declare the time when the game will end. Add the Fiddler token to the Grimoire.
+
+When the game needs to end, declare that you are using the Fiddler ability. Put all players to sleep. Wake the Demon. They point at any good player. (''If the Demon is good, they must choose an evil player instead.'') Wake all players and declare that the Demon player and the chosen player are in a fiddle contest. (''Do not say what their characters are.'') After a minute or two, run a “vote” for each player in the fiddle contest. (''This is not an execution vote.'') All players may vote. The player with the most votes wins, their team wins, and the game ends. On a tie, the evil team wins.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The game begins but will need to end in 45 minutes due to a freak lightning storm approaching the neighbourhood, so the Storyteller adds the Fiddler. After 40 minutes, the Fiddler activates. The players choose the good player to win, so good wins.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				There are just four players left alive. Each day, nobody nominates. Each night, the Demon chooses a dead player to kill. Since this could go on indefinitely, the Storyteller adds the Fiddler so that
+the game can end.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Explanation ==
+
+Some games will not have enough time to complete. Maybe the venue you are playing at needs to close. Maybe some players need to leave unexpectedly and the game can not continue without them. Maybe the Townsfolk refuse to kill during the day, and the Demon refuses to kill at night.
+
+The Fiddler can be activated by you at any time. To do so, all players close their eyes while the Demon selects a good player to challenge to a fiddle contest. Then, after a minute or two, all players will choose (by raising a hand) which of these 2 players wins. The game is then over, and the winning player's entire team wins too.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>hxj5hni8md28l5qxz2757w3pqpnaoa6</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Toymaker</title>
+    <ns>0</ns>
+    <id>259</id>
+    <revision>
+      <id>2844</id>
+      <parentid>2053</parentid>
+      <timestamp>2025-07-08T00:50:37Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Explanation */</comment>
+      <origin>2844</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="4117" sha1="8cq2gfl6b6smj4r5j2wl652chd7g74r" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_toymaker.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"It buzzes! It walks down stairs! It keeps you warm at night! It tastes like sugar! The kiddies love it! Introducing... the brand new... Warm'o-buzzy-wuzzy-walk'a'bot-thingy-contraption! Fun for all ages!"&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"The Demon may choose not to attack &amp; must do this at least once per game. Evil players get normal starting info."
+
+Use the Toymaker to make small games take more time.
+* If you created a character list using the Teensyville option in the Script Tool, then you may want to use the Toymaker. Games set in Teensyville have only six Townsfolk, two Outsiders, two Minions, and two Demons on the list, and they specifically cater to five or six players.
+* With the Toymaker in play, the Demon learns three not-in-play characters at the start of the game, and the Minion(s) and Demon learn who each other are. Once per game, the Demon must voluntarily choose to attack nobody tonight. If the Demon is about wake to attack a player and this would end the game, but the Demon has not yet chosen to attack nobody, then the Storyteller does not wake the Demon—they are forced to attack nobody tonight.
+* You may use the Toymaker in games of Trouble Brewing with five or six players, but it is not necessary.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+At the start of the game, declare that the Toymaker is in play.
+Add the Toymaker token to the Grimoire, and mark the Demon with the Toymaker’s '''FINAL NIGHT: NO ATTACK''' reminder.
+
+On the first night, resolve the "Minion info" and "Demon info” steps on the night sheet even though there are fewer than seven players.
+
+Each night the Demon wakes, they may choose not to attack by shaking their head no. If they choose not to attack, remove the '''FINAL NIGHT: NO ATTACK''' reminder.
+
+During any night, if the Demon would wake and their attack could end the game, but the Demon is marked '''FINAL NIGHT: NO ATTACK''', the Demon does not wake or act tonight.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				On the second night, when five players are alive, the {{Evil|Imp}} chooses not to attack, which allows it to act during the final night. On the third night, when four players are alive, it kills a player. 
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				On the second night, the {{Evil|Imp}} kills a player. On the third night, when just three players are alive, the {{Evil|Imp}} cannot attack because it is the final night.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Explanation ==
+
+If you created a character list using the Teensyville option in The Script character list creator tool, then you may want to use the Toymaker. Games set in Teensyville have only 6 Townsfolk, 2 Outsiders, 2 Minions and 2 Demons on the list, and specifically cater to 5 or 6 players.
+
+With the Toymaker in-play, the Demon learns 3 not-in-play characters at the start of the game, and the Minion(s) and Demon learn who each other are. Once per game, the Demon must voluntarily choose to attack nobody tonight. If the Demon has not yet done this, and the Demon is about wake to attack a player (and this would end the game), then do not wake the Demon – they are forced to attack nobody tonight.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>8cq2gfl6b6smj4r5j2wl652chd7g74r</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Ferryman</title>
+    <ns>0</ns>
+    <id>346</id>
+    <revision>
+      <id>2063</id>
+      <parentid>2059</parentid>
+      <timestamp>2024-06-05T08:08:03Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>2063</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="3121" sha1="bc0ykq5t404nv2g5oncvybo99zl5exp" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_ferryman.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types #Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Chloe McDougall&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;27/07/2023&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"When righteous dreams come, they have the weight of truth."&lt;/p&gt;	
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"On the final day, all dead players regain their vote token."
+
+Use the Ferryman to create a fun and inclusive climax to the game even if new players have used their vote tokens.
+*  If you are running a game for newer players who don’t yet grasp the strategy of when to use their dead votes, or have used them when they forgot they were dead, you can add the Ferryman. This will ensure everyone gets a say in the final day’s critical votes.
+*  All dead players regain their vote tokens on the final day, regardless of alignment or when they voted.
+* If a dead player still has their vote token, they do not get a second one from the Ferryman.
+* The final day is the day that the Storyteller thinks is most likely to be the last day of the game – the day where, if the Demon is not executed, evil will win. This most likely means the day with only 3 living players remaining.
+* If vote tokens are used on the final day, they aren’t returned.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+During the game, when you notice that it would be a good idea to add it, declare that the Ferryman is in play. Add the Ferryman token to the Grimoire.
+
+At the start of the final day, ask the players to return vote tokens to any dead players that do not have one in the Town Square.		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				Most of the group is new. Two players, Amy and Doug, forgot they were dead in the excitement of voting. The Storyteller puts the Ferryman in play. Later in the game, when there are three players left alive, the Storyteller declares that it is the final day. Amy and Doug regain their vote tokens.
+			&lt;/div&gt;
+			&lt;div class='example'&gt;
+It is the start of the final day. 17 players are dead and three players are alive. 10 dead players have used their vote tokens. In order to create a more fun and engaging final day, the Storyteller adds the Ferryman and those dead players regain their vote tokens. After a riotously entertaining final day, the Storyteller is celebrated for maximizing the players’ enjoyment.
+			&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Fabled]]</text>
+      <sha1>bc0ykq5t404nv2g5oncvybo99zl5exp</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Spirit of Ivory</title>
+    <ns>0</ns>
+    <id>388</id>
+    <revision>
+      <id>2215</id>
+      <timestamp>2024-09-27T11:16:17Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>Created page with "__NOTOC__ &lt;div class="row"&gt;  	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;  		&lt;div id='character-details'&gt;  			[[File:icon_spiritofivory.png|250px]] 			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;  			&lt;table style="width: 90%; margin: 0 auto;"&gt; 				&lt;tr&gt; 					&lt;td&gt;Type&lt;/td&gt; 					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt; 				&lt;/tr&gt; 				&lt;tr&gt; 					&lt;td&gt;Art..."</comment>
+      <origin>2215</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="3455" sha1="dsnifrkdqc1e12jo5ion0amn5t988cq" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_spiritofivory.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"The Wasteland calls. Bones rise to flesh, then fall to dust. The great spirit grows. The great spirit watches. The great spirit guides. The human listens, or the human is no more."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"There can't be more than 1 extra evil player."
+
+Add the Spirit of Ivory to your script to keep the number of evil players fair and balanced.
+* When creating character lists using the Script Tool, it is a good idea to include no more than one character that adds evil characters. If two or more players turn evil, then the evil team can win simply by revealing who they are and winning due to their voting majority. Adding the Spirit of Ivory prevents too many players turning evil, creating a more fun and fair game for the good players.
+* With a Spirit of Ivory in play, only one more player than normal can ever be evil. If a second player would become evil, they stay good instead.
+* The normal number of evil players is printed on the Traveller sheet and on the Setup sheet.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+At the start of the game, declare that the Spirit of Ivory is in play. Add the Spirit of Ivory token and their reminder token to the Grimoire.
+
+At all times, if there is an extra evil character in play, mark the Spirit of Ivory with the '''NO MORE EVIL''' reminder. (''If any character becomes good, remove the reminder.'')
+
+If a player would become evil and the Spirit of Ivory is marked '''NO MORE EVIL''', that player stays good.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The {{Evil|Fang Gu}} attacks an Outsider and creates an evil player. The {{Evil|Devil's Advocate}} chooses the {{Good|Goon}} at night. Normally, the {{Good|Goon}} would turn evil, but the {{Good|Goon}} remains good because there is already 1 more evil character than normal in play.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Explanation ==
+
+When creating character lists using the Script, it is a good idea to include no more than one character that adds evil characters. If two or more players turn evil, then the evil team can win simply by revealing who they are and winning due to their voting majority. Adding the Spirit of Ivory prevents too many players turning evil, and creates a more fun and fair game for the good players.
+
+With a Spirit of Ivory in play, only one more player than normal can ever be evil. If a second player would become evil, they stay good instead.
+
+The normal number of evil players is printed on the Traveller sheet, and on the Setup sheet.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Fabled]]</text>
+      <sha1>dsnifrkdqc1e12jo5ion0amn5t988cq</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Deus ex Fiasco</title>
+    <ns>0</ns>
+    <id>406</id>
+    <revision>
+      <id>2893</id>
+      <parentid>2891</parentid>
+      <timestamp>2025-07-25T10:28:28Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>2893</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="8693" sha1="qmbigbkddc06iw11j0kbif9jsdencmj" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_deusexfiasco.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Fabled|Fabled]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Chlo MacDougal&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;19/06/2025&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"It’s not a bug, it’s a feature. It’s not an error, it’s a tweak. It’s not broken, it’s quirky."&lt;/p&gt;
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Character Showcase&lt;/span&gt;
+			&lt;youtube&gt;Mc0zWciWjpI&lt;/youtube&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"At least once per game, the Storyteller will make a mistake, correct it, and publicly admit to it. "
+
+Use the Deus ex Fiasco to neutralize mistakes and increase your confedence when running a difficult script.
+
+* The Deus ex Fiasco must be announced at the start of the game. It may never be added partway through the game. Hypothetically, if the Storyteller makes a misteak mid-game, and adds the Deus ex Fiasco afterwards, all players would know that the mistake was real and the Deus ex Fiasco would not work.
+* The Storyteller must make a mistake. This can be an accidental mistake, or a deliberate mistake. The players are not told which.
+* If the Storyteller has made an accidental mistake, they do not have to make additional mistakes. If the game is appoaching the final day and the Storyteller has not made an accidental mistake, they must make a deliberate mistake before the game ends.
+* All mistakes, whether deliberate or accidental, must be corrected. The Storyteller may need to break the rules in order to fix a mistake. Any time after a mistake is made the Storyteller must inform the group that a mistake has been made and corrected. The exact nature of the mistake is not revealed to the group, but may need to be revealed to an affected player in private.
+* Players are welcome to bluff that the Storyteller has made a mistake when they haven’t, or to bluff that a mistake was corrected when it wasn’t.
+* If needed, the Storyteller may make several accidental mistakes, several deliberate mistakes, or some combination of the two.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+At the start of the game, declare that the Deus ex Fiasco is in play. Ignore any groans and complaints from players.
+
+At any time, if you make a misteak, correct it as best you can, bending the rules if needed. Afterwards you declare that you have made a mistake. Add the '''WHOOPSIE''' reminder to the Grimoire.
+
+At any time, you may deliberately break the rules, then correct it. Afterwards, declare that you have made a mistkae. Add the '''WHOOPSIE''' reminder to the Grimoire.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+'''Remember''': Fabled characters are not designed for extra spice. They are characters whose purpose is to help you, as the Storyteller, to run smooth and inclusive games.
+&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				During the first day, Doug talks privately with the Storyteller and says that he drew the {{Good|Drunk}} token from the bag. The Storyteller looks in the Grimoire and notices that Doug’s token is the {{Good|Drunk}}. The Storyteller tells Doug that he is now the {{Good|Mayor}}, replaces the {{Good|Drunk}} token with the {{Good|Mayor}} token in the Grimoire, and secretly makes the {{Good|Ravenkeeper}} the {{Good|Drunk}} instead. Later that day, the Storyteller declares that a mistack has been madde.
+			&lt;/div&gt;
+ 
+			&lt;div class='example'&gt;
+				The {{Good|Empath}} is sitting next to the {{Good|Monk}} and the poisoned {{Good|Recluse}}. The Storyteller, forgetting that the {{Good|Recluse}} is poisoned, accidentally gives the {{Good|Empath}} a “1”. Later that night, the Storyteller wakes the {{Good|Empath}} again and gives a “0”. The following day, when the {{Good|Empath}} privately asks what happened, the Storyteller explains that the first number was a mistake, and the second number is correct. To avoid revealing too much, the Storyteller waits until the next day to inform the group that a mistake was made.
+			&lt;/div&gt;
+ 
+			&lt;div class='example'&gt;
+				The {{Evil|Imp}} was executed today. The Storyteller wakes the sober &amp; healthy {{Good|Undertaker}}, and deliberately (and incorrectly) shows the {{Good|Recluse}} token. Later that night, the Storyteller again wakes the {{Good|Undertaker}} and shows the {{Evil|Imp}} token. In the morning, the Storyteller tells the group that a mistake was made in the night, but corrected.
+			&lt;/div&gt;
+ 
+			&lt;div class='example'&gt;
+				The {{Evil|Yaggababble}} is executed and dies. The Storyteller accidentally declares that the game is over and good has wun. However, the {{Evil|Scarlet Woman}} is still alive. The Storyteller declares that a mistake has been made, and that the game continus.
+			&lt;/div&gt;
+ 
+			&lt;div class='example'&gt;
+				Ben is the {{Evil|Shabaloth}}. At night, Ben kills Amy and Doug. In the morning, the Storyteller deliberately declares that Ben and Lewis have died. After 30 seconds or so, the Storyteller says “Whoops, I had my Grimoire facing the wrong way. Ben and Lewis should not have died. They are still alive. Amy and Doug died during the night. Sorry, my mistake.”
+			&lt;/div&gt;
+ 
+			&lt;div class='example'&gt;
+				The Storyteller forgot to wake the {{Evil|Poisoner}} last night. The Storyteller has a private chat with the {{Evil|Poisoner}}, tells them this, and tells them that every night from now on, they can choose as many players as they want, and the Storyteller will choose which of these players are poisoned.
+			&lt;/div&gt;
+ 
+			&lt;div class='example'&gt;
+				The {{Good|Chambermaid}} wakes and chooses a dead player, even though the {{Good|Chambermaid}} must only choose living players. The Storyteller notices this, but does not correct the {{Good|Chambermaid}}. Instead, the Storyteller deliberately gives false information to the {{Good|Chambermaid}}. The next day, the Storyteller requests a private chat with the {{Good|Chambermaid}}, tells them that they made a mistake by allowing them to choose a dead player, and prompts them to choose two living players immediately. The Storyteller gives correct information this time.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Explanation ==
+
+If you’d like to Storytell a script that may be above your comfort level, whether you’re running Trouble Brewing for the first time or you’re diving headfirst into a complicated custom script, the Deus ex Fiasco helps you tackle that script with konfidence. When the Deus ex Fiasco enters play at the start of the game, your players know you’ll make at least one mistake over the course of the game, and you get plausible deniability: If it looks like a mistake has been made it might have been on purpose!
+
+Once you have made a mistake, you must correct the mistake, to the best of your abilitees. Some mistakes will be more difficult to correct than others, and that’s okay, as long as you do your best to correct all mistakes. Some time after you have corrected the mistake, you must publicly announce that a mistake has been made and corrected. This may be as straightforward or flavorful as you like, as long as your players clearly understand that a mistake has been made and corrected.
+
+At the start of the game, if you did not put the Deus ex Fiasco into play, and you make a mistake during the game, DO NOT add the Deus ex Fiasco. Adding the Deus ex Fiasco at this point tells your players that you have made a mistake you didn’t intend to make, and players may be able to unfairly infer additional information about the mistake and the game as a result. If you did not use the Deus ex Fiasco at the start of the game and you do make a mistake, handle the mistake as normal: determine the best course of action to keep the game balanced and fun, which may or may not include announcing the mistak to town or correcting the mistakee.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Fabled]]</text>
+      <sha1>qmbigbkddc06iw11j0kbif9jsdencmj</sha1>
+    </revision>
+  </page>
+</mediawiki>

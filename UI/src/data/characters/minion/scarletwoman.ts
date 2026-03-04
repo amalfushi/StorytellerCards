@@ -7,6 +7,13 @@ export const scarletwoman: CharacterDef = {
   defaultAlignment: 'Evil',
   abilityShort:
     "If there are 5 or more players alive & the Demon dies, you become the Demon. (Travellers don't count)",
+  abilityDetailed: `The Scarlet Woman becomes the Demon when the Demon dies.
+• If there are five or more players just before the Demon dies—that is, four or more players left alive after the Demon dies—then the Scarlet Woman immediately becomes the Demon, and the game continues as if nothing happened.
+• Travellers do not count as players when seeing if the Scarlet Woman's ability triggers.
+• If less than five players are alive when the Demon is executed, then the game ends and good wins.
+• If five or more players are alive when the Imp kills themself at night, the Scarlet Woman must become the new Imp.
+• If the Scarlet Woman becomes the Demon, they are that Demon in every way. Good wins if they are executed. They attack each night. They register as the Demon.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Scarlet_Woman',
   firstNight: null,
   otherNights: {
     order: 26,
@@ -21,6 +28,11 @@ export const scarletwoman: CharacterDef = {
       },
     ],
   },
-  icon: { placeholder: '#d32f2f' },
+  icon: {
+    small: '/icons/characters/scarletwomanIcon.png',
+    medium: '/icons/characters/scarletwomanIcon.png',
+    large: '/icons/characters/scarletwomanIcon.png',
+    placeholder: '#d32f2f',
+  },
   reminders: [],
 };
