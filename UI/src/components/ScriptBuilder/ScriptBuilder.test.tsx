@@ -1,5 +1,126 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
+import { CharacterType, Alignment } from '@/types/index.ts';
+import type { CharacterDef } from '@/types/index.ts';
+
+// ──────────────────────────────────────────────
+// Mock useCharacterLookup with a small character set
+// (8 characters instead of 100+) to keep tests fast
+// under v8 coverage instrumentation.
+// ──────────────────────────────────────────────
+
+const mockCharacters: CharacterDef[] = [
+  {
+    id: 'washerwoman',
+    name: 'Washerwoman',
+    type: CharacterType.Townsfolk,
+    defaultAlignment: Alignment.Good,
+    abilityShort: 'You start knowing...',
+    firstNight: { order: 37, helpText: 'test', subActions: [] },
+    otherNights: null,
+    icon: { placeholder: '#1976d2' },
+    reminders: [],
+  },
+  {
+    id: 'empath',
+    name: 'Empath',
+    type: CharacterType.Townsfolk,
+    defaultAlignment: Alignment.Good,
+    abilityShort: 'Each night...',
+    firstNight: { order: 38, helpText: 'test', subActions: [] },
+    otherNights: null,
+    icon: { placeholder: '#1976d2' },
+    reminders: [],
+  },
+  {
+    id: 'drunk',
+    name: 'Drunk',
+    type: CharacterType.Outsider,
+    defaultAlignment: Alignment.Good,
+    abilityShort: 'You think you are...',
+    firstNight: null,
+    otherNights: null,
+    icon: { placeholder: '#42a5f5' },
+    reminders: [],
+  },
+  {
+    id: 'butler',
+    name: 'Butler',
+    type: CharacterType.Outsider,
+    defaultAlignment: Alignment.Good,
+    abilityShort: 'Each night choose a player...',
+    firstNight: { order: 40, helpText: 'test', subActions: [] },
+    otherNights: null,
+    icon: { placeholder: '#42a5f5' },
+    reminders: [],
+  },
+  {
+    id: 'poisoner',
+    name: 'Poisoner',
+    type: CharacterType.Minion,
+    defaultAlignment: Alignment.Evil,
+    abilityShort: 'Each night choose a player...',
+    firstNight: { order: 17, helpText: 'test', subActions: [] },
+    otherNights: null,
+    icon: { placeholder: '#d32f2f' },
+    reminders: [],
+  },
+  {
+    id: 'baron',
+    name: 'Baron',
+    type: CharacterType.Minion,
+    defaultAlignment: Alignment.Evil,
+    abilityShort: 'There are extra Outsiders...',
+    firstNight: null,
+    otherNights: null,
+    icon: { placeholder: '#d32f2f' },
+    reminders: [],
+  },
+  {
+    id: 'imp',
+    name: 'Imp',
+    type: CharacterType.Demon,
+    defaultAlignment: Alignment.Evil,
+    abilityShort: 'Each night* choose a player...',
+    firstNight: null,
+    otherNights: { order: 24, helpText: 'test', subActions: [] },
+    icon: { placeholder: '#b71c1c' },
+    reminders: [],
+  },
+  {
+    id: 'zombuul',
+    name: 'Zombuul',
+    type: CharacterType.Demon,
+    defaultAlignment: Alignment.Evil,
+    abilityShort: 'Each night* if no one died...',
+    firstNight: null,
+    otherNights: { order: 25, helpText: 'test', subActions: [] },
+    icon: { placeholder: '#b71c1c' },
+    reminders: [],
+  },
+];
+
+vi.mock('@/hooks/useCharacterLookup.ts', () => ({
+  useCharacterLookup: () => ({
+    allCharacters: mockCharacters,
+    getCharacter: (id: string) => mockCharacters.find((c) => c.id === id),
+    getCharactersByIds: (ids: string[]) =>
+      ids.map((id) => mockCharacters.find((c) => c.id === id)).filter(Boolean),
+  }),
+  humanizeCharacterId: (id: string) => id.charAt(0).toUpperCase() + id.slice(1),
+  getFallbackCharacter: (id: string) => ({
+    id,
+    name: id,
+    type: 'Unknown',
+    defaultAlignment: 'Unknown',
+    abilityShort: '<TODO>',
+    firstNight: null,
+    otherNights: null,
+    icon: { placeholder: '#9e9e9e' },
+    reminders: [],
+  }),
+}));
+
 import { ScriptBuilder } from '@/components/ScriptBuilder/ScriptBuilder.tsx';
 
 // ──────────────────────────────────────────────
@@ -72,10 +193,7 @@ describe('ScriptBuilder', () => {
     expect(screen.getByLabelText(/Search characters/i)).toBeInTheDocument();
   });
 
-  // SKIP: Times out (>5000ms) in coverage mode when full suite runs.
-  // Rendering 43+ MUI character rows is too slow under v8 instrumentation.
-  // See docs/milestones/8 - scriptbuilder-perf/milestone8.md for investigation plan.
-  it.skip('can toggle character selection via checkbox', () => {
+  it('can toggle character selection via checkbox', () => {
     render(<ScriptBuilder {...defaultProps} />);
     // Find first checkbox and click it
     const checkboxes = screen.getAllByRole('checkbox');
@@ -178,5 +296,44 @@ describe('ScriptBuilder', () => {
     // Uncheck it
     fireEvent.click(checkboxes[0]);
     expect(screen.getByText(/Total: 0/)).toBeInTheDocument();
+  });
+
+  it('filters characters by search text', () => {
+    render(<ScriptBuilder {...defaultProps} />);
+    const searchInput = screen.getByLabelText(/Search characters/i);
+    fireEvent.change(searchInput, { target: { value: 'imp' } });
+    // Should show Imp but not other characters like Washerwoman
+    expect(screen.getByText('Imp')).toBeInTheDocument();
+    expect(screen.queryByText('Washerwoman')).not.toBeInTheDocument();
+  });
+
+  it('defaults author to Custom when not provided', () => {
+    const onSave = vi.fn();
+    const onClose = vi.fn();
+    render(<ScriptBuilder {...defaultProps} onSave={onSave} onClose={onClose} />);
+    // Fill name and select a character
+    fireEvent.change(screen.getByLabelText(/Script Name/i), { target: { value: 'Test Script' } });
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[0]);
+    // Save without filling author
+    fireEvent.click(screen.getByRole('button', { name: /Save Script/i }));
+    expect(onSave).toHaveBeenCalledTimes(1);
+    const savedScript = onSave.mock.calls[0][0];
+    expect(savedScript.author).toBe('Custom');
+  });
+
+  it('can remove a character from the Selection tab', () => {
+    render(<ScriptBuilder {...defaultProps} />);
+    // Select a character on Browse tab
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[0]);
+    expect(screen.getByText(/Total: 1/)).toBeInTheDocument();
+    // Switch to Selection tab
+    fireEvent.click(screen.getByRole('tab', { name: /Selection/i }));
+    // Uncheck the character on Selection tab
+    const selectionCheckboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(selectionCheckboxes[0]);
+    // Should show empty state
+    expect(screen.getByText(/No characters selected yet/)).toBeInTheDocument();
   });
 });

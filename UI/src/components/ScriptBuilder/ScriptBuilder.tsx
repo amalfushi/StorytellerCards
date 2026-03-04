@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -46,18 +46,19 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
   const [author, setAuthor] = useState('');
   const [activeTab, setActiveTab] = useState(0);
 
-  // Reset state when dialog transitions from closed → open (not on initial mount)
-  const prevOpenRef = useRef(open);
-  useEffect(() => {
-    if (open && !prevOpenRef.current) {
+  // Reset state when dialog transitions from closed → open
+  // Uses state (not ref) to track previous `open` value — the recommended React 19 pattern
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
       setSearch('');
       setSelectedIds(new Set());
       setScriptName('');
       setAuthor('');
       setActiveTab(0);
     }
-    prevOpenRef.current = open;
-  }, [open]);
+  }
 
   // Filter to non-Traveller/Fabled/Loric game characters, sorted by script rules
   const gameCharacters = useMemo(
@@ -110,16 +111,23 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
     return filtered;
   }, [grouped, search]);
 
+  // O(1) character lookup map
+  const characterMap = useMemo(() => {
+    const map = new Map<string, CharacterDef>();
+    for (const ch of gameCharacters) map.set(ch.id, ch);
+    return map;
+  }, [gameCharacters]);
+
   // Composition counts (selected per type)
   const composition = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const type of TYPE_ORDER) counts[type] = 0;
     for (const id of selectedIds) {
-      const ch = gameCharacters.find((c) => c.id === id);
+      const ch = characterMap.get(id);
       if (ch && counts[ch.type] !== undefined) counts[ch.type]++;
     }
     return counts;
-  }, [selectedIds, gameCharacters]);
+  }, [selectedIds, characterMap]);
 
   // Selected characters grouped by type (for the selection tab)
   const selectedGrouped = useMemo(() => {
@@ -257,7 +265,7 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
 // Sub-component: Browse panel (select/deselect)
 // ──────────────────────────────────────────────
 
-function BrowsePanel({
+const BrowsePanel = memo(function BrowsePanel({
   search,
   onSearchChange,
   filteredGrouped,
@@ -308,13 +316,13 @@ function BrowsePanel({
       })}
     </>
   );
-}
+});
 
 // ──────────────────────────────────────────────
 // Sub-component: Selection panel (review)
 // ──────────────────────────────────────────────
 
-function SelectionPanel({
+const SelectionPanel = memo(function SelectionPanel({
   selectedGrouped,
   onToggle,
 }: {
@@ -352,13 +360,13 @@ function SelectionPanel({
       })}
     </>
   );
-}
+});
 
 // ──────────────────────────────────────────────
 // Sub-component: single character row
 // ──────────────────────────────────────────────
 
-function CharacterRow({
+const CharacterRow = memo(function CharacterRow({
   character,
   selected,
   color,
@@ -420,4 +428,4 @@ function CharacterRow({
       }
     />
   );
-}
+});
