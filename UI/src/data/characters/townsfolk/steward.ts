@@ -5,7 +5,12 @@ export const steward: CharacterDef = {
   name: 'Steward',
   type: 'Townsfolk',
   defaultAlignment: 'Good',
-  abilityShort: '<TODO>',
+  abilityShort: 'You start knowing 1 good player.',
+  abilityDetailed: `The Steward knows 1 good player.
+• The Steward learns a player, but not their character.
+• The Steward learns their information on the first night of the game.
+• If created mid-game, then the Steward learns their information that night instead.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Steward',
   firstNight: {
     order: 57,
     helpText: 'Point to the player marked KNOW.',
@@ -18,6 +23,11 @@ export const steward: CharacterDef = {
     ],
   },
   otherNights: null,
-  icon: { placeholder: '#1976d2' },
+  icon: {
+    small: '/icons/characters/stewardIcon.png',
+    medium: '/icons/characters/stewardIcon.png',
+    large: '/icons/characters/stewardIcon.png',
+    placeholder: '#1976d2',
+  },
   reminders: [],
 };

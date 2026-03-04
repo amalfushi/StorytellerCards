@@ -10,19 +10,11 @@ import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type { PlayerSeat, CharacterDef, NightChoiceType } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
 // Types
 // ──────────────────────────────────────────────
-
-export type NightChoiceType =
-  | 'player'
-  | 'livingPlayer'
-  | 'deadPlayer'
-  | 'character'
-  | 'alignment'
-  | 'yesno';
 
 export interface NightChoiceSelectorProps {
   type: NightChoiceType;
@@ -35,17 +27,6 @@ export interface NightChoiceSelectorProps {
   previousValue?: string | string[];
   label?: string;
   readOnly?: boolean;
-}
-
-// ──────────────────────────────────────────────
-// Helper: parse helpText to detect choice type
-// ──────────────────────────────────────────────
-
-export interface ParsedChoice {
-  type: NightChoiceType;
-  multiple: boolean;
-  maxSelections: number;
-  label: string;
 }
 
 // ──────────────────────────────────────────────

@@ -1,0 +1,2593 @@
+<mediawiki xmlns="http://www.mediawiki.org/xml/export-0.11/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mediawiki.org/xml/export-0.11/ http://www.mediawiki.org/xml/export-0.11.xsd" version="0.11" xml:lang="en">
+  <siteinfo>
+    <sitename>Blood on the Clocktower Wiki</sitename>
+    <dbname>wiki</dbname>
+    <base>https://wiki.bloodontheclocktower.com/Main_Page</base>
+    <generator>MediaWiki 1.39.2</generator>
+    <case>first-letter</case>
+    <namespaces>
+      <namespace key="-2" case="first-letter">Media</namespace>
+      <namespace key="-1" case="first-letter">Special</namespace>
+      <namespace key="0" case="first-letter" />
+      <namespace key="1" case="first-letter">Talk</namespace>
+      <namespace key="2" case="first-letter">User</namespace>
+      <namespace key="3" case="first-letter">User talk</namespace>
+      <namespace key="4" case="first-letter">Blood on the Clocktower Wiki</namespace>
+      <namespace key="5" case="first-letter">Blood on the Clocktower Wiki talk</namespace>
+      <namespace key="6" case="first-letter">File</namespace>
+      <namespace key="7" case="first-letter">File talk</namespace>
+      <namespace key="8" case="first-letter">MediaWiki</namespace>
+      <namespace key="9" case="first-letter">MediaWiki talk</namespace>
+      <namespace key="10" case="first-letter">Template</namespace>
+      <namespace key="11" case="first-letter">Template talk</namespace>
+      <namespace key="12" case="first-letter">Help</namespace>
+      <namespace key="13" case="first-letter">Help talk</namespace>
+      <namespace key="14" case="first-letter">Category</namespace>
+      <namespace key="15" case="first-letter">Category talk</namespace>
+    </namespaces>
+  </siteinfo>
+  <page>
+    <title>Scapegoat</title>
+    <ns>0</ns>
+    <id>176</id>
+    <revision>
+      <id>2646</id>
+      <parentid>2077</parentid>
+      <timestamp>2025-01-02T11:28:13Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Tips &amp; Tricks (if you are good) */</comment>
+      <origin>2646</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="10141" sha1="fcygsmqzci3dnastjzdejh3jq4jgo6d" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_scapegoat.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Good evening! Thank you for inviting me to the ball. I'm not from around here, but you sure seem like a friendly bunch, by golly. I'm sure we'll get along just dandy. What's all that rope for?"&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_trouble_brewing.png|100px|link=Trouble Brewing]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/17822079/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2020-7-10%2Fcc1d04a9-265d-3055-64a5-de99c5104c77.mp3"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"If a player of your alignment is executed, you might be executed instead."
+
+The Scapegoat is executed instead of an ally.
+* If the Scapegoat is evil, they might die instead of an evil player dying. If the Scapegoat is good, they might die instead of a good player dying. When exactly this happens is up to the Storyteller. This can only happen due to an execution, not death by other means such as a Demon or Slayer.
+* The Scapegoat being killed still counts as an execution, so no more nominations occur today.
+* As always, players do not learn the alignment of the Scapegoat when they die.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+If a player of the same alignment as the Scapegoat would be executed, you may choose that the Scapegoat is executed instead. The Scapegoat '''dies'''.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+It is best to use the Scapegoat’s ability before the final day, because a Scapegoat that remains alive on the final day will almost certainly be exiled. You should always use an evil Scapegoat’s ability to prevent evil from losing the game.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The {{Good|Fortune Teller}} is about to be executed, but the Storyteller chooses to execute the good Scapegoat instead. The {{Good|Fortune Teller}} lives and the Scapegoat dies. That night, the {{Good|Undertaker}} learns that a Scapegoat was executed today.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The {{Evil|Poisoner}} is about to be executed, but the Storyteller chooses to execute the evil Scapegoat instead. The Storyteller could have let the {{Evil|Poisoner}} die as normal, but chose not to.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The {{Evil|Spy}} is about to be executed. The good Scapegoat dies instead. 
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* Stay alive, however you can. Lay low and don't tempt the Demon into attacking you. Avoid getting exiled until after your ability triggers. If you can live long enough for you to die in place of an executed player, that helps enormously. The Storyteller will often wait for the second half of the game for your ability to make your ability trigger, so be patient, and play it safe.
+
+* When the Storyteller declares that the players kill you instead of the normal executee, this is great! Talk to the player you saved in private. You know that they are good, and they know that you are good. Work together, vote together, and win together. Encourage them to tell you any information that they have due to their character ability, and any information that they have due to other private conversations they have had. Do whatever you can to keep this player alive, and save your vote for when they vote too.
+
+* Vote liberally, and try to convince others to do the same. If you execute an evil player, that's great! The Demon will often bluff as a powerful information-gathering character that the good team doesn't want to execute, so taking a chance on executing the {{Good|Fortune Teller}} might help your teammate enormoursly. If you execute a good player, you might be executed instead, which is what you want - you can keep that very real {{Good|Fortune Teller}} alive!
+
+* After you have talked to the player whose life you saved, do whatever you can to convince the rest of the group that they are good. You have two publicly known facts to help you do this:
+** Most Travellers are good. The odds that you are good, are good, therefore the odds that the player you saved is good, are good.
+** Both you and the player you saved are the same alignment. If there is a {{Good|Chef}} or {{Good|Empath}} in play, their information would need to be congruent with you both being the same alignment. If an {{Good|Investigator}} or {{Good|Fortune Teller}} is in-play, their information may be incongruent with you both being evil. It is rare that a piece of information such as "two players are the same alignment" becomes publicly known, so use it to the full.
+
+* Beware of the {{Evil|Spy}}! If they get the votes, you, the poor, innocent, good Scapegoat might be executed instead! You at least learn that they weren't the Demon when you were executed, so it's not all bad news!
+
+* Feeling devious? Go up to a player you don't trust and tell them you're evil. Convince them to get themselves executed so you can 'prove' you're on the same team - only to watch them get executed for their crime of believing you. One Minion (or even Demon!) down.
+
+* To help convince the group that you are good, make the argument that another Traveller in the game is evil. Whether they are actually good or evil doesn't really matter to you. What does matter is that if the group thinks that one of them is evil, they will believe that you are good, because the chance of there being 2 evil Travellers is small. A group that believes that you are the good Traveller will keep you alive long enough for you to use your ability, and will believe that the player whose life you save is good too. And you never know, maybe the Traveller that you are throwing under the bus actually is evil after all!
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Stay alive, however you can. So that the Demon doesn't kill you, either talk to the Demon to let them know that you are evil, or otherwise get a message to them.  Avoid getting exiled no matter the cost. The Storyteller will almost always wait until the Demon is executed for your ability to trigger, so you remaining alive until that happens will save the evil team from defeat. Sometimes, the Storyteller will make your ability trigger when a Minion is executed instead. If this happens, that's still great, because at least that Minion gets another night and day in the game.
+
+* You are that rare beast, an evil traveller who can prove themselves evil to their Demon! If they get the votes and you're executed instead, they know that you must be their ally!
+
+* If the good team begins to think that you are evil, it may be best to die. Either get yourself exiled, or get the Demon to kill you. If you live, and your ability triggers when a Minion dies, the good team will believe that the Minion you saved is in fact evil. This may give them all the information they need to deduce who the Demon is. 
+
+* When the Storyteller declares that the players kill you instead of the normal executee, this is great! Talk to the player you saved in private, just as if you were a good player. You can talk about the weather, football, whatever. As long as the good team believes that you are good, they will believe that the player you saved is good. If this player is the Demon, this strategy could win you the game. If this player is a Minion, they get to keep their ability and their daily voting power.
+
+* If the game is near to a close, and you died in place of a Minion, it may be best if you look as evil as possible to the group. The following day, if just 3 or 4 players are left alive, the good team will probably execute the player you saved, believing them to be the Demon. If you look evil, the good team thinks that the Minion is evil, and may not click that they are not in fact the Demon. This strategy may still be useful if 5, 6, or even 7 players are still alive. Convincing the group to execute a Minion (again) at least means that they are not executing the Demon, and good loses precious time and votes in the process. 
+
+* Do whatever you can to convince the rest of the group that the player whose life you saved is good. This may be an uphill struggle, depending on the number of other Travellers in play. Since the group will know for a fact that you are both the same alignment, they may be able to use this information to prove or disprove other player's alignments. Pay attention, and focus on discrediting key players. For example, if the {{Evil|Imp}} just got executed but saved by you, and the {{Good|Empath}} is sitting next to you and knows that one of their neighbours is evil, you will need to completely discredit either the {{Good|Empath}}, or their other living neighbour... otherwise it's curtains for team evil.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>fcygsmqzci3dnastjzdejh3jq4jgo6d</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Gunslinger</title>
+    <ns>0</ns>
+    <id>177</id>
+    <revision>
+      <id>2098</id>
+      <parentid>2097</parentid>
+      <timestamp>2024-07-02T23:06:13Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Tips &amp; Tricks (if you are evil) */</comment>
+      <origin>2098</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="10102" sha1="cnluvommyjiqkn534fgwpbo7vjobhha" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_gunslinger.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"It's time someone took matters into their own hands. That someone... is me."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_trouble_brewing.png|100px|link=Trouble Brewing]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/17153879/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2020-6-27%2Fc9ae121e-f627-ee0e-88d8-04cac9a66bc6.mp3"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each day, after the 1st vote has been tallied, you may choose a player that voted: they die."
+
+The Gunslinger kills players who vote.
+* Each day, after the first vote for execution has been tallied, the Gunslinger may publicly choose a player that just voted to die immediately. The Gunslinger does not have to kill a player—it is entirely up to them. Whether they use their ability or not, the Gunslinger cannot kill any further players that day.
+* It is the Gunslinger’s responsibility to speak up and let the Storyteller know that they wish to use their ability.
+* Since exiles are not affected by character abilities in any way, the Gunslinger cannot use their ability to kill a player that supports an exile.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+Each day, immediately after the first vote for execution is tallied, the Gunslinger can declare that they wish to use their ability. If so, the Gunslinger points at any player who voted for this execution. The chosen player '''dies'''.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+If the Gunslinger is a new player, you may wish to remind them that they can use their ability.
+&lt;hr /&gt;
+When the Gunslinger wants to use their ability, you may need to ask all players who voted to raise their hand again, so the Gunslinger doesn’t accidentally choose a player that didn’t vote.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The {{Evil|Imp}} has been nominated. There are 10 players alive, and five votes for the {{Evil|Imp}}, so the {{Evil|Imp}} is about to die. The Gunslinger chooses a voting player to die. They die, and the nomination continues, with the {{Evil|Imp}} still about to die.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The players exile the {{Traveler|Thief}}. Then, the {{Good|Butler}} is nominated for execution and gets one vote. This is the first nomination for execution, since the {{Traveler|Thief}}’s exile does not count. The Gunslinger  chooses to kill the single voting player. Later that day, the {{Good|Saint}} is nominated and six players vote. The Gunslinger  cannot use their ability now because this is not the first vote for execution today.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* Hot diggity, you're the Gunslinger ! Enjoy it while you can!
+
+* Deaths caused by your ability are not executions, and as such, they don't cause the day to end, and nor does the character you shot get seen by the {{Good|Undertaker}}.
+
+* You get the opportunity to kill a player each day. Make the most of it, and remember to let the Storyteller know that you wish to use your ability. Doing so every day practically doubles the good team's chance of killing the Demon. Normally, each day / night, 2 players die - one due to the Demon attack, and one due to the daily execution. If you use your ability each day, two thirds of all deaths are chosen by the good team. These are great odds.
+
+* Pay attention to the vibe of the group. Sometimes, the good players will not want you to kill a player each day. If you go against their desires, they may Exile you as soon as they can. Pay attention and get your fingers off the trigger if you want to stay alive.
+
+* Pay attention to who isn't voting on the first nomination each day. Minions may be a bit laissez faire, but Demon players quickly learn how dangerous it can be to vote when you are in play. Demons will usually not vote if they think there is even a small chance that you will shoot them. Use this information to your advantage! By executing those players that seem fearful of voting, you may luck upon the Demon. Or, you may startle the Demon into voting, which gives you a chance of killing them single-handedly.
+
+* It's ok if a few innocent bystanders die. Don't be afraid to take out a supposed {{Good|Undertaker}} or a suspicious looking {{Good|Recluse}}. As long as you kill a Minion or two as well, it was probably worth it.
+
+* You are the perfect way to deal with the {{Good|Saint}}. They can't be executed? You don't execute!
+
+*If you live until just 3 players are left alive, be very wary of who you kill. The Demon may try to psyche you out and get you to kill a Minion (or a good player), which will reduce the player count to just 2 players... and evil wins. Beware.
+
+* Ignore all of the above advice, and never use your ability. Sit. Wait. Watch. Be passive and silent and unassuming. Watch people's body language and listen to what arguments they are making. When you think that you know who the Demon is, say nothing, and wait until that player votes on the first nomination of the day - then BOOM. Either you've won the game and have one very surprised dead Demon, or you blew it and killed a nobody. 
+
+* If there are 3 or more other Travellers in the game, you know that 1 of them is probably evil. It may be worth taking out an evil Traveller before they can do too much harm.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Just like a good Gunslinger, it is best if you kill each day. After all, you have insider information on who you should be killing and who you shouldn't, so go nuts. The more destruction you cause, the quicker that the game will get to the final day, and the more evil players will be alive compared to good, which gives your team greater voting power. Just like a good gunslinger though, listen to the group's opinion on what your actions should be, and don't go kill crazy unless they want you to. 
+
+* Obviously, shooting the Demon is a bad idea, unless you know you have a {{Evil|Scarlet Woman}}, or you're not playing Trouble Brewing and there's a {{Evil|Zombuul}} in the game. Luckily, you know who the Demon is, so that won't be a problem. But should you kill Minions? That depends. If Minions are looking suspicious, and you think that they may get executed soon anyway, putting a cap in that Minion's arse may be the best option. Each Minion that you kill reduces the living players by one - and that means that an evil victory is one step closer. Killing a Minion that has already used their ability, such as a {{Evil|Baron}} or a {{Evil|Spy}}, is probably more helpful than keeping them alive. Killing a Minion that still has trouble to cause, such as a {{Evil|Poisoner}} or {{Evil|Scarlet Woman}} is probably a mistake.
+** Of course, if you want to avoid shooting Minions, you'll have to learn who they are - be sure to coordinate with your Demon!
+
+* Encourage the Demon to vote. Since you'll not be killing them, they can vote freely. Tell the group that the players that are not voting are probably the Demon.
+
+* You can play it safe, if you want to stay alive longer. Each day, kill the player that looks the most suspicious, regardless of what character they are claiming to be. This will ingratiate you with the good team, because it looks like you are trying to kill evil players. You can even ask the other players who they think you should kill. If the good players see you repeatedly killing the players that they want to kill, you'll live a long time.
+
+* You can throw caution to the wind, and kill the most dangerous, powerful good player to remove their ability from the game. If a {{Good|Fortune Teller}} keeps getting fantastic information, and is believed to be trustworthy by the good team, you can quickly and easily neutralize that threat. The downside is that the good team will quickly vote to exile you afterwards. But there are situations where it is worth it. Another example is if a {{Good|Soldier}} is in the game, and the good players overwhelmingly believe them, then you may foresee a troublesome final day where the {{Good|Soldier}} is one of three living players. To avoid this situation, sacrificing yourself to remove the {{Good|Soldier}} would be well worth it.
+
+* Use fear as a weapon. Nominate evil players, or bluff nominating evil players, and dare the good team to vote for it. You'll probably get exiled, but you can have some control over the execution for a day or two.
+
+* If the good players are foolish enough to keep you alive until just 3 players are left alive (not including Travellers), you've basically won. As soon as the first vote happens, kill a non-Demon player and seize victory.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>cnluvommyjiqkn534fgwpbo7vjobhha</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Bureaucrat</title>
+    <ns>0</ns>
+    <id>178</id>
+    <revision>
+      <id>1805</id>
+      <parentid>1469</parentid>
+      <timestamp>2024-01-25T18:09:02Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>1805</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="8253" sha1="r7f91sdavrjdi1ov28w2jw6y0m9a5hk" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_bureaucrat.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Sign here please. And here. And here. Aaaaaaaaand here. This should all be sorted and tallied by the end of the day, assuming everyone's signatures are legible. We haven't had a mix-up in the paperwork for ages. Yesterday noon, if memory serves..."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_trouble_brewing.png|100px|link=Trouble Brewing]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/17822079/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2020-7-10%2Fcc1d04a9-265d-3055-64a5-de99c5104c77.mp3"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each night, choose a player (not yourself): their vote counts as 3 votes tomorrow."
+
+The Bureaucrat gives extra votes to a player of their choice.
+* When a player chosen by the Bureaucrat votes, that vote counts as three votes. This happens every time that player votes that day.
+* The player with the triple vote loses it immediately if the Bureaucrat dies, including if the Bureaucrat is exiled, because the Bureaucrat loses their ability.
+* Exiles are never affected by abilities, so the player with the triple vote can only support exiles once, not three times.
+* Since the Storyteller counts the number of votes out loud as they move their hand around the circle, all players will know which player the Bureaucrat chose.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+Each night, wake the Bureaucrat. They point at any player. Mark the chosen player with the Bureaucrat’s '''3 VOTES''' reminder. Put the Bureaucrat to sleep.
+
+Each time you tally the vote of a player marked '''3 VOTES''', count it as three votes instead of one. (''Count this out loud, as normal.'')
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Bureaucrat chooses Evin. The next day, when the first vote is being tallied, the Storyteller counts "1... 2... 3... 4-5-6... 7.” The nominated player now has seven votes for their execution, and the nomination process continues.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Bureaucrat chooses Filip. The next day, Filip has a triple vote, which he uses during four nominations. 
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Bureaucrat chooses Douglas, who is dead. The next day, Douglas uses his vote token to vote, and his vote counts as triple.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* When picking who to give your extra votes to, prioritize living players. Dead players get a single vote for the rest of the game, and will be reluctant to spend it before a critical moment, even with your ability giving them an extra punch. (Similarly, be wary of characters like the {{Good|Butler}}, who can have their voting restricted because of their ability.)
+
+* Find a good player you trust or who has been confirmed in some way, and pair up with them. Characters like a {{Good|Virgin}} who has caused an execution or anyone confirmed by a {{Good|Washerwoman}} are great options of trustworthy players you can work with. This also has the benefit of making you look good, as you are publicly aligning yourself with a good player.
+
+* Watch how people vote, especially the people you choose. Depending on who is on the chopping block, players will change their vote - it's very unlikely that a Minion would vote for their Demon knowing they have 3 votes, for example. If a player doesn't take advantage of your power at a critical moment (or worse, ''does''), then they are telling you a lot about their priorities and who they are aligned with.
+
+* Ask the town to help you choose who the person that receives your extra votes should be! If you don't have any strong leads on a reliable good player to trust, crowd-sourcing a solution will not only help the town trust you, but uncover good potential options for you to pick.
+
+* Communicate with the town about who you have picked - not only does keeping an open and honest policy help the town believe that you have a good alignment, but it helps the group when coordinating information and votes to get someone killed.
+
+* Deliberately lie about who you picked so that you can observe the behaviour of the player you 'picked'. While secretly giving your votes to a trustworthy player, pick someone who you want more of a read on, and see how they behave when they think they have extra voting power.
+
+* You are especially deadly on the final night - your ability means that one person can single-handedly kick off an execution. If you choose an evil player, good will have to work extra hard to make up the difference. Consider asking to be exiled before nominations begin - a good player may lose out on the extra kick you have to offer, but at least you know for sure your ability isn't going to cause more harm than good.
+
+* The {{Traveler|Thief}} is your counterpart among Travellers, causing votes to count negatively... but if you both choose the same player, your abilities combine to give someone ''-3 votes''! If you both trust the {{Traveler|Thief}} and have a strong lead on an evil player, this can be a devastating way to undermine the evil team, cancelling out three evil votes!
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are evil) ==
+
+* Don't choose evil players ALL the time - that will look too suspicious. If you just choose the Demon over and over again. the good team has reason to believe that you are evil, as good Bureaucrats tend to change their minds more often. Choose evil players MOST, but not all, of the time. This way, evil players will be getting the majority of the triple votes, but you look more trustworthy to the good team, allowing you to survive longer. 
+
+* Another strategy is to choose good players until the perfect moment arises. This works best if the players you choose for the first half of the game are not only good, but believed to be good by the group. Choosing good players this way builds up a lot of trust in you, trust that you can betray at the last minute, by giving an evil player triple votes on the last day, or even at a similarly crucial point late in the game.
+
+* Choose an evil player on the final day. Although it might be tempting to choose a good player on the final day, so that you look more trustworthy, a good player having triple voting power is a huge danger to your team and far outweighs any benefits gained due to your angelic appearance. On the contrary, an evil player getting triple votes on the final day can win the game.
+
+* Choose dead evil players, if you can justify your reason for doing so. The dead are generally more trustworthy than the living, so giving a dead Minion triple votes not only helps your image, but gets that brutal extra two votes for the evil teams' desired nominee. A dead evil player with triple votes is really maximizing their offensive potential, as long as they actually are believed to be good.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>r7f91sdavrjdi1ov28w2jw6y0m9a5hk</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Beggar</title>
+    <ns>0</ns>
+    <id>179</id>
+    <revision>
+      <id>2100</id>
+      <parentid>2099</parentid>
+      <timestamp>2024-07-02T23:07:09Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Tips &amp; Tricks (if you are evil) */</comment>
+      <origin>2100</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="10414" sha1="42de4w83k5hhphvsljgqmy6iagmtr27" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_beggar.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Alms for the poor, good Sir? Spare a coin, Madam? Thank you. God bless! You're a right kind soul and no mistake! I'll have some swanky nosh tonight, I will!"&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_trouble_brewing.png|100px|link=Trouble Brewing]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/17153879/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2020-6-27%2Fc9ae121e-f627-ee0e-88d8-04cac9a66bc6.mp3"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"You must use a vote token to vote. If a dead player gives you theirs, you learn their alignment. You are sober and healthy."
+
+The Beggar can not vote unless someone gives them a token to use, but they learn if the player that does so is good or evil.
+* The Beggar cannot raise their hand to vote at all unless they have a vote token.
+* When they do vote, they lose one vote token. If they have more than one, they may only use one at a time.
+* Only a dead player may give their vote token to the Beggar, after which that dead player cannot vote. Each dead player decides for themself whether to give the Beggar their vote token. No one, including the Beggar, may move a player’s vote token on their behalf.
+* When a player gives their vote token to the Beggar, the Beggar learns whether that player is good or evil.
+* The Beggar can still nominate freely, and can still vote for an exile freely, because exiles are not affected by abilities.
+* If the Beggar dies, they gain one vote token to use while dead, just like any other character would. However, the Beggar loses all their previously acquired vote tokens.
+* If the Beggar would become drunk or poisoned, they do not.
+* The ability to donate vote tokens is unique to the Beggar ability. Players may not give their vote token to a player that is not the Beggar, whether or not a Beggar is in play.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+The Beggar cannot vote unless they have a vote token. They lose one vote token each time they vote.
+
+During the day, a dead player can declare that they give their vote token to the Beggar. Transfer the vote token to the Beggar and privately tell the Beggar the alignment of that player.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Beggar cannot vote. On the fourth day, the {{Good|Monk}} gives her vote token to the Beggar. The Beggar may now vote (once), and learns that the player is good. The Beggar is evil and tells the group that the {{Good|Monk}} player is evil.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The good Beggar has three vote tokens. The {{Good|Recluse}} gives the Beggar their vote token, and the Beggar learns that they are evil. That day, the Beggar dies, and loses all their vote tokens except for one.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* You definitely want to learn the alignment of at least one player, but don't get too greedy. Learning 1 or 2 players' alignments could mean that 1 or 2 good players can no longer vote - this is probably acceptable. But learning 5 players' alignment could mean that 5 good players can no longer vote - and that gives evil the majority vote at the next execution, granting evil the win. Gain a vote token or two... or three... but know when to stop.
+
+* Tell the truth about good players who give you their vote token. You trust them. They will probably trust you. Have a private conversation about your combined strategy for the future, and tell the group that they are good. You can trust whatever information this good player has due to their character ability, so use that to your advantage and let them help you decide who to vote for.
+
+* Lie about a good player who gave you their vote token. If you tell the group that a good player is in fact evil, the Demon or its Minions may seek you out and tell you who they are, believing that you are evil too. This could be amazing information. Either way, you'll want to tell the group that you were lying before the game ends, and reveal your strategy to them, otherwise they may believe that you are evil, or that the good player who selflessly gave you their token is evil. 
+
+* If an evil player is foolish enough or brave enough to give you their vote token, tell the truth about their alignment. Tell the group that the player is evil, and be prepared for that player to accuse you of being evil. Since it is rare for evil players to give their vote to a good beggar (but some will do so because it is so unexpected), you may find it difficult to convince the group that they are evil. It will be easier to convince the group if you can get a good player's vote token as well, as that good player will probably help you.
+
+* If an evil player has given you their vote token, you may want to lie about their alignment. Tell the group they they are good - this may convince the evil players that you are evil, and will encourage more evil players to give you their vote token. On the final day, you can reveal the truth.
+
+* You can't vote. So, when you do get a vote token, use it very, very wisely. This is especially important because you may have removed a good player's ability to vote when you took their token, which means that good has less voting power overall. Make your vote count by saving it until the final day, or waiting to use it when your vote will decide whether a player is executed or not.
+
+* Be proactive in getting players to give you their vote token. Ask. Demand. Bargain. Beg. Others will not usually volunteer to give you their token, because they have other things on their mind, but will often consider it if you pester them a little. 
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Learn the alignment of as many players as possible. Take vote tokens from as many players as possible. Even though by talking to the Demon you can learn the alignments of all players quickly, the more players that give you their vote tokens, the more players will not be able to vote on the final day. You'll be able to vote as much as you want, and that is a powerful enough ability to win the game. Good players often don't realize how powerful their dead vote is - 1 player giving it away to an evil Beggar might not make much difference, but 4 players doing so will make a huge difference.
+
+* When good players give your their token, tell the truth about their alignment in order to gain their trust. If you publicly tell the group that a good player is good, that goes some way in confirming their legitimacy (and therefore their information), but you may be able to convince more players to give you their token. You can lie about their alignment at a later date.
+
+* Lie about good players' alignments, if you think that you can get away with it. It is much more common for good players to give their vote tokens to Beggars, so claiming that an evil player has done so is a difficult bluff. But, it is possible, and if you succeed, you have not only convinced the group of the illegitimacy of their information, you have gained a vote and convinced them of your goodness. The good player will kick and scream and do everything they can to convince the group that you are evil, so be prepared. 
+
+* Lie about evil players alignment, if evil players give you their tokens. There is usually not much to be gained by telling the group that an evil player is evil, beyond making yourself look good. Sure, you'll get the benefit of looking more trustworthy (and maybe even getting another player to give up their vote token), but you've sacrificed the evil player to do so. The {{Good|Chef}}, {{Good|Empath}}, {{Good|Investigator}} and {{Good|Undertaker}} in particular are very good at using the simple fact that one player is evil to deduce the alignment of several other players. 
+
+* Tell the truth about evil players to build trust. But do so rarely. Very rarely. Since it is so unlikely that an evil Beggar would actually tell the group the truth about an evil player's alignment, when you actually do it, it may be believed. You'll want to make sure the payoff is worth it though. It can be worth it if the evil player was heavily suspicious anyway, or if the evil player was the third or fourth player to give you their vote token. In such circumstances, building the group's faith that you are good can give you the edge and keep you alive.
+
+* Use your vote wisely or throw it away. Either way, it doesn't really matter. What is important is that you '''look''' like you use your vote wisely, and that you save at least one vote token for the final day. The final day is all that really matters, so who you vote for before that point is mostly about making you look trustworthy so that you can survive until the final day.
+
+* Be proactive in getting players to give you their vote token. Ask. Demand. Bargain. Beg. Others will not usually volunteer to give you their token, because they have other things on their mind, but will often consider it if you pester them a little.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>42de4w83k5hhphvsljgqmy6iagmtr27</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Thief</title>
+    <ns>0</ns>
+    <id>180</id>
+    <revision>
+      <id>2112</id>
+      <parentid>2111</parentid>
+      <timestamp>2024-07-02T23:20:39Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Tips &amp; Tricks (if you are good) */</comment>
+      <origin>2112</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="8707" sha1="qx7qzr0b4a56wkq7jchf5xvqvly4sp2" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_thief.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"I aint done nuffink. I weren't even in dat alley last night! It weren't me what stole Mayor Bruno's briefcase wiv all dem fancy dockoments innit. Besides, it was too 'eavy to carry far."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_trouble_brewing.png|100px|link=Trouble Brewing]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/17822079/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2020-7-10%2Fcc1d04a9-265d-3055-64a5-de99c5104c77.mp3"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each night, choose a player (not yourself): their vote counts negatively tomorrow."
+
+The Thief steals votes from a player, making their vote count negatively.
+* When a player chosen by the Thief votes, the vote tally goes down by one instead of up by one. This happens every time that player votes that day.
+* The player with the negative vote changes back to having a positive vote immediately if the Thief dies, including if the Thief is exiled, because the Thief loses their ability.
+* Exiles are never affected by abilities, so the player with the negative vote can support exiles unaffected by the Thief’s ability.
+* Since the Storyteller counts the number of votes out loud as they move their hand around the circle, all players will know which player the Thief chose.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+Each night, wake the Thief. They point at any player. Mark the chosen player with the Thief’s '''NEGATIVE VOTE''' reminder. Put the Thief to sleep.
+
+Each time you tally the vote of a player marked '''NEGATIVE VOTE''', count it as subtracting one vote instead of adding one vote. (''Count this out loud, as normal.'')
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Thief chooses Marianna. The next day, while tallying the first vote, the Storyteller counts "1... 2... 3... 2... 3... 4... 5.” The nominated player now has five votes for their execution, and the nomination process continues.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Thief chooses Abdallah. Abdallah votes for an execution, and instead of the tally being six, it is four. Since 10 players are alive, the nominee is not executed today. Later that day, the players are voting to exile the {{Traveler|Gunslinger}}. Abdallah votes to exile, and his vote counts as positive.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* Use your ability to undermine players who you believe are evil! Secretly pick a player you suspect at night, and do not let them know tomorrow that their vote is now negative. When this player votes, they'll be voting with the expectation that they'll be counting towards the vote, when in fact they'll be undermining whatever cause they're working for. This is especially potent later in the game, when the evil team will be more aggressively voting to get good players killed and defend their own.
+
+* Weaponize your negativity - pick a player you believe to be good, and tell them about it! While this does mean one less good vote on the table, this player now has the very powerful ability to vote ''against'' a nomination. If you both believe the evil team is making a push, you can immediately counter them by throwing this unexpected negative vote into the mix.
+
+* Swap up who you are picking, especially if you're trying to pick evil players. Once a player knows their vote counts negatively, they can use it to their advantage. To avoid this, change who you pick each night, moving the negative vote around and keeping players guessing where the negative vote is hiding now. Keeping up this strategy can be beneficial even if you are primarily picking good players, since the evil team could kill a repeat player to stop them abusing your ability. Additionally, you will gain interesting information about every player you pick, so selecting as many unknowns as you can and trying to read their reaction can be very helpful!
+
+* Double and triple bluff who you picked publicly. Players who believe their vote counts negatively will react differently to players who think their vote is normal. With the power of words alone, you can be able to convince an evil player not to vote at a critical juncture, believing that they'll hurt their team if they do. Meanwhile, the vote is ''actually'' with a good player you trust. Combining this with a switching strategy will prevent anyone weaponizing your ability unless you actually want them to.
+
+* Remember that you can pick dead players if you want to. This is particularly useful on the final day, since that is when most dead players will be using their single vote. If a dead player asks you to pick them before the final day, this may be a useful option too. A dead {{Good|Virgin}} that you know is good and will use a single negative vote wisely, is often  better choice than a living player that intends to use their negative vote willy-nilly.
+
+* Keep quiet about who you pick so nobody knows what to expect! This will often mean that players you want to execute, don't get executed, which is an unfortunate downside. However, when each player first votes each day, you can observe their reaction and body language. If they seem pleased that a vote was negative, they are more likely to be an evil player, since they now have the power to prevent the Demon from being executed today.
+
+* If a {{Traveler|Bureaucrat}} is in play, and you think that they are good, co-ordinate with them and both choose the same player, giving a whopping 3 negative votes to a player of your choice. Even if you think the {{Traveler|Bureaucrat}} might be evil, you may be able to convince them to play along with the triple-negative vote strategy, for fear of being Exiled if they don't.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Pick good players who are figuring out who is good and who is evil, but don't tell them that you have stolen their vote. They will vote for executions that they want to pass, and this will often mean that they are voting for good players. Avoid choosing good players that are completely clueless as to who is evil, as their negative vote may have the opposite effect to what you want. In the situation where a good player has a negative vote, you may want to nominate suspicious-looking evil players earlier rather than later each day, because the good player with the negative vote will realize afterwards that they can deliberately make an execution fail. 
+
+* Lie about who you chose. This will cause confusion and trick the good players into making executions fail when they don't want them to. If a player believes that they have a negative vote, they will vote when they want an execution to fail, but accidentally increase its chances of succeeding instead.
+
+* Pick evil players, and tell them that you have picked them. Evil players know exactly who is good and who is evil, so will always use their negative vote effectively. You may need to swap between evil players - choosing the Demon one night, then choosing a Minion the next night.
+
+* On the final day, you definitely want to choose an evil player, and have them know that you have chosen them. Even if the good team exiles you after the fact, having a negative vote on the Demon is incredibly helpful. It may even win you the game!
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>qx7qzr0b4a56wkq7jchf5xvqvly4sp2</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Apprentice</title>
+    <ns>0</ns>
+    <id>181</id>
+    <revision>
+      <id>1792</id>
+      <parentid>1448</parentid>
+      <timestamp>2024-01-25T18:07:24Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>1792</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="7356" sha1="kxe4tqbwkzcgi183qf22wkskebnyt2q" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_apprentice.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"For years have I traveled, studying the ways of The Craft. Which craft, you ask? Simply that of the simple folk. Nothing to worry about. Not yet."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_bad_moon_rising.png|100px|link=Bad Moon Rising]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/66453583/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2023-2-13%2F317700945-44100-2-983f553c36513.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"On your 1st night, you gain a Townsfolk ability (if good) or a Minion ability (if evil)."
+
+The Apprentice has either a Townsfolk or a Minion ability.
+* A good Apprentice gains a Townsfolk ability. An evil Apprentice gains a Minion ability. They have this ability until they die.
+* The Apprentice learns their ability on their first night, and they may act that night if the character whose ability they gain would do so.
+* Only abilities listed on the character sheet may be gained.
+* If the Apprentice gains an ability that normally only functions on the first night of the game, such as the Grandmother’s, it functions on the Apprentice’s first night instead.
+* The Apprentice does not literally become the character whose ability they gain. They are the Apprentice, a Traveller, so they may be exiled but not executed, and they do not count toward the number of alive players to see if evil wins due to just two players being alive. Also, other characters’ abilities that detect characters would detect the Apprentice as the Apprentice.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+During the first night after the Apprentice enters play, wake the Apprentice. Show them the '''YOU ARE''' info token, then a Townsfolk or Minion token. In the Grimoire, replace the Apprentice token with that character token, and mark them with the '''IS THE APPRENTICE''' reminder. That player remains the Apprentice but gains the ability of their character token.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+You will almost certainly want to choose a not-in-play character ability, because there is only one of each character token and the Apprentice needs to use that token.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The evil Apprentice gains the {{Evil|Assassin}} ability. That night, they kill the {{Good|Fool}}.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The good Apprentice gains the {{Good|Chambermaid}} ability. From now on, they learn who wakes at night. Later, the {{Good|Gambler}} guesses that the Apprentice is the {{Good|Tea Lady}}. The {{Good|Gambler}} dies, because the Apprentice is not the {{Good|Tea Lady}}, but the Apprentice.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* The strategy that you employ will depend almost entirely on which Townsfolk ability you gain. If you become the {{Good|Gambler}}, then play the game as you would a normal {{Good|Gambler}}. If you become a {{Good|Sailor}}, then play the game as if you were a {{Good|Sailor}}. 
+
+* Feel free to lie about which character ability you gained. If you lie that you gained the {{Good|Courtier}}'s power, you may successfully lure the Demon into attacking you. The good team losing a Traveller at night is a much more favorable outcome than the good team losing a Townsfolk (because Travellers don't count as players for evil's "two players left alive" victory condition), so by tricking the Demon into attacking you, you've helped the good team. Similarly, you can lie about who you are to prevent the evil team from attacking you. An {{Evil|Assassin}} is unlikely to use their precious ability to kill an Apprentice {{Good|Fool}}... but they may do so to remove an Apprentice {{Good|Exorcist}}!
+
+* It is possible that you become the same character as someone else in play, but it is unlikely. Since there is only 1 of each token, the Storyteller will more often give you a not-in-play character's ability. Treat any players claiming to be the same character as you with suspicion.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are evil) ==
+
+* The strategy that you employ will depend almost entirely on which Minion ability you gain. If you become the {{Evil|Mastermind}}, then play the game as you would a normal {{Evil|Mastermind}}. If you become a {{Evil|Devil's Advocate}}, then play the game as if you were a {{Evil|Devil's Advocate}}.
+
+* Pick a Townsfolk character, and claim to have gained that role's ability. If you were the good Apprentice, you would have been woken and shown a Townsfolk whose ability you gain. Be prepared for the other players to ask you questions about which Townsfolk ability you have, and how you are using it. 
+
+* If you claim to be the same character as a good player, you can either claim that the Storyteller has given you a duplicate ability as that player (which is not common, but possible), or that that player is lying about who they are. Either way, it's not the end of the world, but you may have to contend with that player one on one if you want to survive. 
+
+* Your ability will be extremely helpful to the evil team, but only if you can learn who they are and co-ordinate with them. As the {{Evil|Devil's Advocate}}, you can save evil players from death, but you'll need to know who they are first. As the {{Evil|Assassin}}, you can kill any good player needed, but you'll need to know which players are good first. As the {{Evil|Mastermind}}, you can win the game by getting the Demon executed, but you'll need to communicate to the Minions that this is what you are doing so that they know to vote. If you are the {{Evil|Godfather}}, you'll need to know which players are Outsiders, and not Minions pretending to be Outsiders. Whichever Minion ability you gain, you'll work best if you can talk to the Demon, let them know that you are evil, find out who the Minions are, and communicate with them well.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>kxe4tqbwkzcgi183qf22wkskebnyt2q</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Matron</title>
+    <ns>0</ns>
+    <id>182</id>
+    <revision>
+      <id>3047</id>
+      <parentid>2106</parentid>
+      <timestamp>2026-01-16T10:36:04Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Tips &amp; Tricks (if you are good) */</comment>
+      <origin>3047</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="8713" sha1="dtcmwlzggutm9h2a6p9ekdkagy63u69" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_matron.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Miss Featherbottom, be quiet. Master Rutherford, a teacup needs just the four fingers, please. I know you are a father of nine, but age, or lack there-of as the case may be, is never an excuse for poor manners."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_bad_moon_rising.png|100px|link=Bad Moon Rising]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/68261195/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2023-3-9%2F322949990-44100-2-3f441a70e9976.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each day, you may choose up to 3 sets of 2 players to swap seats. Players may not leave their seats to talk in private."
+
+The Matron chooses which players sit where.
+* The Matron may swap two players’ seating positions, up to three times per day. The new seating order is permanent, unless changed again by the Matron.
+* The same player may be moved multiple times.
+* Some players may find moving difficult due to a physical disability or impediment. In these cases, they are immune to the Matron’s ability and can stay put.
+* With the Matron in play, players may not talk privately except with their immediate neighbors while sitting down. Players may not leave their seat to whisper something to any player, and may not even talk about the game to each other when going to the bathroom, and so on. Players should self-police this.
+* If the Matron swaps just one or two sets of players, they may not swap another set of players later that day.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+Players who leave their seats cannot talk about the game to other players until they return.
+
+Each day, the Matron may choose two players and declare that they swap seating positions. Ask them to do so. Swap their character tokens and any reminders they have in the Grimoire. The Matron may do this up to three times, but all swaps happen one after the other.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The evil Matron rearranges the seating order so that she is sitting next to the {{Good|Tea Lady}}. This way, the two of them can whisper to each other, and the {{Good|Tea Lady}}'s ability does not work.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The good Matron swaps the seating position of the player they think is the Demon, so that player is far away from the player they think is the Minion. They may not whisper to each other now.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are good) ==
+
+* If you see players whispering and conspiring together, separate them. Since you prevent players from having private conversations unless they are sitting next to each other, when you see two players plotting together like they are evil, put them on opposite sides of the room so that they can't do that any more. 
+
+* Reseat players that you are suspicious of so that they neighbour you. This way, you can keep an eye (and an ear) on their activities. Minions and Demons will find it difficult to plot and scheme with their fellow players if you keep them under a close, watchful eye.
+
+* Reseat players that you trust so that they neighbour you. You can find out who they are, find out what they know, share what you know, and then reseat them again to neighbour other players that you trust. This way, you can control the flow of private information in the game in such a way that the players that you trust are only talking to other players that you trust.
+
+* Don't reseat any players to be next to you. This is one of the more common tricks for an evil Matron in order to learn info from the Demon/Minions as to what they should be doing. So if you make sure all of your swaps are elsewhere in the circle, you look more likely to be good.
+
+* Pay particular attention to where position-dependent characters are seated, and adjust the order of players accordingly. For example, a {{Good|Tea Lady}} can be repositioned between two good players (if you don't think the Demon knows who they are) so that their neighbours survive, or between players you suspect of being evil (if you plan to execute one of these players to test your theory). Seating a {{Good|Lunatic}} away from the players that they say are Minions prevents them from conspiring with them, should the {{Good|Lunatic}} actually be the Demon. If playing a custom script, put the {{Good|Empath}} between players that you want to learn about, or switch players around to prevent them from being poisoned by the {{Evil|No Dashii}}. Do whatever you need to make the most of which players sit where.
+
+* In [[Bad Moon Rising]], most good players will need to be secretive and proactive in order to make the most of their ability. The {{Good|Chambermaid}} needs to talk to the players they choose to find out who they are. The {{Good|Courtier}} needs to find out which characters are in-play. The {{Good|Sailor}} needs to find out who to make drunk. Listen to which players are which characters, and do what you can to facilitate their private conversations. If you think the {{Good|Goon}} really needs to talk to the {{Good|Exorcist}} because there was no death last night, and this could be the result of either of their abilities, seat them next to each other so that they can swap information.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Reposition evil players so that they are neighbouring you. This will allow you to talk in private, learn who the other evil players are, and figure out what your strategy is. After the two of you have said what you needed to say to each other, you can reposition them elsewhere in the room.
+
+* Sit evil players next to evil players. By repositioning the Minions and Demon so that they are next to each other, they can talk and coordinate better. The {{Evil|Assassin}} will need to know what the {{Evil|Godfather}} and the {{Evil|Po}} are planning, so that they don't both accidentally kill the same player, for example.
+
+* Pay particular attention to where position-dependent characters are seated, and adjust the order of players accordingly. For example, a {{Good|Tea Lady}} can be repositioned next to an evil player (if the Demon plans on killing one of them tonight). Seating a {{Good|Lunatic}} away from the players they believe are their Minions prevents them from talking to those players. If playing a Script game, put the {{Good|Empath}} next to the {{Good|Recluse}} to confuse their information, or switch players around to so that the most dangerous characters are being poisoned by the {{Evil|No Dashii}}. Do whatever you need to make the most of which players sit where.
+
+* In Bad Moon Rising, most good players will need to be secretive and proactive in order to make the most of their ability. The {{Good|Tea Lady}} needs to encourage the Demon to attack their neighbours, or even get them executed, but without revealing that she is the {{Good|Tea Lady}}.  The {{Good|Gambler}} needs to learn who is in play. The {{Good|Gossip}} should be making public statements based on information that they suspect to be false, but don't know for certain. Listen to which players are which characters, and do what you can to prevent useful private conversations. If you think that two good players would really benefit from talking with each other, separate them as much as you can.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>dtcmwlzggutm9h2a6p9ekdkagy63u69</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Voudon</title>
+    <ns>0</ns>
+    <id>183</id>
+    <revision>
+      <id>1794</id>
+      <parentid>1624</parentid>
+      <timestamp>2024-01-25T18:07:37Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>1794</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="8729" sha1="bglny34mao1unw74hqsgdhb0ny193ix" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_voudon.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Bien venu. Sit down. Breathe deep. Enter the land of the dead. See with their eyes. Speak with their voice. Yon sel lang se janm ase."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_bad_moon_rising.png|100px|link=Bad Moon Rising]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/69973994/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2023-4-8%2F328273329-44100-2-ef0cfd2697427.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Only you &amp; the dead can vote. They don't need a vote token to do so. A 50% majority isn't required."
+
+The Voudon gives the voting power to the dead instead of the living.
+* The dead and the Voudon may vote as many times per day as they wish. They do not need a vote token to vote, and do not lose their vote token when they do so. Alive players cannot vote. It is not the case that they may put their hand up but the votes don’t count—their hands must stay down during voting.
+* The number of votes required to execute a player is no longer half or more of the alive players. The player with the most votes is executed each day, but even a single vote is enough to execute a player if no other player gets more votes.
+* The Voudon does not alter who can make nominations. As normal, alive players may make nominations, and dead players may not. Since Travellers are exiled, not executed, all players, alive or dead, may support exiling the Voudon or other Travellers.
+* If a player is about to die and then the Voudon is exiled, that player is still about to die and nominations continue, but alive players vote as normal. If a later nomination gets more votes and it tallies to half or more of the alive players, this new player is about to die instead.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+During votes for execution, only dead players and the Voudon may raise their hand to vote. The dead may vote even if they have no vote token, and voting does not use a vote token. If a nominee gets at least one vote, they are about to die by execution until a different player gets more votes.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				There are 12 players alive, and three dead. An alive {{Good|Innkeeper}} nominates the {{Good|Moonchild}}. Of the four players that can vote, three do. All other nominations today get fewer than three votes, so the {{Good|Moonchild}} dies.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				It is the first day. Only the Voudon can vote, but does not. The players call for the Voudon to be exiled. Five players support the exile, and seven oppose. The Voudon lives.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				Two dead players vote for the {{Evil|Mastermind}} to be executed. Then, the Voudon, the dead {{Good|Fool}} and the apparently dead {{Evil|Zombuul}} all vote for the {{Good|Gossip}}. The {{Good|Gossip}} is executed. 
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are good) ==
+
+* You start the game extremely powerful, but get less and less powerful as the game progresses. On the first day, you decide who is executed, since you are the only player that can vote. Make the first day your best day, by putting a lot of thought into who you want to die. You have the authority to choose, so kill an evil player if you can. Execute on the first day, no matter what, because if you don't, you won't have the same voting power tomorrow.
+
+* The more evil players that you kill, the more dead evil players will be voting. This means that the best case scenario (for a game with three Minions) after 3 days, is that 3 dead players are evil, and more or less controlling who is executed next. If you suspect that this is the case, call for your own exile, because when you die the voting power goes back into the hands of the living, good players.
+
+* The more good players that die, the more that the good team controls the vote. Sometimes, it might be worth killing players that you suspect of being good just to get a few more good votes and a few less evil votes the day afterwards. This strategy relies on you staying alive, so make sure you have the good team's support. If you don't, remember that they can exile you just as easily as any other Traveller.
+
+* On the final day, remember that the dead have all the power. The living players should be talking to the dead like sleazy politicians campaigning for votes. The living are still the players making the nominations, but more often than not, all living players will be nominated on the final day anyway, which means the dead decide who wins, and who loses. Engage the dead players. Talk to them. Listen to them. Build trust and coordinate with them. Involve the dead players as much as possible, because active dead players are more likely to make good decisions, and passive dead players are more likely to be bamboozled by evil players' lies and vote counter-productively.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* For the first few days of the game, you will have enormous power to get good players killed. On the first day, you can kill any good player of your choice, since you are the only voting player. On the second day, with 2 or 3 players voting, you still have a strong possibility of swinging the votes you don't like in the direction of players you want to die, and not those you don't. From the third day onward, your personal voting power is much the same it would be in an ordinary game. Use those first two days wisely by getting as many good players killed as possible, and by killing specifically the players that will cause the most trouble if left alive.
+
+* If you have done your job well and all the dead players are good, you can call for your own exile - once you die, only the living may vote again as normal. This means that the voting power is once again in the hands of the evil players! Double whammy.
+
+* Alternatively, you can kill an evil player or two in the first few days. This will mean that the evil team controls the voting process by sheer numbers in the mid-game, which is very powerful. With just 3 evil players and 3 good players voting, for example, it will be impossible for the good team to execute who they want to. Even with 2 evil players voting and 4 good players voting, good will need to coordinate extremely well to offset the enormous sway of the evil voting bloc. When you are the Voudon, death is not the end for evil players... many become significantly more influential.
+
+* Engage the dead as much as possible, but discourage them from taking an active part in figuring out who is who. If YOU are the only person that really cares what the dead think, and you act as the coordinator between the dead players, who do you think that they will vote for on the final day? The player that you told them to vote for. Many living players only communicate with the living players. This is a mistake, but doubly so when the Voudon is in play, because the dead hold all the power. If you arrange things so that the living players are doing all the talking, and the dead are sitting there passively (or talking among themselves, or just to you), then the massive power of the dead will be overlooked, and they will vote foolishly. Ignore the living players, and make the dead players your friends and confidants, and victory is assured.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>bglny34mao1unw74hqsgdhb0ny193ix</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Judge</title>
+    <ns>0</ns>
+    <id>184</id>
+    <revision>
+      <id>2108</id>
+      <parentid>2107</parentid>
+      <timestamp>2024-07-02T23:16:11Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Tips &amp; Tricks (if you are evil) */</comment>
+      <origin>2108</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="10654" sha1="mo8liwp81k5xnqeb9f8orkk0v30rkao" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_judge.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;John Grist&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"I find the defendant guilty of the crimes of murder, fraud, arson, larceny, impersonating an officer of the law, practicing medicine without a license, slander, regicide, and littering."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_bad_moon_rising.png|100px|link=Bad Moon Rising]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/69973994/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2023-4-8%2F328273329-44100-2-ef0cfd2697427.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Once per game, if another player nominated, you may choose to force the current execution to pass or fail."
+
+The Judge can determine if an execution succeeds or not, regardless of who voted. 
+* The Judge can decide to pardon a player that they think is innocent, to condemn a player that they think is guilty, or vice versa.
+* If the nominee is pardoned, then they are not executed today, and none of the votes for them count. If the nominee is condemned, then they are executed immediately, regardless of how many votes they received, and regardless of whether another player was about to die by execution. Then the day ends, because there can normally only be one execution per day.
+* The Judge may use their ability during or after the votes are tallied. However, once a new player has been nominated, then the Judge may only use their ability on this new nominee. The Judge may only use their ability once, and only if a different player made a nomination.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+At any time during a nomination for execution—from the moment that the nomination is declared to the moment before a new player is nominated for execution—the Judge can declare that this execution succeeds or fails. If the Judge declares that it succeeds, the nominated player is executed and you may proceed to the night phase (''as there may only be one execution per day''). If the Judge declares that it fails, the nominated player is no longer about to die and they are treated as receiving zero votes for execution, and the nomination process continues. '''The Judge loses their ability'''—put the Judge’s '''NO ABILITY''' reminder token by the Judge token.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The {{Good|Slayer}} was about to die, but the {{Evil|Po}} is nominated and every alive player votes, so now the {{Evil|Po}} is about to die. The evil Judge decides that the {{Evil|Po}}’s execution fails. So, as before, the {{Good|Slayer}} is about to die, and the nomination process continues.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The good Judge nominates the {{Good|Professor}}. Nobody votes, but the Judge may not use their ability. A Traveller's exile is voted on. Once again, the Judge may not use their ability. The {{Good|Grandmother}} nominates the {{Good|Goon}}. Even though the {{Good|Goon}} got only one vote, the Judge decides that the {{Good|Goon}} is executed immediately. 
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* Save your ability until you need it. In the early stages of the game, you won't really know who to execute or who to save. Wait until the later game, where you have at least some clues to base your decision on.
+
+* Watch for who votes and who doesn't, and do the opposite. Since evil players are less likely to vote for evil players, then it is best to use your Judge ability to force an execution to succeed when hardly anyone votes. If hardly anyone has voted, the player is more likely to be evil. Conversely, if lots of players vote, then the player is more likely to be good - use your Judge power to prevent this execution from succeeding. Doing the opposite of what the group wants not only puts the odds in your favor, but makes sure that you are actually using your ability to full effect. There is no point in forcing an execution to pass if it would have passed anyway.
+
+* ...or is there? When the Demon is nominated and gets just enough votes to be executed, the evil team will usually panic and scramble to nominate a good player immediately so that they can vote and kill a good player instead of the Demon. If you believe that this is the situation, you can use your Judge power to force the current execution to succeed, preventing any chance that the evil team can avoid the Demon's execution. You can "lock in" the current execution, and there is nothing that they can do about it.
+
+* Get a feel for the room, and Judge when the players are thinking about exiling you. Any good team worth their salt will Exile a Judge that has not used their ability on the final day, but some groups will want to do so even sooner. With the threat of a {{Evil|Shabaloth}} or a {{Evil|Po}} lurking as a possibility, or even an {{Evil|Assassin}} or {{Evil|Godfather}} to cause extra deaths at night, the good team can never be sure when the final day actually is - they may start thinking about exiling you prematurely. This has nothing to do with you appearing suspicious. It's just clever playing, because an evil Judge that is alive on the final day is so dangerous as to cause an auto-win for evil. If you can read the room and guess when the tide is turning against you (even if most players think that you are good), then make sure to use your ability before that happens.
+
+* It is usually best to use your ability to save a player from execution than to force an execution to succeed. Most players that are executed are good. The odds are, you'll be saving a good player from death, and probably gaining a trusted ally in the process.
+
+* Don't nominate. Players that you nominate can still be executed, but you can not use your Judge ability to force them to be executed.  If you really want to execute a particular player, wait until another player nominates instead. If no players are nominating the player that you want, talk to players in private and make allies. Ask players to nominate on your behalf. You can even "encourage" player A to nominate on your behalf, or else player B  will nominate player A. That should get the ball rolling!
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Use your ability as early as you can. If you force an execution of a good player - great! If you prevent an evil player dying - great! As long as you know who is good and who is evil, you can not use your ability incorrectly. It is always helpful. Even if you are exiled immediately after using your ability, it is still worth it. An evil traveler that helps their team this much has played their part and nudged the scale noticeably towards evil.
+
+* It is usually best to use your ability to force an execution to succeed as opposed to preventing an execution. If you force an execution to succeed, you are definitely having an effect. If you prevent an execution from succeeding, the good team may still want to execute the same player the following day. In this case, you'll need to come up with some valid-sounding reasons why you saved the player in question from death. This is not hard to do though... you can tell them that most players are good and that you were just playing the odds, you can tell them that you wanted to use your ability before the town exiled you, or you can tell them that another player is more suspicious instead and killing the first player was a waste of valuable time. Whatever works for you. 
+
+* If you are more talented at looking evil than looking good, look evil. Look just evil enough to arouse the suspicion of one or two players, and then save a good player from being executed late in the game. If a few good players think you are evil, they will think that you saved an evil player, and do their best to get that player executed again the following day. This delaying strategy can win the game for you if timed well, because every time you delay an execution by a day, the Demon attacks that night, reducing the number of good players alive, and bringing the final day evil victory closer, or getting the wrong player executed at a later, more opportune time. Ask yourself this question: If just 3 players are left alive, would you rather that the {{Good|Gossip}} died yesterday, or is still alive today and looking as suspicious as all heck? It can be extremely useful to have good players that look evil alive on the final day, because they will get executed instead of the Demon.
+
+* If you want to nominate, go ahead and nominate evil players, even the Demon. You will always have the excuse that you can't force the execution to succeed, because you can't use your Judge ability if you were the one to nominate. You'll need to judge the room though - is this a group that will interpret "The Judge can not force this execution to succeed" to mean "The Judge is not really keen to kill this player. It is a frivolous nomination." or "The Judge can not kill this player. We need to all vote to do so."?
+
+* If the good team is foolish enough to allow you to survive until the final day, you can snatch a cheap and nasty victory. Ask an evil player to quickly nominate a non-Demon player, and then force the execution to succeed. Before the good team knows what is happening, a player is dead, the night is falling, and evil has won.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>mo8liwp81k5xnqeb9f8orkk0v30rkao</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Bishop</title>
+    <ns>0</ns>
+    <id>185</id>
+    <revision>
+      <id>1796</id>
+      <parentid>1493</parentid>
+      <timestamp>2024-01-25T18:07:47Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>1796</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="8679" sha1="k29twbgem2pc51dhcsoicz18t5cq76s" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_bishop.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;John Grist&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"In nomine Patris, et Filii, et Spiritus Sancti… Nos mos Dei. Deus vult de nobis."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_bad_moon_rising.png|100px|link=Bad Moon Rising]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/68261195/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2023-3-9%2F322949990-44100-2-3f441a70e9976.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Only the Storyteller can nominate. At least 1 opposing player must be nominated each day."
+
+The Bishop prevents players from nominating at all. Instead, the Storyteller does all nominating.
+* The Storyteller makes nominations during the nomination process instead of the players, and the Storyteller may nominate as few or as many players as they wish. To make things fair, they must nominate at least one player whose alignment is opposite the Bishop’s alignment each day.
+* The Bishop does not alter who can and cannot vote. Each player may do so normally.
+* Since Travellers are exiled, not executed, any player may call for the Bishop or another Traveller to be exiled.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+Each dawn, mark the good Bishop with their '''NOMINATE EVIL''' reminder, or mark the evil Bishop with their '''NOMINATE GOOD''' reminder.
+
+During the nomination process for execution, the players cannot make nominations, but you can. (''Voting happens as normal.'') When you nominate a player whose alignment is opposite the alignment of the Bishop, remove the Bishop’s reminder. You cannot end the nomination process if the Bishop is marked with their reminder.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+Usually, you’ll want to nominate about three to five players each day, with at least one of them being evil. You do not have to nominate the Demon each day, but you should nominate all alive players on the final day. Which players you nominate is up to you, but it’s best to nominate more evil players if the Bishop is good, and to nominate fewer evil players if the Bishop is evil.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Bishop is good. On the first day, the Storyteller nominates the Demon, a Minion, and two Townsfolk. On the second day, the Storyteller nominates a Minion and Outsider.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Bishop is evil. The Storyteller has nominated nobody. However, the Storyteller must nominate at least one good player today, so they choose the {{Good|Minstrel}}. The next day, the Storyteller nominates four good players and the Demon. The Bishop is exiled that day, and now the players may continue the nomination process normally.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* Pay very close attention to who the Storyteller nominates each day. Every day, the Storyteller must nominate at least one evil player. Usually, the Storyteller will nominate only one evil player and several good players. Pay attention day after day, and narrow down the pool of possible evil players. For example, if on day 1 the Storyteller nominates the {{Good|Fool}}, the {{Good|Chambermaid}} and the {{Good|Tinker}}, then the day after nominates the {{Good|Tinker}}, the {{Good|Exorcist}}, the {{Good|Grandmother}} and the {{Good|Sailor}}, you can assume that either the {{Good|Tinker}} is evil, or the {{Good|Tinker}} is good, and 1 of each of the other groups of characters is evil. 
+
+* Stay alive. You know you are good. You know that you are getting useful information each day. But, the other players don't. What they see is probably a player that is preventing them from nominating, and little more. You'll need to convince the good team to keep you alive - even though it is in their best interests to do so. Share what you learn, or vote how they want you to vote - do anything you can to stay alive long enough to gather some clues on who is good and who is evil.
+
+* On the final day, the Storyteller will definitely nominate the Demon. If the Storyteller just nominates two players on the final day, you'll have narrowed the possible Demon candidates down to 2 players instead of 3. This is significant. If you can convince the other players that you are good, they will gain the benefit too.
+
+* You get more powerful as the game progresses. If there are 12 players alive, the Storyteller can nominate a lot of players. But if there are just 4 players alive, the Storyteller will probably be nominating 4 or fewer players. Ideally, you want the Storyteller to nominate either 2 or 3 players in a day - the fewer, the better. Whilst you have no control over what the Storyteller does, what you can do is put your attention on the times when the fewest players were nominated during the day. 
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are evil) ==
+
+* Do whatever you can to convince the group that you are good. Some Travellers don't really mind whether the group believes that that they are good. The {{Traveler|Judge}}, or the {{Traveler|Voudon}}, for example, can use their ability and gain a benefit no matter what the good players think. But if the good players get even a whiff that you might be evil, they will exile you immediately and your ability will not have been very helpful. However, if you can survive for several days, your ability is devastating, because not only are evil players not being nominated (generally - the Storyteller may do so every so often to keep up appearances), but the good team will be focused on deducing who is evil based on who is being nominated... and all their conclusions will be false. 
+
+* Vote as often as you can. You have the perfect excuse - that the nominated player is probably evil! After all... you are the good Bishop, aren't you? If the good team believes that you are good, then they should be voting for each possible executee as well. With no Bishop in play, it is possible for all nominations during a day to be nominations of good players. But with a good Bishop in play, there is always an opportunity to kill an evil player. If you have convinced the group that you are good... vote, vote, vote.
+
+* On the final day, ask the group if they wish to Exile you. Most Storytellers will nominate the Demon on the final day regardless of your alignment, so you are not losing much if you die. And, the fact that you are asking to be Exiled usually works to help you not be exiled!
+
+* Whenever a day ends where only good players were nominated, spend as much time as you can the following day directing the group's attention to the "fact" that at least one of yesterday's nominees was evil. If say, 4 players were nominated yesterday, you can generate a lot of suspicion about those 4 players, and maybe get one (or two, or three!) of them executed in the following days. Every day you direct the good team's attention to killing themselves is a day that the Demon lives, and the evil voting balance is tipped towards evil. Even if you don't end up getting these players executed, turning the discussion away from more dangerous topics and towards the completely useless topic of "which of these 4 players is evil?", you can waste the good team's time, energy and focus on pointless diversions. 
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>k29twbgem2pc51dhcsoicz18t5cq76s</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Butcher</title>
+    <ns>0</ns>
+    <id>186</id>
+    <revision>
+      <id>2101</id>
+      <parentid>1797</parentid>
+      <timestamp>2024-07-02T23:09:09Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Tips &amp; Tricks (if you are good) */</comment>
+      <origin>2101</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="8928" sha1="lnxuitymulz5v6fny0ubn03nto848dj" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_butcher.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"It tastes like chicken. More please."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_sects_and_violets.png|100px|link=Sects &amp; Violets]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/40581673/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2021-8-21%2F219606913-44100-2-e6c4fe58e8ff.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each day, after the 1st execution, you may nominate again."
+
+The Butcher allows a second execution to occur per day.
+* After the first executed player has died, the Butcher may nominate a second player for execution. The Butcher may nominate a player that has already been nominated today, and the Butcher may make a nomination even if the Butcher already made a nomination earlier today.
+* If a player is executed, even if they do not die, then the Butcher may use their ability. The players may choose to vote or not to vote, so there is no guarantee that this extra nomination will cause an execution—it still needs to get enough votes—but this second nomination does not need to exceed the vote tally of the previous nominations.
+* If no execution occurs today, then the Butcher may not use their ability at all today.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+Each day, immediately after a player is executed, the Butcher may nominate a player for execution. (''Remind them if needed.'') To succeed, this nomination must tally votes of at least half the alive players, as normal, but does not have to exceed the votes of the execution that prompted the Butcher ability. If this second execution succeeds, it does not allow the Butcher to nominate a third player.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The {{Evil|Witch}} is executed and dies. The Butcher then nominates the {{Good|Sage}}, who gets enough votes to be executed. The {{Good|Sage}} dies too.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The {{Traveler|Bone Collector}} is exiled, and then the {{Traveler|Harlot}} is exiled. There are no executions today. The Butcher does not get to nominate again, because exiles are not executions.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Butcher nominates the {{Good|Town Crier}}, but the {{Good|Town Crier}} is not executed. The {{Good|Mathematician}} gets more votes and is executed today. The game continues, and the Butcher nominates the {{Good|Town Crier}} again. This time, enough hands are raised, and the {{Good|Town Crier}} is executed.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* Only nominate players that you think you can execute. Executing 2 players per day is extremely helpful to the good team. Instead of 1 player dying during the day by the choice of the group and 1 player dying at night (by the choice of the Demon), there will be 2 players dying per day by the choice of the group for every player that dies at night by choice of the Demon. The increase in probability alone is enough to give the good team a significant advantage. If you nominate players that end up executed, you maintain this advantage. If you nominate players that end up slipping the noose (even if you think they are evil), then you lose this advantage - your ability might as well be non-existent. 
+
+* During the normal voting process, pay attention to which players get a lot of votes, but are not executed, and which players don't get many votes, but are not executed. Players that get an overwhelming number of votes are unlikely to be the Demon, since Minions rarely vote for the Demon in such dangerous circumstances. Players that don't get many votes are more likely to be the Demon, since the Minions are not voting for them. When it comes time for you to use your ability, choose wisely. 
+
+* If the group keeps failing to vote for the players that you nominate, or if the group is talking about exiling you, then you can make a deal with them - you will nominate who they want you to nominate. Staying alive is better than being dead, even if it means that you go with the group's guesses instead of your own. You can always change your mind at the last minute and actually nominate a different player than the group wants you to... but they may exile you if you miss the Demon.
+
+* If there is an {{Evil|Evil Twin}} in the game, be much more frugal with your nominations. If the Demon and the {{Evil|Evil Twin}} are both still alive when just 3 players are alive, it is possible that evil has already won. You don't want to accidentally bring the game to an early end, and an early loss, due to too many frivolous executions. This is particularly true if a {{Evil|Witch}} or {{Evil|Cerenovus}} is in-play and still alive.
+
+* If the {{Evil|Witch}} curses you, this is great news! An Evil {{Evil|Witch}} will definitely want to keep an evil Butcher alive, so that fact that the {{Evil|Witch}} cursed you instead of a much more valuable target, basically confirms to the group that you are good. And, if you are good, the group knows that your choices for the extra nomination each day were made with the intention of killing the Demon. The group also knows that any other Travellers in play are much more likely to be evil, and should probably be Exiled. 
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Nominate. Nominate. Nominate. Vote. Vote. Vote. If you can secure an extra successful execution each day, then an evil victory is basically certain. Evil Butchers are incredibly dangerous. If the group kills a good player each day, and you nominate and execute a good player, and the Demon kills at night, that means 3 good players are dying each 24 hours. The good team can not sustain that level of loss for long. Even if the group kills a Minion each day, you nominate and execute a good player, and the Demon kills at night, that means that 2 good players and 1 Evil player is dying every 24 hours - even this rate of loss is crippling to the good team.
+
+* You know who the Demon is. Never nominate them using your ability. If even half the group votes, no other nominees can be nominated to exceed that tally, so there is no way to fix a foolish mistake. 
+
+* If you really, really think that the good team trusts the Demon player, nominate them using your ability. You need to be certain that even half the group won't vote for the Demon, and be prepared for the good team to think that you are evil - after all... why would a good Butcher nominate such a trusted player? However, looking like an evil player that just nominated a trusted good player can work wonders in cementing the Demon's reputation as good for the rest of the game. If you do this, do whatever you can to look as evil as possible. The more evil you look, the more good the Demon looks. 
+
+* Nominate Minions using your ability. Or don't. Whatever you think is best. 
+
+* If an {{Evil|Evil Twin}}, a {{Evil|Witch}}, or a {{Evil|Cerenovus}} are in play, co-ordinate with them to see if you can quickly get the number of living players to just 3 - the {{Evil|Evil Twin}}, the good twin, and the Demon. At this point, evil has usually already won. 
+
+* If the Demon is a {{Evil|Fang Gu}}, watch out! The Demon may change players without you realizing it, and you may accidentally nominate and execute the Demon. Talk with the other evil players to find out which Demon is in play, and stay up to date on all evil gossip. Similarly, if a {{Good|Snake Charmer}} becomes the Demon, you won't want to accidentally nominate your Demon, particularly late in the game. 
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>lnxuitymulz5v6fny0ubn03nto848dj</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Bone Collector</title>
+    <ns>0</ns>
+    <id>187</id>
+    <revision>
+      <id>2485</id>
+      <parentid>2484</parentid>
+      <timestamp>2024-10-28T09:12:08Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* How to Run */</comment>
+      <origin>2485</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="8566" sha1="3a1mn3w3c97u3pokcu8pxhn5c3ec6ko" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_bonecollector.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"I collect many things. Hair. Teeth. Clothes. Fragments of poems. The dreams of lost lovers. My secret arts are not for you to know but my fee is a mere pittance. Bring me the blood of a noblewoman who died of heartbreak under a full moon, and you shall have your answers."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_sects_and_violets.png|100px|link=Sects &amp; Violets]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/41202996/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2021-9-3%2F222062055-44100-2-a9754ed107f35.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Once per game, at night*, choose a dead player: they regain their ability until dusk."
+
+The Bone Collector temporarily gives dead players their ability back.
+* The Bone Collector must choose a dead player. The chosen player remains dead, but they get their ability to use. If their ability was a “you start knowing” or a “once per game” ability—such as the Virgin, Slayer, Clockmaker, Seamstress, or Juggler—they may use it again, even if it was already used, until dusk falls.
+* When the Bone Collector chooses a player, that player does not learn they were selected by the Bone Collector, although they find out soon enough when they are woken to use their ability.
+* If the Bone Collector dies, that player no longer has the ability they regained due to the Bone Collector.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+Each night except the first, wake the Bone Collector. They either shake their head no or point at any dead player. Put the Bone Collector to sleep.
+
+If they pointed at a dead player, '''the chosen player regains their ability'''—mark their character token with the Bone Collector’s '''HAS ABILITY''' reminder. (''They may need to be woken tonight to use their ability.'') '''The Bone Collector loses their ability'''—mark them with their '''NO ABILITY''' reminder. The next dusk, '''the chosen player loses their ability'''—remove the '''HAS ABILITY''' reminder.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Bone Collector gives the dead {{Good|Flowergirl}} her ability back. That night, the {{Good|Flowergirl}} learns that the Demon did indeed vote today. The following night, the {{Good|Flowergirl}} once again has no ability.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Bone Collector chooses the dead {{Evil|Witch}}. The {{Evil|Witch}} wakes and curses the {{Good|Clockmaker}}. The {{Good|Clockmaker}} nominates the following day, and dies.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				At night, the Bone Collector chooses the dead {{Traveler|Butcher}}. The following day, after an execution has occurred, the Storyteller prompts the {{Traveler|Butcher}} to nominate again.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				During the day, the dead {{Good|Juggler}} guesses five players’ characters. That night, the Bone Collector gives the {{Good|Juggler}} their ability back. The {{Good|Juggler}} learns a "3".
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are good) ==
+
+* As the Bone Collector, you'll want to know exactly which characters are dead. Talk to the dead players. Find out if any of them are actually different characters than they said they were when alive. Once there are a number of dead players, you'll be able to make a good decision on which one of their abilities would be most useful to have back in the game. If you think the Demon has changed players, maybe return the {{Good|Clockmaker}} ability or the {{Good|Flowergirl}} ability? If you need to know which twin is the {{Evil|Evil Twin}}, maybe return the {{Good|Town Crier}} ability, or the {{Good|Seamstress}}  ability? If you need to figure out whether a {{Evil|Vortox}} is in-play, maybe return the {{Good|Dreamer}}  or the {{Good|Juggler}}  ability?
+
+* You'll want to give back the ability of Townsfolk only. Returning the ability of an Outsider, Minion or Demon is not going to be very helpful. Occasionally, you may want a dead Traveller to use their ability again. 
+
+* Signal to the group that you'd like to use your power on a particular player tonight. [[Sects &amp; Violets]] needs all good players to co-operate well, so letting the group know what your intention is can really help. You can even have a private conversation and ask a player whether they would like to have their ability back tonight - they'll usually have an opinion on the matter. The Demon usually won't kill Travellers when there are Townsfolk and Outsiders to kill, so you'll probably live through the night.
+
+* Don't signal at all! Give a player's ability back out of the blue! This has the advantage that the evil team doesn't know what you are doing, so can't plan around it. 
+
+* If you have chosen a player, but things seem a bit wonky the following day - there seems to be a different Minion in play than before, or the wrong number of Minions - then you may have accidentally given a dead Minion their ability back. If you think you have done so, this is still great information, since knowing the alignment of dead players is always helpful. Similarly, if a death occurred last night, but the last few nights have had no deaths, you may have given the dead Demon its ability back in a game where an {{Evil|Evil Twin}} was keeping the game going. 
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Talk to the dead players. Pretend that you are trying to figure out which of them is the best for you to use your ability on. This gives you ample excuse to have private conversations with dead evil players.
+
+* Target Minions whenever you can. Talk to the Demon to learn who the Minions are, and give them their ability back as soon as you can. You may want to tell the Minion in question that you are going to do so, so that they can claim to have gotten the ability of their bluffed character instead. Usually though, a Minion that gets their ability back for a night will stay quiet about it, and you will too.
+
+* Give Townsfolk their ability back, if you are aiming to appear like a good player. The Townsfolk in question will trust you, and if the group trusts them, they'll trust you too, and keep you alive until the final day. You will have gained an important extra vote on the final day, but at the cost of giving the good team an extra piece of information. Do your best to pick a Townsfolk player whose information isn't going to be very helpful.
+
+* Pretend to use your ability, but don't. Get a dead Minion to tell the group that they got their Townsfolk ability back last night. Or simply signal to the entire group who you intend to use your ability on tonight, choose the Minion player, and hope they understand that you are faking it. Later in the game, give the Minion their ability back for real.
+
+* Tell the group that you gave a particular player their ability back last night, but keep your ability for another time. The player in question (if they are good) will deny that they got their ability back. The group will know that one of you is evil, and will probably exile you to be sure, but you at least throw confusion in as to who might be evil!
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>3a1mn3w3c97u3pokcu8pxhn5c3ec6ko</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Harlot</title>
+    <ns>0</ns>
+    <id>188</id>
+    <revision>
+      <id>2105</id>
+      <parentid>2104</parentid>
+      <timestamp>2024-07-02T23:11:33Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Tips &amp; Tricks (if you are good) */</comment>
+      <origin>2105</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="13563" sha1="1hg51djfpipiky6kgx4idmrjkf5d8ky" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_harlot.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Caitlin Murphy&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Enchanté, Sailor. You look like you need someone to really listen to your troubles. I'm a good listener. Very, very good."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_sects_and_violets.png|100px|link=Sects &amp; Violets]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/40581673/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2021-8-21%2F219606913-44100-2-e6c4fe58e8ff.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each night*, choose a living player: if they agree, you learn their character, but you both might die."
+
+The Harlot learns the character of whoever agrees to reveal it, but at great risk for them both.
+* Each night, the Harlot chooses a player. That player has a decision to make: do they reveal their character to the Harlot? If they do, the Storyteller may decide that both this player and the Harlot die tonight.
+* The Harlot only learns the character of the chosen player, not that player’s alignment.
+* The Harlot may discuss during the day which character they would like to pick at night, and other players may offer to be picked, but they may go back on their word and choose differently when night comes.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+Each night, wake the Harlot. The Harlot points at any player. Put the Harlot to sleep. Wake the chosen player, show them the '''THIS CHARACTER SELECTED YOU'''' info token, then the Harlot token. That player either nods their head yes or shakes their head no. Put that player to sleep.
+
+If they shook their head no, then nothing happens. Continue with the night phase.
+
+If they nodded their head yes, wake the Harlot and show them the chosen player’s character token. Put the Harlot to sleep. You may decide that both players '''die'''—mark them with '''DEAD''' reminders.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+When choosing whether to kill players, do what you feel is the most interesting and balanced. If the Demon reveals to the Harlot, you should not end the game by killing them.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The good Harlot wakes and chooses the {{Good|Philosopher}}, who chooses to reveal. The next night, the Harlot chooses the {{Evil|No Dashii}}, who chooses not to reveal. The next night, the Harlot chooses the {{Good|Mutant}}, who chooses to reveal. The Storyteller decides that the Harlot and {{Good|Mutant}} die tonight.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The evil Harlot chooses the {{Good|Sage}}, who reveals. The next day, the Harlot says the {{Good|Sage}} is actually the {{Evil|Witch}}.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are good) ==
+
+* Early in the game, learn as many players' characters as possible. If you can learn a player's character each night for 2 or 3 nights, this information might be enough for the good team to win the game. Even if you and another player die in the process, you can still talk, and your information is just as valid and helpful. Early in the game, an extra good player dying is hardly much of a sacrifice for the incredible knowledge you gain.
+
+* Late in the game, if you are still alive, be much more frugal and cautious with who you choose to encounter each night. At this stage, a good player dying may end the game, or put the good team in a very precarious position. Listen to the players talk, and decide which characters are expendable, and which players are not.
+
+* In Blood On The Clocktower, information trumps death. The Harlot is no exception. The information that you gain is well worth dying for, and well worth another player dying for, too. Communicate this fact to the group on day 1. Communicate this fact to the group on day 2. Communicate this fact every day until players agree to meet you at night time. The best case scenario is that you learn their character, and you both live - which is fantastic. The worst case scenario is that you learn their character, and you both die - which is still pretty good. 
+
+* Choose players unexpectedly of a night time. Don't tell them beforehand that you plan to choose them. Evil players will usually say "no" immediately, whilst good players are more likely to hesitate longer, since they have a more difficult decision to make. If the Storyteller wakes you after a longer than normal time, you may have found a good player. This dynamic may not be true for your group. Use your best judgement.
+
+* Talk to players during the day to arrange a tryst, so that they are not surprised by you selecting them come dusk. Talk to as many players as possible each day, and find the ones who are keen to meet you tonight. This way, you can be sure to use your ability as much as possible, and learn as much information as possible. There is no point wasting your ability on people who refuse to let you learn their character.
+
+* Be suspicious of people who refuse to meet you at night. They may be a good character that want to stay alive as long as possible, such as a {{Good|Flowergirl}} or a {{Good|Savant}}, they might be evil, or they might be lying to you for other reasons. 
+
+* Be prepared for evil players to reveal their character to you, even if they know that you are good. It is rare, but it does happen. Some evil players that you choose at night will reveal that they are evil because they are afraid that you will think that they are evil anyway if they don't. They may think that they have a much better chance convincing the group that they are good, but you are evil, once you tell the group what you learnt. Be prepared to go one-on-one with such a player - either they will get executed, you will get exiled or more likely both.
+
+* Tell the truth about good players you learn. This builds trust with them, and increases the likelihood that other good players will agree to meet you at night so they can reveal their character to you too. 
+
+* Lie about good players you learn. The good player will think that you are evil, but there is a chance that evil players will think that you are evil too. Some games have been won by a crafty good Traveller who looks as evil as sin and starts a private conversation with a suspected evil player by saying "The Demon wants you to exile me", or "I'm going to choose a Minion tonight, and make them look good", and then judging the reactions of the Minion or Demon player. This strategy is risky, as you'll probably never be able to convince the good team that you are actually good unless evil takes the bait and takes you into their fold. 
+
+* Lie about the characters of the good players you learn to the group, but plot in secret with the players whose characters you know. For example, if you learn that a certain player is the {{Good|Sweetheart}}, you can tell them privately that you know who they are (they will believe you if they have not told anyone else they were the {{Good|Sweetheart}}), but you both tell the group that they are the {{Good|Clockmaker}}. The Demon will not want to kill the {{Good|Clockmaker}} but will want to kill the {{Good|Sweetheart}}, and you've just saved their life.
+
+* Tell the truth about evil players you learn. You know they are evil. Get them executed. If you learn that a player is a particular Demon, that is huge information for the group to use. If you learn that a particular Minion is in play, this can forewarn the group that a {{Evil|Pit-Hag}}, {{Evil|Witch}} or {{Evil|Cerenovus}} is working behind the scenes, and that the good team should be aware of it.
+
+* Lie about evil players you learn. This builds trust with both the evil team and the good team. The evil team may think that you are evil... and reveal information that they shouldn't. The good team will probably think that you are good... and keep you alive. After you've learnt another player or two's character, you can reveal that the first player you learn was actually evil. 
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Early in the game, choose the Demon, so that you can convince them you are their alignment. You can let them know that you are both on the same side without needing to have private conversations. You learn their character when they reveal it to you. They learn your alignment when you reveal that they are good the following day. A wink, or a surreptitious look before the night phase begins, can help the Demon player know that you know who they are, and that you want them to reveal to you. The Storyteller will not kill the Demon player due to the Harlot ability - you are both safe.
+
+* In the later game, act like you really don't want players to meet you at night. That's what a good Harlot would do. But if you can actually cause a death at night on the final night or two of the game, the evil team could be going into the final day with decent voting power. Even if you kill a Minion late in the game, it is worth it. Killing a Minion or two to make the final day approach faster means that there are fewer days available for the good team to execute the Demon.
+
+* Information trumps death. Communicate this, just as if you were a good player. The more information the good team has, the more likely they can execute the Demon, even if there are fewer players alive. Do whatever you can, day after day, to convince players to gain information by meeting you... by convincing them that the information gained is worth it. That would actually be the truth... if you were good. Of course, the good team will only be getting the information that you choose to give them, but they don't know that. 
+
+* Talk to players during the day to arrange a tryst. Each night, only select those players that actually want to reveal their character to you. This way, you learn as many characters as possible, and information is power.
+
+* Talk to players during the day under the guise of finding willing players to select at night, but select those players that you think will not reveal their character to you. You can tell the group that they  said they would reveal their character to you, but didn't. This makes them look very suspicious.
+
+* Tell the truth about good players who share their character with you. This builds trust, and keeps you alive, but at the price that the group now believes that they are good too.
+
+* Lie about good players who reveal to you. Say that they are a particular Minion - as long as you can be sure which Minion(s) are in play. You don't want to tell the group that you just found the {{Evil|Cerenovus}} in a 1 Minion game, and then have a player die by {{Evil|Witch}} curse. If you are feeling extra bold, tell the group that you just found the Demon. It will be your word against theirs, and you'll need a good argument as to why you think the Demon revealed to you, but the odds are good that you'll get that player killed as well as yourself - and that usually counts as worthwhile. Additionally, you may want to tell the group the real Demon type, or a fake Demon type to lead them astray.
+
+* Tell the truth about evil players you learn. If you do this, you'll want to look as evil as possible yourself, so that the good team thinks that you are an evil Harlot that is trying to make good players look evil.
+
+* Lie about evil players you learn. This is the standard procedure. Make evil players look good. Make good players look evil. Protect your friends and be vicious with your enemies.
+
+* Form pacts with players that you learn. If you learn a particularly valuable good player's character, such as the {{Good|Savant}} or the {{Good|Sage}}, you can talk privately with them, let them know you know who they are, and agree to tell the group that they are a different character completely. Of course, you can also have private words with the Demon afterwards, and let them know who to kill or not to kill, respectively.
+
+* Say that players revealed to you when they didn't. Choose a good player that you think you can out-argue. Choose them at night. If they do reveal to you, do whatever you want with that information. But if they don't reveal to you, tell the group that they did, and that they are an evil character. 
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>1hg51djfpipiky6kgx4idmrjkf5d8ky</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Barista</title>
+    <ns>0</ns>
+    <id>189</id>
+    <revision>
+      <id>2694</id>
+      <parentid>2185</parentid>
+      <timestamp>2025-04-15T08:12:08Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>2694</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="8073" sha1="r8flpw4clltludbqx75xpbt9qtlb4gh" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_barista.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Aidan Roberts&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"A cup of coffee with no cream, Monsieur? I’m terribly sorry, but we’re fresh out of cream — how about with no milk?"&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_sects_and_violets.png|100px|link=Sects &amp; Violets]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/39915706/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2021-8-7%2F216979112-44100-2-0ceb24ccda946.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each night, until dusk, 1) a player becomes sober, healthy &amp; gets true info, or 2) their ability works twice. They learn which."
+
+The Barista either makes people sober &amp; healthy, or allows them to act twice as much as normal.
+* The Storyteller chooses which player the Barista affects each night, and which one of the two Barista abilities is in effect. The Barista does not know who or what the Storyteller chooses, but the affected player does.
+* If the affected player is acting twice, then they do so at the normal time. If they would normally wake at night, they act, go to sleep, then wake to act again. If they have already used a “once per game” ability, they may use that ability again. If they have a “once per game” ability but have not used it yet, they may use it twice before dusk.
+* If the Barista makes a player sober and healthy, their drunkenness and poisoning, if any, is removed, and they may not become drunk or poisoned until dusk. This player must get true information, even if a Vortox is in play.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+== How to Run ==
+
+Each night, remove previous reminders then put the Barista’s '''SOBER AND HEALTHY''' reminder or their '''ACTS TWICE''' reminder by any character token. Wake that character’s player and show them the '''THIS CHARACTER SELECTED YOU''' info token, the Barista token, then one finger (''to show they are sober and healthy'') or two fingers (''to show they act twice''). Put that player to sleep.
+
+A player marked '''SOBER AND HEALTHY''' is sober and healthy (even if they’re also marked '''DRUNK''' or '''POISONED''') and always gets true information (''even if an ability would make them drunk or poisoned'').
+
+A player marked '''ACTS TWICE''' acts twice at the appropriate time. (''If the ability is optional, they may use it twice. If it is mandatory, they must use it twice.'') Use the Barista’s '''?''' reminders if needed, to substitute for the character’s own reminders.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+Some characters are better off knowing they are sober and healthy, as they gain no benefit from acting twice, such as the Flowergirl, Town Crier, or Oracle.
+&lt;hr /&gt;
+The Barista ensures players get true information even if an ability causes false information, such as a Fortune Teller, Spy, or Recluse.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Barista makes the {{Good|Sage}} sober and healthy. 
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The {{Good|Klutz}} acts twice. They die and must choose two players. If either is evil, evil wins. The next night, the Barista makes the {{Evil|Witch}} act twice. Two players are cursed.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* The Barista's ability is a passive ability - it affects the other characters in the game no matter what you do. Sit back and enjoy yourself. Spend your time listening to the other players and figuring out who is who, instead of worrying about maximizing your ability.
+
+* The Storyteller will help the good team more than the evil team, even though occasionally they may select an evil player to benefit from your ability. The Storyteller will choose roughly 2 good players for every evil player - you are a good player after all, and deserve to benefit from your ability. When this happens, other good players may decide that it is better if you are exiled. You'll need to convince them to keep you alive. The longer you are alive, the more your ability will help the good team. Remind them that even if 2 players died last night, that just means that your ability will probably help the good team tonight.
+
+* Having a good player act twice can be very helpful, if that player is a character such as the {{Good|Artist}}, {{Good|Seamstress}}, or {{Good|Clockmaker}}. However, don't underestimate the power of a player knowing that they are sober, healthy, and getting true information. This means that even a player sitting next to a {{Evil|No Dashii}} is getting true information. It even means that in a game with {{Evil|Vortox}}, this player will get true information. Encourage this player to speak up, because whatever they have to say will carry much more weight than the words of a player who might be drunk or poisoned.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* The Barista's ability is a passive ability - it affects the other characters in the game no matter what you do. Sit back and enjoy yourself. Or at least, pretend to. You'll have a harder time staying alive than a good Barista, but you can do it!
+
+* The Storyteller will use your ability to help the evil team more than the good team. You are an evil player and deserve to reap the benefits of your ability. However, the Storyteller will sometimes help the good team by allowing a good player to act twice, or letting them know that they are sober and healthy. This is actually helpful to you - because if the Storyteller only used your ability on evil players, the good team would quickly learn that you were evil, and exile you. Live as long as you can, by convincing the group that you are good. The longer you live, the more times the Storyteller will make an evil player act twice.
+
+* If evil players are selected to benefit from your Barista power, they will usually act twice. The good team may not realize this though, since the {{Evil|Witch}}, {{Evil|Cerenovus}} and {{Evil|Pit-Hag}} effects may not be obvious. Be on the lookout for multiple {{Evil|Witch}} targets and see if you can convince 2 cursed players to die by nominating. Also, question any players who seem like they may be mad due to the {{Evil|Cerenovus}} - a little pressure may make them crack, and be executed as a result. 
+
+* If evil players are selected to benefit from your Barista power, encourage them to claim to have learnt they are sober, healthy &amp; getting true info. In [[Sects &amp; Violets]], all information should be treated as suspect... but you are the character that brings certainty. An evil player giving false information under the cover of claiming to know they are sober &amp; healthy can swing a game to team evil.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>r8flpw4clltludbqx75xpbt9qtlb4gh</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Deviant</title>
+    <ns>0</ns>
+    <id>190</id>
+    <revision>
+      <id>2661</id>
+      <parentid>2660</parentid>
+      <timestamp>2025-01-15T18:14:38Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Tips &amp; Tricks (if you are evil) */</comment>
+      <origin>2661</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="5741" sha1="ai8224uoe337daud6dgaa6uwzngkkkt" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_deviant.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;John Grist&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Twas the lady's quip, forsooth."&lt;/p&gt;
+	
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center;"&gt;Appears in&lt;/span&gt;
+			[[File:logo_sects_and_violets.png|100px|link=Sects &amp; Violets]]
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Cult of the Clocktower Episode&lt;/span&gt;
+			&lt;span style="display: block; color: black; font-size: 14px; text-align: center;"&gt;by Andrew Nathenson&lt;/span&gt;
+			&lt;div style='padding-bottom: 10px' class="html5audio" data-file="https://anchor.fm/s/daf1f9c/podcast/play/41202996/https%3A%2F%2Fd3ctxlq1ktw2nl.cloudfront.net%2Fstaging%2F2021-9-3%2F222062055-44100-2-a9754ed107f35.m4a"&gt;You need to enable JavaScript to play this audio&lt;/div&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"If you were funny today, you cannot die by exile."
+
+The Deviant can avoid being Exiled - as long as the Deviant player has been amusing today.
+* The Deviant can amuse the group in any way they choose. Generally, verbal means such as jokes, funny stories, or witty remarks will suffice.
+* The Storyteller is the judge of whether the Deviant was funny or not.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+If the Deviant would be exiled, you may declare that the Deviant
+remains alive.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt;
+It is best to be forgiving and treat even a slightly funny Deviant as funny. It can be tough to be funny when one is expected to be, after all.
+&lt;hr /&gt;
+If the player would prefer, you may determine different criteria for whether the Deviant is exiled. If being “funny” is difficult, you may reward the Deviant who “creates a positive mood” or “is helpful to others” instead. The Deviant is not a serious character, and it is meant to encourage laughter, lightheartedness, and fun, so adjust the Deviant rules to your players’ needs and talents.
+&lt;/div&gt;
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The evil Deviant cracks a few jokes, and gets a few laughs, but the players nevertheless decide to exile them. Even though there are enough votes, the Storyteller decides to keep the Deviant alive. 
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				On the third day, the Deviant was slightly funny, and cannot be exiled. On the fourth day, the Deviant was not very funny, and is successfully exiled.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* Oh man. If you are hoping that this wiki entry will teach you how to be funny, you are in trouble. See if you can get a giggle. Do your best, and use your words to lighten the mood - even setting a good vibe might be enough to avoid dying. Above all, relax, be yourself, and be ok with not being funny, should it pan out that way. Sometimes we all fall flat. Good luck :)
+
+* If you are the Deviant, but find it too much of a challenge to be funny on call, talk to the Storyteller. Together, you may determine different criteria for whether the Deviant is exiled. Instead of “being funny”, you could “create a positive mood” or “be helpful to others” instead. The Deviant is not a serious character, and its purpose is to provide an avenue for laughter, lightheartedness, and fun, so talk to the Storyteller about adjusting the Deviant criteria to your needs and talents. 
+
+* Some personal favorite comedy routines for people in need of inspiration:  [https://www.youtube.com/results?search_query=steven+wright Steve Wright] and [https://www.youtube.com/watch?v=FJdzoY-Wsc8 Larry Miller].
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* Oh man. If you are hoping that this wiki entry will teach you how to be funny, you are in trouble. See if you can get a giggle. Do your best, and use your words to lighten the mood - even setting a good vibe might be enough to avoid dying. Above all, relax, be yourself, and be ok with not being funny, should it pan out that way. Sometimes we all fall flat. Good luck :)
+
+* If you are the Deviant, but find it too much of a challenge to be funny on call, talk to the Storyteller. Together, you may determine different criteria for whether the Deviant is exiled. Instead of “being funny”, you could “create a positive mood” or “be helpful to others” instead. The Deviant is not a serious character, and its purpose is to provide an avenue for laughter, lightheartedness, and fun, so talk to the Storyteller about adjusting the Deviant criteria to your needs and talents. 
+
+* Some personal favorite comedy routines for people in need of inspiration: [https://www.youtube.com/results?search_query=billy+connolly Billy Connolly] and [https://www.youtube.com/watch?v=uw8dW9Hyno0 Rowan Atkinson].
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Travellers]]</text>
+      <sha1>ai8224uoe337daud6dgaa6uwzngkkkt</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Gangster</title>
+    <ns>0</ns>
+    <id>191</id>
+    <revision>
+      <id>2774</id>
+      <parentid>2766</parentid>
+      <timestamp>2025-06-12T21:58:12Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <comment>/* Summary */</comment>
+      <origin>2774</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="9783" sha1="2rqtmrvzgdjhojhl1lola9qv9xhggkl" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_gangster.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Anica Kelsen&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;02/05/2021&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"I like your shoes. It would be such a shame if you had a little accident, and they got ruined. Now that you mention it, I like your cufflinks too."&lt;/p&gt;
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Once per day, you may choose to kill an alive neighbor, if your other alive neighbor agrees."
+
+The Gangster encourages their neighbors to kill each other.
+* The Gangster may kill one of their two living neighbors. Their dead neighbors are skipped over, and do not count.
+* To use their ability, the Gangster and one of their living neighbors must agree to kill the other living neighbor. The Storyteller must hear and confirm this agreement. The Gangster cannot kill without the Storyteller present.
+* Each day, the Gangster may say whatever they want, and offer any encouraging words they want to either player. Once an agreement has been reached, then the Gangster may not use their ability again today, even if that player didn’t die due to an ability protecting them.
+* The Gangster’s two living neighbors are always one clockwise, and one counter-clockwise.
+* If both living neighbors want to kill the other, the Gangster decides who dies.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+Once per day, the Gangster can declare that they wish to use their ability. If so, ask if an alive neighbor agrees. If an alive neighbor agrees, the other alive neighbor '''dies'''. If both alive neighbors agree, the Gangster chooses which alive neighbor '''dies'''. If neither alive neighbor agrees, the Gangster may not use their ability today.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Gangster neighbors the {{Good|Saint}} and the {{Evil|Baron}}. The Gangster asks the {{Evil|Baron}} if they want to kill the {{Good|Saint}}. The {{Evil|Baron}} agrees and the {{Good|Saint}} dies.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Gangster neighbours the {{Good|Chambermaid}} and the {{Good|Poppy Grower}}, but they are both dead. The Gangster’s two living neighbours are the {{Good|Engineer}} and the {{Evil|Po}}. The Gangster talks with the {{Evil|Po}} and offers to kill the {{Good|Engineer}}. The {{Evil|Po}} declines. The Gangster talks with the {{Good|Engineer}} and the {{Good|Engineer}} asks the Gangster to kill the {{Evil|Po}}. The Gangster agrees, and the {{Evil|Po}} dies. Good wins.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Gangster neighbours the {{Good|Fool}} and the {{Good|Sage}}. The {{Good|Sage}} and the Gangster kill the {{Good|Fool}} but the {{Good|Fool}} doesn’t die, because of the {{Good|Fool}}'s ability. The Gangster may not use their ability again today.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+== Tips &amp; Tricks (if you are good) ==
+
+* Find out the characters of your living neighbours. They will know you are the Gangster. It is best if you know their characters too. Learn what they are before making any rash decisions on who to kill. 
+
+* Talk to each living neighbour. Convince them to "give you permission" to kill the other player, even if they think the other player is good. You are good, so being able to kill either living neighbour at any time is a powerful, and hopefully helpful, option to have. You can always choose not to kill either player, even if both players want you to kill the other. 
+
+* If you can, kill every day. Just by playing the odds, killing two players per day (one by execution and one by Gangster) means that the good team is twice as likely to kill the Demon and win. Even if you think both your living neighbours are good, it's worth it. 
+
+* When choosing which player to kill, aim for evil players first. If you suspect someone of being evil, arrange for them to sleep with the fishes. If you don't really suspect either player of being evil, choose the player that has a character ability that seems less useful to the good team or the one that seems less willing to die.
+
+* If you believe that both your neighbours are good, and they both have character abilities that will continue to be useful for the rest of the game, don't kill today and don't ask for each player to kill the other. This way, they can both use their abilities to the fullest. You probably won't want to kill a {{Good|Mayor}}, a {{Good|Sage}} or a {{Good|King}}, and if they die at night, then you will get to use your ability on a new living neighbour instead - your ability is also very useful, and it would be a shame to never use it. 
+
+* If you think that a particular player is the Demon (or even a Minion), then kill players that are sitting between you and them. Hopefully, in a day or two, you and the Demon will be living neighbours and you can kill them with your ability. 
+
+* Before the final day, request that the group exile you. An evil Gangster that is alive when just 3 other players are left alive can win the game for the evil team by agreeing with the Demon to kill another player. Getting yourself exiled means that you won't be able to use your ability on the final day, but it will be a show of good faith to the good team. If the good team believes that you are good, they will look at your previous kills as the best choices of a good player, and not erroneously assume that you were just killing good players because you were evil.
+
+* Remember that you need your living neighbours to agree to use your ability. You can't just do it on their behalf. You'll need to make friends with them, and convince them that you are good and have the good team's interests at heart. They may not want you to use your ability, and with good reason. 
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+
+* If both your living neighbours are good, turn them against each other. If they both think that they are both good, they are unlikely to kill each other. Find some way to imply that at least one of them is evil, and one is likely to kill the other. 
+
+* If one of your living neighbours is evil, they have every reason to want to kill the other living neighbour. The trick won't be in convincing them to do it, but in coming up with a good reason why. Talk to your evil neighbour and help them formulate a valid reason to tell the group since evil players that are too gung-ho in using the Gangster may appear evil.  You can even act reluctant to kill the other neighbour and claim that you are doing so only because there is no better choice.
+
+* Get as many good players killed as possible. It doesn't matter how you do it. Every good player that dies is one fewer good player gaining information, one fewer player using an ability against the evil team,and one fewer good player voting.
+
+* Get any non-Demon player killed. Even if Minions die due to your ability, that means that the final day is sooner, and evil's victory is sooner. Similarly, if Outsiders die to your ability, then evil is closer to winning. Don't be too concerned about what each player's character is... as long as they are not the Demon, they are probably best dead. 
+
+* Talk to any evil living neighbours before talking to any good living neighbours. Many players will want to kill the other player before that other player kills them, and talking to an evil neighbour first gives you a good excuse to kill the good player. 
+
+* Every so often, it is better for the evil team if certain characters die by execution. Characters such as the Good Twin (see the {{Evil|Evil Twin}}) or the {{Good|Saint}} lose the game for the good team if executed, so it is best to not kill them using your Gangster ability. Beware of pushing too hard here, though, as there's little reason for a good Gangster to not be willing to kill a {{Good|Saint}}.
+
+* If you suspect that a good neighbour is about to be nominated and executed, don't kill them with your Gangster ability today. A death by the Gangster's ability doesn't count as an execution, and the day will continue afterwards. It is more helpful to the evil team if the day ends after the death occurs, so that the Demon can't accidentally be executed today as well. 
+
+* Choose players to die so that the distance between you and the Demon is maximised. Since the Gangster can only kill living neighbours, the good players may have some very strong opinions on which of your living neighbours should die. If one of your living neighbours is the Demon, they may put a lot of pressure on you to kill them, and while you can always choose not to, this may end up looking incredibly suspicious and reveal that you are evil and know who the Demon is. It is best to avoid this situation by never neighbouring the Demon in the first place. When the Demon is sitting 2, 3, 4, or more players away from you, keep it that way by killing players in the opposite direction.
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Travellers]]</text>
+      <sha1>2rqtmrvzgdjhojhl1lola9qv9xhggkl</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Gnome</title>
+    <ns>0</ns>
+    <id>391</id>
+    <revision>
+      <id>2633</id>
+      <parentid>2532</parentid>
+      <timestamp>2024-12-18T13:21:08Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>2633</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="5973" sha1="80mplxkxhikigsayc85yp4irf1abq62" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_gnome.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Artist&lt;/td&gt;
+					&lt;td&gt;Chloe McDougall&lt;/td&gt;			
+				&lt;/tr&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Revealed&lt;/td&gt;
+					&lt;td&gt;01/11/2024&lt;/td&gt;			
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Four the score or seven beers, no shows are goes for me and my. A prank to crack the cranks and planks o' the floor foundation length, so incontravertabubbilly mini. The large essays down streams of joyce, no greater than is scene, not inherdt, Ha-urrumph.o."&lt;/p&gt;	
+
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 20px;"&gt;Character Showcase&lt;/span&gt;
+			&lt;youtube&gt;DQwvN-wYogY&lt;/youtube&gt;	
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"All players start knowing a player of your alignment. You may choose to kill anyone who nominates them."
+
+The Gnome protects one player on their team.
+* The Gnome starts as the same alignment as one other player - their "amigo". The Storyteller publicly announces which player this is.
+* When their amigo is nominated, it is the Gnome's responsibility to speak up. The Storyteller may not prompt them to use their ability.
+* If their amigo changes alignment, the Gnome's alignment does not change.
+* The Gnome may use their ability any number of times over the course of the game, including zero. Their amigo may still only be nominated once per day.
+* When the Gnome uses their ability, and the Storyteller confirms it, the nominator dies immediately. Voting for execution still occurs.
+* Regardless of what the group wants, it is always the individual player's decision whether they wish to nominate or not, and always the Gnome player's decision on whether they wish to use their ability or not. If the Storyteller feels that a player is being pressured into nominating or using their ability when they don't want to, the Storyteller may not recognize that nomination or ability use.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+During the day, as soon as the Gnome has entered play, mark a player of the same alignment with the '''AMIGO''' reminder. Declare that this player is the same alignment as the Gnome.
+
+If this player is nominated, but before you have started the voting process, if the Gnome player declares that they wish to use their ability, the nominator '''dies'''.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				The Gnome starts the game at the same time as the rest of the players, and is good. Amy is the {{Good|Alsaahir}}. Before the first night, the Storyteller announces that the Gnome is the same alignment as Amy. The {{Good|Engineer}} nominates Amy on day 3. The Gnome does not use their ability.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				The Gnome enters the game on the 2nd day, and is evil. Lewis is the Demon. At this time, the Storyteller announces that the Gnome is the same alignment as Lewis. On the 2nd day, the {{Evil|Boffin}} nominates Lewis, and is killed by the Gnome. On the 3rd day, the {{Good|Zealot}} nominates Lewis, and is killed by the Gnome. On the 4th day, the {{Good|Village Idiot}} nominates Lewis, and the Gnome does not use their ability.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are good) ==
+* Get as many players as possible to nominate your amigo. This gives you more opportunities to use your ability to target evil players, and gives you opportunities to learn more about which players are comfortable or hesitant to die to your ability.
+
+* Stay silent so players forget you are in play, then jump in to use your ability when they least expect it! (because no one expects the Spanish Inquisition)
+
+* Taunt or dare players to nominate your amigo to see how they respond.
+
+* Don't vote for your amigo, &amp; encourage other players not to vote for your amigo. You know they are good, so it's in your best interests to keep them alive!
+
+* Talk to players in the game to gain information about whether or not you want to use your ability to kill them. 
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+* If your amigo is the Demon, get as many players as possible to nominate them.
+
+* If your amigo is a Minion, get as few players as possible to nominate them.
+
+* If your amigo is a Minion, make sure the Demon is bluffing a role that wouldn't want to nominate your amigo. Otherwise, good players will pressure the Demon to nominate your amigo, and you'll all look suspicious when your Minion doesn't kill them!
+
+* Your social play reflects on your amigo! If you look too evil, you risk good players figuring out that your amigo is evil by association. 
+
+* Be a part of discussions about which players should nominate your amigo. This will influence good players' opinions about who is a good player to kill. 
+
+* If your amigo is a Minion and players think you're evil, be distracting! Draw heat away from your Demon by focusing conversations and discussion on you and your amigo.
+
+* Be chaotic and surprise players with how you use your ability. And if worst comes to worst, if you really want to sow confusion, you can always nominate your amigo and then kill yourself...
+		&lt;/div&gt;
+	&lt;/div&gt;
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Travellers]]</text>
+      <sha1>80mplxkxhikigsayc85yp4irf1abq62</sha1>
+    </revision>
+  </page>
+  <page>
+    <title>Cacklejack</title>
+    <ns>0</ns>
+    <id>412</id>
+    <revision>
+      <id>2901</id>
+      <parentid>2852</parentid>
+      <timestamp>2025-09-24T08:34:17Z</timestamp>
+      <contributor>
+        <username>Administrator</username>
+        <id>1</id>
+      </contributor>
+      <origin>2901</origin>
+      <model>wikitext</model>
+      <format>text/x-wiki</format>
+      <text bytes="7010" sha1="m8y3d51lecpawadi1jpmji3kouyex1j" xml:space="preserve">__NOTOC__
+&lt;div class="row"&gt;
+
+	&lt;div class="small-12 large-3 large-push-9 columns" style='margin: 0 auto; text-align: center'&gt;
+
+		&lt;div id='character-details'&gt;
+
+			[[File:icon_cacklejack.png|250px]]
+			&lt;span style="display: block; color: black; font-size: 20px; text-align: center; margin-top: 10px;"&gt;Information&lt;/span&gt;
+
+			&lt;table style="width: 90%; margin: 0 auto;"&gt;
+				&lt;tr&gt;
+					&lt;td&gt;Type&lt;/td&gt;
+					&lt;td&gt;[[Character Types#Traveller|Traveller]]&lt;/td&gt;
+				&lt;/tr&gt;
+			&lt;/table&gt;
+
+			&lt;p class='flavour'&gt;"Wire α To wire β. LigHt oN. BuZZer off. GAzOinks! Arms STra1ght. FingER 2 nose. hOooLd stiLL. BoiNgo-banGo! Ha-ha-ha!"&lt;/p&gt;	
+
+		&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div class="small-12 large-9 large-pull-3 columns"&gt;
+
+	&lt;div class="row"&gt;
+
+		&lt;div class="small-12 large-6 columns"&gt;
+== Summary ==
+"Each day, choose a player: a different player changes character tonight."
+
+The Cacklejack causes character-changing chaos.
+
+* The Storyteller chooses one player to change character each night. This player can be evil or good, dead or alive.
+* The Storyteller also chooses which character they become. This may be an in-play or a not-in-play character.
+* Each day, the Cacklejack chooses a player that is immune - the Storyteller must choose a different player to change character that night.
+* The Cacklejack may choose publicly or privately, but must choose during the day.
+* Each time a player’s character changes, this is treated as a new instance of that character ability. For example, if a player becomes the Chef on Night 3, they immediately learn how many pairs of evil players there are.
+		&lt;/div&gt;
+
+		&lt;div class="small-12 large-6 columns" style="padding-right: 0;"&gt;
+
+== How to Run ==
+
+Each day, the Cacklejack chooses a player. Mark them with the '''NOT ME''' reminder.
+
+Each night, except the first, replace any player’s character token with a different character token. Wake that player. Show the '''YOU ARE''' info token, and their new character token, then put them to sleep.
+
+&lt;div class="example" style="color: #5d2123; font-style: italic; font-family: GoudyOldStyle;"&gt; 
+Remember that the night order is just a guide. The Cacklejack may act at any point in the night if you need it to.
+&lt;/div&gt; 
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Examples ==
+
+			&lt;div class='example'&gt;
+				During the day, the Cacklejack chooses Evin. That night, Amy changes from the {{Good|Acrobat}} into the {{Good|Clockmaker}}. Amy learns a 2.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				During the day, the Cacklejack chooses Abdallah. That night, Julian changes from the {{Good|Drunk}} into the {{Good|Flowergirl}}. Julian does not learn that he is now sober.
+			&lt;/div&gt;
+
+			&lt;div class='example'&gt;
+				During the day, the Cacklejack chooses Alex. That night, Lachlan changes from the {{Evil|Leviathan}} into the {{Evil|Shabaloth}}. Lachlan has fun.
+			&lt;/div&gt;
+
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are good) ==
+* Talk to everyone! Figure out which players have abilities they’d like to keep, like a powerful {{Good|Fortune Teller}} or a curious {{Good|Amnesiac}}, and choose one of those players with your ability each day.
+
+* Avoid choosing players whose abilities can harm the good team, like the {{Good|Recluse}} or the {{Good|Barber}}, in the hopes that the Storyteller will Cacklejack them into a more helpful character for your team.
+
+* Be intentional about whether your choices are public or private. If you publicly choose the socially trusted Undertaker, the good team is likely to think you’re a good Cacklejack, but the public announcement might tip off the evil team, allowing evil players to deduce that your chosen player is a powerful Townsfolk. If you make your choice privately, you’ll hide it from evil players, but good players will have less incentive to trust you and believe you’re telling the truth about your choice.
+
+* Reflect on who wants to change and who doesn’t, and consider whether this lines up with the characters these players are claiming to be. A {{Good|Clockmaker}} who is begging not to be picked could be evil, or they could be a good player lying about their ability. Similarly, a player claiming {{Good|High Priestess}} who desperately wants to be picked might be a {{Good|Mutant}} or a “You start knowing” character looking to gain additional information from a new ability.
+
+* Each day, ask players if their character changed in the night, in order to figure out who was affected by your ability! If no one is claiming to have changed, it’s possible that an evil player was changed, or a player changed in a way they cannot detect (such as a Townsfolk becoming a {{Evil|Marionette}} or a {{Good|Drunk}}). If a player is claiming to have changed in a way that benefits the good team, it’s more likely they are good.
+
+* Meta the Storyteller. If players are becoming especially powerful good characters, the Storyteller might be signalling that the good team is losing and needs more helpful information. If players are changing arbitrarily, the good team may be on the right track and not need additional help from your ability.
+		&lt;/div&gt;
+
+	&lt;/div&gt;
+
+	&lt;div class='row'&gt;
+
+		&lt;div class="small-12 large-12 columns" style="padding-right: 0;"&gt;
+
+== Tips &amp; Tricks (if you are evil) ==
+* If an evil player has changed characters, encourage them to lie and say they’ve become a new good character! If good players are searching for which player changed and can’t find it, they’re more likely to assume that you’re evil, because evil players tend to have more reason to lie about what’s happening. Plus, since the Cacklejack’s ability may create duplicate characters, your evil teammate isn’t at risk of getting in a double claim.
+
+* If a visibly evil character has been created, stay silent and encourage your teammates to lie. If someone is suddenly {{Evil|Cerenovus}}-mad on day 3, convince a Minion to say they were mad on the first 2 days, to hide that the Cerenovus just entered play.
+
+* When good players change, make them seem suspicious and unhelpful. If a good player is claiming to have become the {{Good|Soldier}}, for example, act suspicious of their claim, and say things like, “I don’t think the Storyteller would do that.” 
+
+* On your first few days, publicly pick trusted good players with powerful abilities in order to gain the good team’s trust. After that, privately pick players like the {{Good|Goon}}, the {{Good|Politician}}, or the {{Good|Mutant}}, who can help the evil team by staying the same character.
+
+* Pick randomly, and trust the Storyteller to make changes that benefit your team. 
+
+* Ask good players what character they are, pretending that you’d like to know so you can figure out who you should pick each day. Then, tell your Demon everything you’ve learned so they know who to target at night!
+		&lt;/div&gt;
+	&lt;/div&gt;
+&lt;/div&gt;
+
+[[Category:Experimental Characters]]
+[[Category:Travellers]]</text>
+      <sha1>m8y3d51lecpawadi1jpmji3kouyex1j</sha1>
+    </revision>
+  </page>
+</mediawiki>

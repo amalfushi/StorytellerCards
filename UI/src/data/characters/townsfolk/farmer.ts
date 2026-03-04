@@ -5,7 +5,16 @@ export const farmer: CharacterDef = {
   name: 'Farmer',
   type: 'Townsfolk',
   defaultAlignment: 'Good',
-  abilityShort: '<TODO>',
+  abilityShort: 'When you die at night, an alive good player becomes a Farmer.',
+  abilityDetailed: `The Farmer creates more farmers.
+• If a Farmer dies at night, another player becomes a Farmer too.
+• Only players that are good can become Farmers this way.
+• If this new Farmer also dies at night, another Farmer is created.
+• Farmers that die during the day, such as by execution, do not create more Farmers.
+• Farmers that have turned evil, such as from the Mezepheles’ ability, can create more Farmers. But Townsfolk and Outsiders that have turned evil cannot become a Farmer.
+• Farmers do not learn who each other are, but each player that becomes a Farmer learns that they are now a Farmer.
+• When a player becomes a Farmer, they are no longer their old character, and do not have that ability. Any ongoing effects of their old ability immediately end.`,
+  wikiLink: 'https://wiki.bloodontheclocktower.com/Farmer',
   firstNight: null,
   otherNights: {
     order: 63,
@@ -24,6 +33,11 @@ export const farmer: CharacterDef = {
       },
     ],
   },
-  icon: { placeholder: '#1976d2' },
+  icon: {
+    small: '/icons/characters/farmerIcon.png',
+    medium: '/icons/characters/farmerIcon.png',
+    large: '/icons/characters/farmerIcon.png',
+    placeholder: '#1976d2',
+  },
   reminders: [],
 };

@@ -11,7 +11,6 @@ import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.t
 import { TokenChips } from '@/components/common/TokenChips.tsx';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
-import { parseHelpTextForChoices } from './NightChoiceHelper.ts';
 
 export interface NightFlashcardProps {
   entry: NightOrderEntry;
@@ -62,9 +61,8 @@ export function NightFlashcard({
 
   const typeName = characterDef?.type ?? 'Unknown';
 
-  // Prefer explicit choices from the character definition; fall back to regex parsing
+  // Get explicit choices from the character definition's night action
   const parsedChoices = useMemo(() => {
-    // Try to get explicit choices from the character definition's night action
     const nightAction = characterDef
       ? characterDef.firstNight?.order === entry.order
         ? characterDef.firstNight
@@ -74,7 +72,6 @@ export function NightFlashcard({
       : null;
 
     if (nightAction?.choices && nightAction.choices.length > 0) {
-      // Map NightChoice to ParsedChoice format for compatibility
       return nightAction.choices.map((c) => ({
         type: c.type,
         multiple: c.maxSelections > 1,
@@ -83,9 +80,8 @@ export function NightFlashcard({
       }));
     }
 
-    // Fallback to regex parsing for characters without explicit choices
-    return parseHelpTextForChoices(entry.helpText);
-  }, [characterDef, entry.helpText, entry.order]);
+    return [];
+  }, [characterDef, entry.order]);
 
   const isCompound = parsedChoices.length > 1;
 
