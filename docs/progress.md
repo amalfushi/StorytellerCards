@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-04
+> Last updated: 2026-03-05
 
 ## Milestone Overview
 
@@ -16,6 +16,10 @@
 | M7 | Testing Improvements | ✅ Complete (Phases 1-5) | [details](milestones/7 - testing improvements/milestone7.md) |
 | M8 | Wiki scraping — populate remaining characters + download icons | ✅ Complete (M8.1 + M8.2) | [details](milestones/8%20-%20wiki%20scraping/progress.md) |
 | M9 | Testing post character scraping — verify character data integrity & fix test issues | ✅ Complete | [details](milestones/9%20-%20testing%20post%20character%20scraping/progress.md) |
+| M10 | Storybook Test Runner | 📋 Planned | — |
+| M11 | ScriptBuilder Performance | 📋 Planned | — |
+| M12 | Storybook Test Expansion | 📋 Planned | — |
+| M13 | Icon Replacement | ✅ Complete | [details](milestones/13%20-%20icon%20replacement/progress.md) |
 
 ## Key Design Decisions
 
@@ -27,14 +31,14 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M9 Complete)
+## Verification (as of M13 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 2380/2380 passing (53 test files)
+- Tests: 2404/2404 passing (54+ test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
-- Storybook: 17 story files with ~80+ stories including `play()` interaction tests
+- Storybook: 18 story files with ~90+ stories including `play()` interaction tests
 - Go build: success
 - Go tests: all passing
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)
-- Character icons: 179/179 downloaded
+- Character icons: 179/179 downloaded, all rendered via `CharacterIconImage` component
