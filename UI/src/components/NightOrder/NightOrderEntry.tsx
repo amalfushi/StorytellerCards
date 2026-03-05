@@ -10,6 +10,8 @@ import type {
 } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 interface NightOrderEntryProps {
   entry: NightOrderEntryType;
@@ -106,28 +108,18 @@ export function NightOrderEntry({ entry, character, assignedPlayer }: NightOrder
         }}
       />
 
-      {/* Character icon placeholder */}
-      <Box
-        onClick={() => {
-          if (character) setDetailOpen(true);
-        }}
-        sx={{
-          width: 32,
-          height: 32,
-          borderRadius: '50%',
-          bgcolor: typeColor,
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          cursor: character ? 'pointer' : 'default',
-          '&:hover': character ? { opacity: 0.8 } : {},
-        }}
-      >
-        <Typography variant="caption" sx={{ color: '#fff', fontWeight: 700, fontSize: '0.6rem' }}>
-          {entry.name.charAt(0)}
-        </Typography>
-      </Box>
+      {/* Character icon */}
+      <CharacterIconImage
+        characterId={entry.id}
+        characterName={entry.name}
+        typeColor={typeColor}
+        size={48}
+        borderColor={getAlignmentBorderColor(
+          assignedPlayer?.actualAlignment ?? character?.defaultAlignment,
+          typeColor,
+        )}
+        onClick={character ? () => setDetailOpen(true) : undefined}
+      />
 
       {/* Text content */}
       <Box sx={{ minWidth: 0, flex: 1 }}>

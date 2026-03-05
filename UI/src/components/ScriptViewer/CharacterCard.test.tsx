@@ -60,7 +60,8 @@ const minimalCharacter: CharacterDef = {
   name: 'Slayer',
   type: CharacterType.Townsfolk,
   defaultAlignment: Alignment.Good,
-  abilityShort: 'Once per game, during the day, publicly choose a player: if they are the Demon, they die.',
+  abilityShort:
+    'Once per game, during the day, publicly choose a player: if they are the Demon, they die.',
   firstNight: null,
   otherNights: null,
   reminders: [],
@@ -121,17 +122,17 @@ describe('CharacterCard', () => {
     expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('shows character icon with first letter', () => {
+  it('shows character icon image', () => {
     render(<CharacterCard character={fullCharacter} />);
-    // The coloured circle shows the first letter of the character name
-    expect(screen.getByText('F')).toBeInTheDocument();
+    // The icon is now rendered as an <img> with alt text
+    expect(screen.getByAltText('Fortune Teller')).toBeInTheDocument();
   });
 
   it('handles characters with minimal data', () => {
     const { container } = render(<CharacterCard character={minimalCharacter} />);
     expect(container).toBeTruthy();
     expect(screen.getByText('Slayer')).toBeInTheDocument();
-    expect(screen.getByText('S')).toBeInTheDocument();
+    expect(screen.getByAltText('Slayer')).toBeInTheDocument();
   });
 
   it('shows detailed rules when expanded', () => {
@@ -150,9 +151,7 @@ describe('CharacterCard', () => {
 
     expect(screen.getByText('First Night')).toBeInTheDocument();
     // Different helpText values for first vs other nights avoid duplicate text
-    expect(
-      screen.getByText(/First night only/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/First night only/)).toBeInTheDocument();
   });
 
   it('shows other nights help text when expanded', () => {
@@ -160,9 +159,7 @@ describe('CharacterCard', () => {
     expandAccordion();
 
     expect(screen.getByText('Other Nights')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Other nights\./),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Other nights\./)).toBeInTheDocument();
   });
 
   it('shows wiki link when expanded', () => {
@@ -201,15 +198,15 @@ describe('CharacterCard', () => {
 
   it('click on icon opens character detail modal', () => {
     render(<CharacterCard character={fullCharacter} />);
-    // Click the coloured circle (first letter "F")
-    const icon = screen.getByText('F');
+    // Click the character icon img
+    const icon = screen.getByAltText('Fortune Teller');
     fireEvent.click(icon);
 
     expect(screen.getByTestId('character-detail-modal')).toBeInTheDocument();
   });
 
-  it('shows different first letter for demon character', () => {
+  it('shows icon for demon character', () => {
     render(<CharacterCard character={demonCharacter} />);
-    expect(screen.getByText('I')).toBeInTheDocument();
+    expect(screen.getByAltText('Imp')).toBeInTheDocument();
   });
 });

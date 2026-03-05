@@ -2,7 +2,11 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { NightOrderEntry } from '@/components/NightOrder/NightOrderEntry.tsx';
-import type { NightOrderEntry as NightOrderEntryType, CharacterDef, PlayerSeat } from '@/types/index.ts';
+import type {
+  NightOrderEntry as NightOrderEntryType,
+  CharacterDef,
+  PlayerSeat,
+} from '@/types/index.ts';
 import { CharacterType, Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -56,7 +60,9 @@ const impCharacter: CharacterDef = {
   otherNights: {
     order: 24,
     helpText: 'The Imp points to a player. That player dies.',
-    subActions: [{ id: 'imp-on-1', description: 'The Imp points to a player.', isConditional: false }],
+    subActions: [
+      { id: 'imp-on-1', description: 'The Imp points to a player.', isConditional: false },
+    ],
   },
   reminders: [],
 };
@@ -76,7 +82,9 @@ const impEntry: NightOrderEntryType = {
   id: 'imp',
   name: 'Imp',
   helpText: 'The Imp points to a player. That player dies.',
-  subActions: [{ id: 'imp-on-1', description: 'The Imp points to a player.', isConditional: false }],
+  subActions: [
+    { id: 'imp-on-1', description: 'The Imp points to a player.', isConditional: false },
+  ],
 };
 
 const structuralEntry: NightOrderEntryType = {
@@ -138,34 +146,26 @@ describe('NightOrderEntry', () => {
   });
 
   it('displays character name', () => {
-    render(
-      <NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />,
-    );
+    render(<NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />);
     expect(screen.getByText('Fortune Teller')).toBeInTheDocument();
   });
 
   it('shows order number via badge', () => {
-    render(
-      <NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />,
-    );
+    render(<NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />);
     // MUI Badge renders the content
     expect(screen.getByText('19')).toBeInTheDocument();
   });
 
   it('shows help text (abbreviated to first sentence)', () => {
-    render(
-      <NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />,
-    );
+    render(<NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />);
     // First sentence: "The Fortune Teller points to two players."
     expect(screen.getByText('The Fortune Teller points to two players.')).toBeInTheDocument();
   });
 
-  it('shows character icon with first letter', () => {
-    render(
-      <NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />,
-    );
-    // The icon shows the first character of the name
-    expect(screen.getByText('F')).toBeInTheDocument();
+  it('shows character icon image', () => {
+    render(<NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />);
+    // The icon is now rendered as an <img> with alt text
+    expect(screen.getByAltText('Fortune Teller')).toBeInTheDocument();
   });
 
   it('renders structural entries as divider cards', () => {
@@ -195,11 +195,7 @@ describe('NightOrderEntry', () => {
 
   it('dims the entry when the assigned player is dead', () => {
     const { container } = render(
-      <NightOrderEntry
-        entry={impEntry}
-        character={impCharacter}
-        assignedPlayer={deadPlayer}
-      />,
+      <NightOrderEntry entry={impEntry} character={impCharacter} assignedPlayer={deadPlayer} />,
     );
     // Dead player causes reduced opacity — the entry renders for the dead player
     const entryBox = container.firstElementChild as HTMLElement;
@@ -211,30 +207,24 @@ describe('NightOrderEntry', () => {
 
   it('shows line-through on dead player name', () => {
     render(
-      <NightOrderEntry
-        entry={impEntry}
-        character={impCharacter}
-        assignedPlayer={deadPlayer}
-      />,
+      <NightOrderEntry entry={impEntry} character={impCharacter} assignedPlayer={deadPlayer} />,
     );
     const playerBadge = screen.getByText('#2 Bob');
     expect(playerBadge).toHaveStyle({ textDecoration: 'line-through' });
   });
 
   it('character icon click opens detail modal', async () => {
-    render(
-      <NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />,
-    );
-    // Click the icon (the box with "F")
-    const icon = screen.getByText('F').closest('div')!;
+    render(<NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />);
+    // Click the icon (img with alt "Fortune Teller")
+    const icon = screen.getByAltText('Fortune Teller');
     await userEvent.click(icon);
     expect(screen.getByTestId('character-detail-modal')).toBeInTheDocument();
   });
 
   it('does not open modal when no character is provided', async () => {
     render(<NightOrderEntry entry={characterEntry} />);
-    // Icon still shows first letter of entry name
-    const icon = screen.getByText('F').closest('div')!;
+    // Icon still renders as img (will show fallback on error)
+    const icon = screen.getByAltText('Fortune Teller');
     await userEvent.click(icon);
     expect(screen.queryByTestId('character-detail-modal')).not.toBeInTheDocument();
   });

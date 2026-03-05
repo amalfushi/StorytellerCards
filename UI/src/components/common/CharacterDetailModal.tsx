@@ -11,6 +11,8 @@ import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 export interface CharacterDetailModalProps {
   open: boolean;
@@ -31,23 +33,13 @@ export function CharacterDetailModal({ open, character, onClose }: CharacterDeta
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1, pb: 1 }}>
         {/* Character icon */}
-        <Box
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            bgcolor: typeColor,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 'bold',
-            color: '#fff',
-            fontSize: '1.1rem',
-            flexShrink: 0,
-          }}
-        >
-          {character.name.charAt(0)}
-        </Box>
+        <CharacterIconImage
+          characterId={character.id}
+          characterName={character.name}
+          typeColor={typeColor}
+          size={48}
+          borderColor={getAlignmentBorderColor(character.defaultAlignment, typeColor)}
+        />
         <Box sx={{ flexGrow: 1 }}>
           <Typography component="span" variant="h6" sx={{ fontWeight: 'bold' }}>
             {character.name}

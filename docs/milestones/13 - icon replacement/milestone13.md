@@ -70,7 +70,7 @@ export function getCharacterIconPath(characterId: string): string {
 ### 3.3 Fallback Strategy
 
 - Use an `onError` handler on `<img>` elements to swap in a generic fallback icon when a character's PNG doesn't exist
-- The fallback should be a generic character silhouette or the existing colored-circle placeholder
+- The fallback should the existing colored-circle placeholder
 - This handles edge cases like custom homebrew characters or characters added after M8's icon download
 
 ### 3.4 Views to Update

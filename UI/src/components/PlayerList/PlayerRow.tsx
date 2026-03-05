@@ -4,7 +4,6 @@ import TableCell from '@mui/material/TableCell';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import HowToVoteIcon from '@mui/icons-material/HowToVote';
@@ -12,7 +11,9 @@ import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { characterColors } from '@/theme/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { TokenChips } from '@/components/common/TokenChips.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 interface PlayerRowProps {
   player: PlayerSeat;
@@ -113,31 +114,20 @@ export function PlayerRow({
 
         {/* Character icon (night view only) */}
         {showCharacters && (
-          <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
+          <TableCell align="center" sx={{ width: 60, px: 0.5 }}>
             {character ? (
-              <Box
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDetailOpen(true);
-                }}
-                sx={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: '50%',
-                  bgcolor: typeColor,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mx: 'auto',
-                  cursor: 'pointer',
-                  '&:hover': { opacity: 0.8 },
-                }}
-              >
-                <Typography
-                  sx={{ color: '#fff', fontWeight: 700, fontSize: '0.65rem', lineHeight: 1 }}
-                >
-                  {character.name.charAt(0)}
-                </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                <CharacterIconImage
+                  characterId={character.id}
+                  characterName={character.name}
+                  typeColor={typeColor}
+                  size={48}
+                  borderColor={getAlignmentBorderColor(player.actualAlignment, typeColor)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDetailOpen(true);
+                  }}
+                />
               </Box>
             ) : (
               '—'

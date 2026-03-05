@@ -9,6 +9,8 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 interface CharacterCardProps {
   character: CharacterDef;
@@ -38,32 +40,18 @@ export function CharacterCard({ character }: CharacterCardProps) {
     >
       <AccordionSummary expandIcon={<ExpandMoreIcon />} sx={{ px: 1.5, py: 0.5, minHeight: 48 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, width: '100%' }}>
-          {/* Coloured circle — click opens detail modal */}
-          <Box
+          {/* Character icon — click opens detail modal */}
+          <CharacterIconImage
+            characterId={character.id}
+            characterName={character.name}
+            typeColor={typeColor}
+            size={48}
+            borderColor={getAlignmentBorderColor(character.defaultAlignment, typeColor)}
             onClick={(e) => {
               e.stopPropagation();
               setDetailOpen(true);
             }}
-            sx={{
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              bgcolor: typeColor,
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              '&:hover': { opacity: 0.8 },
-            }}
-          >
-            <Typography
-              variant="caption"
-              sx={{ color: '#fff', fontWeight: 700, fontSize: '0.65rem' }}
-            >
-              {character.name.charAt(0)}
-            </Typography>
-          </Box>
+          />
 
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography variant="body2" fontWeight={600} noWrap>

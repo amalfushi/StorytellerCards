@@ -5,17 +5,21 @@ import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 // ──────────────────────────────────────────────
 // Size presets (px) based on player count
 // F3-6: Enlarged defaults — old "large" is now "medium",
 //       all fonts increased ~30%.
+// Icon sizes bumped to ≥ 48 minimum.
+// Token boxes enlarged to accommodate larger icons.
 // ──────────────────────────────────────────────
 
 const SIZE_MAP = {
-  large: { box: 88, icon: 34, nameFont: '0.91rem', metaFont: '0.78rem' },
-  medium: { box: 72, icon: 28, nameFont: '0.91rem', metaFont: '0.78rem' },
-  small: { box: 60, icon: 24, nameFont: '0.85rem', metaFont: '0.72rem' },
+  large: { box: 120, icon: 56, nameFont: '0.91rem', metaFont: '0.78rem' },
+  medium: { box: 110, icon: 52, nameFont: '0.91rem', metaFont: '0.78rem' },
+  small: { box: 100, icon: 48, nameFont: '0.85rem', metaFont: '0.72rem' },
 } as const;
 
 export type TokenSize = keyof typeof SIZE_MAP;
@@ -148,34 +152,16 @@ export const PlayerToken = memo(function PlayerToken({
 
   const tokenContent = (
     <>
-      {/* ── Night view: character icon placeholder ── */}
+      {/* ── Night view: character icon ── */}
       {showCharacters && (
-        <Box
+        <CharacterIconImage
+          characterId={player.characterId ?? ''}
+          characterName={characterDef?.name ?? '?'}
+          typeColor={typeColor}
+          size={s.icon}
+          borderColor={getAlignmentBorderColor(player.actualAlignment, typeColor)}
           onClick={handleIconClick}
-          sx={{
-            width: s.icon,
-            height: s.icon,
-            borderRadius: '50%',
-            bgcolor: typeColor,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            cursor: 'pointer',
-            '&:hover': { opacity: 0.8 },
-          }}
-        >
-          <Typography
-            sx={{
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: `${s.icon * 0.5}px`,
-              lineHeight: 1,
-            }}
-          >
-            {characterDef?.name?.charAt(0) ?? '?'}
-          </Typography>
-        </Box>
+        />
       )}
 
       {/* ── Night view: abbreviated character name ── */}

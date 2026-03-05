@@ -8,7 +8,9 @@ import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { TokenChips } from '@/components/common/TokenChips.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
 
@@ -195,32 +197,19 @@ export function NightFlashcard({
           zIndex: 1,
         }}
       >
-        <Box
-          onClick={() => {
-            if (characterDef) setDetailOpen(true);
-          }}
-          sx={{
-            width: 80,
-            height: 80,
-            borderRadius: '50%',
-            backgroundColor: typeColor,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 1.5,
-            boxShadow: `0 0 20px ${typeColor}44`,
-            fontSize: '2rem',
-            fontWeight: 'bold',
-            color: '#fff',
-            textTransform: 'uppercase',
-            filter: isDead ? 'saturate(0.2) brightness(0.7)' : 'none',
-            transition: 'filter 0.3s ease',
-            cursor: characterDef ? 'pointer' : 'default',
-            '&:hover': characterDef ? { opacity: 0.85 } : {},
-          }}
-        >
-          {entry.name.charAt(0)}
-        </Box>
+        <CharacterIconImage
+          characterId={entry.id}
+          characterName={entry.name}
+          typeColor={typeColor}
+          size={80}
+          borderColor={getAlignmentBorderColor(
+            playerSeat?.actualAlignment ?? characterDef?.defaultAlignment,
+            typeColor,
+          )}
+          isDead={isDead}
+          onClick={characterDef ? () => setDetailOpen(true) : undefined}
+          sx={{ mb: 1.5, boxShadow: `0 0 20px ${typeColor}44` }}
+        />
 
         {/* Character name */}
         <Typography

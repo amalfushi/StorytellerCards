@@ -158,10 +158,12 @@ describe('NightFlashcard', () => {
     expect(screen.getByText('📝')).toBeInTheDocument();
   });
 
-  it('shows character initial in the avatar circle', () => {
+  it('shows character icon image', () => {
     render(<NightFlashcard {...defaultProps} />);
-    // The 'F' from 'Fortune Teller'
-    expect(screen.getByText('F')).toBeInTheDocument();
+    // The icon is now rendered as an <img> with alt text
+    const img = screen.getByAltText('Fortune Teller');
+    expect(img).toBeInTheDocument();
+    expect(img.tagName).toBe('IMG');
   });
 
   it('shows "Unknown" type chip when no characterDef is provided', () => {
@@ -180,9 +182,7 @@ describe('NightFlashcard', () => {
       ...mockCharacterDef,
       firstNight: {
         ...mockCharacterDef.firstNight!,
-        choices: [
-          { type: 'player', maxSelections: 2, label: 'Choose 2 players' },
-        ],
+        choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
       },
     };
     render(
