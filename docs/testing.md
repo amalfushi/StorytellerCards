@@ -363,7 +363,7 @@ The pre-push hook ([`.husky/pre-push`](../.husky/pre-push)) runs **automatically
 
 1. ✅ Detects UI/API file changes
 2. ✅ Runs `npm run test:coverage` (all tests + threshold enforcement)
-3. ✅ Auto-commits `coverage-summary.json` if changed
+3. ✅ Auto-commits `coverage-final.json` if changed
 4. ✅ Runs Go tests if API files changed
 
 The pre-commit hook runs lint checks on staged files via Husky.
