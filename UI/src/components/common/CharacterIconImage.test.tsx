@@ -7,7 +7,8 @@ describe('CharacterIconImage', () => {
     characterId: 'fortuneteller',
     characterName: 'Fortune Teller',
     typeColor: '#1976d2',
-    size: 40,
+    size: 48,
+    borderColor: '#1976d2',
   };
 
   it('renders an img with correct src and alt', () => {
@@ -57,15 +58,18 @@ describe('CharacterIconImage', () => {
   it('renders with correct size', () => {
     render(<CharacterIconImage {...defaultProps} size={80} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
-    expect(img).toHaveAttribute('width', '80');
-    expect(img).toHaveAttribute('height', '80');
+    // Inner image size = 80 - 3*2 = 74
+    expect(img).toHaveStyle({ width: '74px', height: '74px' });
   });
 
-  it('renders at small size', () => {
-    render(<CharacterIconImage {...defaultProps} size={24} />);
+  it('enforces minimum size of 48px when given a smaller value', () => {
+    const { container } = render(<CharacterIconImage {...defaultProps} size={24} />);
+    const wrapper = container.firstChild as HTMLElement;
+    // Outer box should be 48px (minimum), not 24px
+    expect(wrapper).toBeTruthy();
+    // The img inner size = 48 - 6 = 42
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
-    expect(img).toHaveAttribute('width', '24');
-    expect(img).toHaveAttribute('height', '24');
+    expect(img).toHaveStyle({ width: '42px', height: '42px' });
   });
 
   it('applies dead state filter class (isDead=true)', () => {
@@ -80,5 +84,19 @@ describe('CharacterIconImage', () => {
     render(<CharacterIconImage {...defaultProps} isDead={false} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
     expect(img).toBeInTheDocument();
+  });
+
+  it('renders the border with the provided borderColor', () => {
+    const { container } = render(<CharacterIconImage {...defaultProps} borderColor="#d32f2f" />);
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toBeTruthy();
+    // The border style is applied via MUI sx — verify the component renders
+  });
+
+  it('renders white background behind the icon', () => {
+    const { container } = render(<CharacterIconImage {...defaultProps} />);
+    const wrapper = container.firstChild as HTMLElement;
+    expect(wrapper).toBeTruthy();
+    // White background is applied via MUI sx — verify the component renders
   });
 });

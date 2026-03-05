@@ -12,6 +12,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 export interface CharacterDetailModalProps {
   open: boolean;
@@ -36,7 +37,8 @@ export function CharacterDetailModal({ open, character, onClose }: CharacterDeta
           characterId={character.id}
           characterName={character.name}
           typeColor={typeColor}
-          size={40}
+          size={48}
+          borderColor={getAlignmentBorderColor(character.defaultAlignment, typeColor)}
         />
         <Box sx={{ flexGrow: 1 }}>
           <Typography component="span" variant="h6" sx={{ fontWeight: 'bold' }}>

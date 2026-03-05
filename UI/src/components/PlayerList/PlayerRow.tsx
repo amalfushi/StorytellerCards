@@ -13,6 +13,7 @@ import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { TokenChips } from '@/components/common/TokenChips.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 interface PlayerRowProps {
   player: PlayerSeat;
@@ -113,14 +114,15 @@ export function PlayerRow({
 
         {/* Character icon (night view only) */}
         {showCharacters && (
-          <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
+          <TableCell align="center" sx={{ width: 60, px: 0.5 }}>
             {character ? (
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
                 <CharacterIconImage
                   characterId={character.id}
                   characterName={character.name}
                   typeColor={typeColor}
-                  size={24}
+                  size={48}
+                  borderColor={getAlignmentBorderColor(player.actualAlignment, typeColor)}
                   onClick={(e) => {
                     e.stopPropagation();
                     setDetailOpen(true);

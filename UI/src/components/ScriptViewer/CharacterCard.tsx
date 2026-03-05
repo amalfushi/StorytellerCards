@@ -10,6 +10,7 @@ import type { CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 interface CharacterCardProps {
   character: CharacterDef;
@@ -44,7 +45,8 @@ export function CharacterCard({ character }: CharacterCardProps) {
             characterId={character.id}
             characterName={character.name}
             typeColor={typeColor}
-            size={28}
+            size={48}
+            borderColor={getAlignmentBorderColor(character.defaultAlignment, typeColor)}
             onClick={(e) => {
               e.stopPropagation();
               setDetailOpen(true);

@@ -11,6 +11,7 @@ import type {
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 interface NightOrderEntryProps {
   entry: NightOrderEntryType;
@@ -112,7 +113,11 @@ export function NightOrderEntry({ entry, character, assignedPlayer }: NightOrder
         characterId={entry.id}
         characterName={entry.name}
         typeColor={typeColor}
-        size={32}
+        size={48}
+        borderColor={getAlignmentBorderColor(
+          assignedPlayer?.actualAlignment ?? character?.defaultAlignment,
+          typeColor,
+        )}
         onClick={character ? () => setDetailOpen(true) : undefined}
       />
 

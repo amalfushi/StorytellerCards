@@ -10,6 +10,7 @@ import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { TokenChips } from '@/components/common/TokenChips.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
 
@@ -201,6 +202,10 @@ export function NightFlashcard({
           characterName={entry.name}
           typeColor={typeColor}
           size={80}
+          borderColor={getAlignmentBorderColor(
+            playerSeat?.actualAlignment ?? characterDef?.defaultAlignment,
+            typeColor,
+          )}
           isDead={isDead}
           onClick={characterDef ? () => setDetailOpen(true) : undefined}
           sx={{ mb: 1.5, boxShadow: `0 0 20px ${typeColor}44` }}
