@@ -192,10 +192,10 @@ UI/dist-ssr
 UI/*storybook.log
 UI/storybook-static
 
-# Coverage — track only the summary report
+# Coverage — track only the final report
 !UI/coverage/
 UI/coverage/*
-!UI/coverage/coverage-summary.json
+!UI/coverage/coverage-final.json
 
 # ============================================================
 # API
