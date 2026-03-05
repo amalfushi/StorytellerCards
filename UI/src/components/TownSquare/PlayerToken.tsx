@@ -5,6 +5,7 @@ import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 
 // ──────────────────────────────────────────────
 // Size presets (px) based on player count
@@ -148,34 +149,15 @@ export const PlayerToken = memo(function PlayerToken({
 
   const tokenContent = (
     <>
-      {/* ── Night view: character icon placeholder ── */}
+      {/* ── Night view: character icon ── */}
       {showCharacters && (
-        <Box
+        <CharacterIconImage
+          characterId={player.characterId ?? ''}
+          characterName={characterDef?.name ?? '?'}
+          typeColor={typeColor}
+          size={s.icon}
           onClick={handleIconClick}
-          sx={{
-            width: s.icon,
-            height: s.icon,
-            borderRadius: '50%',
-            bgcolor: typeColor,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            cursor: 'pointer',
-            '&:hover': { opacity: 0.8 },
-          }}
-        >
-          <Typography
-            sx={{
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: `${s.icon * 0.5}px`,
-              lineHeight: 1,
-            }}
-          >
-            {characterDef?.name?.charAt(0) ?? '?'}
-          </Typography>
-        </Box>
+        />
       )}
 
       {/* ── Night view: abbreviated character name ── */}

@@ -111,34 +111,18 @@ describe('PlayerToken', () => {
 
   it('renders without crashing', () => {
     const { container } = render(
-      <PlayerToken
-        player={alivePlayer}
-        characterDef={nobleCharacter}
-        {...defaultProps}
-      />,
+      <PlayerToken player={alivePlayer} characterDef={nobleCharacter} {...defaultProps} />,
     );
     expect(container).toBeTruthy();
   });
 
   it('shows player name', () => {
-    render(
-      <PlayerToken
-        player={alivePlayer}
-        characterDef={nobleCharacter}
-        {...defaultProps}
-      />,
-    );
+    render(<PlayerToken player={alivePlayer} characterDef={nobleCharacter} {...defaultProps} />);
     expect(screen.getByText('Alice')).toBeInTheDocument();
   });
 
   it('shows seat number', () => {
-    render(
-      <PlayerToken
-        player={alivePlayer}
-        characterDef={nobleCharacter}
-        {...defaultProps}
-      />,
-    );
+    render(<PlayerToken player={alivePlayer} characterDef={nobleCharacter} {...defaultProps} />);
     expect(screen.getByText('1')).toBeInTheDocument();
   });
 
@@ -151,8 +135,8 @@ describe('PlayerToken', () => {
         showCharacters={true}
       />,
     );
-    // Character icon shows first letter "N" for Noble
-    expect(screen.getByText('N')).toBeInTheDocument();
+    // Character icon is now an <img> with alt text
+    expect(screen.getByAltText('Noble')).toBeInTheDocument();
   });
 
   it('shows abbreviated character name when showCharacters is true', () => {
@@ -177,51 +161,27 @@ describe('PlayerToken', () => {
         showCharacters={false}
       />,
     );
-    // Should NOT show the character first-letter icon
-    expect(screen.queryByText('N')).not.toBeInTheDocument();
+    // Should NOT show the character icon img
+    expect(screen.queryByAltText('Noble')).not.toBeInTheDocument();
   });
 
   it('has correct aria-label for alive player', () => {
-    render(
-      <PlayerToken
-        player={alivePlayer}
-        characterDef={nobleCharacter}
-        {...defaultProps}
-      />,
-    );
+    render(<PlayerToken player={alivePlayer} characterDef={nobleCharacter} {...defaultProps} />);
     expect(screen.getByLabelText('Alice, Seat 1, alive')).toBeInTheDocument();
   });
 
   it('has correct aria-label for dead player', () => {
-    render(
-      <PlayerToken
-        player={deadPlayer}
-        characterDef={nobleCharacter}
-        {...defaultProps}
-      />,
-    );
+    render(<PlayerToken player={deadPlayer} characterDef={nobleCharacter} {...defaultProps} />);
     expect(screen.getByLabelText('Charlie, Seat 3, dead')).toBeInTheDocument();
   });
 
   it('shows dead indicator for dead players', () => {
-    render(
-      <PlayerToken
-        player={deadPlayer}
-        characterDef={nobleCharacter}
-        {...defaultProps}
-      />,
-    );
+    render(<PlayerToken player={deadPlayer} characterDef={nobleCharacter} {...defaultProps} />);
     expect(screen.getByText('💀')).toBeInTheDocument();
   });
 
   it('shows alive indicator for alive players', () => {
-    render(
-      <PlayerToken
-        player={alivePlayer}
-        characterDef={nobleCharacter}
-        {...defaultProps}
-      />,
-    );
+    render(<PlayerToken player={alivePlayer} characterDef={nobleCharacter} {...defaultProps} />);
     expect(screen.getByText('●')).toBeInTheDocument();
   });
 
@@ -237,13 +197,7 @@ describe('PlayerToken', () => {
   });
 
   it('does not show ghost vote indicator when not used', () => {
-    render(
-      <PlayerToken
-        player={deadPlayer}
-        characterDef={nobleCharacter}
-        {...defaultProps}
-      />,
-    );
+    render(<PlayerToken player={deadPlayer} characterDef={nobleCharacter} {...defaultProps} />);
     expect(screen.queryByTitle('Ghost vote used')).not.toBeInTheDocument();
   });
 
@@ -272,8 +226,8 @@ describe('PlayerToken', () => {
         onClick={onClick}
       />,
     );
-    // Click the character icon (first letter "N")
-    fireEvent.click(screen.getByText('N'));
+    // Click the character icon (img with alt "Noble")
+    fireEvent.click(screen.getByAltText('Noble'));
     // Modal should open
     expect(screen.getByTestId('character-detail-modal')).toBeInTheDocument();
     // The parent onClick should NOT be called (stopPropagation)
@@ -281,35 +235,22 @@ describe('PlayerToken', () => {
   });
 
   it('renders traveller player', () => {
-    const { container } = render(
-      <PlayerToken
-        player={travellerPlayer}
-        {...defaultProps}
-      />,
-    );
+    const { container } = render(<PlayerToken player={travellerPlayer} {...defaultProps} />);
     expect(container).toBeTruthy();
     expect(screen.getByText('TravJack')).toBeInTheDocument();
   });
 
-  it('shows "?" for character icon when no characterDef provided', () => {
-    render(
-      <PlayerToken
-        player={alivePlayer}
-        {...defaultProps}
-        showCharacters={true}
-      />,
-    );
-    expect(screen.getByText('?')).toBeInTheDocument();
+  it('shows fallback icon when no characterDef provided', () => {
+    render(<PlayerToken player={alivePlayer} {...defaultProps} showCharacters={true} />);
+    // With no characterDef, characterId is 'noble' but name is '?'
+    // The img will render with alt='?' (or fallback letter '?')
+    // Since characterId exists, it renders an img first
+    const img = screen.getByRole('img');
+    expect(img).toBeInTheDocument();
   });
 
   it('shows "—" for character name when no characterDef provided', () => {
-    render(
-      <PlayerToken
-        player={alivePlayer}
-        {...defaultProps}
-        showCharacters={true}
-      />,
-    );
+    render(<PlayerToken player={alivePlayer} {...defaultProps} showCharacters={true} />);
     expect(screen.getByText('—')).toBeInTheDocument();
   });
 });

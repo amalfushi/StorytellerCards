@@ -119,16 +119,11 @@ const playerWithTokens: PlayerSeat = {
   ],
 };
 
-
 // ──────────────────────────────────────────────
 // Helper — wraps PlayerRow in a Table for valid DOM
 // ──────────────────────────────────────────────
 
-function renderPlayerRow(
-  player: PlayerSeat,
-  showCharacters: boolean,
-  character?: CharacterDef,
-) {
+function renderPlayerRow(player: PlayerSeat, showCharacters: boolean, character?: CharacterDef) {
   const onToggleAlive = vi.fn();
   const onToggleGhostVote = vi.fn();
   const onRowClick = vi.fn();
@@ -252,17 +247,15 @@ describe('PlayerRow', () => {
 
   it('character icon click opens detail modal', async () => {
     renderPlayerRow(alivePlayer, true, nobleCharacter);
-    // Find the icon with first letter "N"
-    const icon = screen.getByText('N');
+    // Find the icon img with alt "Noble"
+    const icon = screen.getByAltText('Noble');
     await userEvent.click(icon);
     expect(screen.getByTestId('character-detail-modal')).toBeInTheDocument();
   });
 
   it('shows ability short text when showCharacters is true', () => {
     renderPlayerRow(alivePlayer, true, nobleCharacter);
-    expect(
-      screen.getByText(/On your 1st night, you learn 3 players/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/On your 1st night, you learn 3 players/)).toBeInTheDocument();
   });
 
   it('shows token chips when player has tokens', () => {
