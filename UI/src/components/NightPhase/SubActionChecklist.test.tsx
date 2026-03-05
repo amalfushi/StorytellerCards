@@ -1,121 +1,217 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SubActionChecklist } from '@/components/NightPhase/SubActionChecklist.tsx';
+import { computeActionableIndices } from '@/components/NightPhase/subActionUtils.ts';
 import type { NightSubAction } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
 // Mock data
 // ──────────────────────────────────────────────
 
-const mockSubActions: NightSubAction[] = [
-  { id: 'sa-1', description: 'Wake the character', isConditional: false },
-  { id: 'sa-2', description: 'they nod, show them a token', isConditional: true },
-  { id: 'sa-3', description: 'Put them to sleep', isConditional: false },
+/** Pit-Hag pattern: 4 items — first non-conditional, second non-conditional,
+ *  third conditional, fourth non-conditional.
+ *  Actionable indices: 0 (first item) and 2 (conditional). */
+const pitHagSubActions: NightSubAction[] = [
+  { id: 'ph-1', description: 'The Pit-Hag chooses a player & a character.', isConditional: false },
+  { id: 'ph-2', description: 'Choose a player', isConditional: false },
+  {
+    id: 'ph-3',
+    description: 'If they chose a character that is not in play: Put the Pit-Hag to sleep.',
+    isConditional: true,
+  },
+  {
+    id: 'ph-4',
+    description: 'Wake the target. Show the YOU ARE token & their new character token.',
+    isConditional: false,
+  },
+];
+
+/** Single sub-action (Poisoner pattern). */
+const singleSubAction: NightSubAction[] = [
+  { id: 'p-1', description: 'The Poisoner chooses a player.', isConditional: false },
 ];
 
 // ──────────────────────────────────────────────
-// Tests
+// computeActionableIndices unit tests
+// ──────────────────────────────────────────────
+
+describe('computeActionableIndices', () => {
+  it('returns {0} for a single non-conditional item', () => {
+    const result = computeActionableIndices(singleSubAction);
+    expect(result).toEqual(new Set([0]));
+  });
+
+  it('returns {0} for multiple non-conditional items (only first is actionable)', () => {
+    const items: NightSubAction[] = [
+      { id: 'a', description: 'Step 1', isConditional: false },
+      { id: 'b', description: 'Step 2', isConditional: false },
+      { id: 'c', description: 'Step 3', isConditional: false },
+    ];
+    const result = computeActionableIndices(items);
+    expect(result).toEqual(new Set([0]));
+  });
+
+  it('returns {0, 1} when second item is conditional', () => {
+    const items: NightSubAction[] = [
+      { id: 'a', description: 'Step 1', isConditional: false },
+      { id: 'b', description: 'If something happens', isConditional: true },
+    ];
+    const result = computeActionableIndices(items);
+    expect(result).toEqual(new Set([0, 1]));
+  });
+
+  it('returns {0, 2} for [normal, normal, conditional] pattern', () => {
+    const items: NightSubAction[] = [
+      { id: 'a', description: 'Step 1', isConditional: false },
+      { id: 'b', description: 'Step 2', isConditional: false },
+      { id: 'c', description: 'If condition', isConditional: true },
+    ];
+    const result = computeActionableIndices(items);
+    expect(result).toEqual(new Set([0, 2]));
+  });
+
+  it('returns empty set for empty array', () => {
+    const result = computeActionableIndices([]);
+    expect(result).toEqual(new Set());
+  });
+
+  it('returns {0, 2} for pit-hag pattern (4 items)', () => {
+    const result = computeActionableIndices(pitHagSubActions);
+    expect(result).toEqual(new Set([0, 2]));
+  });
+});
+
+// ──────────────────────────────────────────────
+// SubActionChecklist rendering tests
 // ──────────────────────────────────────────────
 
 describe('SubActionChecklist', () => {
-  it('renders without crashing', () => {
-    const { container } = render(
-      <SubActionChecklist subActions={mockSubActions} checkedStates={[false, false, false]} onToggle={vi.fn()} />,
-    );
-    expect(container.querySelector('ul')).toBeInTheDocument();
-  });
-
-  it('displays all sub-action items with their descriptions', () => {
+  it('renders checkboxes only for actionable items', () => {
     render(
-      <SubActionChecklist subActions={mockSubActions} checkedStates={[false, false, false]} onToggle={vi.fn()} />,
+      <SubActionChecklist
+        subActions={pitHagSubActions}
+        checkedStates={[false, false, false, false]}
+        onToggle={vi.fn()}
+      />,
     );
-    expect(screen.getByText('Wake the character')).toBeInTheDocument();
-    expect(screen.getByText('they nod, show them a token')).toBeInTheDocument();
-    expect(screen.getByText('Put them to sleep')).toBeInTheDocument();
-  });
-
-  it('shows checkboxes for each item', () => {
-    render(
-      <SubActionChecklist subActions={mockSubActions} checkedStates={[false, false, false]} onToggle={vi.fn()} />,
-    );
+    // Only index 0 and 2 are actionable → 2 checkboxes
     const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes).toHaveLength(3);
+    expect(checkboxes).toHaveLength(2);
   });
 
-  it('calls onToggle callback when an item is clicked with correct index', () => {
-    const onToggle = vi.fn();
+  it('renders non-actionable items without checkboxes', () => {
     render(
-      <SubActionChecklist subActions={mockSubActions} checkedStates={[false, false, false]} onToggle={onToggle} />,
+      <SubActionChecklist
+        subActions={pitHagSubActions}
+        checkedStates={[false, false, false, false]}
+        onToggle={vi.fn()}
+      />,
     );
-    // Click on the second item text
-    fireEvent.click(screen.getByText('they nod, show them a token'));
-    expect(onToggle).toHaveBeenCalledWith(1);
+    // Index 1 and 3 are non-actionable — their text should be visible
+    expect(screen.getByText('Choose a player')).toBeInTheDocument();
+    expect(
+      screen.getByText('Wake the target. Show the YOU ARE token & their new character token.'),
+    ).toBeInTheDocument();
+    // But only 2 checkboxes exist (not 4)
+    expect(screen.getAllByRole('checkbox')).toHaveLength(2);
   });
 
-  it('calls onToggle when checkbox is clicked directly', () => {
+  it('non-actionable items are indented', () => {
+    const { container } = render(
+      <SubActionChecklist
+        subActions={pitHagSubActions}
+        checkedStates={[false, false, false, false]}
+        onToggle={vi.fn()}
+      />,
+    );
+    const listItems = container.querySelectorAll('li');
+    expect(listItems).toHaveLength(4);
+    // MUI sx props aren't resolved by getComputedStyle in jsdom,
+    // so verify structurally: non-actionable items (index 1, 3) lack checkboxes
+    // while actionable items (index 0, 2) have checkboxes
+    const item0Checkbox = listItems[0].querySelector('input[type="checkbox"]');
+    const item1Checkbox = listItems[1].querySelector('input[type="checkbox"]');
+    const item2Checkbox = listItems[2].querySelector('input[type="checkbox"]');
+    const item3Checkbox = listItems[3].querySelector('input[type="checkbox"]');
+    expect(item0Checkbox).not.toBeNull();
+    expect(item1Checkbox).toBeNull(); // non-actionable, indented
+    expect(item2Checkbox).not.toBeNull();
+    expect(item3Checkbox).toBeNull(); // non-actionable, indented
+  });
+
+  it('calls onToggle with correct index when actionable item is clicked', () => {
     const onToggle = vi.fn();
     render(
-      <SubActionChecklist subActions={mockSubActions} checkedStates={[false, false, false]} onToggle={onToggle} />,
+      <SubActionChecklist
+        subActions={pitHagSubActions}
+        checkedStates={[false, false, false, false]}
+        onToggle={onToggle}
+      />,
     );
-    // Click the third sub-action text (index 2)
-    fireEvent.click(screen.getByText('Put them to sleep'));
+    // Click on the conditional item text (index 2 in original array)
+    fireEvent.click(
+      screen.getByText('If they chose a character that is not in play: Put the Pit-Hag to sleep.'),
+    );
     expect(onToggle).toHaveBeenCalledWith(2);
   });
 
-  it('shows checked state for items marked as completed', () => {
+  it('does not call onToggle when non-actionable item is clicked', () => {
+    const onToggle = vi.fn();
     render(
-      <SubActionChecklist subActions={mockSubActions} checkedStates={[true, false, true]} onToggle={vi.fn()} />,
+      <SubActionChecklist
+        subActions={pitHagSubActions}
+        checkedStates={[false, false, false, false]}
+        onToggle={onToggle}
+      />,
+    );
+    // Click on a non-actionable item (index 1)
+    fireEvent.click(screen.getByText('Choose a player'));
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+
+  it('shows checked state correctly for actionable items', () => {
+    render(
+      <SubActionChecklist
+        subActions={pitHagSubActions}
+        checkedStates={[true, false, false, false]}
+        onToggle={vi.fn()}
+      />,
     );
     const checkboxes = screen.getAllByRole('checkbox');
     expect(checkboxes[0]).toBeChecked();
     expect(checkboxes[1]).not.toBeChecked();
-    expect(checkboxes[2]).toBeChecked();
   });
 
-  it('handles conditional items with "If…" prefix and italic styling', () => {
+  it('conditional items show If… prefix', () => {
     render(
-      <SubActionChecklist subActions={mockSubActions} checkedStates={[false, false, false]} onToggle={vi.fn()} />,
+      <SubActionChecklist
+        subActions={pitHagSubActions}
+        checkedStates={[false, false, false, false]}
+        onToggle={vi.fn()}
+      />,
     );
-    // The conditional item should have an "If… " prefix rendered
     expect(screen.getByText('If…')).toBeInTheDocument();
-    // The aria-label is on the MUI Checkbox <span> (not the inner <input>)
-    // Query by aria-label to verify conditional prefix
     expect(
-      screen.getByLabelText('Conditional: they nod, show them a token'),
+      screen.getByLabelText(
+        'Conditional: If they chose a character that is not in play: Put the Pit-Hag to sleep.',
+      ),
     ).toBeInTheDocument();
-    // Non-conditional items don't have the "Conditional:" prefix
-    expect(screen.getByLabelText('Wake the character')).toBeInTheDocument();
   });
 
   it('handles empty sub-actions array', () => {
     const { container } = render(
       <SubActionChecklist subActions={[]} checkedStates={[]} onToggle={vi.fn()} />,
     );
-    // Should render the list element but no items
     const list = container.querySelector('ul');
     expect(list).toBeInTheDocument();
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
   });
 
-  it('does not call onToggle when readOnly is true', () => {
-    const onToggle = vi.fn();
+  it('readOnly disables checkboxes', () => {
     render(
       <SubActionChecklist
-        subActions={mockSubActions}
-        checkedStates={[false, false, false]}
-        onToggle={onToggle}
-        readOnly
-      />,
-    );
-    fireEvent.click(screen.getByText('Wake the character'));
-    expect(onToggle).not.toHaveBeenCalled();
-  });
-
-  it('disables checkboxes when readOnly is true', () => {
-    render(
-      <SubActionChecklist
-        subActions={mockSubActions}
-        checkedStates={[false, false, false]}
+        subActions={pitHagSubActions}
+        checkedStates={[false, false, false, false]}
         onToggle={vi.fn()}
         readOnly
       />,
@@ -126,18 +222,30 @@ describe('SubActionChecklist', () => {
     }
   });
 
-  it('applies indentation to continuation lines after conditional items', () => {
-    // sa-2 is conditional (at level 0), sa-3 follows conditional (indented to level 1)
-    // sa-1 is first item (level 0), sa-2 is conditional (level 0)
-    // per getIndentLevel logic: sa-3 follows sa-2 (conditional) → level 1
-    const { container } = render(
-      <SubActionChecklist subActions={mockSubActions} checkedStates={[false, false, false]} onToggle={vi.fn()} />,
+  it('readOnly prevents onToggle when actionable item is clicked', () => {
+    const onToggle = vi.fn();
+    render(
+      <SubActionChecklist
+        subActions={pitHagSubActions}
+        checkedStates={[false, false, false, false]}
+        onToggle={onToggle}
+        readOnly
+      />,
     );
-    // The third list item should have padding-left applied (pl: 1 * 3 = 3 MUI spacing units)
-    const listItems = container.querySelectorAll('li');
-    expect(listItems).toHaveLength(3);
-    // Check that the component renders all three items
-    expect(listItems[0]).toBeInTheDocument();
-    expect(listItems[2]).toBeInTheDocument();
+    fireEvent.click(screen.getByText('The Pit-Hag chooses a player & a character.'));
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+
+  it('single sub-action gets a checkbox', () => {
+    render(
+      <SubActionChecklist
+        subActions={singleSubAction}
+        checkedStates={[false]}
+        onToggle={vi.fn()}
+      />,
+    );
+    const checkboxes = screen.getAllByRole('checkbox');
+    expect(checkboxes).toHaveLength(1);
+    expect(screen.getByText('The Poisoner chooses a player.')).toBeInTheDocument();
   });
 });

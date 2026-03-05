@@ -132,9 +132,9 @@ describe('StructuralCard', () => {
         onToggleSubAction={vi.fn()}
       />,
     );
-    // Minion info has 3 sub-actions → checklist should be rendered
+    // Minion info has 3 sub-actions, but only first is actionable (gets checkbox)
     const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes).toHaveLength(3);
+    expect(checkboxes).toHaveLength(1);
     expect(screen.getByText('Wake all Minions')).toBeInTheDocument();
     expect(screen.getByText('Show them the Demon')).toBeInTheDocument();
     expect(screen.getByText('Put Minions to sleep')).toBeInTheDocument();
@@ -193,9 +193,7 @@ describe('StructuralCard', () => {
       helpText: 'Some unknown structural step.',
       subActions: [],
     };
-    render(
-      <StructuralCard entry={unknownEntry} checkedStates={[]} onToggleSubAction={vi.fn()} />,
-    );
+    render(<StructuralCard entry={unknownEntry} checkedStates={[]} onToggleSubAction={vi.fn()} />);
     expect(screen.getByText('⚙️')).toBeInTheDocument();
   });
 
@@ -208,9 +206,7 @@ describe('StructuralCard', () => {
       helpText: 'Some unknown structural step.',
       subActions: [],
     };
-    render(
-      <StructuralCard entry={unknownEntry} checkedStates={[]} onToggleSubAction={vi.fn()} />,
-    );
+    render(<StructuralCard entry={unknownEntry} checkedStates={[]} onToggleSubAction={vi.fn()} />);
     expect(screen.getByText('Some unknown structural step.')).toBeInTheDocument();
   });
 });

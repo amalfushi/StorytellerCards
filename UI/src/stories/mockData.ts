@@ -28,6 +28,7 @@ export const drunk = mockCharacters.find((c) => c.id === 'drunk')!;
 export const slayer = mockCharacters.find((c) => c.id === 'slayer')!;
 export const philosopher = mockCharacters.find((c) => c.id === 'philosopher')!;
 export const huntsman = mockCharacters.find((c) => c.id === 'huntsman')!;
+export const pitHag = mockCharacters.find((c) => c.id === 'pithag')!;
 
 /**
  * Mock Traveller character — "Spirit of Ivory".
@@ -86,6 +87,10 @@ export const minionInfoEntry: NightOrderEntry = mockNightOrder.firstNight.find(
 
 export const demonInfoEntry: NightOrderEntry = mockNightOrder.firstNight.find(
   (e) => e.id === 'demoninfo',
+)!;
+
+export const pitHagOtherNightEntry: NightOrderEntry = mockNightOrder.otherNights.find(
+  (e) => e.id === 'pithag',
 )!;
 
 // ──────────────────────────────────────────────

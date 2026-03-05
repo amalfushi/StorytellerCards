@@ -243,12 +243,12 @@ export function NightFlashcard({
           <Typography
             variant="body2"
             sx={{
-              color: 'rgba(255,255,255,0.7)',
+              color: 'rgba(255,255,255,0.85)',
               textAlign: 'center',
-              fontStyle: 'italic',
+              fontWeight: 'bold',
               mt: 1,
               px: 1,
-              fontSize: '0.85rem',
+              fontSize: '1rem',
               lineHeight: 1.4,
             }}
           >

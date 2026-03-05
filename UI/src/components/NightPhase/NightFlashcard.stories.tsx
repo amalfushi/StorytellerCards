@@ -37,7 +37,8 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-/** Fortune Teller card with a living player assigned, all sub-actions unchecked. */
+/** Fortune Teller card with a living player assigned, all sub-actions unchecked.
+ *  The power description (`abilityShort`) is rendered in bold with slightly larger font. */
 export const AlivePlayer: Story = {
   args: {
     entry: fortuneTellerFirstNightEntry,
