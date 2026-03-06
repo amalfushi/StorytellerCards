@@ -69,7 +69,8 @@ function computeRadialPosition(
   halfW: number,
   halfH: number,
 ): { dx: number; dy: number } {
-  const badgeDistance = 40;
+  const badgeRadius = BADGE_SIZE / 2;
+  const badgeDistance = Math.max(halfW, halfH) + badgeRadius + 4;
   const maxStep = 35;
   const minStep = 18;
   const stepDeg = tokenCount <= 3 ? maxStep : Math.max(minStep, maxStep - (tokenCount - 3) * 2);
@@ -88,7 +89,7 @@ function computeRadialPosition(
 /** Badge diameter in px. */
 const BADGE_SIZE = 20;
 /** Gap between badges in linear layout, in px. */
-const LINEAR_GAP = 4;
+const LINEAR_GAP = 5;
 /** Offset from card edge to badge centre, in px. */
 const EDGE_OFFSET = BADGE_SIZE / 2 + 2;
 
