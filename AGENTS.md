@@ -2,6 +2,20 @@
 
 > **Read this first.** This is the primary context file for any AI agent picking up this project.
 
+## ⚠️ MANDATORY FIRST STEP — Run Before Anything Else
+
+> **Every agent, every task, every time.** Before reading files, analyzing code, running builds, linting, testing, or performing any other operation, you **MUST** install dependencies first.
+
+```bash
+npm run install:all
+```
+
+This is a monorepo that uses **git worktrees** for development. Freshly checked-out worktrees will **not** have `node_modules` installed in either the root or `UI/` directory. Running any build, lint, or test command without installing first will fail and waste tokens diagnosing missing-dependency errors.
+
+The `install:all` script (defined in the root [`package.json`](package.json)) runs `npm install` at the root, `npm install` in `UI/`, and `go mod download` in `API/` — all in one command.
+
+**Do not skip this step. Do not defer this step. Run it immediately upon starting any new task.**
+
 ## Project Overview
 
 **Storyteller Cards** is a mobile-first React + Go application that helps *Blood on the Clocktower* Storytellers manage games. The core feature is **Night Phase Flashcards** — swipeable cards that guide the Storyteller through each character's night action in the correct order.
@@ -117,8 +131,9 @@ See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) fo
 
 ### Development Checklist
 
-Before completing any code task (using `attempt_completion`), agents **MUST** run and pass all three:
+Before completing any code task (using `attempt_completion`), agents **MUST** run and pass all four:
 
+0. `npm run install:all` — Install all dependencies (must be the first action on any new task)
 1. `cd UI && npx tsc --noEmit` — TypeScript compilation (0 errors)
 2. `cd UI && npx eslint .` — Linting (0 errors)
 3. `cd UI && npm test` — All tests pass
@@ -149,7 +164,7 @@ See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 
 ## First Steps on New Machine
 
-1. `cd StorytellerCards && npm install && cd UI && npm install`
+1. `npm run install:all` — **mandatory first step**, installs root + UI + API dependencies (see [⚠️ MANDATORY FIRST STEP](#️-mandatory-first-step--run-before-anything-else) above)
 2. `cd UI && npx tsc --noEmit` — check for TypeScript compilation errors
 3. `cd UI && npx eslint .` — check for lint errors
 4. `cd UI && npm test` — check test status
