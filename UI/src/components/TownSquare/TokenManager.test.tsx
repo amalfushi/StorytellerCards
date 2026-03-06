@@ -355,11 +355,10 @@ describe('TokenBadges', () => {
   it('renders badges for provided tokens', () => {
     render(<TokenBadges tokens={[drunkToken, customToken]} {...baseProps} />);
     expect(screen.getByTitle('Drunk')).toBeInTheDocument();
-    // "Is the Drunk" → abbreviated to "Is t…"
     expect(screen.getByTitle('Is the Drunk')).toBeInTheDocument();
   });
 
-  it('abbreviates long token labels', () => {
+  it('shows full label text without truncation', () => {
     const longToken: PlayerToken = {
       id: 'tok-long',
       type: 'custom',
@@ -367,8 +366,7 @@ describe('TokenBadges', () => {
       color: '#ff0000',
     };
     render(<TokenBadges tokens={[longToken]} {...baseProps} />);
-    // "Very Long Label" → abbreviated to "Very…"
-    expect(screen.getByText('Very…')).toBeInTheDocument();
+    expect(screen.getByText('Very Long Label')).toBeInTheDocument();
   });
 
   it('shows full label for short tokens', () => {

@@ -52,14 +52,6 @@ export interface TokenBadgesProps {
 }
 
 /**
- * Abbreviate a token label for compact badge display.
- * ≤ 5 chars → full, otherwise first 4 + "…"
- */
-function abbreviateLabel(label: string): string {
-  return label.length <= 5 ? label : `${label.slice(0, 4)}…`;
-}
-
-/**
  * Compute badge position for radial (fan) layout.
  */
 function computeRadialPosition(
@@ -69,8 +61,8 @@ function computeRadialPosition(
   halfW: number,
   halfH: number,
 ): { dx: number; dy: number } {
-  const badgeRadius = BADGE_SIZE / 2;
-  const badgeDistance = Math.max(halfW, halfH) + badgeRadius + 4;
+  const slotRadius = BADGE_SLOT_SIZE / 2;
+  const badgeDistance = Math.max(halfW, halfH) + slotRadius + 4;
   const maxStep = 35;
   const minStep = 18;
   const stepDeg = tokenCount <= 3 ? maxStep : Math.max(minStep, maxStep - (tokenCount - 3) * 2);
@@ -86,12 +78,12 @@ function computeRadialPosition(
   };
 }
 
-/** Badge diameter in px. */
-const BADGE_SIZE = 20;
+/** Slot size used for positioning / spacing calculations, in px. */
+const BADGE_SLOT_SIZE = 28;
 /** Gap between badges in linear layout, in px. */
 const LINEAR_GAP = 5;
 /** Offset from card edge to badge centre, in px. */
-const EDGE_OFFSET = BADGE_SIZE / 2 + 2;
+const EDGE_OFFSET = BADGE_SLOT_SIZE / 2 + 2;
 
 /**
  * Compute badge position for linear layout.
@@ -114,10 +106,10 @@ function computeLinearPosition(
   const absDy = Math.abs(tileY - centerY);
 
   // Total span of badges in the line
-  const totalSpan = tokenCount * BADGE_SIZE + (tokenCount - 1) * LINEAR_GAP;
+  const totalSpan = tokenCount * BADGE_SLOT_SIZE + (tokenCount - 1) * LINEAR_GAP;
   // Offset from the centre of the line for the i-th badge
-  const startOffset = -totalSpan / 2 + BADGE_SIZE / 2;
-  const linearPos = startOffset + i * (BADGE_SIZE + LINEAR_GAP);
+  const startOffset = -totalSpan / 2 + BADGE_SLOT_SIZE / 2;
+  const linearPos = startOffset + i * (BADGE_SLOT_SIZE + LINEAR_GAP);
 
   if (absDx >= absDy) {
     // Horizontal dominant → place tokens left or right of card
@@ -181,19 +173,23 @@ export function TokenBadges({
               left: dx,
               top: dy,
               transform: 'translate(-50%, -50%)',
-              minWidth: 20,
-              height: 20,
-              borderRadius: '10px',
+              minWidth: 24,
+              maxWidth: 60,
+              minHeight: 18,
+              height: 'auto',
+              borderRadius: '8px',
               bgcolor: bgColor,
               color: '#fff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              px: 0.4,
-              fontSize: '0.55rem',
+              px: 0.5,
+              py: 0.2,
+              fontSize: '0.6rem',
               fontWeight: 700,
-              lineHeight: 1,
-              whiteSpace: 'nowrap',
+              lineHeight: 1.15,
+              wordWrap: 'break-word',
+              textAlign: 'center',
               boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
               border: '1px solid rgba(255,255,255,0.4)',
               pointerEvents: 'none',
@@ -201,7 +197,7 @@ export function TokenBadges({
               zIndex: 5,
             }}
           >
-            {abbreviateLabel(token.label)}
+            {token.label}
           </Box>
         );
       })}
