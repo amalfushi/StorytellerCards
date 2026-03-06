@@ -104,8 +104,9 @@ describe('NightFlashcard', () => {
     expect(screen.getByText('Wake the Fortune Teller')).toBeInTheDocument();
     expect(screen.getByText('they point to two players')).toBeInTheDocument();
     expect(screen.getByText('Give thumbs up or down')).toBeInTheDocument();
+    // Only actionable items get checkboxes (index 0 + index 1 conditional)
     const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes.length).toBeGreaterThanOrEqual(3);
+    expect(checkboxes.length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows type chip with character type name', () => {
@@ -196,5 +197,16 @@ describe('NightFlashcard', () => {
     // The choice selector label renders in both <label> and notch <span>
     const matches = screen.getAllByText('Choose 2 players');
     expect(matches.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders abilityShort with bold styling (not italic)', () => {
+    render(<NightFlashcard {...defaultProps} />);
+    const abilityEl = screen.getByText(
+      'Each night, choose 2 players: you learn if either is a Demon.',
+    );
+    expect(abilityEl).toBeInTheDocument();
+    // Verify the element does NOT have italic font style
+    const style = window.getComputedStyle(abilityEl);
+    expect(style.fontStyle).not.toBe('italic');
   });
 });

@@ -20,6 +20,7 @@
 | M11 | ScriptBuilder Performance | 📋 Planned | — |
 | M12 | Storybook Test Expansion | 📋 Planned | — |
 | M13 | Icon Replacement | ✅ Complete | [details](milestones/13%20-%20icon%20replacement/progress.md) |
+| M14 | Night Flashcard UX | ✅ Complete | [details](milestones/14%20-%20night%20flashcard%20ux/progress.md) |
 
 ## Key Design Decisions
 
@@ -31,11 +32,11 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M13 Complete)
+## Verification (as of M14 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 2404/2404 passing (54+ test files)
+- Tests: 2411/2411 passing (55 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~90+ stories including `play()` interaction tests
 - Go build: success
