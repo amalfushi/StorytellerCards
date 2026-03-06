@@ -466,4 +466,30 @@ describe('GameViewPage', () => {
     // Should auto-resume night view
     expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
   });
+
+  it('defaults to Day view for a brand new game (isFirstNight, no nightProgress)', () => {
+    mockGame = {
+      ...baseGame,
+      currentDay: 1,
+      currentPhase: Phase.Day,
+      isFirstNight: true,
+      nightHistory: [],
+    };
+    mockNightProgress = null;
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+    // Should show day tabs, NOT the night panel
+    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
+    // PhaseBar should show Day as active
+    expect(capturedPhaseBarProps?.activeView).toBe('Day');
+  });
+
+  it('does not auto-enter night view when nightProgress is null', () => {
+    mockNightProgress = null;
+    render(<GameViewPage />);
+    // Should stay in day view
+    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
+  });
 });

@@ -37,7 +37,7 @@ const _makeGame = (overrides: Partial<Game> = {}): Game => ({
   sessionId: 'session-1',
   scriptId: 'boozling',
   currentDay: 1,
-  currentPhase: Phase.Night,
+  currentPhase: Phase.Day,
   isFirstNight: true,
   players: [],
   nightHistory: [],
@@ -496,7 +496,7 @@ describe('SessionContext', () => {
       const game = JSON.parse(raw!) as Game;
       expect(game.sessionId).toBe(sessionId);
       expect(game.scriptId).toBe('boozling');
-      expect(game.currentPhase).toBe(Phase.Night);
+      expect(game.currentPhase).toBe(Phase.Day);
       expect(game.isFirstNight).toBe(true);
       expect(game.currentDay).toBe(1);
     });
