@@ -63,6 +63,17 @@ function computeRadialPosition(
 ): { dx: number; dy: number } {
   const slotRadius = BADGE_SLOT_SIZE / 2;
   const badgeDistance = Math.max(halfW, halfH) + slotRadius + 4;
+
+  if (tokenCount >= 5) {
+    // Full 360° distribution, starting from the top (−π/2)
+    const badgeAngle = -Math.PI / 2 + (2 * Math.PI * i) / tokenCount;
+    return {
+      dx: halfW + badgeDistance * Math.cos(badgeAngle),
+      dy: halfH + badgeDistance * Math.sin(badgeAngle),
+    };
+  }
+
+  // Fan pattern for fewer than 5 tokens
   const maxStep = 35;
   const minStep = 18;
   const stepDeg = tokenCount <= 3 ? maxStep : Math.max(minStep, maxStep - (tokenCount - 3) * 2);
@@ -85,11 +96,16 @@ const LINEAR_GAP = 5;
 /** Offset from card edge to badge centre, in px. */
 const EDGE_OFFSET = BADGE_SLOT_SIZE / 2 + 2;
 
+/** Maximum badges per row in linear layout. */
+const MAX_PER_ROW = 5;
+
 /**
  * Compute badge position for linear layout.
  *
  * Badges are placed in a line along the card edge furthest from the
- * town square centre, centred on that edge.
+ * town square centre, centred on that edge. When there are more than
+ * {@link MAX_PER_ROW} badges, they wrap into additional rows that are
+ * offset further from the card edge by {@link BADGE_SLOT_SIZE} each.
  */
 function computeLinearPosition(
   i: number,
@@ -105,23 +121,33 @@ function computeLinearPosition(
   const absDx = Math.abs(tileX - centerX);
   const absDy = Math.abs(tileY - centerY);
 
-  // Total span of badges in the line
-  const totalSpan = tokenCount * BADGE_SLOT_SIZE + (tokenCount - 1) * LINEAR_GAP;
-  // Offset from the centre of the line for the i-th badge
+  // Multi-row: split badges into rows of MAX_PER_ROW
+  const row = Math.floor(i / MAX_PER_ROW);
+  const col = i % MAX_PER_ROW;
+  const countInRow = Math.min(MAX_PER_ROW, tokenCount - row * MAX_PER_ROW);
+
+  // Total span of badges in this row
+  const totalSpan = countInRow * BADGE_SLOT_SIZE + (countInRow - 1) * LINEAR_GAP;
+  // Offset from the centre of the line for the col-th badge in this row
   const startOffset = -totalSpan / 2 + BADGE_SLOT_SIZE / 2;
-  const linearPos = startOffset + i * (BADGE_SLOT_SIZE + LINEAR_GAP);
+  const linearPos = startOffset + col * (BADGE_SLOT_SIZE + LINEAR_GAP);
+
+  // Each subsequent row is offset further from the card edge
+  const rowOffset = row * BADGE_SLOT_SIZE;
 
   if (absDx >= absDy) {
     // Horizontal dominant → place tokens left or right of card
     const isRight = tileX >= centerX; // tile is right-of or at centre → tokens go right
-    const dx = isRight ? halfW * 2 + EDGE_OFFSET : -EDGE_OFFSET;
+    const baseDx = isRight ? halfW * 2 + EDGE_OFFSET : -EDGE_OFFSET;
+    const dx = isRight ? baseDx + rowOffset : baseDx - rowOffset;
     const dy = halfH + linearPos;
     return { dx, dy };
   } else {
     // Vertical dominant → place tokens above or below card
     const isBelow = tileY >= centerY; // tile is below or at centre → tokens go below
     const dx = halfW + linearPos;
-    const dy = isBelow ? halfH * 2 + EDGE_OFFSET : -EDGE_OFFSET;
+    const baseDy = isBelow ? halfH * 2 + EDGE_OFFSET : -EDGE_OFFSET;
+    const dy = isBelow ? baseDy + rowOffset : baseDy - rowOffset;
     return { dx, dy };
   }
 }
