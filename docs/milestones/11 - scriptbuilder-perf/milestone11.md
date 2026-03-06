@@ -1,5 +1,9 @@
 # Milestone 11 — ScriptBuilder Test Performance Investigation
 
+## Status: ✅ Complete
+
+Resolved by optimizing `ScriptBuilder` component rendering with `React.memo` on `CharacterRow`, `BrowsePanel`, and `SelectionPanel`, plus replacing O(n×m) lookups with a `Map`. Test was re-enabled and passes in both normal and coverage modes. See [Resolution](#resolution) below for full details.
+
 ## Problem
 
 The test **"can toggle character selection via checkbox"** in [`ScriptBuilder.test.tsx`](../../../UI/src/components/ScriptBuilder/ScriptBuilder.test.tsx) times out (>5000ms) when running in coverage mode (`npm run test:coverage`) as part of the full 54-file test suite. It passes reliably in normal test mode (`npm test`) and when run in isolation with coverage.

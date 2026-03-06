@@ -16,8 +16,8 @@
 | M7 | Testing Improvements | ✅ Complete (Phases 1-5) | [details](milestones/7 - testing improvements/milestone7.md) |
 | M8 | Wiki scraping — populate remaining characters + download icons | ✅ Complete (M8.1 + M8.2) | [details](milestones/8%20-%20wiki%20scraping/progress.md) |
 | M9 | Testing post character scraping — verify character data integrity & fix test issues | ✅ Complete | [details](milestones/9%20-%20testing%20post%20character%20scraping/progress.md) |
-| M10 | Storybook Test Runner | 📋 Planned | — |
-| M11 | ScriptBuilder Performance | 📋 Planned | — |
+| M10 | Storybook Test Runner | ✅ Complete | [details](milestones/10%20-%20Storybook%20TestRunner/milestone%2010.md) |
+| M11 | ScriptBuilder Performance | ✅ Complete | [details](milestones/11%20-%20scriptbuilder-perf/milestone11.md) |
 | M12 | Storybook Test Expansion | 📋 Planned | — |
 | M13 | Icon Replacement | ✅ Complete | [details](milestones/13%20-%20icon%20replacement/progress.md) |
 | M14 | Night Flashcard UX | ✅ Complete | [details](milestones/14%20-%20night%20flashcard%20ux/progress.md) |

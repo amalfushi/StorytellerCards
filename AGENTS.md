@@ -154,6 +154,29 @@ See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 - **17 story files** with **~80+ stories** including `play()` interaction tests
 - **0 TypeScript errors**, **0 ESLint errors**
 
+## Documentation Maintenance
+
+### Policy: Keep Docs Updated After Every Milestone
+When completing a milestone or significant task, agents **must** update the relevant documentation before finishing:
+
+1. **Milestone doc** (`docs/milestones/<N> - <name>/milestone<N>.md`) — Add or update a `## Status: ✅ Complete` section at the top with:
+   - Completion date
+   - Brief summary of what was implemented
+   - Key evidence (files changed, features added)
+
+2. **Progress tracker** ([`docs/progress.md`](docs/progress.md)) — Update the milestone table:
+   - Change status from `📋 Planned` or `🔄 In Progress` to `✅ Complete`
+   - Add a link to the milestone doc in the Details column
+   - Update the "Verification" section test counts if they changed
+   - If the task is medium to large or complex, create a progress.md in the milestone folder to go into further details without bloating the [`docs/progress.md`](docs/progress.md).
+
+3. **AGENTS.md stats** — If test counts, file counts, or coverage thresholds changed, update the relevant numbers in:
+   - **Tech Stack** table (test count)
+   - **Current Test Stats** section
+   - **Coverage Thresholds** section (if thresholds were adjusted)
+
+**Do not defer documentation updates.** They must be part of the same task or PR that completes the milestone work.
+
 ## Related Documentation
 
 - [Progress Tracking](docs/progress.md) — what's done, what's in progress, what's next
