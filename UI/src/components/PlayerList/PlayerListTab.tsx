@@ -96,15 +96,16 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
                 </TableCell>
               )}
               {showCharacters && <TableCell sx={{ px: 1 }}>Character</TableCell>}
-              {showCharacters && <TableCell sx={{ px: 1 }}>Ability</TableCell>}
-              <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
-                Alive
-              </TableCell>
+              {showCharacters && <TableCell sx={{ px: 1, flex: 2 }}>Ability</TableCell>}
+              {showCharacters && <TableCell sx={{ px: 1 }}>Tokens</TableCell>}
               {showCharacters && (
                 <TableCell align="center" sx={{ width: 32, px: 0.5 }}>
                   Align
                 </TableCell>
               )}
+              <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
+                Alive
+              </TableCell>
               <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
                 Vote
               </TableCell>

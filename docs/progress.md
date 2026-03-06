@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-05
+> Last updated: 2026-03-06
 
 ## Milestone Overview
 
@@ -21,6 +21,9 @@
 | M12 | Storybook Test Expansion | 📋 Planned | — |
 | M13 | Icon Replacement | ✅ Complete | [details](milestones/13%20-%20icon%20replacement/progress.md) |
 | M14 | Night Flashcard UX | ✅ Complete | [details](milestones/14%20-%20night%20flashcard%20ux/progress.md) |
+| M15 | Day/Night Tab Workflow | ✅ Complete | [details](milestones/15%20-%20day%20night%20tab%20workflow/milestone15.md) |
+| M16 | Town Square Polish | ✅ Complete | [details](milestones/16%20-%20townsquare%20polish/milestone16.md) |
+| M17 | List Views & Minor Fixes | ✅ Complete | [details](milestones/17%20-%20list%20views%20and%20minor%20fixes/milestone17.md) |
 
 ## Key Design Decisions
 
@@ -32,11 +35,11 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M14 Complete)
+## Verification (as of M17 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 2411/2411 passing (55 test files)
+- Tests: 2418/2418 passing (55 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~90+ stories including `play()` interaction tests
 - Go build: success

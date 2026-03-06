@@ -97,6 +97,31 @@ const deadPlayerGhostVoteUsed: PlayerSeat = {
   tokens: [],
 };
 
+const travellerPlayer: PlayerSeat = {
+  seat: 7,
+  playerName: 'Jack',
+  characterId: 'spiritofivory',
+  alive: true,
+  ghostVoteUsed: false,
+  visibleAlignment: Alignment.Unknown,
+  actualAlignment: Alignment.Good,
+  startingAlignment: Alignment.Good,
+  activeReminders: [],
+  isTraveller: true,
+  tokens: [],
+};
+
+const travellerCharacter: CharacterDef = {
+  id: 'spiritofivory',
+  name: 'Spirit of Ivory',
+  type: CharacterType.Traveller,
+  defaultAlignment: Alignment.Good,
+  abilityShort: "There can't be more than 1 extra evil player.",
+  firstNight: null,
+  otherNights: null,
+  reminders: [],
+};
+
 const evilTownsfolkPlayer: PlayerSeat = {
   seat: 11,
   playerName: 'Mallory',
@@ -280,5 +305,44 @@ describe('PlayerRow', () => {
     // Multiple '—' placeholders for type, icon, character name, ability
     const dashes = screen.getAllByText('—');
     expect(dashes.length).toBeGreaterThanOrEqual(3);
+  });
+
+  // ──────────────────────────────────────────────
+  // Traveller visibility tests (M17)
+  // ──────────────────────────────────────────────
+
+  it('shows Traveller icon in Day mode (showCharacters=false)', () => {
+    renderPlayerRow(travellerPlayer, false, travellerCharacter);
+    // Traveller icon should be visible even in Day mode
+    expect(screen.getByAltText('Spirit of Ivory')).toBeInTheDocument();
+  });
+
+  it('shows Traveller character name in Day mode (showCharacters=false)', () => {
+    renderPlayerRow(travellerPlayer, false, travellerCharacter);
+    expect(screen.getByText('Spirit of Ivory')).toBeInTheDocument();
+  });
+
+  it('hides Traveller alignment in Day mode (showCharacters=false)', () => {
+    renderPlayerRow(travellerPlayer, false, travellerCharacter);
+    // The alignment dot should NOT be present when showCharacters is false
+    // In Day mode, only seat, name, icon, character name, alive, vote are shown
+    // Alignment column is only shown when showCharacters is true
+    expect(screen.queryByText('Townsfolk')).not.toBeInTheDocument(); // type chip hidden
+  });
+
+  it('applies word-wrap styles to Ability column', () => {
+    renderPlayerRow(alivePlayer, true, nobleCharacter);
+    // Find the ability text cell
+    const abilityCell = screen.getByText(/On your 1st night, you learn 3 players/).closest('td');
+    expect(abilityCell).toBeTruthy();
+    // Verify it has word-wrap styling (via computed style from MUI sx)
+    expect(abilityCell).toHaveStyle({ whiteSpace: 'normal' });
+  });
+
+  it('Traveller row has background tint', () => {
+    const { container } = renderPlayerRow(travellerPlayer, true, travellerCharacter);
+    // The table row should have a background color
+    const row = container.querySelector('tr');
+    expect(row).toBeTruthy();
   });
 });

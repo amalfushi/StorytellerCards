@@ -84,7 +84,19 @@ vi.mock('@/context/GameContext.tsx', () => ({
 vi.mock('@/hooks/useCharacterLookup.ts', () => ({
   useCharacterLookup: () => ({
     getCharacter: (id: string) => {
-      const chars: Record<string, { id: string; name: string; type: string; defaultAlignment: string; abilityShort: string; firstNight: null; otherNights: null; reminders: never[] }> = {
+      const chars: Record<
+        string,
+        {
+          id: string;
+          name: string;
+          type: string;
+          defaultAlignment: string;
+          abilityShort: string;
+          firstNight: null;
+          otherNights: null;
+          reminders: never[];
+        }
+      > = {
         noble: {
           id: 'noble',
           name: 'Noble',
@@ -137,13 +149,7 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
 
 // Mock PlayerRow to simplify
 vi.mock('@/components/PlayerList/PlayerRow.tsx', () => ({
-  PlayerRow: ({
-    player,
-    showCharacters,
-  }: {
-    player: PlayerSeat;
-    showCharacters: boolean;
-  }) => (
+  PlayerRow: ({ player, showCharacters }: { player: PlayerSeat; showCharacters: boolean }) => (
     <tr data-testid={`player-row-${player.seat}`}>
       <td>{player.seat}</td>
       <td>{player.playerName}</td>
@@ -177,43 +183,36 @@ describe('PlayerListTab', () => {
   });
 
   it('shows a table of all players', () => {
-    render(
-      <PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.getByTestId('player-row-1')).toBeInTheDocument();
     expect(screen.getByTestId('player-row-2')).toBeInTheDocument();
     expect(screen.getByTestId('player-row-3')).toBeInTheDocument();
   });
 
   it('shows all players from game state', () => {
-    render(
-      <PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.getByText('Alice')).toBeInTheDocument();
     expect(screen.getByText('Bob')).toBeInTheDocument();
     expect(screen.getByText('Charlie')).toBeInTheDocument();
   });
 
   it('displays correct column headers when showCharacters is true', () => {
-    render(
-      <PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.getByText('#')).toBeInTheDocument();
     expect(screen.getByText('Player')).toBeInTheDocument();
     expect(screen.getByText('Type')).toBeInTheDocument();
     expect(screen.getByText('Icon')).toBeInTheDocument();
     expect(screen.getByText('Character')).toBeInTheDocument();
     expect(screen.getByText('Ability')).toBeInTheDocument();
-    expect(screen.getByText('Alive')).toBeInTheDocument();
+    expect(screen.getByText('Tokens')).toBeInTheDocument();
     expect(screen.getByText('Align')).toBeInTheDocument();
+    expect(screen.getByText('Alive')).toBeInTheDocument();
     expect(screen.getByText('Vote')).toBeInTheDocument();
   });
 
   it('hides character columns when showCharacters is false (Day mode)', () => {
     mockShowCharacters = false;
-    render(
-      <PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     // Should show basic columns
     expect(screen.getByText('#')).toBeInTheDocument();
     expect(screen.getByText('Player')).toBeInTheDocument();
@@ -224,30 +223,25 @@ describe('PlayerListTab', () => {
     expect(screen.queryByText('Icon')).not.toBeInTheDocument();
     expect(screen.queryByText('Character')).not.toBeInTheDocument();
     expect(screen.queryByText('Ability')).not.toBeInTheDocument();
+    expect(screen.queryByText('Tokens')).not.toBeInTheDocument();
     expect(screen.queryByText('Align')).not.toBeInTheDocument();
   });
 
   it('shows "No players in this game" when players list is empty', () => {
     mockGame = { ...baseGame, players: [] };
-    render(
-      <PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.getByText('No players in this game.')).toBeInTheDocument();
   });
 
   it('shows "No players" when game is null', () => {
     mockGame = null;
-    render(
-      <PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.getByText('No players in this game.')).toBeInTheDocument();
   });
 
   it('passes showCharacters to player rows', () => {
     mockShowCharacters = true;
-    render(
-      <PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     // When showCharacters=true, our mock PlayerRow renders the character-col
     const characterCols = screen.getAllByTestId('character-col');
     expect(characterCols).toHaveLength(3);
@@ -255,9 +249,7 @@ describe('PlayerListTab', () => {
 
   it('does not pass character columns in Day mode', () => {
     mockShowCharacters = false;
-    render(
-      <PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.queryByTestId('character-col')).not.toBeInTheDocument();
   });
 
@@ -267,9 +259,7 @@ describe('PlayerListTab', () => {
       ...baseGame,
       players: [mockPlayers[2], mockPlayers[0], mockPlayers[1]], // seats 3, 1, 2
     };
-    render(
-      <PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     const rows = screen.getAllByTestId(/^player-row-/);
     // Should be sorted: seat 1, 2, 3
     expect(rows[0]).toHaveAttribute('data-testid', 'player-row-1');
