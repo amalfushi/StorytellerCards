@@ -54,7 +54,15 @@ export function TokenChips({ tokens, size = 'small' }: TokenChipsProps) {
             color: '#fff',
             fontWeight: 600,
             fontSize: size === 'small' ? '0.65rem' : '0.75rem',
-            height: size === 'small' ? 20 : 24,
+            height: 'auto',
+            maxWidth: 'none',
+            whiteSpace: 'normal',
+            wordWrap: 'break-word',
+            '& .MuiChip-label': {
+              whiteSpace: 'normal',
+              wordWrap: 'break-word',
+              py: 0.5,
+            },
           }}
         />
       ))}
