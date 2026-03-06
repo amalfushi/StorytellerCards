@@ -62,7 +62,7 @@ function computeRadialPosition(
   halfH: number,
 ): { dx: number; dy: number } {
   const slotRadius = BADGE_SLOT_SIZE / 2;
-  const badgeDistance = Math.max(halfW, halfH) + slotRadius + 4;
+  const badgeDistance = Math.max(halfW, halfH) + slotRadius + 12;
 
   if (tokenCount >= 5) {
     // Full 360° distribution, starting from the top (−π/2)
@@ -133,7 +133,7 @@ function computeLinearPosition(
   const linearPos = startOffset + col * (BADGE_SLOT_SIZE + LINEAR_GAP);
 
   // Each subsequent row is offset further from the card edge
-  const rowOffset = row * BADGE_SLOT_SIZE;
+  const rowOffset = row * (BADGE_SLOT_SIZE + 8);
 
   if (absDx >= absDy) {
     // Horizontal dominant → place tokens left or right of card
