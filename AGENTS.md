@@ -168,6 +168,7 @@ When completing a milestone or significant task, agents **must** update the rele
    - Change status from `📋 Planned` or `🔄 In Progress` to `✅ Complete`
    - Add a link to the milestone doc in the Details column
    - Update the "Verification" section test counts if they changed
+   - If the task is medium to large or complex, create a progress.md in the milestone folder to go into further details without bloating the [`docs/progress.md`](docs/progress.md).
 
 3. **AGENTS.md stats** — If test counts, file counts, or coverage thresholds changed, update the relevant numbers in:
    - **Tech Stack** table (test count)
