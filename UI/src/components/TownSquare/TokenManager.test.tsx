@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TokenManager, TokenBadges } from '@/components/TownSquare/TokenManager.tsx';
-import type { PlayerSeat, PlayerToken, CharacterDef } from '@/types/index.ts';
+import type { PlayerSeat, PlayerToken, CharacterDef, ReminderToken } from '@/types/index.ts';
 import { CharacterType, Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -82,6 +82,22 @@ const nobleCharacterNoReminders: CharacterDef = {
 };
 
 // ──────────────────────────────────────────────
+// Available tokens for new availableTokens prop
+// ──────────────────────────────────────────────
+
+const basicAvailableTokens: ReminderToken[] = [
+  { id: 'basic-poisoned', text: 'Poisoned' },
+  { id: 'basic-drunk', text: 'Drunk' },
+];
+
+const madAvailableToken: ReminderToken = { id: 'basic-mad', text: 'Mad' };
+
+const characterReminderToken: ReminderToken = {
+  id: 'lycanthrope-fauxpaw',
+  text: 'Dead — Lycanthrope',
+};
+
+// ──────────────────────────────────────────────
 // Tests — TokenManager (Dialog)
 // ──────────────────────────────────────────────
 
@@ -95,9 +111,7 @@ describe('TokenManager', () => {
   };
 
   it('renders nothing when player is null', () => {
-    const { container } = render(
-      <TokenManager {...defaultProps} player={null} />,
-    );
+    const { container } = render(<TokenManager {...defaultProps} player={null} />);
     expect(container.innerHTML).toBe('');
   });
 
@@ -112,49 +126,54 @@ describe('TokenManager', () => {
     expect(screen.getByText(/Seat 1/)).toBeInTheDocument();
   });
 
-  it('has Drunk toggle button', () => {
+  it('has Drunk toggle button (fallback mode)', () => {
     render(<TokenManager {...defaultProps} />);
-    // The toggle button has an emoji prefix: 🍺 Drunk
-    expect(screen.getByRole('button', { name: /🍺\s*Drunk/i })).toBeInTheDocument();
+    // Fallback mode (no availableTokens) renders plain "Drunk" button
+    expect(screen.getByRole('button', { name: /^Drunk$/i })).toBeInTheDocument();
   });
 
-  it('has Poisoned toggle button', () => {
+  it('has Poisoned toggle button (fallback mode)', () => {
     render(<TokenManager {...defaultProps} />);
-    // The toggle button has an emoji prefix: ☠️ Poisoned
-    expect(screen.getByRole('button', { name: /☠️\s*Poisoned/i })).toBeInTheDocument();
+    // Fallback mode (no availableTokens) renders plain "Poisoned" button
+    expect(screen.getByRole('button', { name: /^Poisoned$/i })).toBeInTheDocument();
   });
 
   it('clicking Drunk button calls onAddToken', () => {
     const onAddToken = vi.fn();
     render(<TokenManager {...defaultProps} onAddToken={onAddToken} />);
-    fireEvent.click(screen.getByRole('button', { name: /🍺\s*Drunk/i }));
-    expect(onAddToken).toHaveBeenCalledWith(1, expect.objectContaining({
-      type: 'drunk',
-      label: 'Drunk',
-    }));
+    fireEvent.click(screen.getByRole('button', { name: /^Drunk$/i }));
+    expect(onAddToken).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        type: 'drunk',
+        label: 'Drunk',
+      }),
+    );
   });
 
   it('clicking Poisoned button calls onAddToken', () => {
     const onAddToken = vi.fn();
     render(<TokenManager {...defaultProps} onAddToken={onAddToken} />);
-    fireEvent.click(screen.getByRole('button', { name: /☠️\s*Poisoned/i }));
-    expect(onAddToken).toHaveBeenCalledWith(1, expect.objectContaining({
-      type: 'poisoned',
-      label: 'Poisoned',
-    }));
+    fireEvent.click(screen.getByRole('button', { name: /^Poisoned$/i }));
+    expect(onAddToken).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        type: 'poisoned',
+        label: 'Poisoned',
+      }),
+    );
   });
 
   it('clicking Drunk on player that already has Drunk removes it', () => {
     const onRemoveToken = vi.fn();
     render(
-      <TokenManager
-        {...defaultProps}
-        player={playerWithTokens}
-        onRemoveToken={onRemoveToken}
-      />,
+      <TokenManager {...defaultProps} player={playerWithTokens} onRemoveToken={onRemoveToken} />,
     );
-    // Use the emoji-prefixed button text to disambiguate from the Chip
-    fireEvent.click(screen.getByRole('button', { name: /🍺\s*Drunk/i }));
+    // In fallback mode, "Drunk" appears as both a chip and a toggle button.
+    // The chip comes first in the DOM; the toggle button comes second.
+    // We want the toggle button (last one).
+    const drunkButtons = screen.getAllByRole('button', { name: /^Drunk$/i });
+    fireEvent.click(drunkButtons[drunkButtons.length - 1]);
     expect(onRemoveToken).toHaveBeenCalledWith(1, 'tok-drunk-1');
   });
 
@@ -163,7 +182,7 @@ describe('TokenManager', () => {
     expect(screen.getByText('Active Tokens')).toBeInTheDocument();
     // Check chip labels exist (Drunk appears both as chip and button, use getAllByText)
     expect(screen.getAllByText(/^Drunk$/).length).toBeGreaterThanOrEqual(1);
-    expect(screen.getByText('Poisoned')).toBeInTheDocument();
+    expect(screen.getAllByText(/^Poisoned$/).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('Is the Drunk')).toBeInTheDocument();
   });
 
@@ -190,31 +209,24 @@ describe('TokenManager', () => {
       target: { value: 'My Custom' },
     });
     fireEvent.click(screen.getByRole('button', { name: /^Add$/i }));
-    expect(onAddToken).toHaveBeenCalledWith(1, expect.objectContaining({
-      type: 'custom',
-      label: 'My Custom',
-    }));
+    expect(onAddToken).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        type: 'custom',
+        label: 'My Custom',
+      }),
+    );
   });
 
   it('shows character-specific reminder tokens when characterDef has reminders', () => {
-    render(
-      <TokenManager
-        {...defaultProps}
-        characterDef={nobleCharacterWithReminders}
-      />,
-    );
+    render(<TokenManager {...defaultProps} characterDef={nobleCharacterWithReminders} />);
     expect(screen.getByText('Noble Reminders')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Seen' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'No ability' })).toBeInTheDocument();
   });
 
   it('does not show character reminders section when no reminders', () => {
-    render(
-      <TokenManager
-        {...defaultProps}
-        characterDef={nobleCharacterNoReminders}
-      />,
-    );
+    render(<TokenManager {...defaultProps} characterDef={nobleCharacterNoReminders} />);
     expect(screen.queryByText('Noble Reminders')).not.toBeInTheDocument();
   });
 
@@ -228,10 +240,13 @@ describe('TokenManager', () => {
       />,
     );
     fireEvent.click(screen.getByRole('button', { name: 'Seen' }));
-    expect(onAddToken).toHaveBeenCalledWith(1, expect.objectContaining({
-      type: 'custom',
-      label: 'Seen',
-    }));
+    expect(onAddToken).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        type: 'custom',
+        label: 'Seen',
+      }),
+    );
   });
 
   it('has Close button', () => {
@@ -245,6 +260,77 @@ describe('TokenManager', () => {
     fireEvent.click(screen.getByRole('button', { name: /Close/i }));
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  // ──────────────────────────────────────────────
+  // New tests — availableTokens prop
+  // ──────────────────────────────────────────────
+
+  it('shows Status Tokens section when availableTokens is provided', () => {
+    render(<TokenManager {...defaultProps} availableTokens={basicAvailableTokens} />);
+    expect(screen.getByText('Status Tokens')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Poisoned$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Drunk$/i })).toBeInTheDocument();
+  });
+
+  it('shows Mad token when included in availableTokens', () => {
+    render(
+      <TokenManager
+        {...defaultProps}
+        availableTokens={[...basicAvailableTokens, madAvailableToken]}
+      />,
+    );
+    expect(screen.getByRole('button', { name: /^Mad$/i })).toBeInTheDocument();
+  });
+
+  it('shows character-specific tokens from availableTokens in Character Reminders section', () => {
+    render(
+      <TokenManager
+        {...defaultProps}
+        availableTokens={[...basicAvailableTokens, characterReminderToken]}
+      />,
+    );
+    expect(screen.getByText('Character Reminders')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Dead — Lycanthrope/i })).toBeInTheDocument();
+  });
+
+  it('clicking character reminder from availableTokens calls onAddToken', () => {
+    const onAddToken = vi.fn();
+    render(
+      <TokenManager
+        {...defaultProps}
+        onAddToken={onAddToken}
+        availableTokens={[...basicAvailableTokens, characterReminderToken]}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Dead — Lycanthrope/i }));
+    expect(onAddToken).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({
+        type: 'custom',
+        label: 'Dead — Lycanthrope',
+      }),
+    );
+  });
+
+  it('toggles basic token from availableTokens on/off', () => {
+    const onAddToken = vi.fn();
+    const onRemoveToken = vi.fn();
+    // Player already has Drunk token
+    render(
+      <TokenManager
+        {...defaultProps}
+        player={playerWithTokens}
+        onAddToken={onAddToken}
+        onRemoveToken={onRemoveToken}
+        availableTokens={basicAvailableTokens}
+      />,
+    );
+    // "Drunk" appears as both a chip and a toggle button.
+    // The chip comes first in the DOM; the toggle button comes last.
+    const drunkButtons = screen.getAllByRole('button', { name: /^Drunk$/i });
+    fireEvent.click(drunkButtons[drunkButtons.length - 1]);
+    expect(onRemoveToken).toHaveBeenCalledWith(1, 'tok-drunk-1');
+  });
 });
 
 // ──────────────────────────────────────────────
@@ -252,23 +338,22 @@ describe('TokenManager', () => {
 // ──────────────────────────────────────────────
 
 describe('TokenBadges', () => {
+  const baseProps = {
+    tileX: 100,
+    tileY: 100,
+    centerX: 200,
+    centerY: 200,
+    cardWidth: 73,
+    cardHeight: 110,
+  };
+
   it('renders nothing when tokens array is empty', () => {
-    const { container } = render(
-      <TokenBadges tokens={[]} tileX={100} tileY={100} centerX={200} centerY={200} />,
-    );
+    const { container } = render(<TokenBadges tokens={[]} {...baseProps} />);
     expect(container.innerHTML).toBe('');
   });
 
   it('renders badges for provided tokens', () => {
-    render(
-      <TokenBadges
-        tokens={[drunkToken, customToken]}
-        tileX={100}
-        tileY={100}
-        centerX={200}
-        centerY={200}
-      />,
-    );
+    render(<TokenBadges tokens={[drunkToken, customToken]} {...baseProps} />);
     expect(screen.getByTitle('Drunk')).toBeInTheDocument();
     // "Is the Drunk" → abbreviated to "Is t…"
     expect(screen.getByTitle('Is the Drunk')).toBeInTheDocument();
@@ -281,15 +366,7 @@ describe('TokenBadges', () => {
       label: 'Very Long Label',
       color: '#ff0000',
     };
-    render(
-      <TokenBadges
-        tokens={[longToken]}
-        tileX={100}
-        tileY={100}
-        centerX={200}
-        centerY={200}
-      />,
-    );
+    render(<TokenBadges tokens={[longToken]} {...baseProps} />);
     // "Very Long Label" → abbreviated to "Very…"
     expect(screen.getByText('Very…')).toBeInTheDocument();
   });
@@ -301,15 +378,20 @@ describe('TokenBadges', () => {
       label: 'Mad',
       color: '#ff0000',
     };
-    render(
-      <TokenBadges
-        tokens={[shortToken]}
-        tileX={100}
-        tileY={100}
-        centerX={200}
-        centerY={200}
-      />,
-    );
+    render(<TokenBadges tokens={[shortToken]} {...baseProps} />);
     expect(screen.getByText('Mad')).toBeInTheDocument();
+  });
+
+  it('renders correctly with tokenLayout="linear"', () => {
+    render(
+      <TokenBadges tokens={[drunkToken, poisonedToken]} {...baseProps} tokenLayout="linear" />,
+    );
+    expect(screen.getByTitle('Drunk')).toBeInTheDocument();
+    expect(screen.getByTitle('Poisoned')).toBeInTheDocument();
+  });
+
+  it('renders correctly with tokenLayout="radial"', () => {
+    render(<TokenBadges tokens={[drunkToken]} {...baseProps} tokenLayout="radial" />);
+    expect(screen.getByTitle('Drunk')).toBeInTheDocument();
   });
 });

@@ -16,10 +16,10 @@ import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 // Token boxes enlarged to accommodate larger icons.
 // ──────────────────────────────────────────────
 
-const SIZE_MAP = {
-  large: { box: 120, icon: 56, nameFont: '0.91rem', metaFont: '0.78rem' },
-  medium: { box: 110, icon: 52, nameFont: '0.91rem', metaFont: '0.78rem' },
-  small: { box: 100, icon: 48, nameFont: '0.85rem', metaFont: '0.72rem' },
+export const SIZE_MAP = {
+  large: { width: 80, height: 120, icon: 56, nameFont: '0.91rem', metaFont: '0.78rem' },
+  medium: { width: 73, height: 110, icon: 52, nameFont: '0.91rem', metaFont: '0.78rem' },
+  small: { width: 67, height: 100, icon: 48, nameFont: '0.85rem', metaFont: '0.72rem' },
 } as const;
 
 export type TokenSize = keyof typeof SIZE_MAP;
@@ -150,10 +150,13 @@ export const PlayerToken = memo(function PlayerToken({
     }
   };
 
+  // Phase 3: Show character icon when characters are visible OR for travellers (public info)
+  const showIcon = showCharacters || isTraveller;
+
   const tokenContent = (
     <>
-      {/* ── Night view: character icon ── */}
-      {showCharacters && (
+      {/* ── Character icon: visible in night view, or always for travellers ── */}
+      {showIcon && (
         <CharacterIconImage
           characterId={player.characterId ?? ''}
           characterName={characterDef?.name ?? '?'}
@@ -257,8 +260,11 @@ export const PlayerToken = memo(function PlayerToken({
 
   // F3-11: Travellers get a split blue/red background tint;
   // other types use alignment-based tint.
+  // Phase 3: In hidden mode, use neutral background (no alignment tint).
+  // Traveller split gradient is only shown in visible mode.
   const resolvedBg = (() => {
     if (isDead) return { bgcolor: 'grey.200' } as const;
+    if (!showCharacters) return { bgcolor: 'background.paper' } as const;
     if (isTraveller) return { background: TRAVELLER_BG_TINT } as const;
     if (bgTint) return { bgcolor: bgTint } as const;
     return { bgcolor: 'background.paper' } as const;
@@ -283,8 +289,10 @@ export const PlayerToken = memo(function PlayerToken({
   // F3-12: Use minHeight instead of fixed height so traveller tokens
   // (which have extra content from the gradient-border wrapper) can grow.
   const outerSx = {
-    width: s.box,
-    minHeight: s.box,
+    width: s.width,
+    minWidth: 60,
+    minHeight: Math.max(s.height, 90),
+    height: s.height,
     borderRadius: '12px',
     opacity: isDead ? 0.45 : 1,
     transition: 'opacity 0.2s, box-shadow 0.15s',

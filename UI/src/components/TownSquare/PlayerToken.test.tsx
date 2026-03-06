@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { PlayerToken } from '@/components/TownSquare/PlayerToken.tsx';
+import { PlayerToken, SIZE_MAP } from '@/components/TownSquare/PlayerToken.tsx';
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { CharacterType, Alignment } from '@/types/index.ts';
 
@@ -252,5 +252,91 @@ describe('PlayerToken', () => {
   it('shows "—" for character name when no characterDef provided', () => {
     render(<PlayerToken player={alivePlayer} {...defaultProps} showCharacters={true} />);
     expect(screen.getByText('—')).toBeInTheDocument();
+  });
+
+  // ──────────────────────────────────────────────
+  // Phase 3 new tests — SIZE_MAP structure
+  // ──────────────────────────────────────────────
+
+  it('SIZE_MAP uses width/height (not box)', () => {
+    // SIZE_MAP should have width and height properties, not box
+    for (const key of Object.keys(SIZE_MAP) as (keyof typeof SIZE_MAP)[]) {
+      expect(SIZE_MAP[key]).toHaveProperty('width');
+      expect(SIZE_MAP[key]).toHaveProperty('height');
+      expect(SIZE_MAP[key]).not.toHaveProperty('box');
+    }
+  });
+
+  it('SIZE_MAP has portrait aspect ratio (height > width)', () => {
+    for (const key of Object.keys(SIZE_MAP) as (keyof typeof SIZE_MAP)[]) {
+      expect(SIZE_MAP[key].height).toBeGreaterThan(SIZE_MAP[key].width);
+    }
+  });
+
+  // ──────────────────────────────────────────────
+  // Phase 3 new tests — traveller visibility in hidden mode
+  // ──────────────────────────────────────────────
+
+  it('shows traveller icon even when showCharacters is false', () => {
+    const spiritOfIvory: CharacterDef = {
+      id: 'spiritofivory',
+      name: 'Spirit of Ivory',
+      type: CharacterType.Traveller,
+      defaultAlignment: Alignment.Good,
+      abilityShort: 'Can do traveller things.',
+      firstNight: null,
+      otherNights: null,
+      reminders: [],
+    };
+    render(
+      <PlayerToken
+        player={travellerPlayer}
+        characterDef={spiritOfIvory}
+        {...defaultProps}
+        showCharacters={false}
+      />,
+    );
+    // Traveller icon should be visible even in day mode (public info)
+    expect(screen.getByAltText('Spirit of Ivory')).toBeInTheDocument();
+  });
+
+  it('hides character icon for non-traveller in hidden mode', () => {
+    render(
+      <PlayerToken
+        player={alivePlayer}
+        characterDef={nobleCharacter}
+        {...defaultProps}
+        showCharacters={false}
+      />,
+    );
+    // Non-traveller icon should NOT be shown in day mode
+    expect(screen.queryByAltText('Noble')).not.toBeInTheDocument();
+  });
+
+  // ──────────────────────────────────────────────
+  // Phase 3 new tests — alignment tint hidden in day mode
+  // ──────────────────────────────────────────────
+
+  it('does not apply alignment tint in hidden mode for non-traveller', () => {
+    const goodPlayer: PlayerSeat = {
+      ...alivePlayer,
+      actualAlignment: Alignment.Good,
+      visibleAlignment: Alignment.Unknown,
+    };
+    const { container } = render(
+      <PlayerToken
+        player={goodPlayer}
+        characterDef={nobleCharacter}
+        {...defaultProps}
+        showCharacters={false}
+      />,
+    );
+    // In hidden mode with Unknown visible alignment, the background should
+    // be plain 'background.paper', not an alignment rgba tint.
+    // Check that the container does NOT have the good alignment tint colour
+    const outerEl = container.firstChild as HTMLElement;
+    const style = window.getComputedStyle(outerEl);
+    expect(style.backgroundColor).not.toContain('rgba(25, 118, 210');
+    expect(style.backgroundColor).not.toContain('rgba(211, 47, 47');
   });
 });
