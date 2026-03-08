@@ -2,7 +2,7 @@
 
 - **Completion date:** 2026-03-06
 - **Summary:** Implemented all 6 phases of TownSquare Polish — card sizing with portrait aspect ratios and 60×90px minimums, token center fix so badges radiate from card center, visibility rules for hidden/day mode, new unified PlayerActionsModal replacing separate quick actions and edit dialog, dynamic token set built from active characters' reminders, and linear token layout mode for small viewports with localStorage persistence.
-- **Key evidence:** 2460 tests across 57 test files — all passing, 0 TypeScript errors, 0 ESLint errors
+- **Key evidence:** 2470 tests across 57 test files — all passing, 0 TypeScript errors, 0 ESLint errors
 
 ### Files Created
 - `UI/src/components/TownSquare/PlayerActionsModal.tsx`

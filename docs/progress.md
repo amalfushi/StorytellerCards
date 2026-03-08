@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-06
+> Last updated: 2026-03-08
 
 ## Milestone Overview
 
@@ -34,11 +34,11 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M16 Complete)
+## Verification (as of M16 Complete + main merge)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 2460/2460 passing (57 test files)
+- Tests: 2470/2470 passing (57 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~90+ stories including `play()` interaction tests
 - Go build: success
