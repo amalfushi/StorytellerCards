@@ -46,10 +46,13 @@ export const seamstress: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
   },
   icon: {
-    small: '/icons/characters/seamstressIcon.png',
-    medium: '/icons/characters/seamstressIcon.png',
-    large: '/icons/characters/seamstressIcon.png',
+    small: '/icons/characters/seamstressIcon.webp',
+    medium: '/icons/characters/seamstressIcon.webp',
+    large: '/icons/characters/seamstressIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    "Did you hear that stranger in the cashmere coat put the word on our young Belle? And she said yes? Well, that's nothing compared to what Harry and that juggler got up to at the fair! The things I could say if I was a tattletale... my, yes.",
+  edition: 'snv',
 };

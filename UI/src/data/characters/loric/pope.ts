@@ -17,10 +17,13 @@ export const pope: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/popeIcon.png',
-    medium: '/icons/characters/popeIcon.png',
-    large: '/icons/characters/popeIcon.png',
+    small: '/icons/characters/popeIcon.webp',
+    medium: '/icons/characters/popeIcon.webp',
+    large: '/icons/characters/popeIcon.webp',
     placeholder: '#558b2f',
   },
   reminders: [{ id: 'pope-demoninfo', text: 'DEMON INFO' }],
+  flavor: '...Pulcherrimae.',
+  edition: 'loric',
+  setup: true,
 };

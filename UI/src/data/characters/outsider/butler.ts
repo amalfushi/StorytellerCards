@@ -42,9 +42,9 @@ export const butler: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/butlerIcon.png',
-    medium: '/icons/characters/butlerIcon.png',
-    large: '/icons/characters/butlerIcon.png',
+    small: '/icons/characters/butlerIcon.webp',
+    medium: '/icons/characters/butlerIcon.webp',
+    large: '/icons/characters/butlerIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [{ id: 'butler-master', text: 'MASTER' }],
@@ -59,4 +59,6 @@ export const butler: CharacterDef = {
         'If the Organ Grinder is causing eyes closed voting, the Butler may raise their hand to vote but their vote is only counted if their master voted too.',
     },
   ],
+  flavor: 'Yes, sir... No, sir... Certainly, sir.',
+  edition: 'tb',
 };

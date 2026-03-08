@@ -38,10 +38,12 @@ export const wizard: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/wizardIcon.png',
-    medium: '/icons/characters/wizardIcon.png',
-    large: '/icons/characters/wizardIcon.png',
+    small: '/icons/characters/wizardIcon.webp',
+    medium: '/icons/characters/wizardIcon.webp',
+    large: '/icons/characters/wizardIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
+  flavor: 'Every man and every woman is a star. Love is the law, love under will.',
+  edition: 'carousel',
 };

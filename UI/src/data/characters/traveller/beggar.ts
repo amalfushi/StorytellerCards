@@ -20,10 +20,13 @@ export const beggar: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/beggarIcon.png',
-    medium: '/icons/characters/beggarIcon.png',
-    large: '/icons/characters/beggarIcon.png',
+    small: '/icons/characters/beggarIcon.webp',
+    medium: '/icons/characters/beggarIcon.webp',
+    large: '/icons/characters/beggarIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    "Alms for the poor, good Sir? Spare a coin, Madam? Thank you. God bless! You're a right kind soul and no mistake! I'll have some swanky nosh tonight, I will!",
+  edition: 'tb',
 };

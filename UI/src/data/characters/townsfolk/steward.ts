@@ -24,10 +24,13 @@ export const steward: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/stewardIcon.png',
-    medium: '/icons/characters/stewardIcon.png',
-    large: '/icons/characters/stewardIcon.png',
+    small: '/icons/characters/stewardIcon.webp',
+    medium: '/icons/characters/stewardIcon.webp',
+    large: '/icons/characters/stewardIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'How DARE you accuse Her Ladyship of wrongdoing? I’ve known her my entire life! All nine years!',
+  edition: 'carousel',
 };

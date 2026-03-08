@@ -14,10 +14,13 @@ export const spiritofivory: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/spiritofivoryIcon.png',
-    medium: '/icons/characters/spiritofivoryIcon.png',
-    large: '/icons/characters/spiritofivoryIcon.png',
+    small: '/icons/characters/spiritofivoryIcon.webp',
+    medium: '/icons/characters/spiritofivoryIcon.webp',
+    large: '/icons/characters/spiritofivoryIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [],
+  flavor:
+    'The Wasteland calls. Bones rise to flesh, then fall to dust. The great spirit grows. The great spirit watches. The great spirit guides. The human listens, or the human is no more.',
+  edition: 'fabled',
 };

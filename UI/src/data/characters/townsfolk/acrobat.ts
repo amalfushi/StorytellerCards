@@ -29,10 +29,12 @@ export const acrobat: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/acrobatIcon.png',
-    medium: '/icons/characters/acrobatIcon.png',
-    large: '/icons/characters/acrobatIcon.png',
+    small: '/icons/characters/acrobatIcon.webp',
+    medium: '/icons/characters/acrobatIcon.webp',
+    large: '/icons/characters/acrobatIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: 'Welcome, one and all, to the greatest show on earth.',
+  edition: 'carousel',
 };

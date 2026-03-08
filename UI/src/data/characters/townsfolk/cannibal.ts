@@ -17,10 +17,32 @@ export const cannibal: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/cannibalIcon.png',
-    medium: '/icons/characters/cannibalIcon.png',
-    large: '/icons/characters/cannibalIcon.png',
+    small: '/icons/characters/cannibalIcon.webp',
+    medium: '/icons/characters/cannibalIcon.webp',
+    large: '/icons/characters/cannibalIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'juggler',
+      description:
+        'If the Juggler guesses on their first day and dies by execution, tonight the living Cannibal learns how many guesses the Juggler got correct.',
+    },
+    {
+      characterId: 'princess',
+      description:
+        'If the Cannibal nominated, executed, & killed the Princess today, the Demon doesn’t kill tonight.',
+    },
+    {
+      characterId: 'butler',
+      description: 'If the Cannibal gains the Butler ability, the Cannibal learns this.',
+    },
+    {
+      characterId: 'zealot',
+      description: 'If the Cannibal gains the Zealot ability, the Cannibal learns this.',
+    },
+  ],
+  flavor: 'I don’t like clowns. They taste funny.',
+  edition: 'carousel',
 };

@@ -27,9 +27,9 @@ export const zombuul: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/zombuulIcon.png',
-    medium: '/icons/characters/zombuulIcon.png',
-    large: '/icons/characters/zombuulIcon.png',
+    small: '/icons/characters/zombuulIcon.webp',
+    medium: '/icons/characters/zombuulIcon.webp',
+    large: '/icons/characters/zombuulIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [{ id: 'zombuul-diedtoday', text: 'DIED TODAY' }],
@@ -40,4 +40,7 @@ export const zombuul: CharacterDef = {
         'If the Summoner summons a dead player into the Zombuul, the Zombuul has already "died once".',
     },
   ],
+  flavor:
+    'I do not. Understand. Your ways. Fellow human. Show me. The dirt. Where the holy. Lay. Sleeping. I too. Must sleep. Soon.',
+  edition: 'bmr',
 };

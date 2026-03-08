@@ -45,9 +45,9 @@ export const pukka: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/pukkaIcon.png',
-    medium: '/icons/characters/pukkaIcon.png',
-    large: '/icons/characters/pukkaIcon.png',
+    small: '/icons/characters/pukkaIcon.webp',
+    medium: '/icons/characters/pukkaIcon.webp',
+    large: '/icons/characters/pukkaIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [{ id: 'pukka-poisoned', text: 'POISONED' }],
@@ -57,4 +57,7 @@ export const pukka: CharacterDef = {
       description: 'The Summoner may summon a Pukka on the 2nd night instead of the 3rd.',
     },
   ],
+  flavor:
+    'You truly have been kind welcoming me into your beautiful home. I am so sorry I accidentally scratched you. A little thing. No matter. But please, take this golden toothpick as a humble token of my regret.',
+  edition: 'bmr',
 };

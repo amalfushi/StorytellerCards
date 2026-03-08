@@ -39,9 +39,9 @@ export const hatter: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/hatterIcon.png',
-    medium: '/icons/characters/hatterIcon.png',
-    large: '/icons/characters/hatterIcon.png',
+    small: '/icons/characters/hatterIcon.webp',
+    medium: '/icons/characters/hatterIcon.webp',
+    large: '/icons/characters/hatterIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [{ id: 'hatter-teapartytonight', text: 'TEA PARTY TONIGHT' }],
@@ -62,4 +62,6 @@ export const hatter: CharacterDef = {
       description: 'If the Summoner creates a second living Demon, deaths tonight are arbitrary.',
     },
   ],
+  flavor: 'One Hat. Too Hat. Three Hat. Tea Hat. Fore Hat. Thrive Hat. Six Hat. Sticks Hat.',
+  edition: 'carousel',
 };

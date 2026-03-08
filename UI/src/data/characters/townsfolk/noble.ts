@@ -24,10 +24,13 @@ export const noble: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/nobleIcon.png',
-    medium: '/icons/characters/nobleIcon.png',
-    large: '/icons/characters/nobleIcon.png',
+    small: '/icons/characters/nobleIcon.webp',
+    medium: '/icons/characters/nobleIcon.webp',
+    large: '/icons/characters/nobleIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'Sarcasm is indeed the lowest form of wit. But speaking in response to your criticism, Sir, it is, nevertheless, a form of wit.',
+  edition: 'carousel',
 };

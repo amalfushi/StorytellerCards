@@ -32,9 +32,9 @@ export const princess: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/princessIcon.png',
-    medium: '/icons/characters/princessIcon.png',
-    large: '/icons/characters/princessIcon.png',
+    small: '/icons/characters/princessIcon.webp',
+    medium: '/icons/characters/princessIcon.webp',
+    large: '/icons/characters/princessIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -50,4 +50,7 @@ export const princess: CharacterDef = {
         'If the Cannibal nominated, executed, & killed the Princess today, the Demon doesn’t kill tonight.',
     },
   ],
+  flavor:
+    'Our words are hounds, bound by silken threads, dear lords. Let kindness weave them true, lest the reigns unravel and rend our court.',
+  edition: 'carousel',
 };

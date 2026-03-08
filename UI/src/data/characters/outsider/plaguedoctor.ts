@@ -31,9 +31,9 @@ export const plaguedoctor: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/plaguedoctorIcon.png',
-    medium: '/icons/characters/plaguedoctorIcon.png',
-    large: '/icons/characters/plaguedoctorIcon.png',
+    small: '/icons/characters/plaguedoctorIcon.webp',
+    medium: '/icons/characters/plaguedoctorIcon.webp',
+    large: '/icons/characters/plaguedoctorIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [{ id: 'plaguedoctor-storytellerability', text: 'STORYTELLER ABILITY' }],
@@ -84,4 +84,6 @@ export const plaguedoctor: CharacterDef = {
         'If the Storyteller would gain the Wraith ability, a Minion gains it, and learns this.',
     },
   ],
+  flavor: 'Pleauze shtay shtill. Thinks nid tiime for hillink. Myrhh-myrhh.',
+  edition: 'carousel',
 };

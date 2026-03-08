@@ -19,9 +19,9 @@ export const boomdandy: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/boomdandyIcon.png',
-    medium: '/icons/characters/boomdandyIcon.png',
-    large: '/icons/characters/boomdandyIcon.png',
+    small: '/icons/characters/boomdandyIcon.webp',
+    medium: '/icons/characters/boomdandyIcon.webp',
+    large: '/icons/characters/boomdandyIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
@@ -32,4 +32,6 @@ export const boomdandy: CharacterDef = {
         'If the Storyteller would gain the Boomdandy ability, a player becomes the Boomdandy.',
     },
   ],
+  flavor: 'Tick... Tick... Tick... TOCK.',
+  edition: 'carousel',
 };

@@ -27,13 +27,16 @@ export const professor: CharacterDef = {
     choices: [{ type: 'deadPlayer', maxSelections: 1, label: 'Choose a dead player' }],
   },
   icon: {
-    small: '/icons/characters/professorIcon.png',
-    medium: '/icons/characters/professorIcon.png',
-    large: '/icons/characters/professorIcon.png',
+    small: '/icons/characters/professorIcon.webp',
+    medium: '/icons/characters/professorIcon.webp',
+    large: '/icons/characters/professorIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [
     { id: 'professor-alive', text: 'ALIVE' },
     { id: 'professor-noability', text: 'NO ABILITY' },
   ],
+  flavor:
+    'The process is simple. Attach the hydraulic confabulator to the modified chi matrix amplifier, add 20 CCs of pseudodorafine, keep his Z levels above 20%, and your husband will be fine. Now, all we need is a lightning strike.',
+  edition: 'bmr',
 };

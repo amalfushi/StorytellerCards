@@ -25,10 +25,14 @@ export const choirboy: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/choirboyIcon.png',
-    medium: '/icons/characters/choirboyIcon.png',
-    large: '/icons/characters/choirboyIcon.png',
+    small: '/icons/characters/choirboyIcon.webp',
+    medium: '/icons/characters/choirboyIcon.webp',
+    large: '/icons/characters/choirboyIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'I saw it, I did. I was in the pews, tidying the hymn books, when a dreadful tune started from the pipe organ. The organist had a long cloak, and long fingers on the keys. And a hat that looked… just like… yours.',
+  edition: 'carousel',
+  setup: true,
 };

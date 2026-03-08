@@ -27,9 +27,9 @@ export const ojo: CharacterDef = {
     choices: [{ type: 'character', maxSelections: 1, label: 'Choose a character' }],
   },
   icon: {
-    small: '/icons/characters/ojoIcon.png',
-    medium: '/icons/characters/ojoIcon.png',
-    large: '/icons/characters/ojoIcon.png',
+    small: '/icons/characters/ojoIcon.webp',
+    medium: '/icons/characters/ojoIcon.webp',
+    large: '/icons/characters/ojoIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -39,4 +39,6 @@ export const ojo: CharacterDef = {
       description: 'Pick 3 not-in-play good characters to show the Demon as bluffs.',
     },
   ],
+  flavor: 'Like a bonfire on a moonless night… I see you, mortal.',
+  edition: 'carousel',
 };

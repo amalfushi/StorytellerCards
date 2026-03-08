@@ -43,6 +43,26 @@ export const NightChoiceType = {
 } as const;
 export type NightChoiceType = (typeof NightChoiceType)[keyof typeof NightChoiceType];
 
+export const Edition = {
+  TroubleBrewing: 'tb',
+  BadMoonRising: 'bmr',
+  SectsAndViolets: 'snv',
+  Experimental: 'carousel',
+  Fabled: 'fabled',
+  Loric: 'loric',
+} as const;
+export type Edition = (typeof Edition)[keyof typeof Edition];
+
+/** Human-readable label for each edition. */
+export const EditionLabel: Record<Edition, string> = {
+  tb: 'Trouble Brewing',
+  bmr: 'Bad Moon Rising',
+  snv: 'Sects & Violets',
+  carousel: 'Experimental',
+  fabled: 'Fabled',
+  loric: 'Loric',
+} as const;
+
 // ──────────────────────────────────────────────
 // Character definition (master, read-only data)
 // ──────────────────────────────────────────────
@@ -96,6 +116,8 @@ export interface ReminderToken {
   id: string;
   text: string;
   icon?: string;
+  /** True when this reminder applies even if the character is not in play. */
+  isGlobal?: boolean;
 }
 
 // ──────────────────────────────────────────────
@@ -162,6 +184,17 @@ export interface CharacterDef {
   gameRuleOverrides?: GameRuleOverride[];
   /** Jinx interactions with other characters (M5). */
   jinxes?: Jinx[];
+
+  // ── M22 extensions (BotC official data import) ──
+
+  /** Atmospheric flavor text from official BotC data. */
+  flavor?: string;
+  /** Edition this character belongs to (e.g. 'tb', 'bmr', 'snv', 'carousel', 'fabled', 'loric'). */
+  edition?: Edition;
+  /** True when this character modifies game setup (e.g. Baron adds +2 Outsiders). */
+  setup?: boolean;
+  /** Reminder tokens that apply even when this character is not in play. */
+  remindersGlobal?: ReminderToken[];
 }
 
 // ──────────────────────────────────────────────

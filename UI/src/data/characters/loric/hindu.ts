@@ -18,10 +18,13 @@ export const hindu: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/hinduIcon.png',
-    medium: '/icons/characters/hinduIcon.png',
-    large: '/icons/characters/hinduIcon.png',
+    small: '/icons/characters/hinduIcon.webp',
+    medium: '/icons/characters/hinduIcon.webp',
+    large: '/icons/characters/hinduIcon.webp',
     placeholder: '#558b2f',
   },
   reminders: [],
+  flavor:
+    'चत्वारो मृत्युमध्ये पतन्ति, चत्वारो यात्री पुनरुद्गताः। चत्वारो धर्मे स्थितचित्तवृत्तेः, चत्वार एषां न पुनः क्षयः॥',
+  edition: 'loric',
 };

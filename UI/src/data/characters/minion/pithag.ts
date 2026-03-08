@@ -44,9 +44,9 @@ export const pithag: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/pithagIcon.png',
-    medium: '/icons/characters/pithagIcon.png',
-    large: '/icons/characters/pithagIcon.png',
+    small: '/icons/characters/pithagIcon.webp',
+    medium: '/icons/characters/pithagIcon.webp',
+    large: '/icons/characters/pithagIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
@@ -87,4 +87,7 @@ export const pithag: CharacterDef = {
         'If there is a spare token, the Pit-Hag can create an extra Village Idiot. If so, the drunk Village Idiot might change.',
     },
   ],
+  flavor:
+    "Round about the cauldron go; In the poison'd entrails throw; Toad, that under cold stone; Days and nights has thirty-one; Sweated venom sleeping got; Boil thou first in the charmed pot.",
+  edition: 'snv',
 };

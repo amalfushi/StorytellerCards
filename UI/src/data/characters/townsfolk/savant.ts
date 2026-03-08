@@ -16,10 +16,13 @@ export const savant: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/savantIcon.png',
-    medium: '/icons/characters/savantIcon.png',
-    large: '/icons/characters/savantIcon.png',
+    small: '/icons/characters/savantIcon.webp',
+    medium: '/icons/characters/savantIcon.webp',
+    large: '/icons/characters/savantIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'Seventy-two matchsticks on the floor... the sun sets early but the moon is unchanged... a torn piece of cloth... evil in the manor house... three by three... the one we trusted is not what he seems... green light means magnesium... residue, but the pattern is wrong... Seventy-two matchsticks on the floor...',
+  edition: 'snv',
 };

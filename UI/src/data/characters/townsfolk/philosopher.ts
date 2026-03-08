@@ -50,10 +50,22 @@ export const philosopher: CharacterDef = {
     choices: [{ type: 'character', maxSelections: 1, label: 'Choose a character' }],
   },
   icon: {
-    small: '/icons/characters/philosopherIcon.png',
-    medium: '/icons/characters/philosopherIcon.png',
-    large: '/icons/characters/philosopherIcon.png',
+    small: '/icons/characters/philosopherIcon.webp',
+    medium: '/icons/characters/philosopherIcon.webp',
+    large: '/icons/characters/philosopherIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'bountyhunter',
+      description:
+        'If the Philosopher gains the Bounty Hunter ability, a Townsfolk might turn evil.',
+    },
+  ],
+  flavor: 'If anything is real, beer is real. Drink, for tomorrow we may die.',
+  edition: 'snv',
+  remindersGlobal: [
+    { id: 'philosopher-global-isthephilosopher', text: 'Is The Philosopher', isGlobal: true },
+  ],
 };

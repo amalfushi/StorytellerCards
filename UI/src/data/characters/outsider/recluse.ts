@@ -15,10 +15,13 @@ export const recluse: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/recluseIcon.png',
-    medium: '/icons/characters/recluseIcon.png',
-    large: '/icons/characters/recluseIcon.png',
+    small: '/icons/characters/recluseIcon.webp',
+    medium: '/icons/characters/recluseIcon.webp',
+    large: '/icons/characters/recluseIcon.webp',
     placeholder: '#1565c0',
   },
   reminders: [],
+  flavor:
+    "Garn git ya darn grub ya mitts ofma lorn yasee. Grr. Natsy pikkins yonder southwise ye begittin afta ya! Git! Me harvy no so widda licks and demmons no be fightin' hadsup ne'er ma kin. Git, assay!",
+  edition: 'tb',
 };

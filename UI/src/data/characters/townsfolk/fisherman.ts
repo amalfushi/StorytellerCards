@@ -16,10 +16,13 @@ export const fisherman: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/fishermanIcon.png',
-    medium: '/icons/characters/fishermanIcon.png',
-    large: '/icons/characters/fishermanIcon.png',
+    small: '/icons/characters/fishermanIcon.webp',
+    medium: '/icons/characters/fishermanIcon.webp',
+    large: '/icons/characters/fishermanIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'This was my favourite part of the river... see how the sunlight makes a rainbow from the monastery to the market? This was the best place for big fish. And the older I get, the bigger they were.',
+  edition: 'carousel',
 };

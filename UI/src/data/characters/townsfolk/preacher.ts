@@ -71,9 +71,9 @@ export const preacher: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/preacherIcon.png',
-    medium: '/icons/characters/preacherIcon.png',
-    large: '/icons/characters/preacherIcon.png',
+    small: '/icons/characters/preacherIcon.webp',
+    medium: '/icons/characters/preacherIcon.webp',
+    large: '/icons/characters/preacherIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'preacher-noability', text: 'NO ABILITY' }],
@@ -94,4 +94,6 @@ export const preacher: CharacterDef = {
         'If the Vizier loses their ability, they learn this, and cannot die during the day.',
     },
   ],
+  flavor: 'It is better to be rich and healthy than poor and sick.',
+  edition: 'carousel',
 };

@@ -13,10 +13,13 @@ export const artist: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/artistIcon.png',
-    medium: '/icons/characters/artistIcon.png',
-    large: '/icons/characters/artistIcon.png',
+    small: '/icons/characters/artistIcon.webp',
+    medium: '/icons/characters/artistIcon.webp',
+    large: '/icons/characters/artistIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'artist-noability', text: 'NO ABILITY' }],
+  flavor:
+    "Mon Dieu! C'est lumineux! My work, she is... how you say... Magnifique! Dieu est révélé! Oui.",
+  edition: 'snv',
 };

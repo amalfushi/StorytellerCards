@@ -39,9 +39,9 @@ export const bountyhunter: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/bountyhunterIcon.png',
-    medium: '/icons/characters/bountyhunterIcon.png',
-    large: '/icons/characters/bountyhunterIcon.png',
+    small: '/icons/characters/bountyhunterIcon.webp',
+    medium: '/icons/characters/bountyhunterIcon.webp',
+    large: '/icons/characters/bountyhunterIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'bountyhunter-know', text: 'KNOW' }],
@@ -57,4 +57,8 @@ export const bountyhunter: CharacterDef = {
         'If the Philosopher gains the Bounty Hunter ability, a Townsfolk might turn evil.',
     },
   ],
+  flavor:
+    'Alone, I walk these streets, paved with the sick stench of corruption. Its thickness worms its way into my nostrils, unbidden, burning with revulsion. And anticipation. The illness of this wretched place grows each night. And I... I am the cure.',
+  edition: 'carousel',
+  setup: true,
 };

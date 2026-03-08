@@ -89,9 +89,9 @@ export const lunatic: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/lunaticIcon.png',
-    medium: '/icons/characters/lunaticIcon.png',
-    large: '/icons/characters/lunaticIcon.png',
+    small: '/icons/characters/lunaticIcon.webp',
+    medium: '/icons/characters/lunaticIcon.webp',
+    large: '/icons/characters/lunaticIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [{ id: 'lunatic-chosen', text: 'CHOSEN' }],
@@ -102,4 +102,6 @@ export const lunatic: CharacterDef = {
         'The Mathematician might learn if the Lunatic attacks a different player than the real Demon attacked.',
     },
   ],
+  flavor: 'I am the night... I think.',
+  edition: 'bmr',
 };

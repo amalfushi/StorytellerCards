@@ -34,9 +34,9 @@ export const grandmother: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/grandmotherIcon.png',
-    medium: '/icons/characters/grandmotherIcon.png',
-    large: '/icons/characters/grandmotherIcon.png',
+    small: '/icons/characters/grandmotherIcon.webp',
+    medium: '/icons/characters/grandmotherIcon.webp',
+    large: '/icons/characters/grandmotherIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'grandmother-grandchild', text: 'GRANDCHILD' }],
@@ -50,4 +50,7 @@ export const grandmother: CharacterDef = {
       description: 'If Riot is in play and the Grandchild dies by execution, evil wins.',
     },
   ],
+  flavor:
+    'Take a jacket if you go outside, dearie. And your thermos. And your scarf. I have a weak heart, you know. Whatever would I do if you caught cold...or worse?',
+  edition: 'bmr',
 };

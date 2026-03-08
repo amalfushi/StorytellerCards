@@ -15,9 +15,9 @@ export const barista: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/baristaIcon.png',
-    medium: '/icons/characters/baristaIcon.png',
-    large: '/icons/characters/baristaIcon.png',
+    small: '/icons/characters/baristaIcon.webp',
+    medium: '/icons/characters/baristaIcon.webp',
+    large: '/icons/characters/baristaIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [
@@ -26,4 +26,7 @@ export const barista: CharacterDef = {
     { id: 'barista-drunk', text: 'DRUNK' },
     { id: 'barista-poisoned', text: 'POISONED' },
   ],
+  flavor:
+    'A cup of coffee with no cream, Monsieur? I’m terribly sorry, but we’re fresh out of cream — how about with no milk?',
+  edition: 'snv',
 };

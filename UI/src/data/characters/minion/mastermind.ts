@@ -15,9 +15,9 @@ export const mastermind: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/mastermindIcon.png',
-    medium: '/icons/characters/mastermindIcon.png',
-    large: '/icons/characters/mastermindIcon.png',
+    small: '/icons/characters/mastermindIcon.webp',
+    medium: '/icons/characters/mastermindIcon.webp',
+    large: '/icons/characters/mastermindIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
@@ -42,4 +42,7 @@ export const mastermind: CharacterDef = {
       description: 'A Mastermind that has their ability keeps it if the Vigormortis dies.',
     },
   ],
+  flavor:
+    'The tentacles of that monster are nailed to the doors of the church. Mothers and children are dancing in the street. Excellent. Everything is proceeding exactly as I have planned.',
+  edition: 'bmr',
 };

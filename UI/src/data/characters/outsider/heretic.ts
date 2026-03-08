@@ -15,9 +15,9 @@ export const heretic: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/hereticIcon.png',
-    medium: '/icons/characters/hereticIcon.png',
-    large: '/icons/characters/hereticIcon.png',
+    small: '/icons/characters/hereticIcon.webp',
+    medium: '/icons/characters/hereticIcon.webp',
+    large: '/icons/characters/hereticIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
@@ -30,4 +30,7 @@ export const heretic: CharacterDef = {
     { characterId: 'spy', description: 'Only 1 jinxed character can be in play.' },
     { characterId: 'widow', description: 'Only 1 jinxed character can be in play.' },
   ],
+  flavor:
+    'After the hail has smashed the roof and splintered the glass of the Cathedral windows, it melts again into the earth, like a dying lamb in the desert sun. Such is the parable of the madman.',
+  edition: 'carousel',
 };

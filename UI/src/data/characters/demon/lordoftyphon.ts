@@ -47,9 +47,9 @@ export const lordoftyphon: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/lordoftyphonIcon.png',
-    medium: '/icons/characters/lordoftyphonIcon.png',
-    large: '/icons/characters/lordoftyphonIcon.png',
+    small: '/icons/characters/lordoftyphonIcon.webp',
+    medium: '/icons/characters/lordoftyphonIcon.webp',
+    large: '/icons/characters/lordoftyphonIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -60,4 +60,8 @@ export const lordoftyphon: CharacterDef = {
         'If a Lord of Typhon is summoned, they must neighbor a Minion & their other neighbor becomes an evil Minion.',
     },
   ],
+  flavor:
+    'In the shadowed and forgotten corners of the cosmos, where the stars whisper secrets to the void, lies a truth so profound that the merest glimpse of it unravels the sanity of mortal minds.',
+  edition: 'carousel',
+  setup: true,
 };

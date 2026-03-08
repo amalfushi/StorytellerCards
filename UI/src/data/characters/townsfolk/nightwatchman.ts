@@ -70,10 +70,13 @@ export const nightwatchman: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/nightwatchmanIcon.png',
-    medium: '/icons/characters/nightwatchmanIcon.png',
-    large: '/icons/characters/nightwatchmanIcon.png',
+    small: '/icons/characters/nightwatchmanIcon.webp',
+    medium: '/icons/characters/nightwatchmanIcon.webp',
+    large: '/icons/characters/nightwatchmanIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'nightwatchman-noability', text: 'NO ABILITY' }],
+  flavor:
+    'The night is cold and lonely, but I have the moon, the stars, the crisp wind and the soft thud of leather boots on cobbled stone for company. Yonder, candlelight flickers behind a murky window...',
+  edition: 'carousel',
 };

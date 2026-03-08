@@ -29,10 +29,12 @@ export const sweetheart: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/sweetheartIcon.png',
-    medium: '/icons/characters/sweetheartIcon.png',
-    large: '/icons/characters/sweetheartIcon.png',
+    small: '/icons/characters/sweetheartIcon.webp',
+    medium: '/icons/characters/sweetheartIcon.webp',
+    large: '/icons/characters/sweetheartIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [{ id: 'sweetheart-drunk', text: 'DRUNK' }],
+  flavor: 'I will never forget her. Never.',
+  edition: 'snv',
 };

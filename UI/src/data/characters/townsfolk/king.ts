@@ -40,9 +40,9 @@ export const king: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/kingIcon.png',
-    medium: '/icons/characters/kingIcon.png',
-    large: '/icons/characters/kingIcon.png',
+    small: '/icons/characters/kingIcon.webp',
+    medium: '/icons/characters/kingIcon.webp',
+    large: '/icons/characters/kingIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -58,4 +58,7 @@ export const king: CharacterDef = {
         'If Riot is in play, and at least 1 player is dead, the King learns an alive character each night.',
     },
   ],
+  flavor:
+    'Betwixt the unknown strains of mortal strife / And morbid night, sweet with mystery and woe / Lies unfettered joys of fate’s long and colored life / Who’s garden blooms with each painted Face to Show.',
+  edition: 'carousel',
 };

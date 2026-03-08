@@ -17,10 +17,13 @@ export const matron: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/matronIcon.png',
-    medium: '/icons/characters/matronIcon.png',
-    large: '/icons/characters/matronIcon.png',
+    small: '/icons/characters/matronIcon.webp',
+    medium: '/icons/characters/matronIcon.webp',
+    large: '/icons/characters/matronIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'Miss Featherbottom, be quiet. Master Rutherford, a teacup needs just the four fingers, please. I know you are a father of nine, but age, or lack there-of as the case may be, is never an excuse for poor manners.',
+  edition: 'bmr',
 };

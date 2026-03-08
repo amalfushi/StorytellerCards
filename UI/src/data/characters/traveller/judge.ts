@@ -15,10 +15,13 @@ export const judge: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/judgeIcon.png',
-    medium: '/icons/characters/judgeIcon.png',
-    large: '/icons/characters/judgeIcon.png',
+    small: '/icons/characters/judgeIcon.webp',
+    medium: '/icons/characters/judgeIcon.webp',
+    large: '/icons/characters/judgeIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'judge-noability', text: 'NO ABILITY' }],
+  flavor:
+    'I find the defendant guilty of the crimes of murder, fraud, arson, larceny, impersonating an officer of the law, practicing medicine without a license, slander, regicide, and littering.',
+  edition: 'bmr',
 };

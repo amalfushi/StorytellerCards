@@ -18,10 +18,13 @@ export const gnome: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/gnomeIcon.png',
-    medium: '/icons/characters/gnomeIcon.png',
-    large: '/icons/characters/gnomeIcon.png',
+    small: '/icons/characters/gnomeIcon.webp',
+    medium: '/icons/characters/gnomeIcon.webp',
+    large: '/icons/characters/gnomeIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'gnome-amigo', text: 'AMIGO' }],
+  flavor:
+    'Four the score or seven beers, no shows are goes for me and my. A prank to crack the cranks and planks o’ the floor foundation length, so incontravertabubbilly mini. The large essays down streams of joyse, no greater than is scene, not inherdt. Ha-urrumph.',
+  edition: 'carousel',
 };

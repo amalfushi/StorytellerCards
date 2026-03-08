@@ -83,9 +83,9 @@ export const poppygrower: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/poppygrowerIcon.png',
-    medium: '/icons/characters/poppygrowerIcon.png',
-    large: '/icons/characters/poppygrowerIcon.png',
+    small: '/icons/characters/poppygrowerIcon.webp',
+    medium: '/icons/characters/poppygrowerIcon.webp',
+    large: '/icons/characters/poppygrowerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'poppygrower-evilwakes', text: 'EVIL WAKES' }],
@@ -109,4 +109,7 @@ export const poppygrower: CharacterDef = {
       description: 'If the Poppy Grower has their ability, the Widow does not see the Grimoire.',
     },
   ],
+  flavor:
+    'In the hidden groves of the deep forest, the black poppy dwells. To see its revelry is to be enchanted. To smell its thick aroma is to be lost forever, a slave to the gods of light and dark.',
+  edition: 'carousel',
 };

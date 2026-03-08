@@ -49,9 +49,9 @@ export const kazali: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/kazaliIcon.png',
-    medium: '/icons/characters/kazaliIcon.png',
-    large: '/icons/characters/kazaliIcon.png',
+    small: '/icons/characters/kazaliIcon.webp',
+    medium: '/icons/characters/kazaliIcon.webp',
+    large: '/icons/characters/kazaliIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -61,4 +61,18 @@ export const kazali: CharacterDef = {
       description: 'Pick 3 not-in-play good characters to show the Demon as bluffs.',
     },
   ],
+  jinxes: [
+    {
+      characterId: 'bountyhunter',
+      description:
+        'If the Kazali turns the Bounty Hunter into a Minion, an evil Townsfolk is not created.',
+    },
+    {
+      characterId: 'summoner',
+      description: 'If the Summoner creates a second living Demon, deaths tonight are arbitrary.',
+    },
+  ],
+  flavor: 'Gon(z)a7les6. Take cau8tun. The mech4an4ion is iNvert10d. E99ors insy6tum. Reco{7}fig.',
+  edition: 'carousel',
+  setup: true,
 };

@@ -37,9 +37,9 @@ export const wraith: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/wraithIcon.png',
-    medium: '/icons/characters/wraithIcon.png',
-    large: '/icons/characters/wraithIcon.png',
+    small: '/icons/characters/wraithIcon.webp',
+    medium: '/icons/characters/wraithIcon.webp',
+    large: '/icons/characters/wraithIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
@@ -60,4 +60,7 @@ export const wraith: CharacterDef = {
         'If the Storyteller would gain the Wraith ability, a Minion gains it, and learns this.',
     },
   ],
+  flavor:
+    "Ra'āb ina pān ṣilli ša dāri. Rigim qallu ina šūri, šītu ša šunātīka iredde, u napšutka idlul ina pān maṣṣartī dāriti.",
+  edition: 'carousel',
 };

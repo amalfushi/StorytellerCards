@@ -18,10 +18,14 @@ export const deusexfiasco: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/deusexfiascoIcon.png',
-    medium: '/icons/characters/deusexfiascoIcon.png',
-    large: '/icons/characters/deusexfiascoIcon.png',
+    small: '/icons/characters/deusexfiascoIcon.webp',
+    medium: '/icons/characters/deusexfiascoIcon.webp',
+    large: '/icons/characters/deusexfiascoIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [{ id: 'deusexfiasco-whoopsie', text: 'WHOOPSIE' }],
+  flavor:
+    "It's not a bug, it's a feature. It's not an error, it's a tweak. It's not broken, it's quirky.",
+  edition: 'carousel',
+  setup: true,
 };

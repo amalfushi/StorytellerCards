@@ -38,10 +38,13 @@ export const toymaker: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/toymakerIcon.png',
-    medium: '/icons/characters/toymakerIcon.png',
-    large: '/icons/characters/toymakerIcon.png',
+    small: '/icons/characters/toymakerIcon.webp',
+    medium: '/icons/characters/toymakerIcon.webp',
+    large: '/icons/characters/toymakerIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [],
+  flavor:
+    "It buzzes! It walks down stairs! It keeps you warm at night! It tastes like sugar! The kiddies love it! Introducing... the brand new... Warm'o-buzzy-wuzzy-walk'a'bot-thingy-contraption! Fun for all ages!",
+  edition: 'fabled',
 };

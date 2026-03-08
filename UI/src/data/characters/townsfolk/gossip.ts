@@ -25,10 +25,13 @@ export const gossip: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/gossipIcon.png',
-    medium: '/icons/characters/gossipIcon.png',
-    large: '/icons/characters/gossipIcon.png',
+    small: '/icons/characters/gossipIcon.webp',
+    medium: '/icons/characters/gossipIcon.webp',
+    large: '/icons/characters/gossipIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah. Blah.',
+  edition: 'bmr',
 };

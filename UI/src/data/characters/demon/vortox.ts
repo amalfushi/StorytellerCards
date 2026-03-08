@@ -26,9 +26,9 @@ export const vortox: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/vortoxIcon.png',
-    medium: '/icons/characters/vortoxIcon.png',
-    large: '/icons/characters/vortoxIcon.png',
+    small: '/icons/characters/vortoxIcon.webp',
+    medium: '/icons/characters/vortoxIcon.webp',
+    large: '/icons/characters/vortoxIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -38,4 +38,7 @@ export const vortox: CharacterDef = {
       description: 'If the Vortox kills the Banshee, all players learn that the Banshee has died.',
     },
   ],
+  flavor:
+    'Black is White. Right is Wrong. Left is Right. Up is Long. Down is Sight. Short is Blind. Follow me. Answers find.',
+  edition: 'snv',
 };

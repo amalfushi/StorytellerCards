@@ -26,10 +26,13 @@ export const pixie: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/pixieIcon.png',
-    medium: '/icons/characters/pixieIcon.png',
-    large: '/icons/characters/pixieIcon.png',
+    small: '/icons/characters/pixieIcon.webp',
+    medium: '/icons/characters/pixieIcon.webp',
+    large: '/icons/characters/pixieIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'Round and round the garden, go. Little girls run to and fro. Little boys climb up the tree. Which of these should Pixie be? Ladies smile and go to town.  Lords with axe chop forest down. What’s yours is mine. What’s mine, divine. Silly little Pixie, me.',
+  edition: 'carousel',
 };

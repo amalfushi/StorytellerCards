@@ -7,29 +7,29 @@ import {
 
 describe('getCharacterIconPath', () => {
   it('returns correct path for a known character ID', () => {
-    expect(getCharacterIconPath('fortuneteller')).toBe('/icons/characters/fortunetellerIcon.png');
+    expect(getCharacterIconPath('fortuneteller')).toBe('/icons/characters/fortunetellerIcon.webp');
   });
 
   it('returns correct path for another character ID', () => {
-    expect(getCharacterIconPath('imp')).toBe('/icons/characters/impIcon.png');
+    expect(getCharacterIconPath('imp')).toBe('/icons/characters/impIcon.webp');
   });
 
   it('returns correct path for a multi-word character ID', () => {
-    expect(getCharacterIconPath('highpriestess')).toBe('/icons/characters/highpriestessIcon.png');
+    expect(getCharacterIconPath('highpriestess')).toBe('/icons/characters/highpriestessIcon.webp');
   });
 
   it('handles empty string (still returns a formed path)', () => {
-    expect(getCharacterIconPath('')).toBe('/icons/characters/Icon.png');
+    expect(getCharacterIconPath('')).toBe('/icons/characters/Icon.webp');
   });
 
   it('handles unknown character ID (still returns a formed path)', () => {
-    expect(getCharacterIconPath('nonexistent')).toBe('/icons/characters/nonexistentIcon.png');
+    expect(getCharacterIconPath('nonexistent')).toBe('/icons/characters/nonexistentIcon.webp');
   });
 });
 
 describe('FALLBACK_ICON_PATH', () => {
   it('is exported and equals the expected fallback path', () => {
-    expect(FALLBACK_ICON_PATH).toBe('/icons/characters/_fallbackIcon.png');
+    expect(FALLBACK_ICON_PATH).toBe('/icons/characters/_fallbackIcon.webp');
   });
 });
 

@@ -16,10 +16,13 @@ export const doomsayer: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/doomsayerIcon.png',
-    medium: '/icons/characters/doomsayerIcon.png',
-    large: '/icons/characters/doomsayerIcon.png',
+    small: '/icons/characters/doomsayerIcon.webp',
+    medium: '/icons/characters/doomsayerIcon.webp',
+    large: '/icons/characters/doomsayerIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [],
+  flavor:
+    'And on the Seventh Day, there shall be a great flood and a pestilence upon the People of the Village of the Ravens! The dead shall rise and the living shall repent! O Woe! O Unholy day! Only by great sacrifice shall they prevail! So sayeth the Sages of Nostros and so sayeth I.',
+  edition: 'fabled',
 };

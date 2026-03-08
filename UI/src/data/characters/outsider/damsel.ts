@@ -52,10 +52,22 @@ export const damsel: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/damselIcon.png',
-    medium: '/icons/characters/damselIcon.png',
-    large: '/icons/characters/damselIcon.png',
+    small: '/icons/characters/damselIcon.webp',
+    medium: '/icons/characters/damselIcon.webp',
+    large: '/icons/characters/damselIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'pithag',
+      description: 'If a Pit-Hag creates a Damsel, the Storyteller chooses which player it is.',
+    },
+    {
+      characterId: 'widow',
+      description: 'If the Widow is (or has been) in play, the Damsel is poisoned.',
+    },
+  ],
+  flavor: "Don't touch the hair, honey.",
+  edition: 'carousel',
 };

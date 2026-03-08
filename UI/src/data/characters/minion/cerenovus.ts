@@ -78,10 +78,18 @@ export const cerenovus: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/cerenovusIcon.png',
-    medium: '/icons/characters/cerenovusIcon.png',
-    large: '/icons/characters/cerenovusIcon.png',
+    small: '/icons/characters/cerenovusIcon.webp',
+    medium: '/icons/characters/cerenovusIcon.webp',
+    large: '/icons/characters/cerenovusIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'goblin',
+      description: 'The Cerenovus may choose to make a player mad that they are the Goblin.',
+    },
+  ],
+  flavor: 'Reality is merely an opinion. Specifically, my opinion.',
+  edition: 'snv',
 };

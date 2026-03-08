@@ -36,9 +36,9 @@ export const mathematician: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/mathematicianIcon.png',
-    medium: '/icons/characters/mathematicianIcon.png',
-    large: '/icons/characters/mathematicianIcon.png',
+    small: '/icons/characters/mathematicianIcon.webp',
+    medium: '/icons/characters/mathematicianIcon.webp',
+    large: '/icons/characters/mathematicianIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'mathematician-abnormal', text: 'ABNORMAL' }],
@@ -63,4 +63,7 @@ export const mathematician: CharacterDef = {
         "The Mathematician might learn if the Marionette's ability yielded false info or failed to work properly.",
     },
   ],
+  flavor:
+    'Any consistent formal system x, within which a certain amount of elementary arithmetic can be carried out is incomplete; that is, there are statements of the language of x which can neither be proved nor disproved in x. Ergo, you are drunk.',
+  edition: 'snv',
 };

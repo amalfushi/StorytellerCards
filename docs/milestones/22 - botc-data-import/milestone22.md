@@ -1,5 +1,19 @@
 # Milestone 22 — BotC Official Data Import
 
+## Status: ✅ Complete
+
+**Completed: 2026-03-08** — See [progress.md](progress.md) for detailed results.
+
+**Key results:**
+- All 179 characters have flavor text, edition tags, and WebP icons
+- 41 jinx mirrors fixed for full bidirectional coverage
+- Icon size: 26 MB → 3.67 MB (85.9% reduction)
+- 23 characters flagged with `setup: true`, 5 with global reminders
+- Night order validated against canonical `nightsheet.json` — 0 inversions
+- 3461 unit tests passing, 0 TypeScript errors, 0 ESLint errors
+
+---
+
 > **Goal:** Import valuable data from the official `botc-release` repository into Storyteller Cards — jinxes, flavor text, edition tags, WebP icons, night order validation, and setup/global reminder metadata.
 
 Based on findings from [M21 Research](../21%20-%20botc-release%20data%20import/milestone21.md).

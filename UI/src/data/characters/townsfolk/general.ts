@@ -35,10 +35,12 @@ export const general: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/generalIcon.png',
-    medium: '/icons/characters/generalIcon.png',
-    large: '/icons/characters/generalIcon.png',
+    small: '/icons/characters/generalIcon.webp',
+    medium: '/icons/characters/generalIcon.webp',
+    large: '/icons/characters/generalIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: 'I don’t have time for quotes.',
+  edition: 'carousel',
 };

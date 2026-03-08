@@ -52,9 +52,9 @@ export const fearmonger: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/fearmongerIcon.png',
-    medium: '/icons/characters/fearmongerIcon.png',
-    large: '/icons/characters/fearmongerIcon.png',
+    small: '/icons/characters/fearmongerIcon.webp',
+    medium: '/icons/characters/fearmongerIcon.webp',
+    large: '/icons/characters/fearmongerIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [{ id: 'fearmonger-fear', text: 'FEAR' }],
@@ -70,4 +70,6 @@ export const fearmonger: CharacterDef = {
         'The Vizier wakes with the Fearmonger, learns who they choose and cannot choose to immediately execute that player.',
     },
   ],
+  flavor: 'Beware of gazing long into the Abyss, lest the Abyss also gaze into you.',
+  edition: 'carousel',
 };

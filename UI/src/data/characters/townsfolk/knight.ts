@@ -24,10 +24,12 @@ export const knight: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/knightIcon.png',
-    medium: '/icons/characters/knightIcon.png',
-    large: '/icons/characters/knightIcon.png',
+    small: '/icons/characters/knightIcon.webp',
+    medium: '/icons/characters/knightIcon.webp',
+    large: '/icons/characters/knightIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: 'When a man lies, he murders some part of the world.',
+  edition: 'carousel',
 };

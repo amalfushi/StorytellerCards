@@ -19,10 +19,13 @@ export const ventriloquist: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/ventriloquistIcon.png',
-    medium: '/icons/characters/ventriloquistIcon.png',
-    large: '/icons/characters/ventriloquistIcon.png',
+    small: '/icons/characters/ventriloquistIcon.webp',
+    medium: '/icons/characters/ventriloquistIcon.webp',
+    large: '/icons/characters/ventriloquistIcon.webp',
     placeholder: '#558b2f',
   },
   reminders: [{ id: 'ventriloquist-mad', text: 'MAD' }],
+  flavor:
+    'Well, folks, gather ‘round! This here’s my pal Charlie, and he’s got a mouth on him that’d make a mule blush. But don’t worry folks, I do all the talkin’... or do I?',
+  edition: 'loric',
 };

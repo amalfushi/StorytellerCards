@@ -32,9 +32,9 @@ export const magician: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/magicianIcon.png',
-    medium: '/icons/characters/magicianIcon.png',
-    large: '/icons/characters/magicianIcon.png',
+    small: '/icons/characters/magicianIcon.webp',
+    medium: '/icons/characters/magicianIcon.webp',
+    large: '/icons/characters/magicianIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -75,4 +75,7 @@ export const magician: CharacterDef = {
         'After each execution, the living Magician may publicly guess a living player as the Wraith. If correct, the Demon must choose the Wraith tonight.',
     },
   ],
+  flavor:
+    '1... 2... Abra... 3... 4... Cadabra... *poof!* And, as you can see, ladies and gentlemen, Captain Farnsworth’s bag of gold has disappeared! Gone! Without a trace! Thank you, and goodnight!',
+  edition: 'carousel',
 };

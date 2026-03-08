@@ -17,10 +17,13 @@ export const gangster: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/gangsterIcon.png',
-    medium: '/icons/characters/gangsterIcon.png',
-    large: '/icons/characters/gangsterIcon.png',
+    small: '/icons/characters/gangsterIcon.webp',
+    medium: '/icons/characters/gangsterIcon.webp',
+    large: '/icons/characters/gangsterIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'I like your shoes. It would be such a shame if you had a little accident, and they got ruined. Now that you mention it, I like your cufflinks too.',
+  edition: 'carousel',
 };

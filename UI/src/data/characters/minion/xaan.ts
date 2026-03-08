@@ -41,10 +41,13 @@ export const xaan: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/xaanIcon.png',
-    medium: '/icons/characters/xaanIcon.png',
-    large: '/icons/characters/xaanIcon.png',
+    small: '/icons/characters/xaanIcon.webp',
+    medium: '/icons/characters/xaanIcon.webp',
+    large: '/icons/characters/xaanIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
+  flavor: 'Down they fall. One by one. By two, by three, by five.',
+  edition: 'carousel',
+  setup: true,
 };

@@ -17,9 +17,9 @@ export const goblin: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/goblinIcon.png',
-    medium: '/icons/characters/goblinIcon.png',
-    large: '/icons/characters/goblinIcon.png',
+    small: '/icons/characters/goblinIcon.webp',
+    medium: '/icons/characters/goblinIcon.webp',
+    large: '/icons/characters/goblinIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [{ id: 'goblin-claimed', text: 'CLAIMED' }],
@@ -34,4 +34,7 @@ export const goblin: CharacterDef = {
         'If the Storyteller would gain the Goblin ability, a Minion gains it, and learns this.',
     },
   ],
+  flavor:
+    'You don’t want to insult the goblins. You really, really don’t. On a completely different note… can I have another piece of cake?',
+  edition: 'carousel',
 };

@@ -28,10 +28,23 @@ export const ogre: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/ogreIcon.png',
-    medium: '/icons/characters/ogreIcon.png',
-    large: '/icons/characters/ogreIcon.png',
+    small: '/icons/characters/ogreIcon.webp',
+    medium: '/icons/characters/ogreIcon.webp',
+    large: '/icons/characters/ogreIcon.webp',
     placeholder: '#1565c0',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'boffin',
+      description: 'The Demon cannot have the Ogre ability.',
+    },
+    {
+      characterId: 'pithag',
+      description:
+        "If the Pit-Hag turns an evil player into the Ogre, they can't turn good due to their own ability.",
+    },
+  ],
+  flavor: '<grunt><grin></grunt>',
+  edition: 'carousel',
 };

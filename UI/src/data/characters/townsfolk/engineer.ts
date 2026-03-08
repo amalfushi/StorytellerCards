@@ -69,9 +69,9 @@ export const engineer: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/engineerIcon.png',
-    medium: '/icons/characters/engineerIcon.png',
-    large: '/icons/characters/engineerIcon.png',
+    small: '/icons/characters/engineerIcon.webp',
+    medium: '/icons/characters/engineerIcon.webp',
+    large: '/icons/characters/engineerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'engineer-noability', text: 'NO ABILITY' }],
@@ -87,4 +87,6 @@ export const engineer: CharacterDef = {
         'If the living Summoner is removed from play, the Storyteller has the Summoner ability.',
     },
   ],
+  flavor: 'If it bends, great. If it breaks, well, it probably needed fixing anyway.',
+  edition: 'carousel',
 };

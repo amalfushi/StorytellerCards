@@ -47,9 +47,9 @@ export const exorcist: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/exorcistIcon.png',
-    medium: '/icons/characters/exorcistIcon.png',
-    large: '/icons/characters/exorcistIcon.png',
+    small: '/icons/characters/exorcistIcon.webp',
+    medium: '/icons/characters/exorcistIcon.webp',
+    large: '/icons/characters/exorcistIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'exorcist-chosen', text: 'CHOSEN' }],
@@ -68,4 +68,7 @@ export const exorcist: CharacterDef = {
         'If the Exorcist chooses the Yaggababble, the Yaggababble does not kill tonight.',
     },
   ],
+  flavor:
+    'We cast you out, every unclean spirit, every satanic power, every onslaught of the infernal adversary, every legion, every diabolical group and sect, in the name and by the power of Our Lord Jesus Christ. We command you, begone and fly far from the Church of God, from the souls made by God in His image and redeemed by the precious blood of the divine Lamb.',
+  edition: 'bmr',
 };

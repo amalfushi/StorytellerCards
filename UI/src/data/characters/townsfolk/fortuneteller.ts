@@ -49,10 +49,13 @@ export const fortuneteller: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
   },
   icon: {
-    small: '/icons/characters/fortunetellerIcon.png',
-    medium: '/icons/characters/fortunetellerIcon.png',
-    large: '/icons/characters/fortunetellerIcon.png',
+    small: '/icons/characters/fortunetellerIcon.webp',
+    medium: '/icons/characters/fortunetellerIcon.webp',
+    large: '/icons/characters/fortunetellerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'I sense great evil in your soul! But... that could just be your perfume. I am allergic to Elderberry.',
+  edition: 'tb',
 };

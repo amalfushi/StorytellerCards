@@ -17,10 +17,13 @@ export const fiddler: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/fiddlerIcon.png',
-    medium: '/icons/characters/fiddlerIcon.png',
-    large: '/icons/characters/fiddlerIcon.png',
+    small: '/icons/characters/fiddlerIcon.webp',
+    medium: '/icons/characters/fiddlerIcon.webp',
+    large: '/icons/characters/fiddlerIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [],
+  flavor:
+    "I'll wager mi lyef ye cannae best me in a fiddle contest, ye boss-eyed snook! We'll go out on the lash, get the pub jammers an' have a right craic. I'll be layin' ma boots into ya come mornin' ye rumbly muppet.",
+  edition: 'fabled',
 };

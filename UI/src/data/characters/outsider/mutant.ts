@@ -14,10 +14,12 @@ export const mutant: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/mutantIcon.png',
-    medium: '/icons/characters/mutantIcon.png',
-    large: '/icons/characters/mutantIcon.png',
+    small: '/icons/characters/mutantIcon.webp',
+    medium: '/icons/characters/mutantIcon.webp',
+    large: '/icons/characters/mutantIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
+  flavor: 'I am not a freak! I am a human being! Have mercy!',
+  edition: 'snv',
 };

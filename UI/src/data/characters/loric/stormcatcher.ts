@@ -42,10 +42,13 @@ export const stormcatcher: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/stormcatcherIcon.png',
-    medium: '/icons/characters/stormcatcherIcon.png',
-    large: '/icons/characters/stormcatcherIcon.png',
+    small: '/icons/characters/stormcatcherIcon.webp',
+    medium: '/icons/characters/stormcatcherIcon.webp',
+    large: '/icons/characters/stormcatcherIcon.webp',
     placeholder: '#558b2f',
   },
   reminders: [{ id: 'stormcatcher-safe', text: 'SAFE' }],
+  flavor:
+    'At dawn, the temple’s long shadow creeps to the fountain. At dusk, the obelisk blocks the red glare, cooling warm water under the archway. All lines converge here. A storm is coming, and this, this pebbled and lush and holy place between the apple trees, is the eye.',
+  edition: 'loric',
 };

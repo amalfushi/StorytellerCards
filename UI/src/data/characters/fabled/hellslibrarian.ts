@@ -14,10 +14,13 @@ export const hellslibrarian: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/hellslibrarianIcon.png',
-    medium: '/icons/characters/hellslibrarianIcon.png',
-    large: '/icons/characters/hellslibrarianIcon.png',
+    small: '/icons/characters/hellslibrarianIcon.webp',
+    medium: '/icons/characters/hellslibrarianIcon.webp',
+    large: '/icons/characters/hellslibrarianIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [{ id: 'hellslibrarian-somethingbad', text: 'SOMETHING BAD' }],
+  flavor:
+    "Shhhhhh. Please be quiet. It is best not to disturb the Librarian. I've heard it has a temper.",
+  edition: 'fabled',
 };

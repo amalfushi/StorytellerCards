@@ -14,7 +14,7 @@ import Tabs from '@mui/material/Tabs';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import type { CharacterDef, Script } from '@/types/index.ts';
-import { CharacterType } from '@/types/index.ts';
+import { CharacterType, Edition, EditionLabel } from '@/types/index.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { sortScriptCharacters } from '@/utils/scriptSortRules.ts';
@@ -36,6 +36,8 @@ const TYPE_ORDER: string[] = [
   CharacterType.Loric,
 ];
 
+const EDITION_ORDER: string[] = Object.values(Edition);
+
 /**
  * Dialog for creating a custom script by toggling characters on/off.
  * Characters are listed grouped by type with a search filter.
@@ -48,6 +50,7 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
   const [scriptName, setScriptName] = useState('');
   const [author, setAuthor] = useState('');
   const [activeTab, setActiveTab] = useState(0);
+  const [selectedEditions, setSelectedEditions] = useState<Set<string>>(new Set());
 
   // Reset state when dialog transitions from closed → open
   // Uses state (not ref) to track previous `open` value — the recommended React 19 pattern
@@ -60,6 +63,7 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
       setScriptName('');
       setAuthor('');
       setActiveTab(0);
+      setSelectedEditions(new Set());
     }
   }
 
@@ -88,19 +92,25 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
     return counts;
   }, [grouped]);
 
-  // Search filter
+  // Search + edition filter
   const filteredGrouped = useMemo(() => {
-    if (!search.trim()) return grouped;
+    const hasSearch = search.trim().length > 0;
+    const hasEdition = selectedEditions.size > 0;
+    if (!hasSearch && !hasEdition) return grouped;
     const lower = search.toLowerCase();
     const filtered = new Map<string, CharacterDef[]>();
     for (const [type, chars] of grouped) {
       filtered.set(
         type,
-        chars.filter((c) => c.name.toLowerCase().includes(lower)),
+        chars.filter((c) => {
+          if (hasSearch && !c.name.toLowerCase().includes(lower)) return false;
+          if (hasEdition && (!c.edition || !selectedEditions.has(c.edition))) return false;
+          return true;
+        }),
       );
     }
     return filtered;
-  }, [grouped, search]);
+  }, [grouped, search, selectedEditions]);
 
   // O(1) character lookup map
   const characterMap = useMemo(() => {
@@ -140,6 +150,15 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleEdition = useCallback((edition: string) => {
+    setSelectedEditions((prev) => {
+      const next = new Set(prev);
+      if (next.has(edition)) next.delete(edition);
+      else next.add(edition);
       return next;
     });
   }, []);
@@ -235,6 +254,8 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
               filteredGrouped={filteredGrouped}
               selectedIds={selectedIds}
               onToggle={toggleCharacter}
+              selectedEditions={selectedEditions}
+              onToggleEdition={toggleEdition}
             />
           )}
           {activeTab === 1 && (
@@ -262,12 +283,16 @@ const BrowsePanel = memo(function BrowsePanel({
   filteredGrouped,
   selectedIds,
   onToggle,
+  selectedEditions,
+  onToggleEdition,
 }: {
   search: string;
   onSearchChange: (value: string) => void;
   filteredGrouped: Map<string, CharacterDef[]>;
   selectedIds: Set<string>;
   onToggle: (id: string) => void;
+  selectedEditions: Set<string>;
+  onToggleEdition: (edition: string) => void;
 }) {
   return (
     <>
@@ -277,8 +302,26 @@ const BrowsePanel = memo(function BrowsePanel({
         size="small"
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
-        sx={{ mb: 1.5 }}
+        sx={{ mb: 1 }}
       />
+
+      {/* Edition filter chips */}
+      <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}>
+        {EDITION_ORDER.map((edition) => {
+          const isActive = selectedEditions.has(edition);
+          return (
+            <Chip
+              key={edition}
+              label={EditionLabel[edition as Edition] ?? edition}
+              size="small"
+              variant={isActive ? 'filled' : 'outlined'}
+              color={isActive ? 'primary' : 'default'}
+              onClick={() => onToggleEdition(edition)}
+              sx={{ fontSize: '0.7rem', height: 24 }}
+            />
+          );
+        })}
+      </Box>
 
       {TYPE_ORDER.map((type) => {
         const chars = filteredGrouped.get(type) ?? [];
@@ -405,6 +448,21 @@ const CharacterRow = memo(function CharacterRow({
               }}
             />
             {character.name}
+            {character.edition && (
+              <Chip
+                component="span"
+                label={EditionLabel[character.edition] ?? character.edition}
+                size="small"
+                variant="outlined"
+                sx={{
+                  ml: 0.75,
+                  height: 16,
+                  fontSize: '0.6rem',
+                  verticalAlign: 'middle',
+                  '& .MuiChip-label': { px: 0.5 },
+                }}
+              />
+            )}
           </Typography>
           {character.abilityShort && character.abilityShort !== '<TODO>' && (
             <Typography

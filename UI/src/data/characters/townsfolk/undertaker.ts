@@ -25,10 +25,13 @@ export const undertaker: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/undertakerIcon.png',
-    medium: '/icons/characters/undertakerIcon.png',
-    large: '/icons/characters/undertakerIcon.png',
+    small: '/icons/characters/undertakerIcon.webp',
+    medium: '/icons/characters/undertakerIcon.webp',
+    large: '/icons/characters/undertakerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'undertaker-diedtoday', text: 'DIED TODAY' }],
+  flavor:
+    'Hmmm....what have we here? The left boot is worn down to the heel, with flint shavings under the tongue. This is the garb of a Military man.',
+  edition: 'tb',
 };

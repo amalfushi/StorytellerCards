@@ -14,10 +14,12 @@ export const klutz: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/klutzIcon.png',
-    medium: '/icons/characters/klutzIcon.png',
-    large: '/icons/characters/klutzIcon.png',
+    small: '/icons/characters/klutzIcon.webp',
+    medium: '/icons/characters/klutzIcon.webp',
+    large: '/icons/characters/klutzIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
+  flavor: 'Oops.',
+  edition: 'snv',
 };

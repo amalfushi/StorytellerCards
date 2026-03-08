@@ -17,9 +17,9 @@ export const psychopath: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/psychopathIcon.png',
-    medium: '/icons/characters/psychopathIcon.png',
-    large: '/icons/characters/psychopathIcon.png',
+    small: '/icons/characters/psychopathIcon.webp',
+    medium: '/icons/characters/psychopathIcon.webp',
+    large: '/icons/characters/psychopathIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
@@ -29,4 +29,6 @@ export const psychopath: CharacterDef = {
       description: "If the Psychopath is babysitting Lil' Monsta, they die when executed.",
     },
   ],
+  flavor: 'Surprise!',
+  edition: 'carousel',
 };

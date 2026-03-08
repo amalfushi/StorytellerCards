@@ -13,13 +13,28 @@ export const baron: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/baronIcon.png',
-    medium: '/icons/characters/baronIcon.png',
-    large: '/icons/characters/baronIcon.png',
+    small: '/icons/characters/baronIcon.webp',
+    medium: '/icons/characters/baronIcon.webp',
+    large: '/icons/characters/baronIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
   setupModification: {
     description: 'There are extra Outsiders in play. [+2 Outsiders]',
   },
+  jinxes: [
+    {
+      characterId: 'heretic',
+      description: 'Only 1 jinxed character can be in play.',
+    },
+    {
+      characterId: 'plaguedoctor',
+      description:
+        'If the Storyteller would gain the Baron ability, up to two players become Outsiders.',
+    },
+  ],
+  flavor:
+    "This town has gone to the dogs, what? Cheap foreign labor... that's the ticket. Stuff them in the mine, I say. A bit of hard work never hurt anyone, and a clip'o'the ears to any brigand who says otherwise. It's all about the bottom line, what?",
+  edition: 'tb',
+  setup: true,
 };

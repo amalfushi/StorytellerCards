@@ -36,10 +36,13 @@ export const devilsadvocate: CharacterDef = {
     choices: [{ type: 'livingPlayer', maxSelections: 1, label: 'Choose a living player' }],
   },
   icon: {
-    small: '/icons/characters/devilsadvocateIcon.png',
-    medium: '/icons/characters/devilsadvocateIcon.png',
-    large: '/icons/characters/devilsadvocateIcon.png',
+    small: '/icons/characters/devilsadvocateIcon.webp',
+    medium: '/icons/characters/devilsadvocateIcon.webp',
+    large: '/icons/characters/devilsadvocateIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [{ id: 'devilsadvocate-survivesexecution', text: 'SURVIVES EXECUTION' }],
+  flavor:
+    "My client, should the objection be overruled, pleads innocent by virtue of the prosecution's non-observance of statute 27.B - incorrect or misleading conjugation of a verb. The fact that nine of the jury died last night is simply prima facie, which is, as Wills vs Thule set precedent for, further reason to acquit.",
+  edition: 'bmr',
 };

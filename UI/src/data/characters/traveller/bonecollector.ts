@@ -15,13 +15,16 @@ export const bonecollector: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/bonecollectorIcon.png',
-    medium: '/icons/characters/bonecollectorIcon.png',
-    large: '/icons/characters/bonecollectorIcon.png',
+    small: '/icons/characters/bonecollectorIcon.webp',
+    medium: '/icons/characters/bonecollectorIcon.webp',
+    large: '/icons/characters/bonecollectorIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [
     { id: 'bonecollector-hasability', text: 'HAS ABILITY' },
     { id: 'bonecollector-noability', text: 'NO ABILITY' },
   ],
+  flavor:
+    'I collect many things. Hair. Teeth. Clothes. Fragments of poems. The dreams of lost lovers. My secret arts are not for you to know but my fee is a mere pittance. Bring me the blood of a noblewoman who died of heartbreak under a full moon, and you shall have your answers.',
+  edition: 'snv',
 };

@@ -24,13 +24,16 @@ export const towncrier: CharacterDef = {
     choices: [{ type: 'yesno', maxSelections: 1, label: 'Nod / Shake' }],
   },
   icon: {
-    small: '/icons/characters/towncrierIcon.png',
-    medium: '/icons/characters/towncrierIcon.png',
-    large: '/icons/characters/towncrierIcon.png',
+    small: '/icons/characters/towncrierIcon.webp',
+    medium: '/icons/characters/towncrierIcon.webp',
+    large: '/icons/characters/towncrierIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [
     { id: 'towncrier-minionsnotnominated', text: 'MINIONS NOT NOMINATED' },
     { id: 'towncrier-minionnominated', text: 'MINION NOMINATED' },
   ],
+  flavor:
+    'Hear ye! Hear ye! Witchcraft in the labyrinth! Genius savant reveals all! Town in danger! Hear Ye!',
+  edition: 'snv',
 };

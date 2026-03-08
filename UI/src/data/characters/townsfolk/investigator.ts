@@ -28,9 +28,9 @@ export const investigator: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/investigatorIcon.png',
-    medium: '/icons/characters/investigatorIcon.png',
-    large: '/icons/characters/investigatorIcon.png',
+    small: '/icons/characters/investigatorIcon.webp',
+    medium: '/icons/characters/investigatorIcon.webp',
+    large: '/icons/characters/investigatorIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [
@@ -43,4 +43,7 @@ export const investigator: CharacterDef = {
       description: "The Storyteller doesn't declare the Vizier is in play.",
     },
   ],
+  flavor:
+    "It is a fine night for a stroll, wouldn't you say, Mister Morozov? Or should I say... BARON Morozov?",
+  edition: 'tb',
 };

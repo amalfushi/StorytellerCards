@@ -14,10 +14,13 @@ export const scapegoat: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/scapegoatIcon.png',
-    medium: '/icons/characters/scapegoatIcon.png',
-    large: '/icons/characters/scapegoatIcon.png',
+    small: '/icons/characters/scapegoatIcon.webp',
+    medium: '/icons/characters/scapegoatIcon.webp',
+    large: '/icons/characters/scapegoatIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    "Good evening! Thank you for inviting me to the ball. I'm not from around here, but you sure seem like a friendly bunch, by golly. I'm sure we'll get along just dandy. What's all that rope for?",
+  edition: 'tb',
 };

@@ -48,9 +48,9 @@ export const imp: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/impIcon.png',
-    medium: '/icons/characters/impIcon.png',
-    large: '/icons/characters/impIcon.png',
+    small: '/icons/characters/impIcon.webp',
+    medium: '/icons/characters/impIcon.webp',
+    large: '/icons/characters/impIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -60,4 +60,7 @@ export const imp: CharacterDef = {
       description: 'Pick 3 not-in-play good characters to show the Demon as bluffs.',
     },
   ],
+  flavor:
+    'We must keep our wits sharp and our sword sharper. Evil walks among us, and will stop at nothing to destroy us good, simple folk, bringing our fine town to ruin. Trust no-one. But, if you must trust someone, trust me.',
+  edition: 'tb',
 };

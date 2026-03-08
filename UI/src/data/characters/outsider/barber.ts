@@ -41,10 +41,13 @@ export const barber: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/barberIcon.png',
-    medium: '/icons/characters/barberIcon.png',
-    large: '/icons/characters/barberIcon.png',
+    small: '/icons/characters/barberIcon.webp',
+    medium: '/icons/characters/barberIcon.webp',
+    large: '/icons/characters/barberIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [{ id: 'barber-haircutstonight', text: 'HAIRCUTS TONIGHT' }],
+  flavor:
+    'Did you know that barbery and surgery were once the same profession? No? Well, now you do.',
+  edition: 'snv',
 };

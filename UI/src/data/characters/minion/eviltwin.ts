@@ -39,9 +39,9 @@ export const eviltwin: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/eviltwinIcon.png',
-    medium: '/icons/characters/eviltwinIcon.png',
-    large: '/icons/characters/eviltwinIcon.png',
+    small: '/icons/characters/eviltwinIcon.webp',
+    medium: '/icons/characters/eviltwinIcon.webp',
+    large: '/icons/characters/eviltwinIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [{ id: 'eviltwin-twin', text: 'TWIN' }],
@@ -52,4 +52,6 @@ export const eviltwin: CharacterDef = {
         'If the Storyteller would gain the Evil Twin ability, a player becomes the Evil Twin.',
     },
   ],
+  flavor: "I'm not Sara! I'm Clara! SHE is Sara! Sara is the evil one! Not me!",
+  edition: 'snv',
 };

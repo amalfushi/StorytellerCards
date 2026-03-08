@@ -26,10 +26,23 @@ export const monk: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/monkIcon.png',
-    medium: '/icons/characters/monkIcon.png',
-    large: '/icons/characters/monkIcon.png',
+    small: '/icons/characters/monkIcon.webp',
+    medium: '/icons/characters/monkIcon.webp',
+    large: '/icons/characters/monkIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'leviathan',
+      description: 'If the Leviathan nominates and executes the Monk-protected player, good wins.',
+    },
+    {
+      characterId: 'riot',
+      description: 'If Riot nominates and executes the Monk-protected player, good wins.',
+    },
+  ],
+  flavor:
+    "'Tis an ill and deathly wind that blows tonight. Come, my brother, take shelter in the abbey while the storm rages. By my word, or by my life, you will be safe.",
+  edition: 'tb',
 };

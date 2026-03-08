@@ -14,9 +14,9 @@ export const minstrel: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/minstrelIcon.png',
-    medium: '/icons/characters/minstrelIcon.png',
-    large: '/icons/characters/minstrelIcon.png',
+    small: '/icons/characters/minstrelIcon.webp',
+    medium: '/icons/characters/minstrelIcon.webp',
+    large: '/icons/characters/minstrelIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'minstrel-everyoneisdrunk', text: 'EVERYONE IS DRUNK' }],
@@ -27,4 +27,7 @@ export const minstrel: CharacterDef = {
         'If Legion died by execution today, Legion keeps their ability, but the Minstrel might learn they are Legion.',
     },
   ],
+  flavor:
+    "And I shall hear, tho' soft you tread above me... And all my dreams will warm and sweeter be... If you'll not fail to tell me that you love me... I simply sleep in peace until you come to me.",
+  edition: 'bmr',
 };

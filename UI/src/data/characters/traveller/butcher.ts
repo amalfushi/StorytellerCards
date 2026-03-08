@@ -14,10 +14,12 @@ export const butcher: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/butcherIcon.png',
-    medium: '/icons/characters/butcherIcon.png',
-    large: '/icons/characters/butcherIcon.png',
+    small: '/icons/characters/butcherIcon.webp',
+    medium: '/icons/characters/butcherIcon.webp',
+    large: '/icons/characters/butcherIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: 'It tastes like chicken. More please.',
+  edition: 'snv',
 };

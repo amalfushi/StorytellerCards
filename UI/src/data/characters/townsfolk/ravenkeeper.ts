@@ -30,9 +30,9 @@ export const ravenkeeper: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/ravenkeeperIcon.png',
-    medium: '/icons/characters/ravenkeeperIcon.png',
-    large: '/icons/characters/ravenkeeperIcon.png',
+    small: '/icons/characters/ravenkeeperIcon.webp',
+    medium: '/icons/characters/ravenkeeperIcon.webp',
+    large: '/icons/characters/ravenkeeperIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -48,4 +48,7 @@ export const ravenkeeper: CharacterDef = {
         'Each night*, Riot chooses an alive good player (different to previous nights): a chosen Ravenkeeper uses their ability but does not die.',
     },
   ],
+  flavor:
+    'My birds will avenge me! Fly! Fly, my sweet and dutiful pets! To the manor and to the river! To the alleys and to the salons! Fly!',
+  edition: 'tb',
 };
