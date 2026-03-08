@@ -1,5 +1,15 @@
 # Milestone 5 — Jinxes
 
+## Status: ✅ Complete
+
+**Completed:** 2025-07-24
+
+**Summary:** Implemented jinx display UI across 4 locations (script view, character modal, night flashcard, script builder). Created `jinxUtils.ts` utility with deduplication of mirrored pairs. Added 32 new tests (17 utility + 15 component). All 3494 tests passing, 0 TypeScript/ESLint errors.
+
+See [progress.md](progress.md) for detailed implementation notes.
+
+---
+
 > **Goal:** Display jinx interactions throughout the app — in script views, character details, night phase flashcards, and TownSquare — so Storytellers always know which character interaction rules apply to their current game.
 
 ---

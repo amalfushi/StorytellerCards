@@ -5,6 +5,12 @@ import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.t
 import type { CharacterDef } from '@/types/index.ts';
 import { CharacterType, Alignment, Edition } from '@/types/index.ts';
 
+// Mock jinxUtils to control jinx output in tests
+const mockGetCharacterActiveJinxes = vi.fn().mockReturnValue([]);
+vi.mock('@/utils/jinxUtils.ts', () => ({
+  getCharacterActiveJinxes: (...args: unknown[]) => mockGetCharacterActiveJinxes(...args),
+}));
+
 // ──────────────────────────────────────────────
 // Mock character data
 // ──────────────────────────────────────────────
@@ -221,5 +227,102 @@ describe('CharacterDetailModal', () => {
     expect(screen.queryByText('Bad Moon Rising')).not.toBeInTheDocument();
     expect(screen.queryByText('Sects & Violets')).not.toBeInTheDocument();
     expect(screen.queryByText('Experimental')).not.toBeInTheDocument();
+  });
+
+  // ── M5: Jinx section tests ──
+
+  it('shows jinx section when character has jinxes and no script context', () => {
+    mockGetCharacterActiveJinxes.mockReturnValue([
+      {
+        character1Id: 'alchemist',
+        character1Name: 'Alchemist',
+        character2Id: 'boffin',
+        character2Name: 'Boffin',
+        description: 'If the Alchemist has the Boffin ability...',
+      },
+      {
+        character1Id: 'alchemist',
+        character1Name: 'Alchemist',
+        character2Id: 'spy',
+        character2Name: 'Spy',
+        description: 'An Alchemist-Spy has no Spy ability.',
+      },
+    ]);
+    const charWithJinxes: CharacterDef = {
+      ...fullCharacter,
+      id: 'alchemist',
+      name: 'Alchemist',
+      jinxes: [
+        { characterId: 'boffin', description: 'If the Alchemist has the Boffin ability...' },
+        { characterId: 'spy', description: 'An Alchemist-Spy has no Spy ability.' },
+      ],
+    };
+    render(<CharacterDetailModal open={true} character={charWithJinxes} onClose={vi.fn()} />);
+    expect(screen.getByTestId('jinx-section')).toBeInTheDocument();
+    expect(screen.getByText(/⚡ Jinxes \(2\)/)).toBeInTheDocument();
+    mockGetCharacterActiveJinxes.mockReturnValue([]);
+  });
+
+  it('shows jinx partner names in jinx section', () => {
+    mockGetCharacterActiveJinxes.mockReturnValue([
+      {
+        character1Id: 'alchemist',
+        character1Name: 'Alchemist',
+        character2Id: 'boffin',
+        character2Name: 'Boffin',
+        description: 'If the Alchemist has the Boffin ability...',
+      },
+    ]);
+    const charWithJinxes: CharacterDef = {
+      ...fullCharacter,
+      id: 'alchemist',
+      name: 'Alchemist',
+      jinxes: [
+        { characterId: 'boffin', description: 'If the Alchemist has the Boffin ability...' },
+      ],
+    };
+    render(<CharacterDetailModal open={true} character={charWithJinxes} onClose={vi.fn()} />);
+    expect(screen.getByText('Boffin')).toBeInTheDocument();
+    expect(screen.getByText(/Boffin ability/)).toBeInTheDocument();
+    mockGetCharacterActiveJinxes.mockReturnValue([]);
+  });
+
+  it('does not show jinx section when character has no jinxes', () => {
+    mockGetCharacterActiveJinxes.mockReturnValue([]);
+    render(<CharacterDetailModal open={true} character={fullCharacter} onClose={vi.fn()} />);
+    expect(screen.queryByTestId('jinx-section')).not.toBeInTheDocument();
+  });
+
+  it('filters jinxes by script context when scriptCharacterIds is provided', () => {
+    mockGetCharacterActiveJinxes.mockReturnValue([
+      {
+        character1Id: 'alchemist',
+        character1Name: 'Alchemist',
+        character2Id: 'boffin',
+        character2Name: 'Boffin',
+        description: 'If the Alchemist has the Boffin ability...',
+      },
+    ]);
+    const charWithJinxes: CharacterDef = {
+      ...fullCharacter,
+      id: 'alchemist',
+      name: 'Alchemist',
+      jinxes: [
+        { characterId: 'boffin', description: 'If the Alchemist has the Boffin ability...' },
+        { characterId: 'spy', description: 'An Alchemist-Spy has no Spy ability.' },
+      ],
+    };
+    render(
+      <CharacterDetailModal
+        open={true}
+        character={charWithJinxes}
+        onClose={vi.fn()}
+        scriptCharacterIds={['alchemist', 'boffin', 'chef']}
+      />,
+    );
+    expect(screen.getByText('Boffin')).toBeInTheDocument();
+    expect(screen.queryByText('Spy')).not.toBeInTheDocument();
+    expect(screen.getByText(/⚡ Jinxes \(1\)/)).toBeInTheDocument();
+    mockGetCharacterActiveJinxes.mockReturnValue([]);
   });
 });
