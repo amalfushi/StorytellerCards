@@ -20,7 +20,7 @@ export const golem: CharacterDef = {
     large: '/icons/characters/golemIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [],
+  reminders: [{ id: 'golem-maynotnominate', text: 'May Not Nominate', sourceCharacterId: 'golem' }],
   flavor: 'Golem help? Golem smash! Golem help.',
   edition: 'carousel',
 };

@@ -46,7 +46,12 @@ export const xaan: CharacterDef = {
     large: '/icons/characters/xaanIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [],
+  reminders: [
+    { id: 'xaan-night1', text: 'Night 1', sourceCharacterId: 'xaan' },
+    { id: 'xaan-night2', text: 'Night 2', sourceCharacterId: 'xaan' },
+    { id: 'xaan-night3', text: 'Night 3', sourceCharacterId: 'xaan' },
+    { id: 'xaan-x', text: 'X', sourceCharacterId: 'xaan' },
+  ],
   flavor: 'Down they fall. One by one. By two, by three, by five.',
   edition: 'carousel',
   setup: true,

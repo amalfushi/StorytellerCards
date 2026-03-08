@@ -19,7 +19,9 @@ export const spiritofivory: CharacterDef = {
     large: '/icons/characters/spiritofivoryIcon.webp',
     placeholder: '#ff9800',
   },
-  reminders: [],
+  reminders: [
+    { id: 'spiritofivory-nomoreevil', text: 'No More Evil', sourceCharacterId: 'spiritofivory' },
+  ],
   flavor:
     'The Wasteland calls. Bones rise to flesh, then fall to dust. The great spirit grows. The great spirit watches. The great spirit guides. The human listens, or the human is no more.',
   edition: 'fabled',

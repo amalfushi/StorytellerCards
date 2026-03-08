@@ -22,7 +22,11 @@ export const hermit: CharacterDef = {
     large: '/icons/characters/hermitIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [],
+  reminders: [
+    { id: 'hermit-1', text: '1', sourceCharacterId: 'hermit' },
+    { id: 'hermit-2', text: '2', sourceCharacterId: 'hermit' },
+    { id: 'hermit-3', text: '3', sourceCharacterId: 'hermit' },
+  ],
   flavor: 'In the lost and forgotten places of the earth, the soul’s light beckons.',
   edition: 'carousel',
   setup: true,

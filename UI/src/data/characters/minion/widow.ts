@@ -48,8 +48,8 @@ export const widow: CharacterDef = {
     placeholder: '#d32f2f',
   },
   reminders: [
-    { id: 'widow-know', text: 'KNOW' },
-    { id: 'widow-poisoned', text: 'POISONED' },
+    { id: 'widow-poisoned', text: 'Poisoned', sourceCharacterId: 'widow' },
+    { id: 'widow-know', text: 'Know', sourceCharacterId: 'widow' },
   ],
   jinxes: [
     {

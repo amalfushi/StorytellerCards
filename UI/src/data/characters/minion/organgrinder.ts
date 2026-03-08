@@ -48,8 +48,8 @@ export const organgrinder: CharacterDef = {
     placeholder: '#d32f2f',
   },
   reminders: [
-    { id: 'organgrinder-drunk', text: 'DRUNK' },
-    { id: 'organgrinder-abouttodie', text: 'ABOUT TO DIE' },
+    { id: 'organgrinder-abouttodie', text: 'About To Die', sourceCharacterId: 'organgrinder' },
+    { id: 'organgrinder-drunk', text: 'Drunk', sourceCharacterId: 'organgrinder' },
   ],
   jinxes: [
     {

@@ -45,7 +45,11 @@ export const yaggababble: CharacterDef = {
     large: '/icons/characters/yaggababbleIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [
+    { id: 'yaggababble-dead-1', text: 'Dead', sourceCharacterId: 'yaggababble' },
+    { id: 'yaggababble-dead-2', text: 'Dead', sourceCharacterId: 'yaggababble' },
+    { id: 'yaggababble-dead-3', text: 'Dead', sourceCharacterId: 'yaggababble' },
+  ],
   jinxes: [
     {
       characterId: 'exorcist',

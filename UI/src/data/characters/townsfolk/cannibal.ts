@@ -22,7 +22,10 @@ export const cannibal: CharacterDef = {
     large: '/icons/characters/cannibalIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [
+    { id: 'cannibal-poisoned', text: 'Poisoned', sourceCharacterId: 'cannibal' },
+    { id: 'cannibal-lunch', text: 'Lunch', sourceCharacterId: 'cannibal' },
+  ],
   jinxes: [
     {
       characterId: 'juggler',

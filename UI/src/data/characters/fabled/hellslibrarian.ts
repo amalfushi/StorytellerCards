@@ -19,7 +19,13 @@ export const hellslibrarian: CharacterDef = {
     large: '/icons/characters/hellslibrarianIcon.webp',
     placeholder: '#ff9800',
   },
-  reminders: [{ id: 'hellslibrarian-somethingbad', text: 'SOMETHING BAD' }],
+  reminders: [
+    {
+      id: 'hellslibrarian-somethingbad',
+      text: 'Something Bad',
+      sourceCharacterId: 'hellslibrarian',
+    },
+  ],
   flavor:
     "Shhhhhh. Please be quiet. It is best not to disturb the Librarian. I've heard it has a temper.",
   edition: 'fabled',

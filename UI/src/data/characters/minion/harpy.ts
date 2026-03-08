@@ -78,7 +78,10 @@ export const harpy: CharacterDef = {
     large: '/icons/characters/harpyIcon.webp',
     placeholder: '#e53935',
   },
-  reminders: [],
+  reminders: [
+    { id: 'harpy-mad', text: 'Mad', sourceCharacterId: 'harpy' },
+    { id: 'harpy-2nd', text: '2nd', sourceCharacterId: 'harpy' },
+  ],
   flavor: 'So fair a day I never did see, nor so fowl a presence hanging over me.',
   edition: 'carousel',
 };

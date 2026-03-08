@@ -36,8 +36,8 @@ export const librarian: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'librarian-outsider', text: 'OUTSIDER' },
-    { id: 'librarian-wrong', text: 'WRONG' },
+    { id: 'librarian-outsider', text: 'Outsider', sourceCharacterId: 'librarian' },
+    { id: 'librarian-wrong', text: 'Wrong', sourceCharacterId: 'librarian' },
   ],
   flavor:
     'Certainly madam, under normal circumstances, you may borrow the Codex Malificarium from the library vaults. However, you do not seem to be a member.',

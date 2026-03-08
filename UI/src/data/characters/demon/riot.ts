@@ -43,7 +43,11 @@ export const riot: CharacterDef = {
     large: '/icons/characters/riotIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [
+    { id: 'riot-day1', text: 'Day 1', sourceCharacterId: 'riot' },
+    { id: 'riot-day2', text: 'Day 2', sourceCharacterId: 'riot' },
+    { id: 'riot-day3', text: 'Day 3', sourceCharacterId: 'riot' },
+  ],
   jinxes: [
     {
       characterId: 'atheist',

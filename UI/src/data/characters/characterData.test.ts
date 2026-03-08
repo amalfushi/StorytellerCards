@@ -133,6 +133,8 @@ describe.each(allCharacters)('Character: $name ($id)', (char) => {
       expect(reminder.id.length).toBeGreaterThan(0);
       expect(typeof reminder.text).toBe('string');
       expect(reminder.text.length).toBeGreaterThan(0);
+      // M23: every reminder must track its source character
+      expect(reminder.sourceCharacterId).toBe(char.id);
     }
 
     // No duplicate reminder IDs within a single character
@@ -410,5 +412,166 @@ describe('M22 — WebP icon paths', () => {
       }
     }
     expect(wrongExtension).toEqual([]);
+  });
+});
+
+// Expected reminder counts per character from roles.json
+const expectedReminderCounts: Record<string, number> = {
+  steward: 1,
+  knight: 2,
+  noble: 3,
+  investigator: 2,
+  washerwoman: 2,
+  grandmother: 2,
+  librarian: 2,
+  pixie: 2,
+  bountyhunter: 1,
+  sailor: 1,
+  balloonist: 1,
+  preacher: 3,
+  villageidiot: 1,
+  snakecharmer: 1,
+  mathematician: 5,
+  fortuneteller: 1,
+  flowergirl: 2,
+  towncrier: 2,
+  undertaker: 1,
+  innkeeper: 3,
+  monk: 1,
+  gambler: 1,
+  acrobat: 2,
+  exorcist: 1,
+  lycanthrope: 2,
+  gossip: 1,
+  engineer: 1,
+  nightwatchman: 1,
+  courtier: 4,
+  seamstress: 1,
+  philosopher: 1,
+  huntsman: 1,
+  professor: 2,
+  artist: 1,
+  slayer: 1,
+  fisherman: 1,
+  princess: 1,
+  juggler: 5,
+  cannibal: 2,
+  amnesiac: 3,
+  minstrel: 1,
+  banshee: 1,
+  tealady: 2,
+  fool: 1,
+  virgin: 1,
+  poppygrower: 1,
+  hermit: 3,
+  butler: 1,
+  goon: 1,
+  ogre: 1,
+  lunatic: 3,
+  tinker: 1,
+  golem: 1,
+  sweetheart: 1,
+  plaguedoctor: 1,
+  moonchild: 1,
+  barber: 1,
+  hatter: 1,
+  damsel: 1,
+  puzzlemaster: 2,
+  mezepheles: 2,
+  godfather: 2,
+  poisoner: 1,
+  devilsadvocate: 1,
+  harpy: 2,
+  witch: 1,
+  cerenovus: 1,
+  fearmonger: 1,
+  assassin: 2,
+  wizard: 2,
+  widow: 2,
+  xaan: 4,
+  summoner: 3,
+  eviltwin: 1,
+  goblin: 1,
+  scarletwoman: 1,
+  organgrinder: 2,
+  yaggababble: 3,
+  pukka: 3,
+  nodashii: 3,
+  imp: 1,
+  shabaloth: 3,
+  ojo: 1,
+  kazali: 1,
+  po: 4,
+  zombuul: 2,
+  vigormortis: 7,
+  vortox: 1,
+  legion: 2,
+  fanggu: 2,
+  lordoftyphon: 1,
+  lleech: 2,
+  alhadikhia: 3,
+  riot: 3,
+  leviathan: 6,
+  thief: 1,
+  bureaucrat: 1,
+  barista: 4,
+  harlot: 2,
+  cacklejack: 1,
+  bonecollector: 2,
+  judge: 1,
+  apprentice: 1,
+  gnome: 1,
+  bishop: 2,
+  angel: 3,
+  deusexfiasco: 1,
+  duchess: 3,
+  fibbin: 1,
+  hellslibrarian: 1,
+  revolutionary: 3,
+  spiritofivory: 1,
+  toymaker: 1,
+  stormcatcher: 1,
+  ventriloquist: 1,
+  zenomancer: 3,
+};
+
+describe('M23 — Reminder token import validation', () => {
+  it('has at least 119 characters with non-empty reminders', () => {
+    const withReminders = allCharacters.filter((c) => c.reminders.length > 0);
+    expect(withReminders.length).toBeGreaterThanOrEqual(119);
+  });
+
+  it('has at least 214 total reminder tokens', () => {
+    const total = allCharacters.reduce((sum, c) => sum + c.reminders.length, 0);
+    expect(total).toBeGreaterThanOrEqual(214);
+  });
+
+  it('all reminder tokens have sourceCharacterId matching their owner', () => {
+    const missing: string[] = [];
+    for (const char of allCharacters) {
+      for (const r of char.reminders) {
+        if (r.sourceCharacterId !== char.id) {
+          missing.push(`${char.id}: reminder ${r.id} has sourceCharacterId=${r.sourceCharacterId}`);
+        }
+      }
+    }
+    expect(missing).toEqual([]);
+  });
+
+  it('token counts match roles.json source data', () => {
+    const mismatches: string[] = [];
+    for (const [charId, expectedCount] of Object.entries(expectedReminderCounts)) {
+      const char = allCharacters.find((c) => c.id === charId);
+      if (!char) {
+        mismatches.push(`${charId}: character not found`);
+        continue;
+      }
+      if (char.reminders.length !== expectedCount) {
+        mismatches.push(
+          `${charId}: expected ${expectedCount} reminders, got ${char.reminders.length}`,
+        );
+      }
+    }
+    expect(mismatches).toEqual([]);
   });
 });

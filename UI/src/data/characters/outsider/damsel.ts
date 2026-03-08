@@ -57,7 +57,7 @@ export const damsel: CharacterDef = {
     large: '/icons/characters/damselIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [],
+  reminders: [{ id: 'damsel-guessused', text: 'Guess Used', sourceCharacterId: 'damsel' }],
   jinxes: [
     {
       characterId: 'pithag',

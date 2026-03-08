@@ -93,9 +93,9 @@ export const lilmonsta: CharacterDef = {
     placeholder: '#b71c1c',
   },
   reminders: [
-    { id: 'lilmonsta-minioninfo', text: 'MINION INFO' },
-    { id: 'lilmonsta-demoninfo', text: 'DEMON INFO' },
-    { id: 'lilmonsta-isthedemon', text: 'IS THE DEMON' },
+    { id: 'lilmonsta-minioninfo', text: 'MINION INFO', sourceCharacterId: 'lilmonsta' },
+    { id: 'lilmonsta-demoninfo', text: 'DEMON INFO', sourceCharacterId: 'lilmonsta' },
+    { id: 'lilmonsta-isthedemon', text: 'IS THE DEMON', sourceCharacterId: 'lilmonsta' },
   ],
   jinxes: [
     {

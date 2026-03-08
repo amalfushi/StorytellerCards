@@ -43,7 +43,10 @@ export const godfather: CharacterDef = {
     large: '/icons/characters/godfatherIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [{ id: 'godfather-diedtoday', text: 'DIED TODAY' }],
+  reminders: [
+    { id: 'godfather-diedtoday', text: 'Died Today', sourceCharacterId: 'godfather' },
+    { id: 'godfather-dead', text: 'Dead', sourceCharacterId: 'godfather' },
+  ],
   jinxes: [{ characterId: 'heretic', description: 'Only 1 jinxed character can be in play.' }],
   flavor:
     "Normally, it's just business. But when you insult my daughter, you insult me. And when you insult me, you insult my family. You really should be more careful - it would be a shame if you had an unfortunate accident.",

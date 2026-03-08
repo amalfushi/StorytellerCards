@@ -55,7 +55,10 @@ export const fanggu: CharacterDef = {
     large: '/icons/characters/fangguIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [
+    { id: 'fanggu-dead', text: 'Dead', sourceCharacterId: 'fanggu' },
+    { id: 'fanggu-once', text: 'Once', sourceCharacterId: 'fanggu' },
+  ],
   storytellerSetup: [
     {
       id: 'fanggu-bluffs',

@@ -22,7 +22,7 @@ export const slayer: CharacterDef = {
     large: '/icons/characters/slayerIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'slayer-noability', text: 'No Ability', sourceCharacterId: 'slayer' }],
   jinxes: [
     {
       characterId: 'lleech',

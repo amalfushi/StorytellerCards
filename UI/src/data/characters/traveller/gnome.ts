@@ -23,7 +23,7 @@ export const gnome: CharacterDef = {
     large: '/icons/characters/gnomeIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'gnome-amigo', text: 'AMIGO' }],
+  reminders: [{ id: 'gnome-amigo', text: 'Amigo', sourceCharacterId: 'gnome' }],
   flavor:
     'Four the score or seven beers, no shows are goes for me and my. A prank to crack the cranks and planks o’ the floor foundation length, so incontravertabubbilly mini. The large essays down streams of joyse, no greater than is scene, not inherdt. Ha-urrumph.',
   edition: 'carousel',

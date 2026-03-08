@@ -33,7 +33,9 @@ export const alchemist: CharacterDef = {
     large: '/icons/characters/alchemistIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'alchemist-isthealchemist', text: 'IS THE ALCHEMIST' }],
+  reminders: [
+    { id: 'alchemist-isthealchemist', text: 'IS THE ALCHEMIST', sourceCharacterId: 'alchemist' },
+  ],
   jinxes: [
     {
       characterId: 'boffin',

@@ -32,7 +32,7 @@ export const ojo: CharacterDef = {
     large: '/icons/characters/ojoIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [{ id: 'ojo-dead', text: 'Dead', sourceCharacterId: 'ojo' }],
   storytellerSetup: [
     {
       id: 'ojo-bluffs',

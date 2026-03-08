@@ -20,7 +20,10 @@ export const harlot: CharacterDef = {
     large: '/icons/characters/harlotIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [
+    { id: 'harlot-dead-1', text: 'Dead', sourceCharacterId: 'harlot' },
+    { id: 'harlot-dead-2', text: 'Dead', sourceCharacterId: 'harlot' },
+  ],
   flavor:
     "Enchanté, Sailor. You look like you need someone to really listen to your troubles. I'm a good listener. Very, very good.",
   edition: 'snv',

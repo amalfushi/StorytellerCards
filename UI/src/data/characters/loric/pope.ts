@@ -22,7 +22,7 @@ export const pope: CharacterDef = {
     large: '/icons/characters/popeIcon.webp',
     placeholder: '#558b2f',
   },
-  reminders: [{ id: 'pope-demoninfo', text: 'DEMON INFO' }],
+  reminders: [{ id: 'pope-demoninfo', text: 'DEMON INFO', sourceCharacterId: 'pope' }],
   flavor: '...Pulcherrimae.',
   edition: 'loric',
   setup: true,

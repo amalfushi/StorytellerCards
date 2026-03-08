@@ -36,7 +36,11 @@ export const shabaloth: CharacterDef = {
     large: '/icons/characters/shabalothIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [{ id: 'shabaloth-alive', text: 'ALIVE' }],
+  reminders: [
+    { id: 'shabaloth-dead-1', text: 'Dead', sourceCharacterId: 'shabaloth' },
+    { id: 'shabaloth-dead-2', text: 'Dead', sourceCharacterId: 'shabaloth' },
+    { id: 'shabaloth-alive', text: 'Alive', sourceCharacterId: 'shabaloth' },
+  ],
   flavor: "Blarg f'taag nm mataan! No sho gumtha m'sik na yuuu. Fluuuuuuuuurg h-sikkkh.",
   edition: 'bmr',
 };

@@ -47,7 +47,7 @@ export const butler: CharacterDef = {
     large: '/icons/characters/butlerIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [{ id: 'butler-master', text: 'MASTER' }],
+  reminders: [{ id: 'butler-master', text: 'Master', sourceCharacterId: 'butler' }],
   jinxes: [
     {
       characterId: 'cannibal',

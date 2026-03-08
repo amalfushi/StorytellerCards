@@ -64,7 +64,7 @@ export const villageidiot: CharacterDef = {
     large: '/icons/characters/villageidiotIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'villageidiot-drunk', text: 'Drunk', sourceCharacterId: 'villageidiot' }],
   jinxes: [
     {
       characterId: 'boffin',

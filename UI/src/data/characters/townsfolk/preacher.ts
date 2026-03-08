@@ -76,7 +76,11 @@ export const preacher: CharacterDef = {
     large: '/icons/characters/preacherIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'preacher-noability', text: 'NO ABILITY' }],
+  reminders: [
+    { id: 'preacher-noability-1', text: 'No Ability', sourceCharacterId: 'preacher' },
+    { id: 'preacher-noability-2', text: 'No Ability', sourceCharacterId: 'preacher' },
+    { id: 'preacher-noability-3', text: 'No Ability', sourceCharacterId: 'preacher' },
+  ],
   jinxes: [
     {
       characterId: 'legion',

@@ -30,8 +30,9 @@ export const angel: CharacterDef = {
     placeholder: '#ff9800',
   },
   reminders: [
-    { id: 'angel-protected', text: 'PROTECTED' },
-    { id: 'angel-somethingbad', text: 'SOMETHING BAD' },
+    { id: 'angel-protected-1', text: 'Protected', sourceCharacterId: 'angel' },
+    { id: 'angel-protected-2', text: 'Protected', sourceCharacterId: 'angel' },
+    { id: 'angel-somethingbad', text: 'Something Bad', sourceCharacterId: 'angel' },
   ],
   flavor:
     'Let those who are without sin dare to raise their hand to my chosen, for I shall strike such fools down with the fury and righteousness of a thousand storms.',

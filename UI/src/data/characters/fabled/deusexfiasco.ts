@@ -23,7 +23,7 @@ export const deusexfiasco: CharacterDef = {
     large: '/icons/characters/deusexfiascoIcon.webp',
     placeholder: '#ff9800',
   },
-  reminders: [{ id: 'deusexfiasco-whoopsie', text: 'WHOOPSIE' }],
+  reminders: [{ id: 'deusexfiasco-whoopsie', text: 'Whoopsie', sourceCharacterId: 'deusexfiasco' }],
   flavor:
     "It's not a bug, it's a feature. It's not an error, it's a tweak. It's not broken, it's quirky.",
   edition: 'carousel',

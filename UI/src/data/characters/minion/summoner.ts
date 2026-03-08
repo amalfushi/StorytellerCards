@@ -72,7 +72,11 @@ export const summoner: CharacterDef = {
     large: '/icons/characters/summonerIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [],
+  reminders: [
+    { id: 'summoner-night1', text: 'Night 1', sourceCharacterId: 'summoner' },
+    { id: 'summoner-night2', text: 'Night 2', sourceCharacterId: 'summoner' },
+    { id: 'summoner-night3', text: 'Night 3', sourceCharacterId: 'summoner' },
+  ],
   jinxes: [
     {
       characterId: 'alchemist',

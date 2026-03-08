@@ -55,7 +55,7 @@ export const philosopher: CharacterDef = {
     large: '/icons/characters/philosopherIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'philosopher-drunk', text: 'Drunk', sourceCharacterId: 'philosopher' }],
   jinxes: [
     {
       characterId: 'bountyhunter',

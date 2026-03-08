@@ -33,7 +33,7 @@ export const moonchild: CharacterDef = {
     large: '/icons/characters/moonchildIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [],
+  reminders: [{ id: 'moonchild-dead', text: 'Dead', sourceCharacterId: 'moonchild' }],
   flavor:
     'Scorpio looks sideways at the lovers, and you have a choice to make. With silver cross my palm, and your fate shall be revealed. With steel cross my throat, and by the stars you shall regret it.',
   edition: 'bmr',

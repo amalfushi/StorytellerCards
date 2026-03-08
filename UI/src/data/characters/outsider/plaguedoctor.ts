@@ -36,7 +36,13 @@ export const plaguedoctor: CharacterDef = {
     large: '/icons/characters/plaguedoctorIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [{ id: 'plaguedoctor-storytellerability', text: 'STORYTELLER ABILITY' }],
+  reminders: [
+    {
+      id: 'plaguedoctor-storytellerability',
+      text: 'Storyteller Ability',
+      sourceCharacterId: 'plaguedoctor',
+    },
+  ],
   jinxes: [
     {
       characterId: 'baron',

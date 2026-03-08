@@ -94,7 +94,11 @@ export const lunatic: CharacterDef = {
     large: '/icons/characters/lunaticIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [{ id: 'lunatic-chosen', text: 'CHOSEN' }],
+  reminders: [
+    { id: 'lunatic-chosen-1', text: 'Chosen', sourceCharacterId: 'lunatic' },
+    { id: 'lunatic-chosen-2', text: 'Chosen', sourceCharacterId: 'lunatic' },
+    { id: 'lunatic-chosen-3', text: 'Chosen', sourceCharacterId: 'lunatic' },
+  ],
   jinxes: [
     {
       characterId: 'mathematician',

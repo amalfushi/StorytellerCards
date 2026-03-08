@@ -41,7 +41,7 @@ export const poisoner: CharacterDef = {
     large: '/icons/characters/poisonerIcon.webp',
     placeholder: '#e53935',
   },
-  reminders: [],
+  reminders: [{ id: 'poisoner-poisoned', text: 'Poisoned', sourceCharacterId: 'poisoner' }],
   flavor: 'Add compound Alpha to compound Beta... NOT TOO MUCH!',
   edition: 'tb',
 };

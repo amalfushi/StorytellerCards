@@ -31,7 +31,10 @@ export const assassin: CharacterDef = {
     large: '/icons/characters/assassinIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [{ id: 'assassin-noability', text: 'NO ABILITY' }],
+  reminders: [
+    { id: 'assassin-dead', text: 'Dead', sourceCharacterId: 'assassin' },
+    { id: 'assassin-noability', text: 'No Ability', sourceCharacterId: 'assassin' },
+  ],
   flavor: '...',
   edition: 'bmr',
 };

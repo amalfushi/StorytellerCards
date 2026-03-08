@@ -34,8 +34,8 @@ export const washerwoman: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'washerwoman-townsfolk', text: 'TOWNSFOLK' },
-    { id: 'washerwoman-wrong', text: 'WRONG' },
+    { id: 'washerwoman-townsfolk', text: 'Townsfolk', sourceCharacterId: 'washerwoman' },
+    { id: 'washerwoman-wrong', text: 'Wrong', sourceCharacterId: 'washerwoman' },
   ],
   flavor: 'Bloodstains on a dinner jacket? No, this is cooking sherry. How careless.',
   edition: 'tb',

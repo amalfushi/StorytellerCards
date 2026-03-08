@@ -43,7 +43,12 @@ export const courtier: CharacterDef = {
     large: '/icons/characters/courtierIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'courtier-noability', text: 'NO ABILITY' }],
+  reminders: [
+    { id: 'courtier-drunk3', text: 'Drunk 3', sourceCharacterId: 'courtier' },
+    { id: 'courtier-drunk2', text: 'Drunk 2', sourceCharacterId: 'courtier' },
+    { id: 'courtier-drunk1', text: 'Drunk 1', sourceCharacterId: 'courtier' },
+    { id: 'courtier-noability', text: 'No Ability', sourceCharacterId: 'courtier' },
+  ],
   jinxes: [
     {
       characterId: 'summoner',

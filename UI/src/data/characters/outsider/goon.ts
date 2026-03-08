@@ -22,7 +22,7 @@ export const goon: CharacterDef = {
     large: '/icons/characters/goonIcon.webp',
     placeholder: '#1565c0',
   },
-  reminders: [],
+  reminders: [{ id: 'goon-drunk', text: 'Drunk', sourceCharacterId: 'goon' }],
   jinxes: [
     {
       characterId: 'boffin',

@@ -44,7 +44,7 @@ export const sailor: CharacterDef = {
     large: '/icons/characters/sailorIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'sailor-drunk', text: 'DRUNK' }],
+  reminders: [{ id: 'sailor-drunk', text: 'Drunk', sourceCharacterId: 'sailor' }],
   flavor:
     "I'll drink any one of yer under the table! You! The chatterbox! Reckon you can take me? No? Howza 'bout you, Grandma? You ever tried Old McKillys Extra Spiced Rum before? Guaranteed to put hairs on yer chest! Step aboard, aye!",
   edition: 'bmr',

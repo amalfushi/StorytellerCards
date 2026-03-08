@@ -44,7 +44,7 @@ export const balloonist: CharacterDef = {
     large: '/icons/characters/balloonistIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'balloonist-know', text: 'Know', sourceCharacterId: 'balloonist' }],
   flavor:
     "More heat! Higher! Higher! Più alto! Ahhh... it is so beautiful from up here, don't you agree? Can you see the children fishing by the river, under the willow? Can you see the  glint of the sun on the circus tent-poles? What's this? An old man, alone, passed out in the vineyard? Less heat! Lower! Lower! Vai più in basso!",
   edition: 'carousel',

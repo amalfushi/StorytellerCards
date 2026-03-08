@@ -31,7 +31,7 @@ export const monk: CharacterDef = {
     large: '/icons/characters/monkIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'monk-safe', text: 'Safe', sourceCharacterId: 'monk' }],
   jinxes: [
     {
       characterId: 'leviathan',

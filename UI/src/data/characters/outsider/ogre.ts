@@ -33,7 +33,7 @@ export const ogre: CharacterDef = {
     large: '/icons/characters/ogreIcon.webp',
     placeholder: '#1565c0',
   },
-  reminders: [],
+  reminders: [{ id: 'ogre-friend', text: 'Friend', sourceCharacterId: 'ogre' }],
   jinxes: [
     {
       characterId: 'boffin',

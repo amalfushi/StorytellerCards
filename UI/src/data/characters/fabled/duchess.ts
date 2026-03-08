@@ -39,8 +39,9 @@ export const duchess: CharacterDef = {
     placeholder: '#ff9800',
   },
   reminders: [
-    { id: 'duchess-visitor', text: 'VISITOR' },
-    { id: 'duchess-falseinfo', text: 'FALSE INFO' },
+    { id: 'duchess-visitor-1', text: 'Visitor', sourceCharacterId: 'duchess' },
+    { id: 'duchess-visitor-2', text: 'Visitor', sourceCharacterId: 'duchess' },
+    { id: 'duchess-falseinfo', text: 'False Info', sourceCharacterId: 'duchess' },
   ],
   flavor:
     'We shall entertain between the hours of 6 and 7 precisely. Tea at 6:15. Scones at 6:45. Do not be late. Formal wear applies, as always.',

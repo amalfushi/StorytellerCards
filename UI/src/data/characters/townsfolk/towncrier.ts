@@ -30,8 +30,12 @@ export const towncrier: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'towncrier-minionsnotnominated', text: 'MINIONS NOT NOMINATED' },
-    { id: 'towncrier-minionnominated', text: 'MINION NOMINATED' },
+    {
+      id: 'towncrier-minionsnotnominated',
+      text: 'Minions Not Nominated',
+      sourceCharacterId: 'towncrier',
+    },
+    { id: 'towncrier-minionnominated', text: 'Minion Nominated', sourceCharacterId: 'towncrier' },
   ],
   flavor:
     'Hear ye! Hear ye! Witchcraft in the labyrinth! Genius savant reveals all! Town in danger! Hear Ye!',

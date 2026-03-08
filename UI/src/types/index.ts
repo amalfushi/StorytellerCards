@@ -118,6 +118,8 @@ export interface ReminderToken {
   icon?: string;
   /** True when this reminder applies even if the character is not in play. */
   isGlobal?: boolean;
+  /** The character this reminder belongs to (for displaying the source character's icon). */
+  sourceCharacterId?: string;
 }
 
 // ──────────────────────────────────────────────

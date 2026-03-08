@@ -21,10 +21,10 @@ export const barista: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'barista-soberandhealthy', text: 'SOBER AND HEALTHY' },
-    { id: 'barista-actstwice', text: 'ACTS TWICE' },
-    { id: 'barista-drunk', text: 'DRUNK' },
-    { id: 'barista-poisoned', text: 'POISONED' },
+    { id: 'barista-soberhealthy', text: 'Sober & Healthy', sourceCharacterId: 'barista' },
+    { id: 'barista-actstwice', text: 'Acts Twice', sourceCharacterId: 'barista' },
+    { id: 'barista-unknown-1', text: '?', sourceCharacterId: 'barista' },
+    { id: 'barista-unknown-2', text: '?', sourceCharacterId: 'barista' },
   ],
   flavor:
     'A cup of coffee with no cream, Monsieur? I’m terribly sorry, but we’re fresh out of cream — how about with no milk?',

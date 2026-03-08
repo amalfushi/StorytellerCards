@@ -34,7 +34,9 @@ export const scarletwoman: CharacterDef = {
     large: '/icons/characters/scarletwomanIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [],
+  reminders: [
+    { id: 'scarletwoman-isthedemon', text: 'Is The Demon', sourceCharacterId: 'scarletwoman' },
+  ],
   jinxes: [
     {
       characterId: 'plaguedoctor',

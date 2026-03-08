@@ -52,7 +52,7 @@ export const lordoftyphon: CharacterDef = {
     large: '/icons/characters/lordoftyphonIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [{ id: 'lordoftyphon-dead', text: 'Dead', sourceCharacterId: 'lordoftyphon' }],
   jinxes: [
     {
       characterId: 'summoner',

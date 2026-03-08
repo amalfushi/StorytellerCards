@@ -34,8 +34,8 @@ export const investigator: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'investigator-minion', text: 'MINION' },
-    { id: 'investigator-wrong', text: 'WRONG' },
+    { id: 'investigator-minion', text: 'Minion', sourceCharacterId: 'investigator' },
+    { id: 'investigator-wrong', text: 'Wrong', sourceCharacterId: 'investigator' },
   ],
   jinxes: [
     {

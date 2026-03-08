@@ -34,7 +34,10 @@ export const legion: CharacterDef = {
     large: '/icons/characters/legionIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [{ id: 'legion-abouttodie', text: 'ABOUT TO DIE' }],
+  reminders: [
+    { id: 'legion-dead', text: 'Dead', sourceCharacterId: 'legion' },
+    { id: 'legion-abouttodie', text: 'About To Die', sourceCharacterId: 'legion' },
+  ],
   jinxes: [
     {
       characterId: 'engineer',

@@ -31,7 +31,7 @@ export const vortox: CharacterDef = {
     large: '/icons/characters/vortoxIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [{ id: 'vortox-dead', text: 'Dead', sourceCharacterId: 'vortox' }],
   jinxes: [
     {
       characterId: 'banshee',

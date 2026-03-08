@@ -47,7 +47,18 @@ export const leviathan: CharacterDef = {
     large: '/icons/characters/leviathanIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [{ id: 'leviathan-goodplayerexecuted', text: 'GOOD PLAYER EXECUTED' }],
+  reminders: [
+    { id: 'leviathan-day1', text: 'Day 1', sourceCharacterId: 'leviathan' },
+    { id: 'leviathan-day2', text: 'Day 2', sourceCharacterId: 'leviathan' },
+    { id: 'leviathan-day3', text: 'Day 3', sourceCharacterId: 'leviathan' },
+    { id: 'leviathan-day4', text: 'Day 4', sourceCharacterId: 'leviathan' },
+    { id: 'leviathan-day5', text: 'Day 5', sourceCharacterId: 'leviathan' },
+    {
+      id: 'leviathan-goodplayerexecuted',
+      text: 'Good Player Executed',
+      sourceCharacterId: 'leviathan',
+    },
+  ],
   jinxes: [
     {
       characterId: 'banshee',

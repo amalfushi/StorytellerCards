@@ -53,7 +53,7 @@ export const imp: CharacterDef = {
     large: '/icons/characters/impIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [{ id: 'imp-dead', text: 'Dead', sourceCharacterId: 'imp' }],
   storytellerSetup: [
     {
       id: 'imp-bluffs',

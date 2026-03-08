@@ -34,7 +34,7 @@ export const gambler: CharacterDef = {
     large: '/icons/characters/gamblerIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'gambler-dead', text: 'Dead', sourceCharacterId: 'gambler' }],
   flavor: 'Heads, I win. Tails, you lose.',
   edition: 'bmr',
 };

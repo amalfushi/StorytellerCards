@@ -29,7 +29,10 @@ export const knight: CharacterDef = {
     large: '/icons/characters/knightIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [
+    { id: 'knight-know-1', text: 'Know', sourceCharacterId: 'knight' },
+    { id: 'knight-know-2', text: 'Know', sourceCharacterId: 'knight' },
+  ],
   flavor: 'When a man lies, he murders some part of the world.',
   edition: 'carousel',
 };

@@ -34,7 +34,7 @@ export const sweetheart: CharacterDef = {
     large: '/icons/characters/sweetheartIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [{ id: 'sweetheart-drunk', text: 'DRUNK' }],
+  reminders: [{ id: 'sweetheart-drunk', text: 'Drunk', sourceCharacterId: 'sweetheart' }],
   flavor: 'I will never forget her. Never.',
   edition: 'snv',
 };

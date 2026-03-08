@@ -21,8 +21,8 @@ export const bonecollector: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'bonecollector-hasability', text: 'HAS ABILITY' },
-    { id: 'bonecollector-noability', text: 'NO ABILITY' },
+    { id: 'bonecollector-noability', text: 'No Ability', sourceCharacterId: 'bonecollector' },
+    { id: 'bonecollector-hasability', text: 'Has Ability', sourceCharacterId: 'bonecollector' },
   ],
   flavor:
     'I collect many things. Hair. Teeth. Clothes. Fragments of poems. The dreams of lost lovers. My secret arts are not for you to know but my fee is a mere pittance. Bring me the blood of a noblewoman who died of heartbreak under a full moon, and you shall have your answers.',

@@ -28,7 +28,7 @@ export const tinker: CharacterDef = {
     large: '/icons/characters/tinkerIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [],
+  reminders: [{ id: 'tinker-dead', text: 'Dead', sourceCharacterId: 'tinker' }],
   flavor:
     'I think I see the problem. Luckily, I have an idea! This catapult will shoot twice as far with just a minor adjustment...',
   edition: 'bmr',

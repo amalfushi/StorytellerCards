@@ -34,7 +34,10 @@ export const acrobat: CharacterDef = {
     large: '/icons/characters/acrobatIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [
+    { id: 'acrobat-dead', text: 'Dead', sourceCharacterId: 'acrobat' },
+    { id: 'acrobat-chosen', text: 'Chosen', sourceCharacterId: 'acrobat' },
+  ],
   flavor: 'Welcome, one and all, to the greatest show on earth.',
   edition: 'carousel',
 };

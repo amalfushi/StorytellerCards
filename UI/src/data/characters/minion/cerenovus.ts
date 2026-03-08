@@ -83,7 +83,7 @@ export const cerenovus: CharacterDef = {
     large: '/icons/characters/cerenovusIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [],
+  reminders: [{ id: 'cerenovus-mad', text: 'Mad', sourceCharacterId: 'cerenovus' }],
   jinxes: [
     {
       characterId: 'goblin',

@@ -21,7 +21,7 @@ export const bureaucrat: CharacterDef = {
     large: '/icons/characters/bureaucratIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'bureaucrat-3votes', text: '3 Votes', sourceCharacterId: 'bureaucrat' }],
   flavor:
     "Sign here please. And here. And here. Aaaaaaaaand here. This should all be sorted and tallied by the end of the day, assuming everyone's signatures are legible. We haven't had a mix-up in the paperwork for ages. Yesterday noon, if memory serves...",
   edition: 'tb',

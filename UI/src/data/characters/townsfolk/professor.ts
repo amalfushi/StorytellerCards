@@ -33,8 +33,8 @@ export const professor: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'professor-alive', text: 'ALIVE' },
-    { id: 'professor-noability', text: 'NO ABILITY' },
+    { id: 'professor-alive', text: 'Alive', sourceCharacterId: 'professor' },
+    { id: 'professor-noability', text: 'No Ability', sourceCharacterId: 'professor' },
   ],
   flavor:
     'The process is simple. Attach the hydraulic confabulator to the modified chi matrix amplifier, add 20 CCs of pseudodorafine, keep his Z levels above 20%, and your husband will be fine. Now, all we need is a lightning strike.',

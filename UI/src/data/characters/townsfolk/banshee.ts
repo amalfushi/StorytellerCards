@@ -33,7 +33,7 @@ export const banshee: CharacterDef = {
     large: '/icons/characters/bansheeIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'banshee-hasability', text: 'HAS ABILITY' }],
+  reminders: [{ id: 'banshee-hasability', text: 'Has Ability', sourceCharacterId: 'banshee' }],
   jinxes: [
     {
       characterId: 'leviathan',

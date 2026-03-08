@@ -37,7 +37,7 @@ export const princess: CharacterDef = {
     large: '/icons/characters/princessIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'princess-doesntkill', text: "Doesn't Kill", sourceCharacterId: 'princess' }],
   jinxes: [
     {
       characterId: 'alhadikhia',

@@ -39,8 +39,13 @@ export const vigormortis: CharacterDef = {
     placeholder: '#b71c1c',
   },
   reminders: [
-    { id: 'vigormortis-hasability', text: 'HAS ABILITY' },
-    { id: 'vigormortis-poisoned', text: 'POISONED' },
+    { id: 'vigormortis-dead', text: 'Dead', sourceCharacterId: 'vigormortis' },
+    { id: 'vigormortis-hasability-1', text: 'Has Ability', sourceCharacterId: 'vigormortis' },
+    { id: 'vigormortis-hasability-2', text: 'Has Ability', sourceCharacterId: 'vigormortis' },
+    { id: 'vigormortis-hasability-3', text: 'Has Ability', sourceCharacterId: 'vigormortis' },
+    { id: 'vigormortis-poisoned-1', text: 'Poisoned', sourceCharacterId: 'vigormortis' },
+    { id: 'vigormortis-poisoned-2', text: 'Poisoned', sourceCharacterId: 'vigormortis' },
+    { id: 'vigormortis-poisoned-3', text: 'Poisoned', sourceCharacterId: 'vigormortis' },
   ],
   setupModification: {
     description:

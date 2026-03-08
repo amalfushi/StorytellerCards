@@ -44,7 +44,7 @@ export const bountyhunter: CharacterDef = {
     large: '/icons/characters/bountyhunterIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'bountyhunter-know', text: 'KNOW' }],
+  reminders: [{ id: 'bountyhunter-know', text: 'Know', sourceCharacterId: 'bountyhunter' }],
   jinxes: [
     {
       characterId: 'kazali',

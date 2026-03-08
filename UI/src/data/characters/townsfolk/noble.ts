@@ -29,7 +29,11 @@ export const noble: CharacterDef = {
     large: '/icons/characters/nobleIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [
+    { id: 'noble-know-1', text: 'Know', sourceCharacterId: 'noble' },
+    { id: 'noble-know-2', text: 'Know', sourceCharacterId: 'noble' },
+    { id: 'noble-know-3', text: 'Know', sourceCharacterId: 'noble' },
+  ],
   flavor:
     'Sarcasm is indeed the lowest form of wit. But speaking in response to your criticism, Sir, it is, nevertheless, a form of wit.',
   edition: 'carousel',

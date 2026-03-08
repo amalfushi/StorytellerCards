@@ -32,7 +32,10 @@ export const zombuul: CharacterDef = {
     large: '/icons/characters/zombuulIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [{ id: 'zombuul-diedtoday', text: 'DIED TODAY' }],
+  reminders: [
+    { id: 'zombuul-diedtoday', text: 'Died Today', sourceCharacterId: 'zombuul' },
+    { id: 'zombuul-dead', text: 'Dead', sourceCharacterId: 'zombuul' },
+  ],
   jinxes: [
     {
       characterId: 'summoner',

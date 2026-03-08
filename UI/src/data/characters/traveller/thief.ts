@@ -21,7 +21,7 @@ export const thief: CharacterDef = {
     large: '/icons/characters/thiefIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'thief-negativevote', text: 'NEGATIVE VOTE' }],
+  reminders: [{ id: 'thief-negativevote', text: 'Negative Vote', sourceCharacterId: 'thief' }],
   flavor:
     "I ain't done nuffink. I weren't even in dat alley last night! It weren't me what stole Mayor Bruno's briefcase wiv all dem fancy dockoments innit. Besides, it was too 'eavy to carry far.",
   edition: 'tb',

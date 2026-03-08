@@ -49,7 +49,11 @@ export const alhadikhia: CharacterDef = {
     large: '/icons/characters/alhadikhiaIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [
+    { id: 'alhadikhia-1', text: '1', sourceCharacterId: 'alhadikhia' },
+    { id: 'alhadikhia-2', text: '2', sourceCharacterId: 'alhadikhia' },
+    { id: 'alhadikhia-3', text: '3', sourceCharacterId: 'alhadikhia' },
+  ],
   jinxes: [
     {
       characterId: 'mastermind',

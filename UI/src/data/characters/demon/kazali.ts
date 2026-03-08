@@ -54,7 +54,7 @@ export const kazali: CharacterDef = {
     large: '/icons/characters/kazaliIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [{ id: 'kazali-dead', text: 'Dead', sourceCharacterId: 'kazali' }],
   storytellerSetup: [
     {
       id: 'kazali-bluffs',
