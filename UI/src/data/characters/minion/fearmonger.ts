@@ -57,7 +57,7 @@ export const fearmonger: CharacterDef = {
     large: '/icons/characters/fearmongerIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [{ id: 'fearmonger-fear', text: 'FEAR' }],
+  reminders: [{ id: 'fearmonger-fear', text: 'Fear', sourceCharacterId: 'fearmonger' }],
   jinxes: [
     {
       characterId: 'plaguedoctor',

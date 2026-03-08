@@ -29,7 +29,11 @@ export const nodashii: CharacterDef = {
     large: '/icons/characters/nodashiiIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [
+    { id: 'nodashii-dead', text: 'Dead', sourceCharacterId: 'nodashii' },
+    { id: 'nodashii-poisoned-1', text: 'Poisoned', sourceCharacterId: 'nodashii' },
+    { id: 'nodashii-poisoned-2', text: 'Poisoned', sourceCharacterId: 'nodashii' },
+  ],
   storytellerSetup: [
     {
       id: 'nodashii-bluffs',

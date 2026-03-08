@@ -35,7 +35,12 @@ export const po: CharacterDef = {
     large: '/icons/characters/poIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [],
+  reminders: [
+    { id: 'po-dead-1', text: 'Dead', sourceCharacterId: 'po' },
+    { id: 'po-dead-2', text: 'Dead', sourceCharacterId: 'po' },
+    { id: 'po-dead-3', text: 'Dead', sourceCharacterId: 'po' },
+    { id: 'po-3attacks', text: '3 Attacks', sourceCharacterId: 'po' },
+  ],
   flavor: "Would you like a flower? I'm so lonely.",
   edition: 'bmr',
 };

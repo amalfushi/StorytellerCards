@@ -20,7 +20,7 @@ export const fibbin: CharacterDef = {
     large: '/icons/characters/fibbinIcon.webp',
     placeholder: '#ff9800',
   },
-  reminders: [{ id: 'fibbin-noability', text: 'NO ABILITY' }],
+  reminders: [{ id: 'fibbin-noability', text: 'No Ability', sourceCharacterId: 'fibbin' }],
   flavor: 'Tee-hee-hee. Tee. Hee. Hee.',
   edition: 'fabled',
 };

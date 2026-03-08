@@ -41,7 +41,13 @@ export const mathematician: CharacterDef = {
     large: '/icons/characters/mathematicianIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'mathematician-abnormal', text: 'ABNORMAL' }],
+  reminders: [
+    { id: 'mathematician-abnormal-1', text: 'Abnormal', sourceCharacterId: 'mathematician' },
+    { id: 'mathematician-abnormal-2', text: 'Abnormal', sourceCharacterId: 'mathematician' },
+    { id: 'mathematician-abnormal-3', text: 'Abnormal', sourceCharacterId: 'mathematician' },
+    { id: 'mathematician-abnormal-4', text: 'Abnormal', sourceCharacterId: 'mathematician' },
+    { id: 'mathematician-abnormal-5', text: 'Abnormal', sourceCharacterId: 'mathematician' },
+  ],
   jinxes: [
     {
       characterId: 'chambermaid',

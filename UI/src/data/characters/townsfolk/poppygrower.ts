@@ -88,7 +88,9 @@ export const poppygrower: CharacterDef = {
     large: '/icons/characters/poppygrowerIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'poppygrower-evilwakes', text: 'EVIL WAKES' }],
+  reminders: [
+    { id: 'poppygrower-evilwakes', text: 'Evil Wakes', sourceCharacterId: 'poppygrower' },
+  ],
   jinxes: [
     {
       characterId: 'lilmonsta',

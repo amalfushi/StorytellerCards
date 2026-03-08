@@ -39,7 +39,10 @@ export const grandmother: CharacterDef = {
     large: '/icons/characters/grandmotherIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'grandmother-grandchild', text: 'GRANDCHILD' }],
+  reminders: [
+    { id: 'grandmother-grandchild', text: 'Grandchild', sourceCharacterId: 'grandmother' },
+    { id: 'grandmother-dead', text: 'Dead', sourceCharacterId: 'grandmother' },
+  ],
   jinxes: [
     {
       characterId: 'leviathan',

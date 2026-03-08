@@ -21,7 +21,7 @@ export const virgin: CharacterDef = {
     large: '/icons/characters/virginIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'virgin-noability', text: 'NO ABILITY' }],
+  reminders: [{ id: 'virgin-noability', text: 'No Ability', sourceCharacterId: 'virgin' }],
   flavor:
     'I am pure. Let those who are without sin cast themselves down and suffer in my stead. My reputation shall not be stained with your venomous accusations.',
   edition: 'tb',

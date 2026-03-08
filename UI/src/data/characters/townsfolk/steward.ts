@@ -29,7 +29,7 @@ export const steward: CharacterDef = {
     large: '/icons/characters/stewardIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'steward-know', text: 'Know', sourceCharacterId: 'steward' }],
   flavor:
     'How DARE you accuse Her Ladyship of wrongdoing? I’ve known her my entire life! All nine years!',
   edition: 'carousel',

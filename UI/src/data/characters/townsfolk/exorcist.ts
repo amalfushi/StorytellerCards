@@ -52,7 +52,7 @@ export const exorcist: CharacterDef = {
     large: '/icons/characters/exorcistIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'exorcist-chosen', text: 'CHOSEN' }],
+  reminders: [{ id: 'exorcist-chosen', text: 'Chosen', sourceCharacterId: 'exorcist' }],
   jinxes: [
     {
       characterId: 'leviathan',

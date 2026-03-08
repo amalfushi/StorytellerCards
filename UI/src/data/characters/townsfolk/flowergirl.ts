@@ -32,8 +32,8 @@ export const flowergirl: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'flowergirl-demonnotvoted', text: 'DEMON NOT VOTED' },
-    { id: 'flowergirl-demonvoted', text: 'DEMON VOTED' },
+    { id: 'flowergirl-demonvoted', text: 'Demon Voted', sourceCharacterId: 'flowergirl' },
+    { id: 'flowergirl-demonnotvoted', text: 'Demon Not Voted', sourceCharacterId: 'flowergirl' },
   ],
   flavor: "Yesterday's violets have withered and died, but today my poppies bloom.",
   edition: 'snv',

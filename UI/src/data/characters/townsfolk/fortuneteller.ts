@@ -54,7 +54,9 @@ export const fortuneteller: CharacterDef = {
     large: '/icons/characters/fortunetellerIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [
+    { id: 'fortuneteller-redherring', text: 'Red Herring', sourceCharacterId: 'fortuneteller' },
+  ],
   flavor:
     'I sense great evil in your soul! But... that could just be your perfume. I am allergic to Elderberry.',
   edition: 'tb',

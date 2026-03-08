@@ -23,8 +23,8 @@ export const puzzlemaster: CharacterDef = {
     placeholder: '#42a5f5',
   },
   reminders: [
-    { id: 'puzzlemaster-drunk', text: 'DRUNK' },
-    { id: 'puzzlemaster-guessused', text: 'GUESS USED' },
+    { id: 'puzzlemaster-drunk', text: 'Drunk', sourceCharacterId: 'puzzlemaster' },
+    { id: 'puzzlemaster-guessused', text: 'Guess Used', sourceCharacterId: 'puzzlemaster' },
   ],
   flavor:
     'When one begins to think that some thing is merely some other thing, one is usually on the brink of an error. Patience, patience. Don’t confuse just and should with is and isn’t.',

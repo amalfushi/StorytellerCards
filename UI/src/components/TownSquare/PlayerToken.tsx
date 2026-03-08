@@ -31,6 +31,8 @@ export interface PlayerTokenProps {
   isSelected: boolean;
   onClick: (event: React.MouseEvent<HTMLElement>) => void;
   size: TokenSize;
+  /** Character definition for the apparent (believed) character, if concealed. */
+  apparentCharacterDef?: CharacterDef;
 }
 
 /** Resolve border colour from alignment. */
@@ -84,6 +86,7 @@ export const PlayerToken = memo(function PlayerToken({
   isSelected,
   onClick,
   size,
+  apparentCharacterDef,
 }: PlayerTokenProps) {
   const [detailOpen, setDetailOpen] = useState(false);
 
@@ -98,11 +101,15 @@ export const PlayerToken = memo(function PlayerToken({
   };
   const s = SIZE_MAP[size];
   const isDead = !player.alive;
-  const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
 
   // F3-6c: Determine alignment tint — use actualAlignment in night view,
   // visibleAlignment in day view (though day view typically won't show it).
-  const effectiveAlignment = showCharacters ? player.actualAlignment : player.visibleAlignment;
+  // When concealed, use apparent alignment for hidden mode.
+  const effectiveAlignment = showCharacters
+    ? player.actualAlignment
+    : apparentCharacterDef
+      ? (displayAlignment as Alignment)
+      : player.visibleAlignment;
   const bgTint = alignmentBgTint(effectiveAlignment);
 
   // Border logic
@@ -153,37 +160,74 @@ export const PlayerToken = memo(function PlayerToken({
   // Phase 3: Show character icon when characters are visible OR for travellers (public info)
   const showIcon = showCharacters || isTraveller;
 
+  // Identity concealment: in hidden mode, use apparent character if set
+  const displayCharacterDef = showCharacters
+    ? characterDef
+    : (apparentCharacterDef ?? characterDef);
+  const displayCharacterId = showCharacters
+    ? player.characterId
+    : (player.apparentCharacterId ?? player.characterId);
+  const displayTypeColor = displayCharacterDef
+    ? getCharacterTypeColor(displayCharacterDef.type)
+    : '#9e9e9e';
+  // In hidden mode use apparent alignment; in visible mode use actual
+  const displayAlignment = showCharacters
+    ? player.actualAlignment
+    : apparentCharacterDef
+      ? apparentCharacterDef.defaultAlignment
+      : player.visibleAlignment;
+
   const tokenContent = (
     <>
       {/* ── Character icon: visible in night view, or always for travellers ── */}
       {showIcon && (
         <CharacterIconImage
-          characterId={player.characterId ?? ''}
-          characterName={characterDef?.name ?? '?'}
-          typeColor={typeColor}
+          characterId={displayCharacterId ?? ''}
+          characterName={displayCharacterDef?.name ?? '?'}
+          typeColor={displayTypeColor}
           size={s.icon}
-          borderColor={getAlignmentBorderColor(player.actualAlignment, typeColor)}
+          borderColor={getAlignmentBorderColor(
+            showCharacters ? player.actualAlignment : displayAlignment,
+            displayTypeColor,
+          )}
           onClick={handleIconClick}
         />
       )}
 
       {/* ── Night view: abbreviated character name ── */}
       {showCharacters && (
-        <Typography
-          noWrap
-          sx={{
-            fontSize: s.metaFont,
-            fontWeight: 600,
-            lineHeight: 1.15,
-            maxWidth: '100%',
-            textAlign: 'center',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            color: 'text.primary',
-          }}
-        >
-          {characterDef ? abbreviateName(characterDef.name) : '—'}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, maxWidth: '100%' }}>
+          <Typography
+            noWrap
+            sx={{
+              fontSize: s.metaFont,
+              fontWeight: 600,
+              lineHeight: 1.15,
+              maxWidth: '100%',
+              textAlign: 'center',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              color: 'text.primary',
+            }}
+          >
+            {characterDef ? abbreviateName(characterDef.name) : '—'}
+          </Typography>
+          {/* Show apparent identity indicator in visible mode */}
+          {apparentCharacterDef && (
+            <Typography
+              component="span"
+              title={`Believes: ${apparentCharacterDef.name}`}
+              sx={{
+                fontSize: '0.6rem',
+                color: 'text.secondary',
+                fontStyle: 'italic',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              →{abbreviateName(apparentCharacterDef.name, 5)}
+            </Typography>
+          )}
+        </Box>
       )}
 
       {/* ── Player name ── */}

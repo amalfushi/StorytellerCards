@@ -21,8 +21,8 @@ export const bishop: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'bishop-nominateevil', text: 'NOMINATE EVIL' },
-    { id: 'bishop-nominategood', text: 'NOMINATE GOOD' },
+    { id: 'bishop-nominategood', text: 'Nominate Good', sourceCharacterId: 'bishop' },
+    { id: 'bishop-nominateevil', text: 'Nominate Evil', sourceCharacterId: 'bishop' },
   ],
   flavor: 'In nomine Patris, et Filii, et Spiritus Sancti… Nos mos Dei. Deus vult de nobis.',
   edition: 'bmr',

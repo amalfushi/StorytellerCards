@@ -103,7 +103,7 @@ export const snakecharmer: CharacterDef = {
     large: '/icons/characters/snakecharmerIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'snakecharmer-poisoned', text: 'Poisoned', sourceCharacterId: 'snakecharmer' }],
   flavor:
     'Effendi... I am but a humble man, but my pipe is golden and a single tune will tame the wildest djinn, Inshallah. They say that greed hangs more men than rope. But not I, Effendi... not I.',
   edition: 'snv',

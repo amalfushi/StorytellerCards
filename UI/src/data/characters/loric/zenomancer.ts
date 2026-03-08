@@ -24,7 +24,11 @@ export const zenomancer: CharacterDef = {
     large: '/icons/characters/zenomancerIcon.webp',
     placeholder: '#558b2f',
   },
-  reminders: [{ id: 'zenomancer-goal', text: 'GOAL' }],
+  reminders: [
+    { id: 'zenomancer-goal-1', text: 'Goal', sourceCharacterId: 'zenomancer' },
+    { id: 'zenomancer-goal-2', text: 'Goal', sourceCharacterId: 'zenomancer' },
+    { id: 'zenomancer-goal-3', text: 'Goal', sourceCharacterId: 'zenomancer' },
+  ],
   flavor:
     'The universe is a verb not a noun, they say, and it is turtles, turtles all the way down. Turtles all the way down, my friend, turtles all the way down.',
   edition: 'loric',

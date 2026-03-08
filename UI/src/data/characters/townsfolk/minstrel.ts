@@ -19,7 +19,9 @@ export const minstrel: CharacterDef = {
     large: '/icons/characters/minstrelIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'minstrel-everyoneisdrunk', text: 'EVERYONE IS DRUNK' }],
+  reminders: [
+    { id: 'minstrel-everyoneisdrunk', text: 'Everyone Is Drunk', sourceCharacterId: 'minstrel' },
+  ],
   jinxes: [
     {
       characterId: 'legion',

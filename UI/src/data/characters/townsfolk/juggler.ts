@@ -30,7 +30,13 @@ export const juggler: CharacterDef = {
     large: '/icons/characters/jugglerIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'juggler-correct', text: 'CORRECT' }],
+  reminders: [
+    { id: 'juggler-correct-1', text: 'Correct', sourceCharacterId: 'juggler' },
+    { id: 'juggler-correct-2', text: 'Correct', sourceCharacterId: 'juggler' },
+    { id: 'juggler-correct-3', text: 'Correct', sourceCharacterId: 'juggler' },
+    { id: 'juggler-correct-4', text: 'Correct', sourceCharacterId: 'juggler' },
+    { id: 'juggler-correct-5', text: 'Correct', sourceCharacterId: 'juggler' },
+  ],
   jinxes: [
     {
       characterId: 'cannibal',

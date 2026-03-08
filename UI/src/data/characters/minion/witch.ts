@@ -42,7 +42,7 @@ export const witch: CharacterDef = {
     large: '/icons/characters/witchIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [{ id: 'witch-cursed', text: 'CURSED' }],
+  reminders: [{ id: 'witch-cursed', text: 'Cursed', sourceCharacterId: 'witch' }],
   flavor:
     "Three drops of goat's blood. A lock of hair, torn in anger. The name is spoken, the shadow cast. Walk left foot first down that brambled path, and don't look back.",
   edition: 'snv',

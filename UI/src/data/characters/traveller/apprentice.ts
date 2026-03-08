@@ -22,7 +22,13 @@ export const apprentice: CharacterDef = {
     large: '/icons/characters/apprenticeIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'apprentice-istheapprentice', text: 'IS THE APPRENTICE' }],
+  reminders: [
+    {
+      id: 'apprentice-istheapprentice',
+      text: 'Is The Apprentice',
+      sourceCharacterId: 'apprentice',
+    },
+  ],
   flavor:
     'For years have I traveled, studying the ways of The Craft. Which craft, you ask? Simply that of the simple folk. Nothing to worry about. Not yet.',
   edition: 'bmr',

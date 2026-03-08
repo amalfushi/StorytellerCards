@@ -47,7 +47,10 @@ export const mezepheles: CharacterDef = {
     large: '/icons/characters/mezephelesIcon.webp',
     placeholder: '#e53935',
   },
-  reminders: [],
+  reminders: [
+    { id: 'mezepheles-turnsevil', text: 'Turns Evil', sourceCharacterId: 'mezepheles' },
+    { id: 'mezepheles-noability', text: 'No Ability', sourceCharacterId: 'mezepheles' },
+  ],
   flavor: 'That which issues from the heart alone, will bend the hearts of others to your own.',
   edition: 'carousel',
 };

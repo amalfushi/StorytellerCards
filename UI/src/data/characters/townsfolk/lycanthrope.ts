@@ -34,7 +34,10 @@ export const lycanthrope: CharacterDef = {
     large: '/icons/characters/lycanthropeIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'lycanthrope-fauxpaw', text: 'FAUX PAW' }],
+  reminders: [
+    { id: 'lycanthrope-fauxpaw', text: 'Faux Paw', sourceCharacterId: 'lycanthrope' },
+    { id: 'lycanthrope-dead', text: 'Dead', sourceCharacterId: 'lycanthrope' },
+  ],
   flavor: 'Beneath the thin veneer of civilisation lies a howling madness.',
   edition: 'carousel',
 };

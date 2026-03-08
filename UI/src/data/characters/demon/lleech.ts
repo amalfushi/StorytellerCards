@@ -44,7 +44,10 @@ export const lleech: CharacterDef = {
     large: '/icons/characters/lleechIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [{ id: 'lleech-poisoned', text: 'POISONED' }],
+  reminders: [
+    { id: 'lleech-dead', text: 'Dead', sourceCharacterId: 'lleech' },
+    { id: 'lleech-poisoned', text: 'Poisoned', sourceCharacterId: 'lleech' },
+  ],
   jinxes: [
     { characterId: 'heretic', description: 'Only 1 jinxed character can be in play.' },
     {

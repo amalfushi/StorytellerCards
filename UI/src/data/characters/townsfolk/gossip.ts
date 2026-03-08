@@ -30,7 +30,7 @@ export const gossip: CharacterDef = {
     large: '/icons/characters/gossipIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [{ id: 'gossip-dead', text: 'Dead', sourceCharacterId: 'gossip' }],
   flavor:
     'Blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah blah. Blah.',
   edition: 'bmr',

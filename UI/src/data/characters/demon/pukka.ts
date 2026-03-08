@@ -50,7 +50,11 @@ export const pukka: CharacterDef = {
     large: '/icons/characters/pukkaIcon.webp',
     placeholder: '#b71c1c',
   },
-  reminders: [{ id: 'pukka-poisoned', text: 'POISONED' }],
+  reminders: [
+    { id: 'pukka-poisoned-1', text: 'Poisoned', sourceCharacterId: 'pukka' },
+    { id: 'pukka-poisoned-2', text: 'Poisoned', sourceCharacterId: 'pukka' },
+    { id: 'pukka-dead', text: 'Dead', sourceCharacterId: 'pukka' },
+  ],
   jinxes: [
     {
       characterId: 'summoner',

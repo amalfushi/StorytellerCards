@@ -46,7 +46,9 @@ export const barber: CharacterDef = {
     large: '/icons/characters/barberIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [{ id: 'barber-haircutstonight', text: 'HAIRCUTS TONIGHT' }],
+  reminders: [
+    { id: 'barber-haircutstonight', text: 'Haircuts Tonight', sourceCharacterId: 'barber' },
+  ],
   flavor:
     'Did you know that barbery and surgery were once the same profession? No? Well, now you do.',
   edition: 'snv',

@@ -1,8 +1,10 @@
 import { useMemo, useState, useCallback } from 'react';
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef, ActiveJinx } from '@/types/index.ts';
@@ -10,7 +12,8 @@ import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { TokenChips } from '@/components/common/TokenChips.tsx';
-import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
+import { getAlignmentBorderColor, getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { parseReminderMarkers, hasReminderMarkers } from '@/utils/reminderUtils.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
 
@@ -89,6 +92,15 @@ export function NightFlashcard({
   }, [characterDef, entry.order]);
 
   const isCompound = parsedChoices.length > 1;
+
+  // Parse :reminder: markers in help text
+  const reminderSegments = useMemo(() => {
+    const reminders = characterDef?.reminders ?? [];
+    if (reminders.length > 0 && hasReminderMarkers(entry.helpText)) {
+      return parseReminderMarkers(entry.helpText, reminders);
+    }
+    return null;
+  }, [characterDef, entry.helpText]);
 
   /**
    * For compound choices (e.g. player + character), we store values as an array
@@ -263,6 +275,103 @@ export function NightFlashcard({
         {playerSeat && playerSeat.tokens.length > 0 && (
           <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
             <TokenChips tokens={playerSeat.tokens} size="medium" />
+          </Box>
+        )}
+
+        {/* Inline reminder tokens when :reminder: markers are present */}
+        {reminderSegments && (
+          <Box
+            data-testid="reminder-segments"
+            sx={{
+              mt: 1.5,
+              p: 1.5,
+              borderRadius: 1.5,
+              bgcolor: 'rgba(255,255,255,0.06)',
+              border: '1px solid rgba(255,255,255,0.12)',
+            }}
+          >
+            <Typography
+              component="div"
+              variant="body2"
+              sx={{
+                color: 'rgba(255,255,255,0.85)',
+                lineHeight: 2,
+                display: 'flex',
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                gap: 0.5,
+              }}
+            >
+              {reminderSegments.map((seg, i) =>
+                seg.type === 'text' ? (
+                  <span key={i}>{seg.value}</span>
+                ) : (
+                  <Chip
+                    key={`reminder-${seg.index}`}
+                    label={seg.token.text}
+                    size="small"
+                    avatar={
+                      seg.token.sourceCharacterId ? (
+                        <Avatar
+                          src={getCharacterIconPath(seg.token.sourceCharacterId)}
+                          alt={seg.token.sourceCharacterId}
+                          sx={{ width: 18, height: 18 }}
+                        />
+                      ) : undefined
+                    }
+                    sx={{
+                      bgcolor: 'rgba(0,137,123,0.25)',
+                      color: '#4dd0e1',
+                      fontWeight: 600,
+                      fontSize: '0.7rem',
+                      border: '1px solid rgba(77,208,225,0.4)',
+                    }}
+                  />
+                ),
+              )}
+            </Typography>
+          </Box>
+        )}
+
+        {/* Reminder tokens to place (when no :reminder: markers in text) */}
+        {!reminderSegments && characterDef && characterDef.reminders.length > 0 && (
+          <Box
+            data-testid="reminder-tokens"
+            sx={{
+              mt: 1.5,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              gap: 0.5,
+            }}
+          >
+            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', mr: 0.5 }}>
+              Reminders:
+            </Typography>
+            {characterDef.reminders.map((r) => (
+              <Tooltip key={r.id} title={r.text}>
+                <Chip
+                  label={r.text}
+                  size="small"
+                  avatar={
+                    r.sourceCharacterId ? (
+                      <Avatar
+                        src={getCharacterIconPath(r.sourceCharacterId)}
+                        alt={r.sourceCharacterId}
+                        sx={{ width: 16, height: 16 }}
+                      />
+                    ) : undefined
+                  }
+                  sx={{
+                    bgcolor: 'rgba(0,137,123,0.2)',
+                    color: '#4dd0e1',
+                    fontWeight: 600,
+                    fontSize: '0.65rem',
+                    border: '1px solid rgba(77,208,225,0.3)',
+                  }}
+                />
+              </Tooltip>
+            ))}
           </Box>
         )}
       </Box>

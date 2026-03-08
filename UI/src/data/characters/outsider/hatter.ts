@@ -44,7 +44,9 @@ export const hatter: CharacterDef = {
     large: '/icons/characters/hatterIcon.webp',
     placeholder: '#42a5f5',
   },
-  reminders: [{ id: 'hatter-teapartytonight', text: 'TEA PARTY TONIGHT' }],
+  reminders: [
+    { id: 'hatter-teapartytonight', text: 'Tea Party Tonight', sourceCharacterId: 'hatter' },
+  ],
   jinxes: [
     {
       characterId: 'legion',

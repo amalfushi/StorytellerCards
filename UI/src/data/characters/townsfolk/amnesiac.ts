@@ -41,7 +41,11 @@ export const amnesiac: CharacterDef = {
     large: '/icons/characters/amnesiacIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [
+    { id: 'amnesiac-unknown-1', text: '?', sourceCharacterId: 'amnesiac' },
+    { id: 'amnesiac-unknown-2', text: '?', sourceCharacterId: 'amnesiac' },
+    { id: 'amnesiac-unknown-3', text: '?', sourceCharacterId: 'amnesiac' },
+  ],
   flavor: 'Wait. What. Who? Oh, ok. Wait. What?',
   edition: 'carousel',
 };

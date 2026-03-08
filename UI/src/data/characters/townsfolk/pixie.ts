@@ -31,7 +31,10 @@ export const pixie: CharacterDef = {
     large: '/icons/characters/pixieIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [
+    { id: 'pixie-mad', text: 'Mad', sourceCharacterId: 'pixie' },
+    { id: 'pixie-hasability', text: 'Has Ability', sourceCharacterId: 'pixie' },
+  ],
   flavor:
     'Round and round the garden, go. Little girls run to and fro. Little boys climb up the tree. Which of these should Pixie be? Ladies smile and go to town.  Lords with axe chop forest down. What’s yours is mine. What’s mine, divine. Silly little Pixie, me.',
   edition: 'carousel',

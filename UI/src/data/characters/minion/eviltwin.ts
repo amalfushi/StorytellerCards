@@ -44,7 +44,7 @@ export const eviltwin: CharacterDef = {
     large: '/icons/characters/eviltwinIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [{ id: 'eviltwin-twin', text: 'TWIN' }],
+  reminders: [{ id: 'eviltwin-twin', text: 'Twin', sourceCharacterId: 'eviltwin' }],
   jinxes: [
     {
       characterId: 'plaguedoctor',

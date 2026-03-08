@@ -43,7 +43,10 @@ export const wizard: CharacterDef = {
     large: '/icons/characters/wizardIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [],
+  reminders: [
+    { id: 'wizard-unknown-1', text: '?', sourceCharacterId: 'wizard' },
+    { id: 'wizard-unknown-2', text: '?', sourceCharacterId: 'wizard' },
+  ],
   flavor: 'Every man and every woman is a star. Love is the law, love under will.',
   edition: 'carousel',
 };

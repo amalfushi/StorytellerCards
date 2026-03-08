@@ -18,7 +18,7 @@ export const artist: CharacterDef = {
     large: '/icons/characters/artistIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'artist-noability', text: 'NO ABILITY' }],
+  reminders: [{ id: 'artist-noability', text: 'No Ability', sourceCharacterId: 'artist' }],
   flavor:
     "Mon Dieu! C'est lumineux! My work, she is... how you say... Magnifique! Dieu est révélé! Oui.",
   edition: 'snv',

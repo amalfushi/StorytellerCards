@@ -22,7 +22,7 @@ export const goblin: CharacterDef = {
     large: '/icons/characters/goblinIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [{ id: 'goblin-claimed', text: 'CLAIMED' }],
+  reminders: [{ id: 'goblin-claimed', text: 'Claimed', sourceCharacterId: 'goblin' }],
   jinxes: [
     {
       characterId: 'cerenovus',

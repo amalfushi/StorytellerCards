@@ -75,7 +75,9 @@ export const nightwatchman: CharacterDef = {
     large: '/icons/characters/nightwatchmanIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'nightwatchman-noability', text: 'NO ABILITY' }],
+  reminders: [
+    { id: 'nightwatchman-noability', text: 'No Ability', sourceCharacterId: 'nightwatchman' },
+  ],
   flavor:
     'The night is cold and lonely, but I have the moon, the stars, the crisp wind and the soft thud of leather boots on cobbled stone for company. Yonder, candlelight flickers behind a murky window...',
   edition: 'carousel',

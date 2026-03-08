@@ -134,6 +134,59 @@ describe('buildAvailableTokens', () => {
       ]),
     );
   });
+
+  it('includes remindersGlobal tokens from characters', () => {
+    const chars = [
+      makeChar({
+        id: 'drunk',
+        remindersGlobal: [{ id: 'drunk-global-isthedrunk', text: 'Is The Drunk', isGlobal: true }],
+      }),
+    ];
+    const result = buildAvailableTokens(chars);
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'drunk-global-isthedrunk', text: 'Is The Drunk' }),
+      ]),
+    );
+  });
+
+  it('deduplicates remindersGlobal with regular reminders', () => {
+    const chars = [
+      makeChar({
+        id: 'test',
+        reminders: [{ id: 'shared', text: 'Shared' }],
+        remindersGlobal: [{ id: 'shared', text: 'Shared', isGlobal: true }],
+      }),
+    ];
+    const result = buildAvailableTokens(chars);
+    const shared = result.filter((t) => t.id === 'shared');
+    expect(shared).toHaveLength(1);
+  });
+
+  it('includes apparent character reminders when provided', () => {
+    const active = [makeChar({ id: 'drunk', reminders: [] })];
+    const apparent = [
+      makeChar({
+        id: 'washerwoman',
+        reminders: [{ id: 'washerwoman-townsfolk', text: 'Townsfolk' }],
+      }),
+    ];
+    const result = buildAvailableTokens(active, apparent);
+    expect(result).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: 'washerwoman-townsfolk', text: 'Townsfolk' }),
+      ]),
+    );
+  });
+
+  it('deduplicates apparent character reminders with active character reminders', () => {
+    const sharedReminder = { id: 'shared-r', text: 'Shared Reminder' };
+    const active = [makeChar({ id: 'char1', reminders: [sharedReminder] })];
+    const apparent = [makeChar({ id: 'char2', reminders: [sharedReminder] })];
+    const result = buildAvailableTokens(active, apparent);
+    const shared = result.filter((t) => t.id === 'shared-r');
+    expect(shared).toHaveLength(1);
+  });
 });
 
 describe('exports', () => {

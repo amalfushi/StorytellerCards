@@ -30,7 +30,7 @@ export const undertaker: CharacterDef = {
     large: '/icons/characters/undertakerIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'undertaker-diedtoday', text: 'DIED TODAY' }],
+  reminders: [{ id: 'undertaker-diedtoday', text: 'Died Today', sourceCharacterId: 'undertaker' }],
   flavor:
     'Hmmm....what have we here? The left boot is worn down to the heel, with flint shavings under the tongue. This is the garb of a Military man.',
   edition: 'tb',

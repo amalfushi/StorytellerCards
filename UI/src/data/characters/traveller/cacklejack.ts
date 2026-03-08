@@ -21,7 +21,7 @@ export const cacklejack: CharacterDef = {
     large: '/icons/characters/cacklejackIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'cacklejack-notme', text: 'NOT ME' }],
+  reminders: [{ id: 'cacklejack-notme', text: 'Not me', sourceCharacterId: 'cacklejack' }],
   flavor:
     'Wire α To wire β. LigHt oN. BuZZer off. GAzOinks! Arms STra1ght. FingER 2 nose. hOooLd stiLL. BoiNgo-banGo! Ha-ha-ha!',
   edition: 'carousel',

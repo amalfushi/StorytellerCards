@@ -23,7 +23,15 @@ export const revolutionary: CharacterDef = {
     large: '/icons/characters/revolutionaryIcon.webp',
     placeholder: '#ff9800',
   },
-  reminders: [],
+  reminders: [
+    {
+      id: 'revolutionary-registerfalsely',
+      text: 'Register Falsely?',
+      sourceCharacterId: 'revolutionary',
+    },
+    { id: 'revolutionary-aligned-1', text: 'Aligned', sourceCharacterId: 'revolutionary' },
+    { id: 'revolutionary-aligned-2', text: 'Aligned', sourceCharacterId: 'revolutionary' },
+  ],
   flavor: 'United we feigned. Divided, we stalled.',
   edition: 'fabled',
 };

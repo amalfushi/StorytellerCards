@@ -41,7 +41,13 @@ export const devilsadvocate: CharacterDef = {
     large: '/icons/characters/devilsadvocateIcon.webp',
     placeholder: '#d32f2f',
   },
-  reminders: [{ id: 'devilsadvocate-survivesexecution', text: 'SURVIVES EXECUTION' }],
+  reminders: [
+    {
+      id: 'devilsadvocate-survivesexecution',
+      text: 'Survives Execution',
+      sourceCharacterId: 'devilsadvocate',
+    },
+  ],
   flavor:
     "My client, should the objection be overruled, pleads innocent by virtue of the prosecution's non-observance of statute 27.B - incorrect or misleading conjugation of a verb. The fact that nine of the jury died last night is simply prima facie, which is, as Wills vs Thule set precedent for, further reason to acquit.",
   edition: 'bmr',

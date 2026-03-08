@@ -18,6 +18,7 @@ import HowToVoteIcon from '@mui/icons-material/HowToVote';
 import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import TokenIcon from '@mui/icons-material/Token';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type { PlayerSeat, CharacterDef, Alignment } from '@/types/index.ts';
 
 export interface PlayerActionsModalProps {
@@ -34,6 +35,7 @@ export interface PlayerActionsModalProps {
     seat: number,
     updates: { characterId?: string; actualAlignment?: Alignment },
   ) => void;
+  onSwapWith?: (seat: number) => void;
 }
 
 /**
@@ -55,6 +57,7 @@ export function PlayerActionsModal({
   onRemoveTraveller,
   onManageTokens,
   onSaveCharacter,
+  onSwapWith,
 }: PlayerActionsModalProps) {
   if (!player || !open) return null;
 
@@ -70,6 +73,7 @@ export function PlayerActionsModal({
       onRemoveTraveller={onRemoveTraveller}
       onManageTokens={onManageTokens}
       onSaveCharacter={onSaveCharacter}
+      onSwapWith={onSwapWith}
     />
   );
 }
@@ -85,6 +89,7 @@ function PlayerActionsModalInner({
   onRemoveTraveller,
   onManageTokens,
   onSaveCharacter,
+  onSwapWith,
 }: Omit<PlayerActionsModalProps, 'open'> & { player: PlayerSeat }) {
   const [characterId, setCharacterId] = useState(player.characterId ?? '');
   const [actualAlignment, setActualAlignment] = useState<Alignment>(
@@ -104,6 +109,13 @@ function PlayerActionsModalInner({
   const handleRemoveTraveller = () => {
     onRemoveTraveller(player.seat);
     onClose();
+  };
+
+  const handleSwapWith = () => {
+    if (onSwapWith) {
+      onSwapWith(player.seat);
+      onClose();
+    }
   };
 
   const handleManageTokens = () => {
@@ -146,6 +158,21 @@ function PlayerActionsModalInner({
           >
             {player.ghostVoteUsed ? 'Restore Ghost Vote' : 'Use Ghost Vote'}
           </Button>
+        )}
+
+        {/* ── Swap with another player ── */}
+        {onSwapWith && (
+          <>
+            <Divider />
+            <Button
+              variant="outlined"
+              startIcon={<SwapHorizIcon />}
+              onClick={handleSwapWith}
+              fullWidth
+            >
+              Swap with…
+            </Button>
+          </>
         )}
 
         {/* ── Remove Traveller (only when traveller) ── */}

@@ -31,8 +31,9 @@ export const innkeeper: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [
-    { id: 'innkeeper-safe', text: 'SAFE' },
-    { id: 'innkeeper-drunk', text: 'DRUNK' },
+    { id: 'innkeeper-safe-1', text: 'Safe', sourceCharacterId: 'innkeeper' },
+    { id: 'innkeeper-safe-2', text: 'Safe', sourceCharacterId: 'innkeeper' },
+    { id: 'innkeeper-drunk', text: 'Drunk', sourceCharacterId: 'innkeeper' },
   ],
   jinxes: [
     {

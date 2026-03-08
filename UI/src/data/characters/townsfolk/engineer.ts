@@ -74,7 +74,7 @@ export const engineer: CharacterDef = {
     large: '/icons/characters/engineerIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [{ id: 'engineer-noability', text: 'NO ABILITY' }],
+  reminders: [{ id: 'engineer-noability', text: 'No Ability', sourceCharacterId: 'engineer' }],
   jinxes: [
     {
       characterId: 'legion',

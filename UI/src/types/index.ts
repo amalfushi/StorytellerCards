@@ -118,6 +118,8 @@ export interface ReminderToken {
   icon?: string;
   /** True when this reminder applies even if the character is not in play. */
   isGlobal?: boolean;
+  /** The character this reminder belongs to (for displaying the source character's icon). */
+  sourceCharacterId?: string;
 }
 
 // ──────────────────────────────────────────────
@@ -267,6 +269,8 @@ export interface PlayerSeat {
   isTraveller: boolean;
   /** Status tokens placed on this player (drunk, poisoned, custom). */
   tokens: PlayerToken[];
+  /** Character ID this player believes they are (for Drunk/Marionette concealment). */
+  apparentCharacterId?: string;
 }
 
 // ──────────────────────────────────────────────
@@ -287,6 +291,8 @@ export interface Game {
   activeFabled?: string[];
   /** Character IDs of active Loric game modifiers. */
   activeLoric?: string[];
+  /** Character IDs selected as in-play for this game (subset of script). */
+  inPlayCharacterIds?: string[];
 }
 
 // ──────────────────────────────────────────────

@@ -43,7 +43,13 @@ export const toymaker: CharacterDef = {
     large: '/icons/characters/toymakerIcon.webp',
     placeholder: '#ff9800',
   },
-  reminders: [],
+  reminders: [
+    {
+      id: 'toymaker-finalnightnoattack',
+      text: 'Final Night: No Attack',
+      sourceCharacterId: 'toymaker',
+    },
+  ],
   flavor:
     "It buzzes! It walks down stairs! It keeps you warm at night! It tastes like sugar! The kiddies love it! Introducing... the brand new... Warm'o-buzzy-wuzzy-walk'a'bot-thingy-contraption! Fun for all ages!",
   edition: 'fabled',
