@@ -37,9 +37,9 @@ The app manages a hierarchy: **Sessions** (containers) → **Games** → **Playe
 
 ```bash
 cd StorytellerCards
-npm install && cd UI && npm install && cd ..
-npm run dev          # UI (localhost:5173) + API (localhost:3001)
-npm test             # Run all tests
+npm run install:all   # Install root + UI + API dependencies
+npm run dev           # UI (localhost:5173) + API (localhost:3001)
+npm test              # Run all tests
 cd UI && npm run storybook  # Storybook (localhost:6006)
 ```
 
@@ -131,14 +131,30 @@ See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) fo
 
 ### Development Checklist
 
-Before completing any code task (using `attempt_completion`), agents **MUST** run and pass all four:
+Before completing any code task, agents **MUST** ensure all quality checks pass. Many of these are automated by git hooks — understand what's automated so you don't waste time running checks manually.
 
-0. `npm run install:all` — Install all dependencies (must be the first action on any new task)
-1. `cd UI && npx tsc --noEmit` — TypeScript compilation (0 errors)
-2. `cd UI && npx eslint .` — Linting (0 errors)
-3. `cd UI && npm test` — All tests pass
+#### Automated by Git Hooks (do NOT run manually)
 
-The pre-push hook enforces test coverage thresholds automatically, but **linting and TypeScript checks are the agent's responsibility** during development. See [`docs/testing.md`](docs/testing.md) for full details.
+These run automatically and will block your commit/push if they fail:
+
+| Hook | What It Does | When |
+|------|-------------|------|
+| **Pre-commit** | `lint-staged` (ESLint fix + Prettier on staged `.ts`/`.tsx` files) | Every `git commit` |
+| **Pre-commit** | `tsc --noEmit` (TypeScript compilation check) | Every `git commit` with UI changes |
+| **Pre-commit** | `go vet` | Every `git commit` with API changes |
+| **Pre-push** | `npm run test:coverage` (all tests + coverage threshold enforcement) | Every `git push` |
+| **Pre-push** | Auto-commits `coverage-final.json` if changed | Every `git push` |
+
+> ❌ Do **not** manually run `npm run test:coverage` — the pre-push hook does this.
+> ❌ Do **not** manually commit `coverage-final.json` — the pre-push hook auto-commits it.
+> ❌ Do **not** manually run `go vet` — the pre-commit hook does this.
+
+#### What Agents Should Do During Development
+
+1. `npm run install:all` — **First action on any new task** (mandatory)
+2. `cd UI && npm test` — Run frequently as a **fast sanity check** during development to catch regressions early. This is the fast no-coverage version. The pre-push hook will run the full coverage version automatically.
+
+> **There is no GitHub Actions CI.** All quality gates are local git hooks only. Do not look for or reference CI status on PRs.
 
 ### Coverage Thresholds
 Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
@@ -193,3 +209,81 @@ When completing a milestone or significant task, agents **must** update the rele
 4. `cd UI && npm test` — check test status
 5. `npm run dev` (from `StorytellerCards/`) — run and manually test in browser
 6. Read [`progress.md`](docs/progress.md) for what was interrupted and what needs attention
+
+## Parallel Agent Workflow
+
+This project supports **multiple agents working on different milestones in parallel** using git worktrees. Each milestone gets its own worktree, branch, and PR.
+
+### Worktree Setup
+
+Each milestone should be developed in its own worktree to avoid interfering with other agents:
+
+```bash
+# From the main checkout directory (e.g., D:\StorytellerCards\StorytellerCards)
+git worktree add ../worktree-m18 -b m18/traveller-fabled-loric main
+cd ../worktree-m18
+npm run install:all    # MANDATORY — worktrees start without node_modules
+```
+
+- **Worktree directory**: `../worktree-m<N>` (sibling of main checkout)
+- **Branch**: created automatically from `main` by the `git worktree add` command
+- Always run `npm run install:all` immediately after creating a worktree
+
+### Branch Naming Convention
+
+| Type | Pattern | Example |
+|------|---------|---------|
+| Milestone work | `m<N>/<kebab-case-description>` | `m18/traveller-fabled-loric` |
+| Docs-only changes | `docs/<description>` | `docs/update-progress` |
+| Bug fixes | `fix/<description>` | `fix/night-card-index` |
+
+### PR Workflow
+
+1. **One milestone = one branch = one PR** — do not combine milestones
+2. Push branch to remote: `git push -u origin m<N>/<branch-name>`
+3. Create PR with title: `feat(M<N>): <Short Description>`
+   - Example: `feat(M18): Traveller, Fabled & Loric Integration`
+4. PR body should reference the milestone doc: `See docs/milestones/<N>/milestone<N>.md`
+5. PRs target `main`
+
+### Cleaning Up Worktrees
+
+After a PR is merged:
+
+```bash
+# From the main checkout
+git worktree remove ../worktree-m18
+git branch -d m18/traveller-fabled-loric
+```
+
+## Conflict Avoidance
+
+When multiple agents work in parallel, merge conflicts are inevitable on certain files. Follow these guidelines to minimize them.
+
+### High-Conflict Files
+
+These files are commonly touched by every milestone and are the primary source of merge conflicts:
+
+| File | Why It Conflicts | Mitigation |
+|------|-----------------|------------|
+| `AGENTS.md` | Test stats, coverage thresholds updated per milestone | Update stats in a single block at the end; keep changes minimal |
+| `docs/progress.md` | Milestone status table | Only update your milestone's row + verification section |
+| `UI/src/types/index.ts` | New types added per milestone | **Append new types at the end of the file** — never insert in the middle |
+| `UI/src/context/GameContext.tsx` | New reducer actions per milestone | **Add new actions at the end of the switch statement** |
+| `UI/src/pages/GameViewPage.tsx` | Top-level orchestrator, new tabs/views | Coordinate with other agents if touching this file |
+| `UI/coverage/coverage-final.json` | Auto-generated on every push | Always conflicts — resolve by accepting either version and re-pushing |
+
+### Milestone-Level Documentation Strategy
+
+To minimize conflicts on shared documentation files:
+
+1. **Each milestone MUST have its own `progress.md`** in `docs/milestones/<N> - <name>/progress.md` for granular status updates. This is conflict-free since each milestone has its own folder.
+2. **Root `docs/progress.md`** should only receive a **single row update** to the milestone table + minimal verification stat changes. Keep this minimal to reduce conflicts.
+3. **All documentation updates** (milestone docs, progress, AGENTS.md stats) **MUST be part of the same branch/PR** as the milestone work — no follow-up PRs.
+
+### General Conflict Reduction Rules
+
+- **Don't modify files outside your milestone's scope** — if a file isn't listed in your milestone plan, don't touch it
+- **Append-only edits** on shared files — add new types, actions, and entries at the end rather than inserting in the middle
+- **Pull latest `main` and rebase** before creating a PR: `git pull --rebase origin main`
+- **Conflict resolution**: if conflicts occur on PR merge, the human will resolve them — agents should not force-push or rebase shared branches without coordination

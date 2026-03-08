@@ -359,25 +359,36 @@ Current thresholds (set ~5% below baseline):
 
 ## CI / Pre-push Checklist
 
-The pre-push hook ([`.husky/pre-push`](../.husky/pre-push)) runs **automatically** on `git push`:
+The git hooks ([`.husky/`](../.husky/)) run **automatically**:
 
+### Pre-commit (on `git commit`):
+1. ✅ Detects UI/API file changes
+2. ✅ Runs `lint-staged` (ESLint + Prettier on staged `.ts`/`.tsx` files)
+3. ✅ Runs `tsc --noEmit` (TypeScript compilation check)
+4. ✅ Runs `go vet` if API files changed
+
+### Pre-push (on `git push`):
 1. ✅ Detects UI/API file changes
 2. ✅ Runs `npm run test:coverage` (all tests + threshold enforcement)
 3. ✅ Auto-commits `coverage-final.json` if changed
 4. ✅ Runs Go tests if API files changed
 
-The pre-commit hook runs lint checks on staged files via Husky.
-
-> **Note:** The pre-push hook does NOT run linting or TypeScript checks — those are the agent's responsibility during development (see below).
-
 ## Agent Development Workflow
 
-Before completing any code task (using `attempt_completion`), agents **MUST** run these checks:
+Before completing any code task (using `attempt_completion`), agents **MUST** ensure all quality checks pass. Most checks are automated by git hooks:
 
-1. `cd UI && npx tsc --noEmit` — TypeScript compilation (0 errors required)
-2. `cd UI && npx eslint .` — Linting (0 errors required)
-3. `cd UI && npm test` — All tests pass
+### Automated by Git Hooks
 
-These can be run in parallel for efficiency. All three must pass before the task is considered complete.
+| Hook | Check | When |
+|------|-------|------|
+| Pre-commit | `lint-staged` (ESLint fix + Prettier) on staged `.ts`/`.tsx` | Every commit with UI changes |
+| Pre-commit | `tsc --noEmit` (TypeScript compilation) | Every commit with UI changes |
+| Pre-commit | `go vet` | Every commit with API changes |
+| Pre-push | `npm run test:coverage` (all tests + coverage thresholds) | Every push |
+| Pre-push | Auto-commits `coverage-final.json` | Every push |
 
-The pre-push hook enforces test coverage thresholds automatically, but **linting and TypeScript checks are the agent's responsibility** during development.
+### During Development
+
+Run `cd UI && npm test` frequently as a fast sanity check to catch regressions early. The pre-push hook runs the full coverage version automatically.
+
+> **There is no GitHub Actions CI.** All quality gates are local git hooks only.

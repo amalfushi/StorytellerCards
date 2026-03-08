@@ -7,6 +7,8 @@ API_CHANGED=$(git diff --cached --name-only --diff-filter=ACMR | grep "^API/" ||
 if [ -n "$UI_CHANGED" ]; then
   echo "🎨 UI changes detected — running lint-staged..."
   cd UI && npx lint-staged
+  echo "📘 Running TypeScript compilation check..."
+  npx tsc --noEmit
   cd ..
 fi
 
