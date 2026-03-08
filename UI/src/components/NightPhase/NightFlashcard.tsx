@@ -318,7 +318,7 @@ export function NightFlashcard({
                         <Avatar
                           src={getCharacterIconPath(seg.token.sourceCharacterId)}
                           alt={seg.token.sourceCharacterId}
-                          sx={{ width: 18, height: 18 }}
+                          sx={{ width: 20, height: 20 }}
                         />
                       ) : undefined
                     }
@@ -361,7 +361,7 @@ export function NightFlashcard({
                       <Avatar
                         src={getCharacterIconPath(r.sourceCharacterId)}
                         alt={r.sourceCharacterId}
-                        sx={{ width: 16, height: 16 }}
+                        sx={{ width: 20, height: 20 }}
                       />
                     ) : undefined
                   }
@@ -506,8 +506,11 @@ export function NightFlashcard({
           fullWidth
           sx={{
             '& .MuiInputBase-root': {
-              color: 'rgba(255,255,255,0.9)',
+              color: '#fff',
               fontSize: '0.85rem',
+            },
+            '& .MuiInputBase-root.Mui-disabled': {
+              '-webkit-text-fill-color': '#fff',
             },
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: 'rgba(255,255,255,0.15)',

@@ -2,6 +2,8 @@ import { useState, useMemo, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import Switch from '@mui/material/Switch';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -10,12 +12,14 @@ import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import type { CharacterDef, Alignment } from '@/types/index.ts';
+import type { CharacterDef, Alignment, PlayerToken as PlayerTokenType } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { PlayerRow } from '@/components/PlayerList/PlayerRow.tsx';
-import { PlayerEditDialog } from '@/components/PlayerList/PlayerEditDialog.tsx';
+import { PlayerActionsModal } from '@/components/TownSquare/PlayerActionsModal.tsx';
+import { TokenManager } from '@/components/TownSquare/TokenManager.tsx';
+import { buildAvailableTokens } from '@/utils/buildAvailableTokens.ts';
 
 interface PlayerListTabProps {
   scriptCharacterIds: string[];
@@ -24,13 +28,16 @@ interface PlayerListTabProps {
 /**
  * Scrollable table of all players in the game.
  * Day view shows seat, name, alive/dead, ghost vote.
- * Night view adds character name, type, alignment, and inline edit on tap.
+ * Night view adds character name, type, alignment, reminders, and an edit icon.
  */
 export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
-  const { state, updatePlayer, swapPlayerSeats } = useGame();
-  const { getCharacter, getCharactersByIds } = useCharacterLookup();
+  const { state, updatePlayer, swapPlayerSeats, removeTraveller, addToken, removeToken } =
+    useGame();
+  const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
   const [editSeat, setEditSeat] = useState<number | null>(null);
   const [swapSourceSeat, setSwapSourceSeat] = useState<number | null>(null);
+  const [showAlignment, setShowAlignment] = useState(false);
+  const [tokenManagerSeat, setTokenManagerSeat] = useState<number | null>(null);
 
   const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
   const showCharacters = state.showCharacters;
@@ -55,19 +62,61 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   const editingPlayer =
     editSeat !== null ? (players.find((p) => p.seat === editSeat) ?? null) : null;
 
-  const handleToggleAlive = (seat: number) => {
-    const player = players.find((p) => p.seat === seat);
-    if (player) {
-      updatePlayer(seat, { alive: !player.alive });
-    }
-  };
+  // Token manager player (derive from live state for fresh tokens)
+  const tokenPlayer =
+    tokenManagerSeat !== null ? (players.find((p) => p.seat === tokenManagerSeat) ?? null) : null;
 
-  const handleToggleGhostVote = (seat: number) => {
-    const player = players.find((p) => p.seat === seat);
-    if (player) {
-      updatePlayer(seat, { ghostVoteUsed: !player.ghostVoteUsed });
-    }
-  };
+  // Available tokens for token manager
+  const inPlayCharacterIds = useMemo(
+    () => state.game?.inPlayCharacterIds ?? scriptCharacterIds,
+    [state.game?.inPlayCharacterIds, scriptCharacterIds],
+  );
+  const availableTokens = useMemo(
+    () => buildAvailableTokens(inPlayCharacterIds),
+    [inPlayCharacterIds],
+  );
+
+  const handleToggleAlive = useCallback(
+    (seat: number) => {
+      const player = players.find((p) => p.seat === seat);
+      if (player) {
+        updatePlayer(seat, { alive: !player.alive });
+      }
+    },
+    [players, updatePlayer],
+  );
+
+  const handleToggleGhostVote = useCallback(
+    (seat: number) => {
+      const player = players.find((p) => p.seat === seat);
+      if (player) {
+        updatePlayer(seat, { ghostVoteUsed: !player.ghostVoteUsed });
+      }
+    },
+    [players, updatePlayer],
+  );
+
+  const handleRemoveTraveller = useCallback(
+    (seat: number) => {
+      removeTraveller(seat);
+    },
+    [removeTraveller],
+  );
+
+  const handleManageTokens = useCallback((seat: number) => {
+    setTokenManagerSeat(seat);
+  }, []);
+
+  const handleSaveCharacter = useCallback(
+    (seat: number, updates: { characterId?: string; actualAlignment?: Alignment }) => {
+      updatePlayer(seat, updates);
+    },
+    [updatePlayer],
+  );
+
+  const handleSwapWith = useCallback((seat: number) => {
+    setSwapSourceSeat(seat);
+  }, []);
 
   const handleRowClick = (seat: number) => {
     if (swapSourceSeat !== null) {
@@ -77,23 +126,25 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
       setSwapSourceSeat(null);
       return;
     }
-    setEditSeat(seat);
   };
 
-  const handleStartSwap = useCallback((seat: number) => {
-    setSwapSourceSeat(seat);
+  const handleOpenEdit = useCallback((seat: number) => {
+    setEditSeat(seat);
   }, []);
 
-  const handleEditSave = (
-    seat: number,
-    updates: {
-      characterId?: string;
-      actualAlignment?: Alignment;
-      visibleAlignment?: Alignment;
+  const handleAddToken = useCallback(
+    (seat: number, token: PlayerTokenType) => {
+      addToken(seat, token);
     },
-  ) => {
-    updatePlayer(seat, updates);
-  };
+    [addToken],
+  );
+
+  const handleRemoveToken = useCallback(
+    (seat: number, tokenId: string) => {
+      removeToken(seat, tokenId);
+    },
+    [removeToken],
+  );
 
   if (sortedPlayers.length === 0) {
     return (
@@ -117,6 +168,27 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         />
       )}
 
+      {/* Alignment column toggle (default off) */}
+      {showCharacters && (
+        <Box sx={{ px: 1.5, py: 0.5, display: 'flex', justifyContent: 'flex-end' }}>
+          <FormControlLabel
+            control={
+              <Switch
+                size="small"
+                checked={showAlignment}
+                onChange={(_, checked) => setShowAlignment(checked)}
+                data-testid="alignment-toggle"
+              />
+            }
+            label={
+              <Typography variant="caption" color="text.secondary">
+                Show Alignment
+              </Typography>
+            }
+          />
+        </Box>
+      )}
+
       <TableContainer>
         <Table size="small" stickyHeader>
           <TableHead>
@@ -133,9 +205,9 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
               )}
               {showCharacters && <TableCell sx={{ px: 1 }}>Character</TableCell>}
               {showCharacters && <TableCell sx={{ px: 1, flex: 2 }}>Ability</TableCell>}
-              {showCharacters && <TableCell sx={{ px: 1 }}>Tokens</TableCell>}
-              {showCharacters && (
-                <TableCell align="center" sx={{ width: 32, px: 0.5 }}>
+              {showCharacters && <TableCell sx={{ px: 1 }}>Reminders</TableCell>}
+              {showCharacters && showAlignment && (
+                <TableCell align="center" sx={{ width: 60, px: 0.5 }}>
                   Align
                 </TableCell>
               )}
@@ -147,7 +219,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
               </TableCell>
               {showCharacters && (
                 <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
-                  Swap
+                  Edit
                 </TableCell>
               )}
             </TableRow>
@@ -158,6 +230,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
                 key={player.seat}
                 player={player}
                 showCharacters={showCharacters}
+                showAlignment={showAlignment}
                 character={player.characterId ? getCharacter(player.characterId) : undefined}
                 apparentCharacter={
                   player.apparentCharacterId ? getCharacter(player.apparentCharacterId) : undefined
@@ -165,7 +238,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
                 onToggleAlive={handleToggleAlive}
                 onToggleGhostVote={handleToggleGhostVote}
                 onRowClick={handleRowClick}
-                onSwap={showCharacters ? handleStartSwap : undefined}
+                onEdit={showCharacters ? handleOpenEdit : undefined}
                 isSwapSource={swapSourceSeat === player.seat}
               />
             ))}
@@ -173,13 +246,32 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         </Table>
       </TableContainer>
 
-      <PlayerEditDialog
-        key={editingPlayer?.seat ?? 'none'}
+      {/* Shared PlayerActionsModal (same as TownSquare) */}
+      <PlayerActionsModal
         open={editSeat !== null}
         player={editingPlayer}
+        showCharacters={showCharacters}
         scriptCharacters={scriptCharacters}
+        allCharacters={allCharacters}
         onClose={() => setEditSeat(null)}
-        onSave={handleEditSave}
+        onToggleAlive={handleToggleAlive}
+        onToggleGhostVote={handleToggleGhostVote}
+        onRemoveTraveller={handleRemoveTraveller}
+        onManageTokens={handleManageTokens}
+        onSaveCharacter={handleSaveCharacter}
+        onSwapWith={handleSwapWith}
+      />
+
+      {/* Token Manager Dialog */}
+      <TokenManager
+        open={tokenPlayer !== null}
+        player={tokenPlayer}
+        onClose={() => setTokenManagerSeat(null)}
+        onAddToken={handleAddToken}
+        onRemoveToken={handleRemoveToken}
+        characterDef={tokenPlayer?.characterId ? getCharacter(tokenPlayer.characterId) : undefined}
+        availableTokens={availableTokens}
+        allPlayers={players}
       />
 
       {/* Game Modifiers section — active Fabled/Loric */}

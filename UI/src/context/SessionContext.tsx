@@ -40,7 +40,8 @@ type SessionAction =
       };
     }
   | { type: 'ADD_GAME_TO_SESSION'; payload: { sessionId: string; game: Game } }
-  | { type: 'HYDRATE'; payload: SessionState };
+  | { type: 'HYDRATE'; payload: SessionState }
+  | { type: 'DELETE_GAME'; payload: { sessionId: string; gameId: string } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -145,6 +146,30 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       };
     }
 
+    case 'DELETE_GAME': {
+      const { sessionId, gameId } = action.payload;
+      // Remove game data from localStorage
+      try {
+        localStorage.removeItem(`storyteller-game-${gameId}`);
+      } catch {
+        // Silently ignore storage errors
+      }
+      // Remove setup checklist data
+      try {
+        localStorage.removeItem(`storyteller-setup-checklist-${gameId}`);
+      } catch {
+        // Silently ignore storage errors
+      }
+      return {
+        ...state,
+        sessions: state.sessions.map((s) => {
+          if (s.id !== sessionId) return s;
+          return { ...s, gameIds: s.gameIds.filter((gid) => gid !== gameId) };
+        }),
+        activeGameId: state.activeGameId === gameId ? null : state.activeGameId,
+      };
+    }
+
     default:
       return state;
   }
@@ -170,6 +195,7 @@ interface SessionContextValue {
     },
   ) => void;
   addGameToSession: (sessionId: string) => void;
+  deleteGame: (sessionId: string, gameId: string) => void;
   getActiveSession: () => Session | null;
   getActiveGame: () => Game | null;
 }
@@ -284,6 +310,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [state.sessions],
   );
 
+  const deleteGame = useCallback((sessionId: string, gameId: string) => {
+    dispatch({ type: 'DELETE_GAME', payload: { sessionId, gameId } });
+  }, []);
+
   const getActiveSession = useCallback((): Session | null => {
     if (!state.activeSessionId) return null;
     return state.sessions.find((s) => s.id === state.activeSessionId) ?? null;
@@ -309,6 +339,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     selectGame,
     updateSession,
     addGameToSession,
+    deleteGame,
     getActiveSession,
     getActiveGame,
   };

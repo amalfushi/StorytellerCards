@@ -289,11 +289,10 @@ describe('PlayerRow', () => {
     expect(screen.getByText('2 tokens')).toBeInTheDocument();
   });
 
-  it('shows dash when player has no tokens', () => {
+  it('shows no token chips when player has no tokens', () => {
     renderPlayerRow(alivePlayer, true, nobleCharacter);
-    // Multiple dashes could appear for various empty columns
-    const dashes = screen.getAllByText('—');
-    expect(dashes.length).toBeGreaterThan(0);
+    // No token chips should be present
+    expect(screen.queryByTestId('token-chips')).not.toBeInTheDocument();
   });
 
   it('shows dash for unassigned character in night view', () => {

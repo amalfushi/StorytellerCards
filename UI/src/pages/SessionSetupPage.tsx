@@ -8,12 +8,15 @@ import CardActionArea from '@mui/material/CardActionArea';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import Container from '@mui/material/Container';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import ListItemButton from '@mui/material/ListItemButton';
 import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
 import TextField from '@mui/material/TextField';
@@ -35,7 +38,7 @@ const MAX_PLAYERS = 20;
 export function SessionSetupPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
-  const { state, updateSession, addGameToSession, selectGame } = useSession();
+  const { state, updateSession, addGameToSession, selectGame, deleteGame } = useSession();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const session = state.sessions.find((s) => s.id === sessionId);
@@ -171,6 +174,11 @@ export function SessionSetupPage() {
     if (!sessionId) return;
     selectGame(sessionId, gameId);
     navigate(`/session/${sessionId}/game/${gameId}`);
+  };
+
+  const handleDeleteGame = (gameId: string) => {
+    if (!sessionId) return;
+    deleteGame(sessionId, gameId);
   };
 
   // ── Guard: session not found ──
@@ -349,6 +357,7 @@ export function SessionSetupPage() {
                     gameId={gameId}
                     gameNumber={index + 1}
                     onClick={() => handleOpenGame(gameId)}
+                    onDelete={() => handleDeleteGame(gameId)}
                   />
                 ))}
               </List>
@@ -380,11 +389,14 @@ function GameListItem({
   gameId,
   gameNumber,
   onClick,
+  onDelete,
 }: {
   gameId: string;
   gameNumber: number;
   onClick: () => void;
+  onDelete: () => void;
 }) {
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [phase] = useState<string>(() => {
     try {
       const raw = localStorage.getItem(`storyteller-game-${gameId}`);
@@ -402,13 +414,59 @@ function GameListItem({
     <ListItem disablePadding>
       <Card sx={{ width: '100%', mb: 1 }} variant="outlined">
         <CardActionArea onClick={onClick}>
-          <CardContent sx={{ py: 1.5, '&:last-child': { pb: 1.5 } }}>
-            <ListItemButton component="div" sx={{ p: 0 }}>
-              <ListItemText primary={`Game ${gameNumber}`} secondary={phase || 'Not started'} />
-            </ListItemButton>
+          <CardContent
+            sx={{
+              py: 1.5,
+              '&:last-child': { pb: 1.5 },
+              display: 'flex',
+              alignItems: 'center',
+            }}
+          >
+            <ListItemText
+              primary={`Game ${gameNumber}`}
+              secondary={phase || 'Not started'}
+              sx={{ flex: 1 }}
+            />
+            <IconButton
+              size="small"
+              color="error"
+              aria-label={`delete game ${gameNumber}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setConfirmOpen(true);
+              }}
+              data-testid={`delete-game-${gameId}`}
+            >
+              <DeleteIcon fontSize="small" />
+            </IconButton>
           </CardContent>
         </CardActionArea>
       </Card>
+
+      {/* Delete confirmation dialog */}
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs">
+        <DialogTitle>Delete Game {gameNumber}?</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            This will permanently delete Game {gameNumber} and all its data (players, night history,
+            etc.). This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              setConfirmOpen(false);
+              onDelete();
+            }}
+            data-testid="confirm-delete-game"
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </ListItem>
   );
 }

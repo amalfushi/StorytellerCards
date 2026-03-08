@@ -9,27 +9,31 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
+import InputAdornment from '@mui/material/InputAdornment';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
+import SearchIcon from '@mui/icons-material/Search';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import type { CharacterDef, CharacterType } from '@/types/index.ts';
 import { getDistribution } from '@/data/playerCountRules.ts';
 import type { Distribution } from '@/data/playerCountRules.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
-/** Ordered list of character type groups to display. */
+/** Ordered list of character type groups to display (Travellers omitted). */
 const TYPE_GROUP_ORDER: CharacterType[] = [
   'Townsfolk',
   'Outsider',
   'Minion',
   'Demon',
-  'Traveller',
   'Fabled',
   'Loric',
 ];
@@ -49,6 +53,8 @@ export interface CharacterSelectionProps {
   playerCount: number;
   initialSelected?: string[];
   onConfirm: (selectedIds: string[]) => void;
+  /** Optional game number for the dialog title (e.g. "Game 2: Select Characters"). */
+  gameNumber?: number;
 }
 
 /**
@@ -64,44 +70,68 @@ export function CharacterSelection({
   playerCount,
   initialSelected,
   onConfirm,
+  gameNumber,
 }: CharacterSelectionProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(initialSelected ?? []));
+  const [searchQuery, setSearchQuery] = useState('');
 
   const distribution = useMemo(() => getDistribution(playerCount), [playerCount]);
 
   // Reset when dialog opens
   const handleEnter = useCallback(() => {
     setSelectedIds(new Set(initialSelected ?? []));
+    setSearchQuery('');
   }, [initialSelected]);
 
-  // Group script characters by type
+  // Filter out Travellers from script characters
+  const nonTravellerCharacters = useMemo(
+    () => scriptCharacters.filter((ch) => ch.type !== 'Traveller'),
+    [scriptCharacters],
+  );
+
+  // Group script characters by type (excluding Travellers)
   const charsByType = useMemo(() => {
     const groups: Record<string, CharacterDef[]> = {};
     for (const type of TYPE_GROUP_ORDER) {
       groups[type] = [];
     }
-    for (const ch of scriptCharacters) {
+    for (const ch of nonTravellerCharacters) {
       if (groups[ch.type]) {
         groups[ch.type].push(ch);
       }
     }
     return groups;
-  }, [scriptCharacters]);
+  }, [nonTravellerCharacters]);
 
-  // Count selected by type
+  // Count selected by type (only non-Traveller)
   const selectedCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const type of TYPE_GROUP_ORDER) {
       counts[type] = 0;
     }
     for (const id of selectedIds) {
-      const ch = scriptCharacters.find((c) => c.id === id);
+      const ch = nonTravellerCharacters.find((c) => c.id === id);
       if (ch) {
         counts[ch.type] = (counts[ch.type] ?? 0) + 1;
       }
     }
     return counts;
-  }, [selectedIds, scriptCharacters]);
+  }, [selectedIds, nonTravellerCharacters]);
+
+  // Filter characters by search query
+  const normalizedQuery = searchQuery.trim().toLowerCase();
+  const filteredCharsByType = useMemo(() => {
+    if (!normalizedQuery) return charsByType;
+    const filtered: Record<string, CharacterDef[]> = {};
+    for (const type of TYPE_GROUP_ORDER) {
+      filtered[type] = (charsByType[type] ?? []).filter(
+        (ch) =>
+          ch.name.toLowerCase().includes(normalizedQuery) ||
+          (ch.abilityShort !== '<TODO>' && ch.abilityShort.toLowerCase().includes(normalizedQuery)),
+      );
+    }
+    return filtered;
+  }, [charsByType, normalizedQuery]);
 
   const handleToggle = useCallback((characterId: string) => {
     setSelectedIds((prev) => {
@@ -163,9 +193,8 @@ export function CharacterSelection({
 
   /** Total count of all selected characters. */
   const totalSelected = selectedIds.size;
-  const totalExpected = distribution
-    ? distribution.townsfolk + distribution.outsiders + distribution.minions + distribution.demons
-    : 0;
+
+  const dialogTitle = gameNumber ? `Game ${gameNumber}: Select Characters` : 'Select Characters';
 
   return (
     <Dialog
@@ -178,13 +207,13 @@ export function CharacterSelection({
       <DialogTitle sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography component="span" variant="h6" sx={{ flexGrow: 1 }}>
-            Select In-Play Characters
+            {dialogTitle}
           </Typography>
           <IconButton aria-label="close" onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
         </Box>
-        {/* Sticky count summary — always visible */}
+        {/* Per-type count chips (full type names, no total chip) */}
         <Box
           data-testid="sticky-count-header"
           sx={{
@@ -195,14 +224,6 @@ export function CharacterSelection({
             pt: 0.5,
           }}
         >
-          <Chip
-            label={`Selected: ${totalSelected}/${totalExpected}`}
-            size="small"
-            color={totalSelected === totalExpected ? 'success' : 'default'}
-            variant={totalSelected === totalExpected ? 'filled' : 'outlined'}
-            sx={{ fontWeight: 700 }}
-            data-testid="total-count-chip"
-          />
           {TYPE_GROUP_ORDER.filter((t) => TYPE_TO_DIST_KEY[t]).map((type) => {
             const distKey = TYPE_TO_DIST_KEY[type]!;
             const target = distribution[distKey];
@@ -211,7 +232,7 @@ export function CharacterSelection({
             return (
               <Chip
                 key={type}
-                label={`${type.slice(0, 2).toUpperCase()}: ${current}/${target}`}
+                label={`${type}: ${current}/${target}`}
                 size="small"
                 data-testid={`summary-chip-${type}`}
                 sx={{
@@ -229,13 +250,33 @@ export function CharacterSelection({
       </DialogTitle>
 
       <DialogContent dividers>
+        {/* Search filter */}
+        <TextField
+          fullWidth
+          size="small"
+          placeholder="Search characters…"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon fontSize="small" />
+                </InputAdornment>
+              ),
+            },
+          }}
+          sx={{ mb: 2 }}
+          data-testid="character-search"
+        />
+
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Select which characters are in play for this {playerCount}-player game.
         </Typography>
 
         {/* Character groups */}
         {TYPE_GROUP_ORDER.map((type) => {
-          const chars = charsByType[type];
+          const chars = filteredCharsByType[type];
           if (!chars || chars.length === 0) return null;
           const typeColor = getCharacterTypeColor(type);
 
@@ -281,12 +322,20 @@ export function CharacterSelection({
                             inputProps={{ 'aria-label': ch.name }}
                           />
                         </ListItemIcon>
+                        <CharacterIconImage
+                          characterId={ch.id}
+                          characterName={ch.name}
+                          typeColor={typeColor}
+                          size={32}
+                          borderColor={getAlignmentBorderColor(ch.defaultAlignment, typeColor)}
+                        />
                         <ListItemText
                           primary={ch.name}
                           secondary={ch.abilityShort !== '<TODO>' ? ch.abilityShort : undefined}
                           primaryTypographyProps={{
-                            sx: { color: typeColor, fontWeight: checked ? 600 : 400 },
+                            sx: { color: typeColor, fontWeight: checked ? 600 : 400, ml: 1 },
                           }}
+                          secondaryTypographyProps={{ sx: { ml: 1 } }}
                         />
                       </ListItemButton>
                     </ListItem>
@@ -302,7 +351,7 @@ export function CharacterSelection({
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
         <Button variant="contained" onClick={handleConfirm} data-testid="confirm-selection">
-          Confirm ({selectedIds.size} selected)
+          Confirm ({totalSelected} selected)
         </Button>
       </DialogActions>
     </Dialog>

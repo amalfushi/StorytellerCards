@@ -1,3 +1,7 @@
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
@@ -8,12 +12,16 @@ import IconButton from '@mui/material/IconButton';
 import Link from '@mui/material/Link';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { CharacterDef } from '@/types/index.ts';
 import { EditionLabel } from '@/types/index.ts';
-import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import {
+  getCharacterTypeColor,
+  getReminderTokenColor,
+} from '@/components/common/characterTypeColor.ts';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
-import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
+import { getAlignmentBorderColor, getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { getCharacterActiveJinxes } from '@/utils/jinxUtils.ts';
 
 export interface CharacterDetailModalProps {
@@ -37,7 +45,15 @@ export function CharacterDetailModal({
   if (!character) return null;
 
   const typeColor = getCharacterTypeColor(character.type);
-  const jinxes = getCharacterActiveJinxes(character.id, scriptCharacterIds);
+  // All jinxes defined on this character (for the accordion)
+  const allJinxes = getCharacterActiveJinxes(character.id, []);
+  // Only jinxes where both characters are on the script (active)
+  const activeJinxIds = new Set(
+    scriptCharacterIds.length > 0
+      ? getCharacterActiveJinxes(character.id, scriptCharacterIds).map((j) => j.character2Id)
+      : [],
+  );
+  const hasActiveJinxes = activeJinxIds.size > 0;
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -170,51 +186,125 @@ export function CharacterDetailModal({
               Reminder Tokens
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-              {character.reminders.map((r) => (
-                <Chip key={r.id} label={r.text} size="small" variant="outlined" />
-              ))}
+              {character.reminders.map((r) => {
+                const tokenColor = getReminderTokenColor(r.sourceCharacterId);
+                return (
+                  <Chip
+                    key={r.id}
+                    label={r.text}
+                    size="small"
+                    avatar={
+                      r.sourceCharacterId ? (
+                        <Avatar
+                          src={getCharacterIconPath(r.sourceCharacterId)}
+                          alt={r.sourceCharacterId}
+                          sx={{ width: 20, height: 20 }}
+                        />
+                      ) : undefined
+                    }
+                    sx={{
+                      bgcolor: `${tokenColor}22`,
+                      color: tokenColor,
+                      fontWeight: 600,
+                      fontSize: '0.7rem',
+                      border: `1px solid ${tokenColor}55`,
+                    }}
+                  />
+                );
+              })}
             </Box>
           </Box>
         )}
 
-        {/* Jinxes */}
-        {jinxes.length > 0 && (
+        {/* Jinxes Accordion */}
+        {allJinxes.length > 0 && (
           <Box sx={{ mb: 1.5 }} data-testid="jinx-section">
             <Divider sx={{ my: 1.5 }} />
-            <Typography variant="subtitle2" sx={{ color: '#f59e0b', fontWeight: 700, mb: 1 }}>
-              ⚡ Jinxes ({jinxes.length})
-            </Typography>
-            {jinxes.map((jinx) => (
-              <Box
-                key={jinx.character2Id}
-                sx={{
-                  display: 'flex',
-                  gap: 1,
-                  alignItems: 'flex-start',
-                  mb: 1,
-                  p: 1,
-                  borderRadius: 1,
-                  bgcolor: 'rgba(245, 158, 11, 0.08)',
-                  border: '1px solid rgba(245, 158, 11, 0.2)',
-                }}
+            <Accordion
+              defaultExpanded={hasActiveJinxes}
+              disableGutters
+              elevation={0}
+              sx={{
+                bgcolor: 'transparent',
+                '&:before': { display: 'none' },
+              }}
+            >
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon sx={{ color: '#f59e0b' }} />}
+                sx={{ px: 0, minHeight: 36, '& .MuiAccordionSummary-content': { my: 0.5 } }}
               >
-                <CharacterIconImage
-                  characterId={jinx.character2Id}
-                  characterName={jinx.character2Name}
-                  typeColor="#f59e0b"
-                  size={32}
-                  borderColor="#f59e0b"
-                />
-                <Box sx={{ minWidth: 0 }}>
-                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                    {jinx.character2Name}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {jinx.description}
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
+                <Typography variant="subtitle2" sx={{ color: '#f59e0b', fontWeight: 700 }}>
+                  ⚡ Jinxes ({allJinxes.length})
+                  {hasActiveJinxes && (
+                    <Chip
+                      label={`${activeJinxIds.size} active`}
+                      size="small"
+                      sx={{
+                        ml: 1,
+                        height: 18,
+                        fontSize: '0.65rem',
+                        bgcolor: 'rgba(245, 158, 11, 0.2)',
+                        color: '#f59e0b',
+                        fontWeight: 600,
+                      }}
+                    />
+                  )}
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails sx={{ px: 0, pt: 0 }}>
+                {allJinxes.map((jinx) => {
+                  const isActive = activeJinxIds.has(jinx.character2Id);
+                  return (
+                    <Box
+                      key={jinx.character2Id}
+                      data-testid={isActive ? 'jinx-active' : 'jinx-inactive'}
+                      sx={{
+                        display: 'flex',
+                        gap: 1,
+                        alignItems: 'flex-start',
+                        mb: 1,
+                        p: 1,
+                        borderRadius: 1,
+                        bgcolor: isActive ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.04)',
+                        border: isActive
+                          ? '1px solid rgba(245, 158, 11, 0.4)'
+                          : '1px solid rgba(245, 158, 11, 0.1)',
+                      }}
+                    >
+                      <CharacterIconImage
+                        characterId={jinx.character2Id}
+                        characterName={jinx.character2Name}
+                        typeColor="#f59e0b"
+                        size={32}
+                        borderColor="#f59e0b"
+                      />
+                      <Box sx={{ minWidth: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {jinx.character2Name}
+                          {isActive && (
+                            <Chip
+                              label="In Play"
+                              size="small"
+                              sx={{
+                                ml: 0.5,
+                                height: 16,
+                                fontSize: '0.6rem',
+                                bgcolor: 'rgba(76, 175, 80, 0.2)',
+                                color: '#4caf50',
+                                fontWeight: 600,
+                              }}
+                            />
+                          )}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {jinx.description}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  );
+                })}
+              </AccordionDetails>
+            </Accordion>
           </Box>
         )}
 
