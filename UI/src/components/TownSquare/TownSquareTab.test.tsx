@@ -27,6 +27,11 @@ vi.mock('@/components/TownSquare/PlayerToken.tsx', () => ({
       {player.playerName}
     </div>
   ),
+  SIZE_MAP: {
+    large: { width: 80, height: 120, icon: 56, nameFont: '0.91rem', metaFont: '0.78rem' },
+    medium: { width: 73, height: 110, icon: 52, nameFont: '0.91rem', metaFont: '0.78rem' },
+    small: { width: 67, height: 100, icon: 48, nameFont: '0.85rem', metaFont: '0.72rem' },
+  },
 }));
 
 vi.mock('@/components/TownSquare/TownSquareLayout.tsx', () => ({
@@ -37,7 +42,10 @@ vi.mock('@/components/TownSquare/TownSquareLayout.tsx', () => ({
     containerHeight: _containerHeight,
   }: {
     players: PlayerSeat[];
-    renderToken: (player: PlayerSeat, pos: { x: number; y: number; angle: number }) => React.ReactNode;
+    renderToken: (
+      player: PlayerSeat,
+      pos: { x: number; y: number; angle: number },
+    ) => React.ReactNode;
     containerWidth: number;
     containerHeight: number;
   }) => (
@@ -49,11 +57,9 @@ vi.mock('@/components/TownSquare/TownSquareLayout.tsx', () => ({
   ),
 }));
 
-vi.mock('@/components/TownSquare/PlayerQuickActions.tsx', () => ({
-  PlayerQuickActions: ({ anchorEl, player }: { anchorEl: HTMLElement | null; player: PlayerSeat | null }) =>
-    anchorEl && player ? (
-      <div data-testid="player-quick-actions">{player.playerName}</div>
-    ) : null,
+vi.mock('@/components/TownSquare/PlayerActionsModal.tsx', () => ({
+  PlayerActionsModal: ({ open, player }: { open: boolean; player: PlayerSeat | null }) =>
+    open && player ? <div data-testid="player-actions-modal">{player.playerName}</div> : null,
 }));
 
 vi.mock('@/components/TownSquare/AddTravellerDialog.tsx', () => ({
@@ -67,11 +73,6 @@ vi.mock('@/components/TownSquare/TokenManager.tsx', () => ({
   TokenBadges: () => null,
 }));
 
-vi.mock('@/components/PlayerList/PlayerEditDialog.tsx', () => ({
-  PlayerEditDialog: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="player-edit-dialog">Player Edit Dialog</div> : null,
-}));
-
 vi.mock('@/components/Timer/DayTimerFab.tsx', () => ({
   DayTimerFab: () => <div data-testid="day-timer-fab">Timer FAB</div>,
 }));
@@ -80,12 +81,23 @@ vi.mock('@/utils/audioAlarm.ts', () => ({
   playAlarmBeeps: vi.fn(() => ({ stop: vi.fn() })),
 }));
 
+vi.mock('@/utils/buildAvailableTokens.ts', () => ({
+  buildAvailableTokens: vi.fn(() => [
+    { id: 'basic-poisoned', text: 'Poisoned' },
+    { id: 'basic-drunk', text: 'Drunk' },
+  ]),
+}));
+
 // ──────────────────────────────────────────────
 // Mock ResizeObserver
 // ──────────────────────────────────────────────
 
 const mockResizeObserver = vi.fn().mockImplementation(function MockResizeObserver(
-  this: { observe: ReturnType<typeof vi.fn>; unobserve: ReturnType<typeof vi.fn>; disconnect: ReturnType<typeof vi.fn> },
+  this: {
+    observe: ReturnType<typeof vi.fn>;
+    unobserve: ReturnType<typeof vi.fn>;
+    disconnect: ReturnType<typeof vi.fn>;
+  },
   callback: ResizeObserverCallback,
 ) {
   this.observe = vi.fn((element: Element) => {
@@ -94,7 +106,17 @@ const mockResizeObserver = vi.fn().mockImplementation(function MockResizeObserve
       [
         {
           target: element,
-          contentRect: { width: 360, height: 500, top: 0, left: 0, bottom: 500, right: 360, x: 0, y: 0, toJSON: () => ({}) },
+          contentRect: {
+            width: 360,
+            height: 500,
+            top: 0,
+            left: 0,
+            bottom: 500,
+            right: 360,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
+          },
           borderBoxSize: [],
           contentBoxSize: [],
           devicePixelContentBoxSize: [],
@@ -168,10 +190,7 @@ const mockGame: Game = {
 // Helper
 // ──────────────────────────────────────────────
 
-function renderWithGameContext(
-  ui: React.ReactElement,
-  _game: Game = mockGame,
-) {
+function renderWithGameContext(ui: React.ReactElement, _game: Game = mockGame) {
   return render(
     <GameProvider>
       {/* We need to load the game into context — done via preloading localStorage */}
@@ -188,10 +207,7 @@ describe('TownSquareTab', () => {
   beforeEach(() => {
     vi.stubGlobal('ResizeObserver', mockResizeObserver);
     // Preload game into localStorage
-    localStorage.setItem(
-      `storyteller-game-${mockGame.id}`,
-      JSON.stringify(mockGame),
-    );
+    localStorage.setItem(`storyteller-game-${mockGame.id}`, JSON.stringify(mockGame));
   });
 
   afterEach(() => {
@@ -207,16 +223,12 @@ describe('TownSquareTab', () => {
   });
 
   it('has "add traveller" FAB button', () => {
-    renderWithGameContext(
-      <TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    renderWithGameContext(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.getByLabelText('add traveller')).toBeInTheDocument();
   });
 
   it('clicking add traveller button opens AddTravellerDialog', () => {
-    renderWithGameContext(
-      <TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    renderWithGameContext(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     fireEvent.click(screen.getByLabelText('add traveller'));
     expect(screen.getByTestId('add-traveller-dialog')).toBeInTheDocument();
   });
@@ -228,5 +240,10 @@ describe('TownSquareTab', () => {
       </GameProvider>,
     );
     expect(container).toBeTruthy();
+  });
+
+  it('has layout toggle button', () => {
+    renderWithGameContext(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    expect(screen.getByLabelText('toggle token layout')).toBeInTheDocument();
   });
 });

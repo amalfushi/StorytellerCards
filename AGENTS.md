@@ -28,7 +28,7 @@ The app manages a hierarchy: **Sessions** (containers) → **Games** → **Playe
 |-------|-----------|
 | UI | React 19 + TypeScript + Vite 6 + MUI Core (free tier) |
 | State | React Context + `useReducer` + `localStorage` (primary), Go API (secondary sync) |
-| Testing | Vitest (1205 tests across 54 files), Storybook 8 (~80+ stories with `play()` interaction tests) |
+| Testing | Vitest (2460 tests across 57 files), Storybook 8 (~90+ stories with `play()` interaction tests) |
 | Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests + coverage) |
 | API | Go + Chi router, JSON file storage, 90-day auto-cleanup |
 | PWA | `manifest.json`, icons, mobile meta tags |
@@ -149,9 +149,9 @@ Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
 
 See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 
-### Current Test Stats (as of M7 Complete)
-- **1187 tests** across **54 test files** — all passing
-- **17 story files** with **~80+ stories** including `play()` interaction tests
+### Current Test Stats (as of M16 Complete)
+- **2460 tests** across **57 test files** — all passing
+- **18 story files** with **~90+ stories** including `play()` interaction tests
 - **0 TypeScript errors**, **0 ESLint errors**
 
 ## Documentation Maintenance
