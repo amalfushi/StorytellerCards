@@ -269,6 +269,8 @@ export interface PlayerSeat {
   isTraveller: boolean;
   /** Status tokens placed on this player (drunk, poisoned, custom). */
   tokens: PlayerToken[];
+  /** Character ID this player believes they are (for Drunk/Marionette concealment). */
+  apparentCharacterId?: string;
 }
 
 // ──────────────────────────────────────────────

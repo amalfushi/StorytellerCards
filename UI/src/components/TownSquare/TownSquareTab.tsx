@@ -106,7 +106,19 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
       .filter((c): c is CharacterDef => c !== undefined);
   }, [state.game, getCharacter]);
 
-  const availableTokens = useMemo(() => buildAvailableTokens(activeCharacters), [activeCharacters]);
+  // Apparent characters for concealed identities (Drunk/Marionette)
+  const apparentCharacters = useMemo(() => {
+    if (!state.game) return [];
+    return state.game.players
+      .filter((p) => p.apparentCharacterId)
+      .map((p) => getCharacter(p.apparentCharacterId!))
+      .filter((c): c is CharacterDef => c !== undefined);
+  }, [state.game, getCharacter]);
+
+  const availableTokens = useMemo(
+    () => buildAvailableTokens(activeCharacters, apparentCharacters),
+    [activeCharacters, apparentCharacters],
+  );
 
   const tokenSize = tokenSizeForCount(sorted.length);
 
@@ -252,6 +264,9 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
   const renderToken = useCallback(
     (player: PlayerSeat, position: TokenPosition) => {
       const characterDef = player.characterId ? getCharacter(player.characterId) : undefined;
+      const apparentCharacterDef = player.apparentCharacterId
+        ? getCharacter(player.apparentCharacterId)
+        : undefined;
       const playerTokens = player.tokens ?? [];
 
       return (
@@ -259,6 +274,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
           <PlayerToken
             player={player}
             characterDef={characterDef}
+            apparentCharacterDef={apparentCharacterDef}
             showCharacters={showCharacters}
             isSelected={selectedSeat === player.seat}
             onClick={(e: React.MouseEvent<HTMLElement>) => handleTokenClick(player, e)}
@@ -414,6 +430,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         onRemoveToken={handleRemoveToken}
         characterDef={tokenPlayer?.characterId ? getCharacter(tokenPlayer.characterId) : undefined}
         availableTokens={availableTokens}
+        allPlayers={players}
       />
 
       {/* ── Day Timer FAB (visible during Day phase) ── */}

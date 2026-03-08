@@ -27,8 +27,13 @@ export const MAD_TOKEN: ReminderToken = { id: 'basic-mad', text: 'Mad' };
  * - Basic tokens (Poisoned, Drunk) — always present.
  * - Conditional "Mad" token — only when a character whose ability mentions "mad" is in play.
  * - Character-specific reminder tokens — deduped by `id`.
+ * - Global reminder tokens (`remindersGlobal`) from characters that have them.
+ * - Apparent character reminders (for concealed identities like Drunk/Marionette).
  */
-export function buildAvailableTokens(activeCharacters: CharacterDef[]): ReminderToken[] {
+export function buildAvailableTokens(
+  activeCharacters: CharacterDef[],
+  apparentCharacters?: CharacterDef[],
+): ReminderToken[] {
   const tokens: ReminderToken[] = [...BASIC_TOKENS];
 
   // Add "Mad" conditionally — only when a character with a "mad" ability is in play
@@ -46,6 +51,27 @@ export function buildAvailableTokens(activeCharacters: CharacterDef[]): Reminder
       if (!seenIds.has(reminder.id)) {
         seenIds.add(reminder.id);
         tokens.push(reminder);
+      }
+    }
+    // Include global reminders (apply even when character is not in play)
+    if (char.remindersGlobal) {
+      for (const reminder of char.remindersGlobal) {
+        if (!seenIds.has(reminder.id)) {
+          seenIds.add(reminder.id);
+          tokens.push(reminder);
+        }
+      }
+    }
+  }
+
+  // Include apparent character reminders (for Drunk/Marionette concealment)
+  if (apparentCharacters) {
+    for (const char of apparentCharacters) {
+      for (const reminder of char.reminders) {
+        if (!seenIds.has(reminder.id)) {
+          seenIds.add(reminder.id);
+          tokens.push(reminder);
+        }
       }
     }
   }

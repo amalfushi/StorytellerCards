@@ -27,6 +27,8 @@ interface PlayerRowProps {
   onSwap?: (seat: number) => void;
   /** Whether this row is the active swap source. */
   isSwapSource?: boolean;
+  /** Apparent (believed) character definition for concealed players. */
+  apparentCharacter?: CharacterDef;
 }
 
 /**
@@ -48,6 +50,7 @@ export function PlayerRow({
   onRowClick,
   onSwap,
   isSwapSource,
+  apparentCharacter,
 }: PlayerRowProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const typeColor = character ? getCharacterTypeColor(character.type) : '#9e9e9e';
@@ -155,7 +158,24 @@ export function PlayerRow({
 
         {/* Character Name (night view OR Traveller always visible) */}
         {(showCharacters || player.isTraveller) && (
-          <TableCell sx={{ px: 1 }}>{character?.name ?? '—'}</TableCell>
+          <TableCell sx={{ px: 1 }}>
+            {character?.name ?? '—'}
+            {showCharacters && apparentCharacter && (
+              <Chip
+                label={`→ ${apparentCharacter.name}`}
+                size="small"
+                title={`Believes they are ${apparentCharacter.name}`}
+                sx={{
+                  ml: 0.5,
+                  fontSize: '0.6rem',
+                  height: 18,
+                  bgcolor: 'rgba(255,152,0,0.15)',
+                  color: '#ff9800',
+                  fontStyle: 'italic',
+                }}
+              />
+            )}
+          </TableCell>
         )}
 
         {/* Ability short (night view only) — strikethrough when dead */}

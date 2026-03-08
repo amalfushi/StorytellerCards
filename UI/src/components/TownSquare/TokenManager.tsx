@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -7,9 +8,12 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import type { PlayerSeat, PlayerToken, CharacterDef, ReminderToken } from '@/types/index.ts';
 import { generateId } from '@/utils/idGenerator.ts';
+import { getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { getCharacter } from '@/data/characters/index.ts';
 
 // ──────────────────────────────────────────────
 // Token colour constants & limits
@@ -277,6 +281,8 @@ export interface TokenManagerProps {
   characterDef?: CharacterDef;
   /** All available tokens built from active characters in the game. */
   availableTokens?: ReminderToken[];
+  /** All players in the game — used to enforce global count limits on reminder tokens. */
+  allPlayers?: PlayerSeat[];
 }
 
 /**
@@ -290,6 +296,7 @@ export function TokenManager({
   onRemoveToken,
   characterDef,
   availableTokens,
+  allPlayers = [],
 }: TokenManagerProps) {
   const [customLabel, setCustomLabel] = useState('');
 
@@ -307,6 +314,38 @@ export function TokenManager({
 
   // Set of this player's character reminder IDs for highlighting
   const playerReminderIds = new Set(reminders.map((r) => r.id));
+
+  // Build global usage counts for reminder tokens across all players (for count limits)
+  const globalTokenUsage = new Map<string, number>();
+  for (const p of allPlayers) {
+    for (const t of p.tokens ?? []) {
+      // Match tokens by label + sourceCharacterId to count usage
+      const key = `${t.label}::${t.sourceCharacterId ?? ''}`;
+      globalTokenUsage.set(key, (globalTokenUsage.get(key) ?? 0) + 1);
+    }
+  }
+
+  // Count how many copies of a specific reminder token exist in the available pool
+  const reminderMaxCounts = new Map<string, number>();
+  for (const r of availableTokens ?? []) {
+    if (r.id.startsWith('basic-')) continue;
+    const key = `${r.text}::${r.sourceCharacterId ?? ''}`;
+    reminderMaxCounts.set(key, (reminderMaxCounts.get(key) ?? 0) + 1);
+  }
+
+  /** Check whether a character reminder token has reached its global placement limit. */
+  const isReminderAtLimit = (reminder: ReminderToken): boolean => {
+    const key = `${reminder.text}::${reminder.sourceCharacterId ?? ''}`;
+    const maxCount = reminderMaxCounts.get(key) ?? Infinity;
+    const currentUsage = globalTokenUsage.get(key) ?? 0;
+    return currentUsage >= maxCount;
+  };
+
+  /** Resolve the source character name for a token. */
+  const getSourceCharacterName = (sourceId?: string): string | undefined => {
+    if (!sourceId) return undefined;
+    return getCharacter(sourceId)?.name;
+  };
 
   /** Toggle a basic token: if it already exists, remove it; otherwise add it. */
   const handleToggleBasic = (reminder: ReminderToken) => {
@@ -371,19 +410,33 @@ export function TokenManager({
               Active Tokens
             </Typography>
             <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-              {tokens.map((t) => (
-                <Chip
-                  key={t.id}
-                  label={t.label}
-                  size="small"
-                  onDelete={() => onRemoveToken(player.seat, t.id)}
-                  sx={{
-                    bgcolor: t.color ?? TOKEN_COLORS[t.type] ?? '#9e9e9e',
-                    color: '#fff',
-                    fontWeight: 600,
-                  }}
-                />
-              ))}
+              {tokens.map((t) => {
+                const sourceName = getSourceCharacterName(t.sourceCharacterId);
+                return (
+                  <Chip
+                    key={t.id}
+                    label={t.label}
+                    size="small"
+                    avatar={
+                      t.sourceCharacterId ? (
+                        <Tooltip title={sourceName ?? t.sourceCharacterId}>
+                          <Avatar
+                            src={getCharacterIconPath(t.sourceCharacterId)}
+                            alt={sourceName ?? t.sourceCharacterId}
+                            sx={{ width: 20, height: 20 }}
+                          />
+                        </Tooltip>
+                      ) : undefined
+                    }
+                    onDelete={() => onRemoveToken(player.seat, t.id)}
+                    sx={{
+                      bgcolor: t.color ?? TOKEN_COLORS[t.type] ?? '#9e9e9e',
+                      color: '#fff',
+                      fontWeight: 600,
+                    }}
+                  />
+                );
+              })}
             </Box>
           </Box>
         )}
@@ -473,23 +526,40 @@ export function TokenManager({
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {characterTokens.map((r) => {
                 const isPlayerReminder = playerReminderIds.has(r.id);
+                const atLimit = isReminderAtLimit(r);
+                const sourceName = getSourceCharacterName(r.sourceCharacterId);
                 return (
-                  <Button
+                  <Tooltip
                     key={r.id}
-                    variant="outlined"
-                    size="small"
-                    onClick={() => handleAddCharacterReminder(r)}
-                    disabled={customTokenCount >= MAX_CUSTOM_TOKENS}
-                    sx={{
-                      textTransform: 'none',
-                      fontSize: '0.75rem',
-                      borderColor: isPlayerReminder ? TOKEN_COLORS.character : undefined,
-                      color: isPlayerReminder ? TOKEN_COLORS.character : undefined,
-                      fontWeight: isPlayerReminder ? 700 : 400,
-                    }}
+                    title={atLimit ? 'All copies placed' : sourceName ? `From ${sourceName}` : ''}
                   >
-                    {r.text}
-                  </Button>
+                    <span>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        onClick={() => handleAddCharacterReminder(r)}
+                        disabled={customTokenCount >= MAX_CUSTOM_TOKENS || atLimit}
+                        startIcon={
+                          r.sourceCharacterId ? (
+                            <Avatar
+                              src={getCharacterIconPath(r.sourceCharacterId)}
+                              alt={sourceName ?? r.sourceCharacterId}
+                              sx={{ width: 18, height: 18 }}
+                            />
+                          ) : undefined
+                        }
+                        sx={{
+                          textTransform: 'none',
+                          fontSize: '0.75rem',
+                          borderColor: isPlayerReminder ? TOKEN_COLORS.character : undefined,
+                          color: isPlayerReminder ? TOKEN_COLORS.character : undefined,
+                          fontWeight: isPlayerReminder ? 700 : 400,
+                        }}
+                      >
+                        {r.text}
+                      </Button>
+                    </span>
+                  </Tooltip>
                 );
               })}
             </Box>

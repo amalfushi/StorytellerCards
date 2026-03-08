@@ -159,6 +159,9 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
                 player={player}
                 showCharacters={showCharacters}
                 character={player.characterId ? getCharacter(player.characterId) : undefined}
+                apparentCharacter={
+                  player.apparentCharacterId ? getCharacter(player.apparentCharacterId) : undefined
+                }
                 onToggleAlive={handleToggleAlive}
                 onToggleGhostVote={handleToggleGhostVote}
                 onRowClick={handleRowClick}
