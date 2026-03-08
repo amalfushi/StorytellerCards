@@ -151,20 +151,27 @@ describe('getDistributionSuggestions', () => {
     expect(suggestions[0].reason).toContain('Atheist');
   });
 
-  it('returns Legion suggestion when script contains legion', () => {
-    const base = getDistribution(7); // minions: 1
+  it('returns Legion suggestion with reversed good/evil ratio', () => {
+    const base = getDistribution(7); // townsfolk: 5, outsiders: 0, minions: 1, demons: 1
     const suggestions = getDistributionSuggestions(['legion', 'washerwoman'], base);
     expect(suggestions).toHaveLength(1);
-    expect(suggestions[0].suggested.demons).toBe(2); // minions + 1
+    // 5 good slots become evil (Legion), 2 evil slots become good
+    expect(suggestions[0].suggested.demons).toBe(5); // normal good count
     expect(suggestions[0].suggested.minions).toBe(0);
+    expect(suggestions[0].suggested.townsfolk).toBe(1); // normal evil - 1
+    expect(suggestions[0].suggested.outsiders).toBe(0);
     expect(suggestions[0].reason).toContain('Legion');
+    expect(suggestions[0].reason).toContain('reversed');
   });
 
-  it("returns Lil' Monsta suggestion when script contains lilmonsta", () => {
-    const suggestions = getDistributionSuggestions(['lilmonsta', 'poisoner'], getDistribution(7));
+  it("returns Lil' Monsta suggestion with extra minion", () => {
+    const base = getDistribution(7); // minions: 1
+    const suggestions = getDistributionSuggestions(['lilmonsta', 'poisoner'], base);
     expect(suggestions).toHaveLength(1);
     expect(suggestions[0].suggested.demons).toBe(0);
+    expect(suggestions[0].suggested.minions).toBe(2); // base minions + 1
     expect(suggestions[0].reason).toContain("Lil' Monsta");
+    expect(suggestions[0].reason).toContain('+1 Minion');
   });
 
   it('returns multiple suggestions when multiple edge-case characters present', () => {
@@ -175,10 +182,11 @@ describe('getDistributionSuggestions', () => {
     expect(reasons.some((r) => r.includes('Legion'))).toBe(true);
   });
 
-  it('Legion suggestion scales with player count (more minions at higher counts)', () => {
-    const base10 = getDistribution(10); // minions: 2
+  it('Legion suggestion scales with player count (reversed ratio)', () => {
+    const base10 = getDistribution(10); // townsfolk: 7, outsiders: 0, minions: 2, demons: 1
     const suggestions = getDistributionSuggestions(['legion'], base10);
-    expect(suggestions[0].suggested.demons).toBe(3); // 2 + 1
+    expect(suggestions[0].suggested.demons).toBe(7); // normal good (7+0)
+    expect(suggestions[0].suggested.townsfolk).toBe(2); // normal evil (2+1) - 1
   });
 });
 

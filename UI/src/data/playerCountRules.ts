@@ -74,18 +74,20 @@ export function getDistributionSuggestions(
   }
 
   if (idSet.has('legion')) {
-    const legionDemons = baseDistribution.minions + 1;
+    // Legion reverses the good/evil ratio — roughly as many evil as normal good, and vice versa
+    const normalGood = baseDistribution.townsfolk + baseDistribution.outsiders;
+    const normalEvil = baseDistribution.minions + baseDistribution.demons;
     suggestions.push({
-      suggested: { demons: legionDemons, minions: 0 },
-      reason: `Legion: All Minion slots become Legion copies. Consider ${legionDemons} Demons and 0 Minions.`,
+      suggested: { demons: normalGood, townsfolk: normalEvil - 1, outsiders: 0, minions: 0 },
+      reason: `Legion: The recommended distribution is reversed. For ${normalGood + normalEvil} players, roughly ${normalGood} Legion (evil) and ${normalEvil} good players.`,
     });
   }
 
   if (idSet.has('lilmonsta')) {
     suggestions.push({
-      suggested: { demons: 0 },
+      suggested: { demons: 0, minions: baseDistribution.minions + 1 },
       reason:
-        "Lil' Monsta: The demon is a token babysat by a Minion, not assigned to a player. Consider 0 Demon players.",
+        "Lil' Monsta: The demon is a token babysat by a Minion, not assigned to a player. Consider 0 Demon players and +1 Minion.",
     });
   }
 
