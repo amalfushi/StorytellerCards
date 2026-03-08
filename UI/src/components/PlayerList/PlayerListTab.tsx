@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
+import Divider from '@mui/material/Divider';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -10,6 +11,7 @@ import Typography from '@mui/material/Typography';
 import type { CharacterDef, Alignment } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
+import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { PlayerRow } from '@/components/PlayerList/PlayerRow.tsx';
 import { PlayerEditDialog } from '@/components/PlayerList/PlayerEditDialog.tsx';
 
@@ -29,6 +31,14 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
 
   const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
   const showCharacters = state.showCharacters;
+
+  // Active Fabled/Loric game modifiers
+  const activeFabledIds = useMemo(() => state.game?.activeFabled ?? [], [state.game?.activeFabled]);
+  const activeLoricIds = useMemo(() => state.game?.activeLoric ?? [], [state.game?.activeLoric]);
+  const activeModifiers: CharacterDef[] = useMemo(() => {
+    const ids = [...activeFabledIds, ...activeLoricIds];
+    return ids.map((id) => getCharacter(id)).filter((ch): ch is CharacterDef => ch !== undefined);
+  }, [activeFabledIds, activeLoricIds, getCharacter]);
 
   // Sort by seat number
   const sortedPlayers = useMemo(() => [...players].sort((a, b) => a.seat - b.seat), [players]);
@@ -135,6 +145,69 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         onClose={() => setEditSeat(null)}
         onSave={handleEditSave}
       />
+
+      {/* Game Modifiers section — active Fabled/Loric */}
+      {activeModifiers.length > 0 && (
+        <Box data-testid="game-modifiers-section" sx={{ mt: 1 }}>
+          <Divider />
+          <Typography
+            variant="subtitle2"
+            sx={{ px: 1.5, py: 1, fontWeight: 700, color: 'text.secondary' }}
+          >
+            Game Modifiers
+          </Typography>
+          {activeModifiers.map((ch) => {
+            const color = getCharacterTypeColor(ch.type);
+            return (
+              <Box
+                key={ch.id}
+                data-testid={`modifier-${ch.id}`}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: 1,
+                  px: 1.5,
+                  py: 0.75,
+                  borderBottom: '1px solid',
+                  borderColor: 'divider',
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 8,
+                    height: 8,
+                    borderRadius: '50%',
+                    bgcolor: color,
+                    mt: 0.75,
+                    flexShrink: 0,
+                  }}
+                />
+                <Box sx={{ flex: 1, minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {ch.name}
+                    <Typography
+                      component="span"
+                      variant="caption"
+                      sx={{ ml: 0.75, color, fontWeight: 600 }}
+                    >
+                      {ch.type}
+                    </Typography>
+                  </Typography>
+                  {ch.abilityShort && ch.abilityShort !== '<TODO>' && (
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{ display: 'block', lineHeight: 1.3 }}
+                    >
+                      {ch.abilityShort}
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            );
+          })}
+        </Box>
+      )}
     </Box>
   );
 }
