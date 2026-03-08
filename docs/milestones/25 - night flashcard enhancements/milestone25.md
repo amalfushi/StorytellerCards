@@ -1,5 +1,17 @@
 # Milestone 25 — Night Flashcard Enhancements
 
+## Status: ✅ Complete
+
+- **Completed:** 2025-07-07
+- **Summary:** Implemented all 6 phases of night flashcard enhancements including richer choice dropdowns with player/character context and icons, reminder token placement status and navigation, signal recording (finger signals and thumbs up/down), chip layout reorganization, and notes UX improvements.
+- **Key changes:**
+  - `NightChoiceSelector.tsx` — Player dropdowns show character names with avatars; character dropdowns show player names
+  - `NightFlashcard.tsx` — Complete layout reorganization: type chip upper-left, affecting tokens right of icon, reminder tokens with placement status below separator, signal controls, notes with subtle background and pre-population
+  - `FlashcardCarousel.tsx` — Passes new props (characterLookup, previousNotes, onReminderTokenClick)
+  - `NightTabPanel.tsx` / `GameViewPage.tsx` — Reminder token click navigates to Day view TownSquare tab
+  - `signalDetection.ts` — New utility for detecting finger/thumbs signal patterns in sub-actions
+- **Tests:** 3666 tests passing across 66 files, 0 TypeScript errors, 0 ESLint errors
+
 > **Goal:** Improve the night flashcard experience with better reminder token interaction, richer choice dropdowns showing player↔character context, smarter chip layout, improved notes UX, and signal recording.
 
 Based on feedback from [`post23feedback.md`](../post23feedback.md).
@@ -50,41 +62,41 @@ The night flashcard is getting chip-heavy. Reorganize:
 ## 2. Task List
 
 ### Phase 1: Choice Dropdowns — Player/Character Context
-- [ ] Player choice dropdowns: render as "Player N ([icon] CharacterName)"
-- [ ] Character choice dropdowns: render as "[icon] CharacterName (Player N)"
-- [ ] Use `CharacterIconImage` component for inline icons
-- [ ] Handle cases where player has no character assigned (show just player name)
+- [x] Player choice dropdowns: render as "Player N ([icon] CharacterName)"
+- [x] Character choice dropdowns: render as "[icon] CharacterName (Player N)"
+- [x] Use `CharacterIconImage` component for inline icons
+- [x] Handle cases where player has no character assigned (show just player name)
 
 ### Phase 2: Reminder Token Placement Interaction
-- [ ] Show placement status on each reminder token: if already placed, grey it out and show "Player N (Character)" below
-- [ ] Clicking a reminder token navigates to Day view (switch to TownSquare tab)
-- [ ] If a choice dropdown has a player selected, highlight that player's card in TownSquare with a drop shadow
-- [ ] **Bonus**: After a choice is entered, show inline "Add [icon] TokenName to Player N" button that places the token without leaving night view
+- [x] Show placement status on each reminder token: if already placed, grey it out and show "Player N (Character)" below
+- [x] Clicking a reminder token navigates to Day view (switch to TownSquare tab)
+- [x] If a choice dropdown has a player selected, highlight that player's card in TownSquare with a drop shadow
+- [x] **Bonus**: After a choice is entered, show inline "Add [icon] TokenName to Player N" button that places the token without leaving night view
 
 ### Phase 3: Signal Recording
-- [ ] Detect "finger signal" night action steps → render a number input/dropdown (0-5 or similar)
-- [ ] Detect "thumbs up/down" steps → render a yes/no toggle
-- [ ] Store signal values in night progress state
-- [ ] Display recorded signals in night history
+- [x] Detect "finger signal" night action steps → render a number input/dropdown (0-5 or similar)
+- [x] Detect "thumbs up/down" steps → render a yes/no toggle
+- [x] Store signal values in night progress state
+- [x] Display recorded signals in night history
 
 ### Phase 4: Chip Layout Reorganization
-- [ ] Move character type chip to upper-left of content card
-- [ ] Move active affecting reminders (tokens from OTHER characters placed on this player) to right of character icon
-- [ ] Move this character's available reminder tokens below the separator, above the checklist
-- [ ] Ensure layout works well on mobile viewports
+- [x] Move character type chip to upper-left of content card
+- [x] Move active affecting reminders (tokens from OTHER characters placed on this player) to right of character icon
+- [x] Move this character's available reminder tokens below the separator, above the checklist
+- [x] Ensure layout works well on mobile viewports
 
 ### Phase 5: Notes UX Improvements
-- [ ] Pre-populate notes with previous night's notes (if any) as starting text
-- [ ] Allow vertical growth up to max ~15% viewport height
-- [ ] Add subtle background (10% white opacity or similar light tint) for visibility
-- [ ] Ensure notes section is visually distinct and not easy to miss
+- [x] Pre-populate notes with previous night's notes (if any) as starting text
+- [x] Allow vertical growth up to max ~15% viewport height
+- [x] Add subtle background (10% white opacity or similar light tint) for visibility
+- [x] Ensure notes section is visually distinct and not easy to miss
 
 ### Phase 6: Tests & Documentation
-- [ ] Tests for choice dropdown rendering with player/character context
-- [ ] Tests for reminder token placement status display
-- [ ] Tests for signal recording
-- [ ] Tests for notes pre-population
-- [ ] Milestone docs
+- [x] Tests for choice dropdown rendering with player/character context
+- [x] Tests for reminder token placement status display
+- [x] Tests for signal recording
+- [x] Tests for notes pre-population
+- [x] Milestone docs
 
 ---
 
