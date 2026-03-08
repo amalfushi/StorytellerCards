@@ -161,6 +161,12 @@ export function CharacterSelection({
     );
   }
 
+  /** Total count of all selected characters. */
+  const totalSelected = selectedIds.size;
+  const totalExpected = distribution
+    ? distribution.townsfolk + distribution.outsiders + distribution.minions + distribution.demons
+    : 0;
+
   return (
     <Dialog
       open={open}
@@ -169,18 +175,34 @@ export function CharacterSelection({
       maxWidth="sm"
       TransitionProps={{ onEnter: handleEnter }}
     >
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Typography component="span" variant="h6" sx={{ flexGrow: 1 }}>
-          Select In-Play Characters
-        </Typography>
-        <IconButton aria-label="close" onClick={onClose} size="small">
-          <CloseIcon />
-        </IconButton>
-      </DialogTitle>
-
-      <DialogContent dividers>
-        {/* Distribution summary */}
-        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
+      <DialogTitle sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, pb: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography component="span" variant="h6" sx={{ flexGrow: 1 }}>
+            Select In-Play Characters
+          </Typography>
+          <IconButton aria-label="close" onClick={onClose} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+        {/* Sticky count summary — always visible */}
+        <Box
+          data-testid="sticky-count-header"
+          sx={{
+            display: 'flex',
+            gap: 0.5,
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            pt: 0.5,
+          }}
+        >
+          <Chip
+            label={`Selected: ${totalSelected}/${totalExpected}`}
+            size="small"
+            color={totalSelected === totalExpected ? 'success' : 'default'}
+            variant={totalSelected === totalExpected ? 'filled' : 'outlined'}
+            sx={{ fontWeight: 700 }}
+            data-testid="total-count-chip"
+          />
           {TYPE_GROUP_ORDER.filter((t) => TYPE_TO_DIST_KEY[t]).map((type) => {
             const distKey = TYPE_TO_DIST_KEY[type]!;
             const target = distribution[distKey];
@@ -189,7 +211,7 @@ export function CharacterSelection({
             return (
               <Chip
                 key={type}
-                label={`${type}: ${current}/${target}`}
+                label={`${type.slice(0, 2).toUpperCase()}: ${current}/${target}`}
                 size="small"
                 data-testid={`summary-chip-${type}`}
                 sx={{
@@ -198,12 +220,15 @@ export function CharacterSelection({
                     : 'action.disabledBackground',
                   color: met ? getCharacterTypeColor(type) : 'text.secondary',
                   fontWeight: 600,
+                  fontSize: '0.7rem',
                 }}
               />
             );
           })}
         </Box>
+      </DialogTitle>
 
+      <DialogContent dividers>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           Select which characters are in play for this {playerCount}-player game.
         </Typography>

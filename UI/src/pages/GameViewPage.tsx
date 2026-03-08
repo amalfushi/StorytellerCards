@@ -14,6 +14,7 @@ import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import ChecklistIcon from '@mui/icons-material/Checklist';
+import Drawer from '@mui/material/Drawer';
 import GroupsIcon from '@mui/icons-material/Groups';
 import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
@@ -304,6 +305,19 @@ export function GameViewPage() {
             </Tooltip>
           )}
 
+          {showSetupChecklistBanner && (
+            <Tooltip title="Setup Checklist">
+              <IconButton
+                color="inherit"
+                aria-label="setup checklist"
+                onClick={() => setSetupChecklistOpen(true)}
+                sx={{ mr: 0.5 }}
+              >
+                <ChecklistIcon />
+              </IconButton>
+            </Tooltip>
+          )}
+
           <ShowCharactersToggle />
         </Toolbar>
       </AppBar>
@@ -322,16 +336,14 @@ export function GameViewPage() {
           severity="info"
           action={
             <Box sx={{ display: 'flex', gap: 1 }}>
-              {needsCharacterSelection && (
-                <Button
-                  color="inherit"
-                  size="small"
-                  startIcon={<AssignmentIndIcon />}
-                  onClick={() => setCharSelectionOpen(true)}
-                >
-                  Select Characters
-                </Button>
-              )}
+              <Button
+                color="inherit"
+                size="small"
+                startIcon={<AssignmentIndIcon />}
+                onClick={() => setCharSelectionOpen(true)}
+              >
+                {game.inPlayCharacterIds?.length ? 'Re-select Characters' : 'Select Characters'}
+              </Button>
               <Button
                 color="inherit"
                 size="small"
@@ -349,7 +361,7 @@ export function GameViewPage() {
       )}
 
       {/* ── Setup Checklist Banner ── */}
-      {showSetupChecklistBanner && viewMode === 'day' && (
+      {showSetupChecklistBanner && viewMode === 'day' && !setupChecklistOpen && (
         <Alert
           severity="success"
           action={
@@ -357,9 +369,9 @@ export function GameViewPage() {
               color="inherit"
               size="small"
               startIcon={<ChecklistIcon />}
-              onClick={() => setSetupChecklistOpen(!setupChecklistOpen)}
+              onClick={() => setSetupChecklistOpen(true)}
             >
-              {setupChecklistOpen ? 'Hide Checklist' : 'Setup Checklist'}
+              Setup Checklist
             </Button>
           }
           sx={{ borderRadius: 0 }}
@@ -368,20 +380,48 @@ export function GameViewPage() {
         </Alert>
       )}
 
-      {/* ── Setup Checklist Panel ── */}
-      {setupChecklistOpen && game && game.inPlayCharacterIds && viewMode === 'day' && (
-        <Box sx={{ maxHeight: '60vh', overflow: 'auto', borderBottom: 1, borderColor: 'divider' }}>
-          <SetupChecklist
-            gameId={game.id}
-            players={game.players}
-            inPlayCharacterIds={game.inPlayCharacterIds}
-            scriptCharacterIds={scriptCharacterIds}
-            onStartNight={() => {
-              setSetupChecklistOpen(false);
-              handleNightClick();
+      {/* ── Setup Checklist Drawer ── */}
+      {game && game.inPlayCharacterIds && (
+        <Drawer
+          anchor="right"
+          open={setupChecklistOpen}
+          onClose={() => setSetupChecklistOpen(false)}
+          PaperProps={{ sx: { width: { xs: '100%', sm: 380 }, maxWidth: '100vw' } }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              p: 1.5,
+              borderBottom: 1,
+              borderColor: 'divider',
             }}
-          />
-        </Box>
+          >
+            <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
+              ✅ Setup Checklist
+            </Typography>
+            <IconButton
+              onClick={() => setSetupChecklistOpen(false)}
+              aria-label="close setup checklist"
+              size="small"
+            >
+              ✕
+            </IconButton>
+          </Box>
+          <Box sx={{ overflow: 'auto', flex: 1 }}>
+            <SetupChecklist
+              gameId={game.id}
+              players={game.players}
+              inPlayCharacterIds={game.inPlayCharacterIds}
+              scriptCharacterIds={scriptCharacterIds}
+              onStartNight={() => {
+                setSetupChecklistOpen(false);
+                handleNightClick();
+              }}
+            />
+          </Box>
+        </Drawer>
       )}
 
       {/* ── Tab content / Night panel ── */}

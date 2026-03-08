@@ -1,5 +1,6 @@
 import { CharacterType } from '@/types/index.ts';
 import { characterColors } from '@/theme/index.ts';
+import { getCharacter } from '@/data/characters/index.ts';
 
 /** Returns the theme colour for a given character type. */
 export function getCharacterTypeColor(type: string): string {
@@ -21,4 +22,12 @@ export function getCharacterTypeColor(type: string): string {
     default:
       return '#9e9e9e';
   }
+}
+
+/** Resolve reminder token colour based on the source character's type. */
+export function getReminderTokenColor(sourceCharacterId?: string): string {
+  if (!sourceCharacterId) return '#00897b'; // teal fallback
+  const char = getCharacter(sourceCharacterId);
+  if (!char) return '#00897b';
+  return getCharacterTypeColor(char.type);
 }

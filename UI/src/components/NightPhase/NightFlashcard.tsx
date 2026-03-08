@@ -8,7 +8,10 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef, ActiveJinx } from '@/types/index.ts';
-import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import {
+  getCharacterTypeColor,
+  getReminderTokenColor,
+} from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { TokenChips } from '@/components/common/TokenChips.tsx';
@@ -320,11 +323,11 @@ export function NightFlashcard({
                       ) : undefined
                     }
                     sx={{
-                      bgcolor: 'rgba(0,137,123,0.25)',
-                      color: '#4dd0e1',
+                      bgcolor: `${getReminderTokenColor(seg.token.sourceCharacterId)}33`,
+                      color: getReminderTokenColor(seg.token.sourceCharacterId),
                       fontWeight: 600,
                       fontSize: '0.7rem',
-                      border: '1px solid rgba(77,208,225,0.4)',
+                      border: `1px solid ${getReminderTokenColor(seg.token.sourceCharacterId)}66`,
                     }}
                   />
                 ),
@@ -363,11 +366,11 @@ export function NightFlashcard({
                     ) : undefined
                   }
                   sx={{
-                    bgcolor: 'rgba(0,137,123,0.2)',
-                    color: '#4dd0e1',
+                    bgcolor: `${getReminderTokenColor(r.sourceCharacterId)}30`,
+                    color: getReminderTokenColor(r.sourceCharacterId),
                     fontWeight: 600,
                     fontSize: '0.65rem',
-                    border: '1px solid rgba(77,208,225,0.3)',
+                    border: `1px solid ${getReminderTokenColor(r.sourceCharacterId)}55`,
                   }}
                 />
               </Tooltip>

@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import type { PlayerToken } from '@/types/index.ts';
+import { getReminderTokenColor } from '@/components/common/characterTypeColor.ts';
 
 // ──────────────────────────────────────────────
 // Token display colours (F3-17 / F3-18)
@@ -24,11 +25,13 @@ export interface TokenChipsProps {
  *
  * - Drunk → purple (`#7b1fa2`)
  * - Poisoned → green (`#388e3c`)
+ * - Custom with source character → character type colour
  * - Custom → token's own colour if set, otherwise grey (`#757575`)
  */
 function resolveTokenColor(token: PlayerToken): string {
   if (token.type === 'drunk') return TOKEN_CHIP_COLORS.drunk;
   if (token.type === 'poisoned') return TOKEN_CHIP_COLORS.poisoned;
+  if (token.sourceCharacterId) return getReminderTokenColor(token.sourceCharacterId);
   return token.color ?? TOKEN_CHIP_COLORS.custom;
 }
 

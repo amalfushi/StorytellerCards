@@ -14,6 +14,7 @@ import type { PlayerSeat, PlayerToken, CharacterDef, ReminderToken } from '@/typ
 import { generateId } from '@/utils/idGenerator.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { getCharacter } from '@/data/characters/index.ts';
+import { getReminderTokenColor } from '@/components/common/characterTypeColor.ts';
 
 // ──────────────────────────────────────────────
 // Token colour constants & limits
@@ -254,16 +255,17 @@ function tokenPropsForReminder(reminder: ReminderToken): {
       return { type: 'poisoned', color: TOKEN_COLORS.poisoned };
     case 'basic-mad':
       return { type: 'custom', color: TOKEN_COLORS.mad };
-    default:
-      // Character-specific reminder — extract source character from the id prefix
-      // e.g. "lycanthrope-fauxpaw" → sourceCharacterId = "lycanthrope"
+    default: {
+      // Character-specific reminder — use source character's type colour
+      const sourceId =
+        reminder.sourceCharacterId ??
+        (reminder.id.includes('-') ? reminder.id.slice(0, reminder.id.indexOf('-')) : undefined);
       return {
         type: 'custom',
-        color: TOKEN_COLORS.character,
-        sourceCharacterId: reminder.id.includes('-')
-          ? reminder.id.slice(0, reminder.id.indexOf('-'))
-          : undefined,
+        color: getReminderTokenColor(sourceId),
+        sourceCharacterId: sourceId,
       };
+    }
   }
 }
 

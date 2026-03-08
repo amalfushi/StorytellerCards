@@ -80,6 +80,11 @@ export const marionette: CharacterDef = {
   edition: 'carousel',
   setup: true,
   remindersGlobal: [
-    { id: 'marionette-global-isthemarionette', text: 'Is The Marionette', isGlobal: true },
+    {
+      id: 'marionette-global-isthemarionette',
+      text: 'Is The Marionette',
+      isGlobal: true,
+      sourceCharacterId: 'marionette',
+    },
   ],
 };

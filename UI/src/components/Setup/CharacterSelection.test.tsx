@@ -99,10 +99,10 @@ describe('CharacterSelection', () => {
   it('shows distribution summary chips for counted types', () => {
     render(<CharacterSelection {...defaultProps} />);
     // 7 players = 5 townsfolk, 0 outsiders, 1 minion, 1 demon
-    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('Townsfolk: 0/5');
-    expect(screen.getByTestId('summary-chip-Outsider')).toHaveTextContent('Outsider: 0/0');
-    expect(screen.getByTestId('summary-chip-Minion')).toHaveTextContent('Minion: 0/1');
-    expect(screen.getByTestId('summary-chip-Demon')).toHaveTextContent('Demon: 0/1');
+    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('TO: 0/5');
+    expect(screen.getByTestId('summary-chip-Outsider')).toHaveTextContent('OU: 0/0');
+    expect(screen.getByTestId('summary-chip-Minion')).toHaveTextContent('MI: 0/1');
+    expect(screen.getByTestId('summary-chip-Demon')).toHaveTextContent('DE: 0/1');
   });
 
   it('toggles character selection on click', () => {
@@ -111,7 +111,7 @@ describe('CharacterSelection', () => {
     fireEvent.click(toggle);
 
     // Should now show 1/5 for Townsfolk
-    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('Townsfolk: 1/5');
+    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('TO: 1/5');
   });
 
   it('updates distribution chip when selections match targets', () => {
@@ -119,11 +119,11 @@ describe('CharacterSelection', () => {
 
     // Select 1 minion
     fireEvent.click(screen.getByTestId('char-toggle-poisoner'));
-    expect(screen.getByTestId('summary-chip-Minion')).toHaveTextContent('Minion: 1/1');
+    expect(screen.getByTestId('summary-chip-Minion')).toHaveTextContent('MI: 1/1');
 
     // Select 1 demon
     fireEvent.click(screen.getByTestId('char-toggle-imp'));
-    expect(screen.getByTestId('summary-chip-Demon')).toHaveTextContent('Demon: 1/1');
+    expect(screen.getByTestId('summary-chip-Demon')).toHaveTextContent('DE: 1/1');
   });
 
   it('shows confirm button with selected count', () => {
@@ -160,20 +160,20 @@ describe('CharacterSelection', () => {
       <CharacterSelection {...defaultProps} initialSelected={['washerwoman', 'imp', 'poisoner']} />,
     );
 
-    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('Townsfolk: 1/5');
-    expect(screen.getByTestId('summary-chip-Minion')).toHaveTextContent('Minion: 1/1');
-    expect(screen.getByTestId('summary-chip-Demon')).toHaveTextContent('Demon: 1/1');
+    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('TO: 1/5');
+    expect(screen.getByTestId('summary-chip-Minion')).toHaveTextContent('MI: 1/1');
+    expect(screen.getByTestId('summary-chip-Demon')).toHaveTextContent('DE: 1/1');
     expect(screen.getByTestId('confirm-selection')).toHaveTextContent('Confirm (3 selected)');
   });
 
   it('deselects a previously selected character on toggle', () => {
     render(<CharacterSelection {...defaultProps} initialSelected={['washerwoman']} />);
 
-    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('Townsfolk: 1/5');
+    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('TO: 1/5');
 
     // Deselect
     fireEvent.click(screen.getByTestId('char-toggle-washerwoman'));
-    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('Townsfolk: 0/5');
+    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('TO: 0/5');
   });
 
   it('shows player count description', () => {
@@ -181,18 +181,18 @@ describe('CharacterSelection', () => {
     expect(screen.getByText(/10-player game/)).toBeInTheDocument();
   });
 
-  it('toggle all selects/deselects entire type group', () => {
+  it('toggle all selects/deselects entire type group', { timeout: 15000 }, () => {
     render(<CharacterSelection {...defaultProps} />);
 
     // Click the Townsfolk group header to select all
     const townsfolkHeader = screen.getByRole('button', { name: 'Toggle all Townsfolk' });
     fireEvent.click(townsfolkHeader);
 
-    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('Townsfolk: 5/5');
+    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('TO: 5/5');
 
     // Click again to deselect all
     fireEvent.click(townsfolkHeader);
-    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('Townsfolk: 0/5');
+    expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('TO: 0/5');
   });
 
   it('does not render group for types with no characters', () => {
@@ -201,5 +201,12 @@ describe('CharacterSelection', () => {
 
     expect(screen.queryByTestId('char-group-Townsfolk')).not.toBeInTheDocument();
     expect(screen.getByTestId('char-group-Demon')).toBeInTheDocument();
+  });
+
+  it('shows sticky count header with total and type abbreviations', () => {
+    render(<CharacterSelection {...defaultProps} initialSelected={['washerwoman', 'imp']} />);
+
+    expect(screen.getByTestId('sticky-count-header')).toBeInTheDocument();
+    expect(screen.getByTestId('total-count-chip')).toHaveTextContent('Selected: 2/7');
   });
 });

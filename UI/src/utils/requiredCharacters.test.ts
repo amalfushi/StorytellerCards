@@ -83,4 +83,36 @@ describe('getSetupPrompts', () => {
   it('ignores unknown character IDs gracefully', () => {
     expect(getSetupPrompts(['unknownchar'])).toEqual([]);
   });
+
+  it('returns a prompt for Lycanthrope', () => {
+    const result = getSetupPrompts(['lycanthrope', 'imp']);
+    expect(result).toHaveLength(1);
+    expect(result[0].characterId).toBe('lycanthrope');
+    expect(result[0].prompt).toContain('Faux Paw');
+    expect(result[0].prompt).toContain('register as evil');
+  });
+
+  it('returns a prompt for Fortune Teller', () => {
+    const result = getSetupPrompts(['fortuneteller', 'imp']);
+    expect(result).toHaveLength(1);
+    expect(result[0].characterId).toBe('fortuneteller');
+    expect(result[0].prompt).toContain('Red Herring');
+  });
+
+  it('returns a prompt for Marionette', () => {
+    const result = getSetupPrompts(['marionette', 'imp']);
+    expect(result).toHaveLength(1);
+    expect(result[0].characterId).toBe('marionette');
+    expect(result[0].prompt).toContain('Marionette');
+    expect(result[0].prompt).toContain('token');
+  });
+
+  it('returns multiple prompts for multiple setup characters', () => {
+    const result = getSetupPrompts(['bountyhunter', 'lycanthrope', 'fortuneteller', 'imp']);
+    expect(result).toHaveLength(3);
+    const ids = result.map((r) => r.characterId);
+    expect(ids).toContain('bountyhunter');
+    expect(ids).toContain('lycanthrope');
+    expect(ids).toContain('fortuneteller');
+  });
 });

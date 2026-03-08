@@ -1,7 +1,24 @@
-import { describe, it, expect } from 'vitest';
-import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { describe, it, expect, vi } from 'vitest';
+import {
+  getCharacterTypeColor,
+  getReminderTokenColor,
+} from '@/components/common/characterTypeColor.ts';
 import { CharacterType } from '@/types/index.ts';
 import { characterColors } from '@/theme/index.ts';
+
+// Mock getCharacter for getReminderTokenColor tests
+vi.mock('@/data/characters/index.ts', () => ({
+  getCharacter: (id: string) => {
+    const chars: Record<string, { type: string }> = {
+      washerwoman: { type: 'Townsfolk' },
+      drunk: { type: 'Outsider' },
+      poisoner: { type: 'Minion' },
+      imp: { type: 'Demon' },
+      angel: { type: 'Fabled' },
+    };
+    return chars[id] ?? undefined;
+  },
+}));
 
 describe('getCharacterTypeColor', () => {
   it('returns blue for Townsfolk', () => {
@@ -47,5 +64,35 @@ describe('getCharacterTypeColor', () => {
       expect(color).not.toBe('#9e9e9e');
       expect(color).toBeTruthy();
     }
+  });
+});
+
+describe('getReminderTokenColor', () => {
+  it('returns Townsfolk colour for a Townsfolk source character', () => {
+    expect(getReminderTokenColor('washerwoman')).toBe(characterColors.townsfolk);
+  });
+
+  it('returns Outsider colour for an Outsider source character', () => {
+    expect(getReminderTokenColor('drunk')).toBe(characterColors.outsider);
+  });
+
+  it('returns Minion colour for a Minion source character', () => {
+    expect(getReminderTokenColor('poisoner')).toBe(characterColors.minion);
+  });
+
+  it('returns Demon colour for a Demon source character', () => {
+    expect(getReminderTokenColor('imp')).toBe(characterColors.demon);
+  });
+
+  it('returns Fabled colour for a Fabled source character', () => {
+    expect(getReminderTokenColor('angel')).toBe(characterColors.fabledStart);
+  });
+
+  it('returns teal fallback for undefined sourceCharacterId', () => {
+    expect(getReminderTokenColor(undefined)).toBe('#00897b');
+  });
+
+  it('returns teal fallback for unknown character id', () => {
+    expect(getReminderTokenColor('nonexistent')).toBe('#00897b');
   });
 });

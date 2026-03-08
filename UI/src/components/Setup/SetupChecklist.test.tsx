@@ -21,7 +21,14 @@ vi.mock('@/data/characters/index.ts', () => {
       reminders: [],
       setup: true,
       storytellerSetup: [{ id: 'drunk-assignment', description: 'Choose a Townsfolk character.' }],
-      remindersGlobal: [{ id: 'drunk-global-isthedrunk', text: 'Is The Drunk', isGlobal: true }],
+      remindersGlobal: [
+        {
+          id: 'drunk-global-isthedrunk',
+          text: 'Is The Drunk',
+          isGlobal: true,
+          sourceCharacterId: 'drunk',
+        },
+      ],
     },
     baron: {
       id: 'baron',
@@ -50,7 +57,12 @@ vi.mock('@/data/characters/index.ts', () => {
       reminders: [],
       setup: true,
       remindersGlobal: [
-        { id: 'marionette-global-isthemarionette', text: 'Is The Marionette', isGlobal: true },
+        {
+          id: 'marionette-global-isthemarionette',
+          text: 'Is The Marionette',
+          isGlobal: true,
+          sourceCharacterId: 'marionette',
+        },
       ],
     },
     imp: {
@@ -128,6 +140,17 @@ describe('buildChecklistItems', () => {
     const reminderItems = items.filter((i) => i.category === 'reminder');
     expect(reminderItems.length).toBeGreaterThanOrEqual(1);
     expect(reminderItems[0].label).toContain('Is The Marionette');
+  });
+
+  it('generates Marionette setup prompt items', () => {
+    const players = [makePlayer(1, 'marionette')];
+    const items = buildChecklistItems(players, ['marionette'], ['marionette']);
+    const promptItems = items.filter((i) => i.category === 'prompt');
+    expect(promptItems.length).toBeGreaterThanOrEqual(1);
+    expect(promptItems.some((p) => p.label.includes('Marionette'))).toBe(true);
+    expect(promptItems.some((p) => p.label.includes('Swap') || p.label.includes('token'))).toBe(
+      true,
+    );
   });
 
   it('returns empty array when no setup characters', () => {
