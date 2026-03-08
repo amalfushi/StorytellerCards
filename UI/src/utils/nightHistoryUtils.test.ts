@@ -3,8 +3,10 @@ import {
   getNightSummary,
   mergeNightHistoryEntry,
   findNightHistoryIndex,
+  generateActionableNightSummary,
 } from './nightHistoryUtils';
-import type { NightHistoryEntry, PlayerToken } from '../types/index';
+import type { NightHistoryEntry, PlayerToken, PlayerSeat, CharacterDef } from '../types/index';
+import { Alignment } from '../types/index';
 
 function makeEntry(
   subActionStates: Record<string, boolean[]>,
@@ -242,5 +244,167 @@ describe('NightHistoryEntry tokenSnapshot', () => {
     expect(entry.tokenSnapshot!.noble).toHaveLength(1);
     expect(entry.tokenSnapshot!.imp).toHaveLength(2);
     expect(entry.tokenSnapshot!.imp[1].label).toBe('Spy info');
+  });
+});
+
+// ──────────────────────────────────────────────
+// generateActionableNightSummary
+// ──────────────────────────────────────────────
+
+describe('generateActionableNightSummary', () => {
+  const makePlayerForSummary = (overrides: Partial<PlayerSeat> = {}): PlayerSeat => ({
+    seat: 1,
+    playerName: 'Alice',
+    characterId: 'imp',
+    alive: true,
+    ghostVoteUsed: false,
+    visibleAlignment: Alignment.Unknown,
+    actualAlignment: Alignment.Evil,
+    startingAlignment: Alignment.Evil,
+    activeReminders: [],
+    isTraveller: false,
+    tokens: [],
+    ...overrides,
+  });
+
+  const makeChar = (overrides: Partial<CharacterDef> = {}): CharacterDef => ({
+    id: 'imp',
+    name: 'Imp',
+    type: 'Demon',
+    defaultAlignment: Alignment.Evil,
+    abilityShort: 'Kill a player each night.',
+    firstNight: null,
+    otherNights: null,
+    reminders: [],
+    ...overrides,
+  });
+
+  const impChar = makeChar({ id: 'imp', name: 'Imp', type: 'Demon' });
+  const ftChar = makeChar({ id: 'fortuneteller', name: 'Fortune Teller', type: 'Townsfolk' });
+  const poisonerChar = makeChar({ id: 'poisoner', name: 'Poisoner', type: 'Minion' });
+  const nobleChar = makeChar({ id: 'noble', name: 'Noble', type: 'Townsfolk' });
+
+  const charMap: Record<string, CharacterDef> = {
+    imp: impChar,
+    fortuneteller: ftChar,
+    poisoner: poisonerChar,
+    noble: nobleChar,
+  };
+  const getCharacter = (id: string) => charMap[id];
+
+  const players: PlayerSeat[] = [
+    makePlayerForSummary({ seat: 1, playerName: 'Alice', characterId: 'imp' }),
+    makePlayerForSummary({ seat: 2, playerName: 'Bob', characterId: 'fortuneteller' }),
+    makePlayerForSummary({ seat: 3, playerName: 'Charlie', characterId: 'poisoner' }),
+    makePlayerForSummary({ seat: 4, playerName: 'Diana', characterId: 'noble' }),
+  ];
+
+  it('generates Demon kill summary with (killed) suffix', () => {
+    const entry = makeEntry({ imp: [true] }, {}, { selections: { imp: 'Diana' } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0].characterName).toBe('Imp');
+    expect(lines[0].playerName).toBe('Alice');
+    expect(lines[0].action).toBe('→ Diana (killed)');
+  });
+
+  it('generates Poisoner summary with (poisoned) suffix', () => {
+    const entry = makeEntry({}, {}, { selections: { poisoner: 'Bob' } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0].characterName).toBe('Poisoner');
+    expect(lines[0].action).toBe('→ Bob (poisoned)');
+  });
+
+  it('generates Fortune Teller summary with joined player names', () => {
+    const entry = makeEntry({}, {}, { selections: { fortuneteller: ['Alice', 'Diana'] } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0].characterName).toBe('Fortune Teller');
+    expect(lines[0].action).toBe('→ Alice & Diana');
+  });
+
+  it('generates generic summary for non-special characters', () => {
+    const entry = makeEntry({}, {}, { selections: { noble: 'Alice' } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0].characterName).toBe('Noble');
+    expect(lines[0].action).toBe('→ Alice');
+  });
+
+  it('skips entries with no selections', () => {
+    const entry = makeEntry({}, {}, { selections: {} });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+    expect(lines).toHaveLength(0);
+  });
+
+  it('skips entries with empty string selections', () => {
+    const entry = makeEntry({}, {}, { selections: { imp: '' } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+    expect(lines).toHaveLength(0);
+  });
+
+  it('skips entries with empty array selections', () => {
+    const entry = makeEntry({}, {}, { selections: { fortuneteller: ['', ''] } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+    expect(lines).toHaveLength(0);
+  });
+
+  it('skips structural entries (dusk, dawn)', () => {
+    const entry = makeEntry({}, {}, { selections: { dusk: 'some-value', dawn: 'other' } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+    expect(lines).toHaveLength(0);
+  });
+
+  it('skips minioninfo and demoninfo structural entries', () => {
+    const entry = makeEntry({}, {}, { selections: { minioninfo: 'done', demoninfo: 'done' } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+    expect(lines).toHaveLength(0);
+  });
+
+  it('returns empty array for entry with no selections field', () => {
+    const entry = makeEntry({});
+    const lines = generateActionableNightSummary(entry, [], getCharacter);
+    expect(lines).toHaveLength(0);
+  });
+
+  it('handles multiple selections in one night', () => {
+    const entry = makeEntry(
+      {},
+      {},
+      { selections: { imp: 'Diana', poisoner: 'Bob', fortuneteller: ['Alice', 'Charlie'] } },
+    );
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+
+    expect(lines).toHaveLength(3);
+    const names = lines.map((l) => l.characterName);
+    expect(names).toContain('Imp');
+    expect(names).toContain('Poisoner');
+    expect(names).toContain('Fortune Teller');
+  });
+
+  it('handles unknown character gracefully (uses ID as name)', () => {
+    const entry = makeEntry({}, {}, { selections: { unknownchar: 'Alice' } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0].characterName).toBe('unknownchar');
+    expect(lines[0].action).toBe('→ Alice');
+  });
+
+  it('includes playerName when player is found', () => {
+    const entry = makeEntry({}, {}, { selections: { imp: 'Diana' } });
+    const lines = generateActionableNightSummary(entry, players, getCharacter);
+    expect(lines[0].playerName).toBe('Alice');
+  });
+
+  it('sets playerName undefined when player is not found', () => {
+    const entry = makeEntry({}, {}, { selections: { imp: 'Diana' } });
+    const lines = generateActionableNightSummary(entry, [], getCharacter);
+    expect(lines[0].playerName).toBeUndefined();
   });
 });

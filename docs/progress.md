@@ -25,6 +25,7 @@
 | M16 | TownSquare Polish — card sizing, token center fix, visibility rules, PlayerActionsModal, dynamic token set, linear token layout | ✅ Complete | [details](milestones/16%20-%20townsquare%20polish/milestone16.md) |
 | M17 | List Views & Minor Fixes | ✅ Complete | [details](milestones/17%20-%20list%20views%20and%20minor%20fixes/milestone17.md) |
 | M18 | Traveller, Fabled & Loric Integration | ✅ Complete | [details](milestones/18%20-%20traveller%20fabled%20loric%20integration/progress.md) |
+| M19 | Night History Enhancements — edit mode toggle, editable notes/choices, actionable summaries | ✅ Complete | [details](milestones/19%20-%20night%20history%20enhancements/progress.md) |
 
 ## Key Design Decisions
 

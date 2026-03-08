@@ -289,6 +289,13 @@ export interface NightHistoryEntry {
   tokenSnapshot?: Record<string, PlayerToken[]>;
 }
 
+/** A single actionable summary line for a night history entry. */
+export interface NightSummaryLine {
+  characterName: string;
+  playerName?: string;
+  action: string;
+}
+
 /** Current in-flight night walkthrough progress. */
 export interface NightProgress {
   currentCardIndex: number;

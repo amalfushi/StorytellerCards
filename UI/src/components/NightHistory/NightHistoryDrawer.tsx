@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
@@ -12,7 +12,8 @@ import EditIcon from '@mui/icons-material/Edit';
 import NotesIcon from '@mui/icons-material/Notes';
 import type { NightHistoryEntry } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
-import { getNightSummary } from '@/utils/nightHistoryUtils.ts';
+import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
+import { getNightSummary, generateActionableNightSummary } from '@/utils/nightHistoryUtils.ts';
 import { NightHistoryReview } from './NightHistoryReview.tsx';
 
 export interface NightHistoryDrawerProps {
@@ -22,11 +23,17 @@ export interface NightHistoryDrawerProps {
 
 /**
  * Side drawer that lists all completed night history entries.
+ * Shows an actionable summary for each night (Demon kills, player selections, etc.).
  * Tapping an entry opens the {@link NightHistoryReview} full-screen overlay.
  */
 export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
   const { state } = useGame();
-  const nightHistory: NightHistoryEntry[] = state.game?.nightHistory ?? [];
+  const { getCharacter } = useCharacterLookup();
+  const nightHistory: NightHistoryEntry[] = useMemo(
+    () => state.game?.nightHistory ?? [],
+    [state.game?.nightHistory],
+  );
+  const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
 
   const [reviewEntry, setReviewEntry] = useState<NightHistoryEntry | null>(null);
   const [reviewIndex, setReviewIndex] = useState<number>(-1);
@@ -38,6 +45,12 @@ export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
       return '';
     }
   };
+
+  // Generate actionable summaries for all night entries
+  const summaries = useMemo(
+    () => nightHistory.map((entry) => generateActionableNightSummary(entry, players, getCharacter)),
+    [nightHistory, players, getCharacter],
+  );
 
   return (
     <>
@@ -86,6 +99,7 @@ export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
               const label = entry.isFirstNight
                 ? `Night ${entry.dayNumber} — First Night`
                 : `Night ${entry.dayNumber}`;
+              const summaryLines = summaries[idx] ?? [];
 
               return (
                 <ListItemButton
@@ -138,6 +152,29 @@ export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
                             <NotesIcon sx={{ fontSize: 14, color: 'rgba(255,255,255,0.4)' }} />
                           )}
                         </Box>
+                        {/* Actionable summary lines */}
+                        {summaryLines.length > 0 && (
+                          <Box component="span" sx={{ mt: 0.5 }}>
+                            {summaryLines.map((line, lineIdx) => (
+                              <Typography
+                                key={lineIdx}
+                                variant="caption"
+                                component="span"
+                                data-testid="summary-line"
+                                sx={{
+                                  display: 'block',
+                                  color: 'rgba(255,255,255,0.6)',
+                                  fontSize: '0.7rem',
+                                  lineHeight: 1.4,
+                                  pl: 0.5,
+                                }}
+                              >
+                                {line.characterName}
+                                {line.playerName ? ` (${line.playerName})` : ''} {line.action}
+                              </Typography>
+                            ))}
+                          </Box>
+                        )}
                       </Box>
                     }
                     primaryTypographyProps={{

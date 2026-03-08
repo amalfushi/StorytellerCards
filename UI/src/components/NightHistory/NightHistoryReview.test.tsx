@@ -64,6 +64,8 @@ const baseGame: Game = {
 // ──────────────────────────────────────────────
 
 const mockUpdateNightHistory = vi.fn();
+const mockUpdateNightHistoryNote = vi.fn();
+const mockUpdateNightHistoryChoice = vi.fn();
 
 let mockState: {
   game: Game | null;
@@ -75,6 +77,8 @@ vi.mock('@/context/GameContext.tsx', () => ({
   useGame: () => ({
     state: mockState,
     updateNightHistory: mockUpdateNightHistory,
+    updateNightHistoryNote: mockUpdateNightHistoryNote,
+    updateNightHistoryChoice: mockUpdateNightHistoryChoice,
   }),
 }));
 
@@ -140,35 +144,51 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
   }),
 }));
 
+// Track readOnly prop passed to FlashcardCarousel
+let lastCarouselReadOnly: boolean | undefined;
+
 // Mock FlashcardCarousel to avoid deep rendering
 vi.mock('@/components/NightPhase/FlashcardCarousel.tsx', () => ({
   FlashcardCarousel: ({
     onComplete,
     onUpdateProgress,
     onUpdateNotes,
+    onUpdateSelection,
+    readOnly,
   }: {
     onComplete: () => void;
     onUpdateProgress: (charId: string, idx: number) => void;
     onUpdateNotes: (charId: string, notes: string) => void;
-  }) => (
-    <div data-testid="flashcard-carousel">
-      <button onClick={onComplete} data-testid="complete-btn">
-        Complete
-      </button>
-      <button
-        onClick={() => onUpdateProgress('fortuneteller', 0)}
-        data-testid="toggle-progress-btn"
-      >
-        Toggle Progress
-      </button>
-      <button
-        onClick={() => onUpdateNotes('fortuneteller', 'Test note')}
-        data-testid="update-notes-btn"
-      >
-        Update Notes
-      </button>
-    </div>
-  ),
+    onUpdateSelection?: (charId: string, value: string | string[]) => void;
+    readOnly?: boolean;
+  }) => {
+    lastCarouselReadOnly = readOnly;
+    return (
+      <div data-testid="flashcard-carousel" data-readonly={readOnly}>
+        <button onClick={onComplete} data-testid="complete-btn">
+          Complete
+        </button>
+        <button
+          onClick={() => onUpdateProgress('fortuneteller', 0)}
+          data-testid="toggle-progress-btn"
+        >
+          Toggle Progress
+        </button>
+        <button
+          onClick={() => onUpdateNotes('fortuneteller', 'Test note')}
+          data-testid="update-notes-btn"
+        >
+          Update Notes
+        </button>
+        <button
+          onClick={() => onUpdateSelection?.('fortuneteller', 'Alice')}
+          data-testid="update-selection-btn"
+        >
+          Update Selection
+        </button>
+      </div>
+    );
+  },
 }));
 
 // ──────────────────────────────────────────────
@@ -178,6 +198,7 @@ vi.mock('@/components/NightPhase/FlashcardCarousel.tsx', () => ({
 describe('NightHistoryReview', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    lastCarouselReadOnly = undefined;
     mockState = {
       game: baseGame,
       nightProgress: null,
@@ -250,19 +271,6 @@ describe('NightHistoryReview', () => {
     expect(screen.getByTestId('flashcard-carousel')).toBeInTheDocument();
   });
 
-  it('shows "Editable" label', () => {
-    render(
-      <NightHistoryReview
-        historyEntry={mockHistoryEntry}
-        historyIndex={0}
-        isFirstNight={true}
-        open={true}
-        onClose={vi.fn()}
-      />,
-    );
-    expect(screen.getByText('Editable')).toBeInTheDocument();
-  });
-
   it('has a close button that calls onClose', async () => {
     const onClose = vi.fn();
     render(
@@ -291,13 +299,16 @@ describe('NightHistoryReview', () => {
     );
     await userEvent.click(screen.getByTestId('toggle-progress-btn'));
     expect(mockUpdateNightHistory).toHaveBeenCalledTimes(1);
-    expect(mockUpdateNightHistory).toHaveBeenCalledWith(0, expect.objectContaining({
-      dayNumber: 1,
-      isFirstNight: true,
-    }));
+    expect(mockUpdateNightHistory).toHaveBeenCalledWith(
+      0,
+      expect.objectContaining({
+        dayNumber: 1,
+        isFirstNight: true,
+      }),
+    );
   });
 
-  it('calls updateNightHistory when notes are updated', async () => {
+  it('calls updateNightHistoryNote when notes are updated', async () => {
     render(
       <NightHistoryReview
         historyEntry={mockHistoryEntry}
@@ -308,9 +319,128 @@ describe('NightHistoryReview', () => {
       />,
     );
     await userEvent.click(screen.getByTestId('update-notes-btn'));
-    expect(mockUpdateNightHistory).toHaveBeenCalledTimes(1);
-    expect(mockUpdateNightHistory).toHaveBeenCalledWith(0, expect.objectContaining({
-      notes: expect.objectContaining({ fortuneteller: 'Test note' }),
-    }));
+    expect(mockUpdateNightHistoryNote).toHaveBeenCalledTimes(1);
+    expect(mockUpdateNightHistoryNote).toHaveBeenCalledWith(0, 'fortuneteller', 'Test note');
+  });
+
+  it('calls updateNightHistoryChoice when selection is updated', async () => {
+    render(
+      <NightHistoryReview
+        historyEntry={mockHistoryEntry}
+        historyIndex={0}
+        isFirstNight={true}
+        open={true}
+        onClose={vi.fn()}
+      />,
+    );
+    await userEvent.click(screen.getByTestId('update-selection-btn'));
+    expect(mockUpdateNightHistoryChoice).toHaveBeenCalledTimes(1);
+    expect(mockUpdateNightHistoryChoice).toHaveBeenCalledWith(0, 'fortuneteller', 'Alice');
+  });
+
+  // ── Edit Mode Toggle tests ──
+
+  describe('edit mode toggle', () => {
+    it('shows Edit button by default (view mode)', () => {
+      render(
+        <NightHistoryReview
+          historyEntry={mockHistoryEntry}
+          historyIndex={0}
+          isFirstNight={true}
+          open={true}
+          onClose={vi.fn()}
+        />,
+      );
+      expect(screen.getByText('Edit')).toBeInTheDocument();
+      expect(screen.queryByText('View')).not.toBeInTheDocument();
+    });
+
+    it('does not show "Editable" text label', () => {
+      render(
+        <NightHistoryReview
+          historyEntry={mockHistoryEntry}
+          historyIndex={0}
+          isFirstNight={true}
+          open={true}
+          onClose={vi.fn()}
+        />,
+      );
+      expect(screen.queryByText('Editable')).not.toBeInTheDocument();
+    });
+
+    it('starts in read-only mode (carousel readOnly=true)', () => {
+      render(
+        <NightHistoryReview
+          historyEntry={mockHistoryEntry}
+          historyIndex={0}
+          isFirstNight={true}
+          open={true}
+          onClose={vi.fn()}
+        />,
+      );
+      expect(lastCarouselReadOnly).toBe(true);
+    });
+
+    it('toggles to edit mode when Edit button is clicked', async () => {
+      render(
+        <NightHistoryReview
+          historyEntry={mockHistoryEntry}
+          historyIndex={0}
+          isFirstNight={true}
+          open={true}
+          onClose={vi.fn()}
+        />,
+      );
+      await userEvent.click(screen.getByText('Edit'));
+      expect(screen.getByText('View')).toBeInTheDocument();
+      expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+      expect(lastCarouselReadOnly).toBe(false);
+    });
+
+    it('toggles back to view mode when View button is clicked', async () => {
+      render(
+        <NightHistoryReview
+          historyEntry={mockHistoryEntry}
+          historyIndex={0}
+          isFirstNight={true}
+          open={true}
+          onClose={vi.fn()}
+        />,
+      );
+      // Switch to edit mode
+      await userEvent.click(screen.getByText('Edit'));
+      expect(screen.getByText('View')).toBeInTheDocument();
+      // Switch back to view mode
+      await userEvent.click(screen.getByText('View'));
+      expect(screen.getByText('Edit')).toBeInTheDocument();
+      expect(lastCarouselReadOnly).toBe(true);
+    });
+
+    it('has accessible aria-label for edit toggle', () => {
+      render(
+        <NightHistoryReview
+          historyEntry={mockHistoryEntry}
+          historyIndex={0}
+          isFirstNight={true}
+          open={true}
+          onClose={vi.fn()}
+        />,
+      );
+      expect(screen.getByLabelText('Switch to edit mode')).toBeInTheDocument();
+    });
+
+    it('updates aria-label when toggled to edit mode', async () => {
+      render(
+        <NightHistoryReview
+          historyEntry={mockHistoryEntry}
+          historyIndex={0}
+          isFirstNight={true}
+          open={true}
+          onClose={vi.fn()}
+        />,
+      );
+      await userEvent.click(screen.getByLabelText('Switch to edit mode'));
+      expect(screen.getByLabelText('Switch to view mode')).toBeInTheDocument();
+    });
   });
 });

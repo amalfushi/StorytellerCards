@@ -5,6 +5,7 @@ import {
   mockPlayers,
   mockNightHistoryEntries,
   mockManyNightHistoryEntries,
+  mockNightHistoryWithSelections,
 } from '../../stories/mockData';
 
 const noop = () => {};
@@ -51,6 +52,18 @@ export const ManyEntries: Story = {
     withMockGameContext({
       game: {
         nightHistory: mockManyNightHistoryEntries,
+        players: mockPlayers,
+      } as never,
+    }),
+  ],
+};
+
+/** Drawer with actionable summaries showing Demon kills, player choices, etc. */
+export const WithActionableSummaries: Story = {
+  decorators: [
+    withMockGameContext({
+      game: {
+        nightHistory: mockNightHistoryWithSelections,
         players: mockPlayers,
       } as never,
     }),

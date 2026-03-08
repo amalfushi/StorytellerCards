@@ -293,6 +293,34 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'UPDATE_NIGHT_HISTORY_NOTE': {
+      if (!state.game) return state;
+      const { nightIndex, characterId, note } = action.payload;
+      const noteHistory = [...state.game.nightHistory];
+      if (nightIndex < 0 || nightIndex >= noteHistory.length) return state;
+      const noteEntry = { ...noteHistory[nightIndex] };
+      noteEntry.notes = { ...noteEntry.notes, [characterId]: note };
+      noteHistory[nightIndex] = noteEntry;
+      return {
+        ...state,
+        game: { ...state.game, nightHistory: noteHistory },
+      };
+    }
+
+    case 'UPDATE_NIGHT_HISTORY_CHOICE': {
+      if (!state.game) return state;
+      const { nightIndex: choiceNightIdx, characterId: choiceCharId, choiceValue } = action.payload;
+      const choiceHistory = [...state.game.nightHistory];
+      if (choiceNightIdx < 0 || choiceNightIdx >= choiceHistory.length) return state;
+      const choiceEntry = { ...choiceHistory[choiceNightIdx] };
+      choiceEntry.selections = { ...(choiceEntry.selections ?? {}), [choiceCharId]: choiceValue };
+      choiceHistory[choiceNightIdx] = choiceEntry;
+      return {
+        ...state,
+        game: { ...state.game, nightHistory: choiceHistory },
+      };
+    }
+
     case 'SET_NIGHT_CARD_INDEX': {
       if (!state.nightProgress) return state;
       return {
@@ -411,6 +439,12 @@ interface GameContextValue {
   addToken: (seat: number, token: PlayerToken) => void;
   removeToken: (seat: number, tokenId: string) => void;
   updateNightHistory: (index: number, entry: NightHistoryEntry) => void;
+  updateNightHistoryNote: (nightIndex: number, characterId: string, note: string) => void;
+  updateNightHistoryChoice: (
+    nightIndex: number,
+    characterId: string,
+    choiceValue: string | string[],
+  ) => void;
   addFabled: (characterId: string) => void;
   removeFabled: (characterId: string) => void;
   addLoric: (characterId: string) => void;
@@ -530,6 +564,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'UPDATE_NIGHT_HISTORY', payload: { index, entry } });
   }, []);
 
+  const updateNightHistoryNote = useCallback(
+    (nightIndex: number, characterId: string, note: string) => {
+      dispatch({ type: 'UPDATE_NIGHT_HISTORY_NOTE', payload: { nightIndex, characterId, note } });
+    },
+    [],
+  );
+
+  const updateNightHistoryChoice = useCallback(
+    (nightIndex: number, characterId: string, choiceValue: string | string[]) => {
+      dispatch({
+        type: 'UPDATE_NIGHT_HISTORY_CHOICE',
+        payload: { nightIndex, characterId: characterId, choiceValue },
+      });
+    },
+    [],
+  );
   const addFabled = useCallback((characterId: string) => {
     dispatch({ type: 'ADD_FABLED', payload: { characterId } });
   }, []);
@@ -564,6 +614,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     addToken,
     removeToken,
     updateNightHistory,
+    updateNightHistoryNote,
+    updateNightHistoryChoice,
     addFabled,
     removeFabled,
     addLoric,
