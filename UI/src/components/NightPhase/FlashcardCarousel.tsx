@@ -32,6 +32,8 @@ export interface FlashcardCarouselProps {
   previousNightHistory?: NightHistoryEntry;
   /** Callback when a dot is clicked to jump to that card */
   onDotClick?: (index: number) => void;
+  /** Callback fired whenever the current card index changes */
+  onCardChange?: (index: number) => void;
 }
 
 /**
@@ -53,6 +55,7 @@ export function FlashcardCarousel({
   scriptCharacters = [],
   previousNightHistory,
   onDotClick,
+  onCardChange,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
   const [slideDir, setSlideDir] = useState<'none' | 'left' | 'right'>('none');
@@ -101,9 +104,10 @@ export function FlashcardCarousel({
         setCurrentIndex(nextIdx);
         setSlideDir('none');
         isAnimating.current = false;
+        onCardChange?.(nextIdx);
       }, 300);
     },
-    [currentIndex, totalCards],
+    [currentIndex, totalCards, onCardChange],
   );
 
   const swipeHandlers = useSwipeable({
@@ -126,9 +130,10 @@ export function FlashcardCarousel({
         setCurrentIndex(idx);
         setSlideDir('none');
         isAnimating.current = false;
+        onCardChange?.(idx);
       }, 300);
     },
-    [currentIndex, totalCards],
+    [currentIndex, totalCards, onCardChange],
   );
 
   /** Toggle a single sub-action checkbox for a given entry. */

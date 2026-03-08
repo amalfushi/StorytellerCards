@@ -50,9 +50,7 @@ const makeHistoryEntry = (overrides: Partial<NightHistoryEntry> = {}): NightHist
 // Test helpers
 // ──────────────────────────────────────────────
 
-const wrapper = ({ children }: { children: ReactNode }) => (
-  <GameProvider>{children}</GameProvider>
-);
+const wrapper = ({ children }: { children: ReactNode }) => <GameProvider>{children}</GameProvider>;
 
 function renderGameHook() {
   return renderHook(() => useGame(), { wrapper });
@@ -485,6 +483,52 @@ describe('GameContext', () => {
     });
   });
 
+  // ── SET_NIGHT_CARD_INDEX ──
+
+  describe('SET_NIGHT_CARD_INDEX', () => {
+    it('updates currentCardIndex when nightProgress exists', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.startNight(5);
+      });
+
+      act(() => {
+        result.current.setNightCardIndex(3);
+      });
+
+      expect(result.current.state.nightProgress!.currentCardIndex).toBe(3);
+    });
+
+    it('is a no-op when nightProgress is null', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.setNightCardIndex(3);
+      });
+
+      expect(result.current.state.nightProgress).toBeNull();
+    });
+
+    it('preserves other nightProgress fields', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.startNight(5);
+      });
+      act(() => {
+        result.current.updateNightProgress('imp', [true, false]);
+      });
+
+      act(() => {
+        result.current.setNightCardIndex(2);
+      });
+
+      const np = result.current.state.nightProgress!;
+      expect(np.currentCardIndex).toBe(2);
+      expect(np.subActionStates['imp']).toEqual([true, false]);
+      expect(np.totalCards).toBe(5);
+    });
+  });
+
   // ── UPDATE_NIGHT_PROGRESS ──
 
   describe('UPDATE_NIGHT_PROGRESS', () => {
@@ -538,10 +582,7 @@ describe('GameContext', () => {
       });
 
       act(() => {
-        result.current.updateNightProgress('fortuneteller', undefined, undefined, [
-          'Alice',
-          'Bob',
-        ]);
+        result.current.updateNightProgress('fortuneteller', undefined, undefined, ['Alice', 'Bob']);
       });
 
       expect(result.current.state.nightProgress!.selections['fortuneteller']).toEqual([
@@ -601,9 +642,7 @@ describe('GameContext', () => {
       const { result } = renderGameHook();
       const player = makePlayer({ seat: 1, characterId: 'imp' });
       act(() => {
-        result.current.loadGame(
-          makeGame({ currentDay: 1, isFirstNight: true, players: [player] }),
-        );
+        result.current.loadGame(makeGame({ currentDay: 1, isFirstNight: true, players: [player] }));
       });
       act(() => {
         result.current.startNight(3);

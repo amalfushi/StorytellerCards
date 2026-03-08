@@ -116,6 +116,7 @@ let mockNightProgress: GameViewState['nightProgress'];
 const mockLoadGame = vi.fn();
 const mockUpdatePlayer = vi.fn();
 const mockSaveGame = vi.fn();
+const mockSetPhase = vi.fn();
 const mockNavigate = vi.fn();
 
 vi.mock('react-router-dom', () => ({
@@ -143,6 +144,7 @@ vi.mock('@/context/GameContext.tsx', () => ({
     loadGame: mockLoadGame,
     updatePlayer: mockUpdatePlayer,
     saveGame: mockSaveGame,
+    setPhase: mockSetPhase,
   }),
 }));
 
@@ -173,6 +175,10 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
   }),
 }));
 
+vi.mock('@/hooks/useNightOrder.ts', () => ({
+  useNightOrder: () => [],
+}));
+
 vi.mock('@/hooks/useTimer.ts', () => ({
   useTimer: () => ({
     timeRemaining: 0,
@@ -193,8 +199,33 @@ vi.mock('@/components/common/ShowCharactersToggle.tsx', () => ({
   ShowCharactersToggle: () => <button data-testid="show-chars-toggle">Toggle</button>,
 }));
 
+// PhaseBar mock — captures props for testing
+let capturedPhaseBarProps: {
+  activeView: string;
+  nightInProgress: boolean;
+  onDayClick: () => void;
+  onNightClick: () => void;
+} | null = null;
+
 vi.mock('@/components/PhaseBar/PhaseBar.tsx', () => ({
-  PhaseBar: () => <div data-testid="phase-bar">PhaseBar</div>,
+  PhaseBar: (props: {
+    activeView: string;
+    nightInProgress: boolean;
+    onDayClick: () => void;
+    onNightClick: () => void;
+  }) => {
+    capturedPhaseBarProps = props;
+    return (
+      <div data-testid="phase-bar">
+        <button data-testid="night-chip" onClick={props.onNightClick}>
+          Night
+        </button>
+        <button data-testid="day-chip" onClick={props.onDayClick}>
+          Day
+        </button>
+      </div>
+    );
+  },
 }));
 
 vi.mock('@/components/TownSquare/TownSquareTab.tsx', () => ({
@@ -213,8 +244,14 @@ vi.mock('@/components/NightOrder/NightOrderTab.tsx', () => ({
   NightOrderTab: () => <div data-testid="night-order-tab">Night Order</div>,
 }));
 
-vi.mock('@/components/NightPhase/NightPhaseOverlay.tsx', () => ({
-  NightPhaseOverlay: () => <div data-testid="night-phase-overlay" />,
+vi.mock('@/components/NightPhase/NightTabPanel.tsx', () => ({
+  NightTabPanel: ({ onComplete }: { onComplete?: () => void }) => (
+    <div data-testid="night-tab-panel">
+      <button data-testid="complete-night-btn" onClick={onComplete}>
+        Complete Night
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock('@/components/NightHistory/NightHistoryDrawer.tsx', () => ({
@@ -246,6 +283,7 @@ import { GameViewPage } from '@/pages/GameViewPage.tsx';
 describe('GameViewPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    capturedPhaseBarProps = null;
     mockGame = baseGame;
     mockShowCharacters = false;
     mockNightProgress = null;
@@ -277,7 +315,7 @@ describe('GameViewPage', () => {
     expect(screen.getByTestId('show-chars-toggle')).toBeInTheDocument();
   });
 
-  it('shows 4 bottom navigation tabs', () => {
+  it('shows 4 bottom navigation tabs in day view', () => {
     render(<GameViewPage />);
     expect(screen.getByRole('button', { name: /town square tab/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /players tab/i })).toBeInTheDocument();
@@ -341,15 +379,117 @@ describe('GameViewPage', () => {
     mockGame = { ...baseGame, players: unassignedPlayers };
     localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
     render(<GameViewPage />);
-    expect(
-      screen.getByText(/Characters haven't been assigned yet/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Characters haven't been assigned yet/)).toBeInTheDocument();
   });
 
   it('does not show character assignment banner when players have characters', () => {
     render(<GameViewPage />);
-    expect(
-      screen.queryByText(/Characters haven't been assigned yet/),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/Characters haven't been assigned yet/)).not.toBeInTheDocument();
+  });
+
+  // ── Night view mode tests ──
+
+  it('shows NightTabPanel inline when Night chip is clicked', () => {
+    render(<GameViewPage />);
+    // Click the Night chip
+    fireEvent.click(screen.getByTestId('night-chip'));
+    // NightTabPanel should appear
+    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
+    // Bottom navigation tabs should be hidden
+    expect(screen.queryByRole('button', { name: /town square tab/i })).not.toBeInTheDocument();
+  });
+
+  it('returns to Day tabs when Day chip is clicked from Night view', () => {
+    render(<GameViewPage />);
+    // Switch to night view
+    fireEvent.click(screen.getByTestId('night-chip'));
+    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
+    // Click Day chip
+    fireEvent.click(screen.getByTestId('day-chip'));
+    // Should show day tabs again
+    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
+  });
+
+  it('returns to Day view when night is completed', () => {
+    render(<GameViewPage />);
+    // Switch to night view
+    fireEvent.click(screen.getByTestId('night-chip'));
+    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
+    // Click the Complete Night button
+    fireEvent.click(screen.getByTestId('complete-night-btn'));
+    // Should return to day view
+    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
+  });
+
+  it('does not show moon icon in AppBar', () => {
+    // The moon icon was removed in M15
+    mockGame = { ...baseGame, currentPhase: Phase.Night };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+    expect(screen.queryByRole('button', { name: /start night/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /resume night/i })).not.toBeInTheDocument();
+  });
+
+  it('passes activeView=Day to PhaseBar in day view', () => {
+    render(<GameViewPage />);
+    expect(capturedPhaseBarProps?.activeView).toBe('Day');
+  });
+
+  it('passes activeView=Night to PhaseBar in night view', () => {
+    render(<GameViewPage />);
+    fireEvent.click(screen.getByTestId('night-chip'));
+    expect(capturedPhaseBarProps?.activeView).toBe('Night');
+  });
+
+  it('passes nightInProgress=true to PhaseBar when nightProgress is non-null', () => {
+    mockNightProgress = {
+      currentCardIndex: 0,
+      subActionStates: {},
+      notes: {},
+      selections: {},
+      totalCards: 3,
+    };
+    render(<GameViewPage />);
+    expect(capturedPhaseBarProps?.nightInProgress).toBe(true);
+  });
+
+  it('auto-shows night view on page refresh when nightProgress exists', () => {
+    mockNightProgress = {
+      currentCardIndex: 2,
+      subActionStates: {},
+      notes: {},
+      selections: {},
+      totalCards: 5,
+    };
+    render(<GameViewPage />);
+    // Should auto-resume night view
+    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
+  });
+
+  it('defaults to Day view for a brand new game (isFirstNight, no nightProgress)', () => {
+    mockGame = {
+      ...baseGame,
+      currentDay: 1,
+      currentPhase: Phase.Day,
+      isFirstNight: true,
+      nightHistory: [],
+    };
+    mockNightProgress = null;
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+    // Should show day tabs, NOT the night panel
+    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
+    // PhaseBar should show Day as active
+    expect(capturedPhaseBarProps?.activeView).toBe('Day');
+  });
+
+  it('does not auto-enter night view when nightProgress is null', () => {
+    mockNightProgress = null;
+    render(<GameViewPage />);
+    // Should stay in day view
+    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
+    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
   });
 });

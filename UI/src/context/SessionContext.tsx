@@ -269,7 +269,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         sessionId,
         scriptId: session.defaultScriptId,
         currentDay: 1,
-        currentPhase: Phase.Night,
+        currentPhase: Phase.Day,
         isFirstNight: true,
         players,
         nightHistory: [],

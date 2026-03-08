@@ -1,6 +1,41 @@
+## Status: ✅ Complete
+
+**Completed:** 2026-03-06
+
+### Summary
+Milestone 15 streamlined the Day/Night phase transition workflow:
+- **Removed** the confirmation dialog when switching to Night mode
+- **Replaced** the full-screen `NightPhaseOverlay` with an inline `NightTabPanel` that renders the FlashcardCarousel in the tab content area
+- **Added** `SET_NIGHT_CARD_INDEX` reducer action for card position persistence across tab switches
+- **Made** PhaseBar a pure presentation + callback component with `activeView`, `nightInProgress`, `onNightClick`, `onDayClick` props
+- **Removed** the moon icon from the AppBar
+- **Enabled** free Day↔Night switching via PhaseBar (Night→Day no longer blocked)
+- **Night completion** only occurs via explicit "Complete Night" button
+- All 4 bottom tabs (Town Square, Players, Script, Night Order) remain unchanged
+- **Fixed** new game default phase — [`SessionContext.tsx`](../../UI/src/context/SessionContext.tsx) was creating new games with `Phase.Night`; changed to `Phase.Day` so storytellers can set up before entering Night
+
+### Key Changes
+| File | Change |
+|------|--------|
+| `UI/src/context/GameContext.tsx` | Added `SET_NIGHT_CARD_INDEX` action + `setNightCardIndex` function |
+| `UI/src/components/NightPhase/FlashcardCarousel.tsx` | Added `onCardChange` callback prop |
+| `UI/src/components/NightPhase/NightTabPanel.tsx` | **NEW** — inline wrapper for FlashcardCarousel |
+| `UI/src/components/PhaseBar/PhaseBar.tsx` | Rewritten as pure presentation + callbacks, dialog removed |
+| `UI/src/pages/GameViewPage.tsx` | Added `viewMode` state, removed overlay + moon icon |
+| `UI/src/components/NightPhase/NightPhaseOverlay.tsx` | **DELETED** — replaced by NightTabPanel |
+| `UI/src/context/SessionContext.tsx` | Fixed new game default: `Phase.Night` → `Phase.Day` |
+| `UI/src/context/SessionContext.test.tsx` | Updated test to expect `Phase.Day` for new games |
+
+### Verification
+- ✅ TypeScript: 0 errors
+- ✅ ESLint: 0 errors
+- ✅ Tests: 2421 tests across 55 files — all passing
+
+---
+
 # Milestone 15 — Day/Night Tab Workflow
 
-> **Goal:** Streamline the Day/Night phase transition by making the Night tab directly enter flashcard mode, tracking the user's position across tab switches, and removing redundant UI elements.
+> **Goal:** Streamline the Day/Night phase transition by using the PhaseBar as a mode switch, rendering the flashcard carousel inline in the tab content area, tracking the user's position across phase switches, and removing redundant UI elements.
 
 ---
 
@@ -59,31 +94,49 @@ From [`Milestoneoverload.md`](../Milestoneoverload.md):
 
 ## 3. Solution Overview
 
-### 3.1 Tab Behavior Flow
+### Approved Design: PhaseBar as Mode Switch with Inline Flashcard Panel
+
+The PhaseBar Day/Night chips serve as the mode switch. Clicking the **Night chip** immediately starts the night and renders the `FlashcardCarousel` **inline in the tab content area**, replacing whatever bottom tab content was showing. Clicking the **Day chip** switches back to the normal 4 bottom tabs. Night progress is preserved across Day↔Night switches.
+
+**Key principles:**
+- All 4 bottom tabs remain unchanged (Town Square, Players, Script, Night Order)
+- Night Order tab (index 3) **always** shows the reference list — it never transforms
+- PhaseBar Night chip is the **sole entry point** to start/resume a night
+- No full-screen overlay — the flashcard carousel renders inline
+- No confirmation dialog — Night chip click is immediate
+- Day↔Night phase switching is free and unblocked in both directions
+- Night completion is **only** via the explicit "Complete Night" button
+
+### 3.1 Phase Behavior Flow
 
 ```
-User clicks Night tab
+User clicks Night chip in PhaseBar
         │
         ▼
-  Is there an active night in progress?
+  Is nightProgress non-null? (active night?)
         │
     ┌───┴───┐
     Yes     No
     │       │
     ▼       ▼
-  Resume    Start new night:
-  at last   Show first flashcard
-  viewed    (index 0)
-  card
+  Resume    Dispatch START_NIGHT:
+  at saved  Show first flashcard
+  cardIndex (index 0)
     │       │
     └───┬───┘
         ▼
-  Flashcard Carousel
-  (swipe through cards)
+  Inline Flashcard Panel
+  (renders in tab content area, replacing bottom tab content)
+  (swipe through cards, index synced to context)
         │
         ▼
-  User can switch to Day tab at any time
-  (position is preserved in state)
+  User clicks Day chip in PhaseBar
+  → Bottom tabs return, night progress preserved
+  → Tab 3 (Night Order) still shows reference list
+        │
+        ▼
+  User clicks Night chip again
+  → Returns to saved card position
         │
         ▼
   Night is ONLY complete when user
@@ -92,125 +145,168 @@ User clicks Night tab
 
 ### 3.2 State Changes
 
-Add to game state (via `GameContext`):
+Add `SET_NIGHT_CARD_INDEX` action to the game reducer in [`GameContext.tsx`](../../UI/src/context/GameContext.tsx):
 
 ```typescript
-interface NightPhaseState {
-  /** Index of the currently viewed flashcard. Persists across tab switches. */
-  currentNightCardIndex: number;
-  /** Whether a night is currently in progress (cards are being viewed). */
-  nightInProgress: boolean;
-}
+| { type: 'SET_NIGHT_CARD_INDEX'; payload: { index: number } }
 ```
 
-These fields should be added to the game reducer and persisted in `localStorage` so they survive page refreshes.
+This syncs the carousel position back to `nightProgress.currentCardIndex` in GameContext whenever the user navigates cards, ensuring the position persists across Day↔Night phase switches.
 
-### 3.3 Confirmation Dialog Removal
+The existing `nightProgress` state (including `currentCardIndex`) already persists in `localStorage` via the existing persistence logic.
 
-Remove the `NightPhaseOverlay` confirmation dialog (or its confirmation step). The Night tab click should immediately transition to the flashcard view.
+### 3.3 NightPhaseOverlay Removal
+
+[`NightPhaseOverlay.tsx`](../../UI/src/components/NightPhase/NightPhaseOverlay.tsx) will be **deleted**. Its logic for handling night progress, notes, and completion will be extracted into the new [`NightTabPanel`](../../UI/src/components/NightPhase/NightTabPanel.tsx) component, which renders the `FlashcardCarousel` inline (not as a `position: fixed` overlay with z-index stacking).
 
 ### 3.4 Moon Icon Removal
 
-Remove the moon icon button from the navbar. The Night tab now serves as the sole entry point to night mode.
+Remove the moon icon button from the AppBar in [`GameViewPage.tsx`](../../UI/src/pages/GameViewPage.tsx). The PhaseBar Night chip is now the sole entry point to night mode.
 
-### 3.5 Complete Night Button
+### 3.5 PhaseBar Changes
 
-The "Complete Night" button should be the only way to finalize a night:
+[`PhaseBar.tsx`](../../UI/src/components/PhaseBar/PhaseBar.tsx) changes:
+
+| Action | Current Behavior | New Behavior |
+|--------|-----------------|--------------|
+| Click Night chip | Confirmation dialog → sets phase | **No dialog.** Immediately starts night via `onNightClick` callback |
+| Click Day chip (during active night) | Blocked | **Allowed.** Switches view back to Day tabs via `onDayClick` callback. Night progress preserved |
+
+PhaseBar receives `onNightClick` and `onDayClick` callback props from GameViewPage to control the phase/view switching.
+
+### 3.6 Complete Night Button
+
+The "Complete Night" button is the **only** way to finalize a night:
 - Available as a button at the end of the flashcard carousel (after the last card)
-- Also available as a persistent action in the night view UI
-- When pressed: saves the night to history, resets `currentNightCardIndex`, sets `nightInProgress` to false
+- When pressed: saves the night to history, resets `currentCardIndex`, sets `nightProgress` to null, increments night count, switches back to Day view
 - Viewing all cards does NOT auto-complete the night
+
+### 3.7 Free Day↔Night Switching
+
+Night→Day switching is **unblocked** in PhaseBar. The user can freely toggle between Day and Night views:
+- Day view: normal 4 bottom tabs visible and functional
+- Night view: flashcard carousel replaces tab content area
+- Switching to Day does not lose night progress
+- Switching back to Night resumes at the saved card position
 
 ---
 
 ## 4. Task List
 
-### Phase 1: Remove Confirmation Dialog
+### Phase 1: GameContext — Add `SET_NIGHT_CARD_INDEX` Action
 
-- [ ] Remove the night mode confirmation dialog from [`NightPhaseOverlay.tsx`](../../UI/src/components/NightPhase/NightPhaseOverlay.tsx) or the tab switching logic in [`GameViewPage.tsx`](../../UI/src/pages/GameViewPage.tsx)
-- [ ] Update the Night tab click handler to immediately enter flashcard mode
-- [ ] Remove any associated confirmation dialog state and handlers
+- [x] Add `SET_NIGHT_CARD_INDEX` reducer action to [`GameContext.tsx`](../../UI/src/context/GameContext.tsx) that updates `nightProgress.currentCardIndex`
+- [x] Add `setNightCardIndex` helper function on `GameContextValue`
+- [x] Add tests for the new reducer action in `GameContext.test.tsx`
 
-### Phase 2: Add Position Tracking State
+### Phase 2: FlashcardCarousel — Add `onCardChange` Callback
 
-- [ ] Add `currentNightCardIndex` and `nightInProgress` fields to game state in [`GameContext.tsx`](../../UI/src/context/GameContext.tsx)
-- [ ] Add reducer actions: `SET_NIGHT_CARD_INDEX`, `START_NIGHT`, `COMPLETE_NIGHT`
-- [ ] Ensure `currentNightCardIndex` persists in `localStorage` via existing persistence logic
-- [ ] Update [`FlashcardCarousel.tsx`](../../UI/src/components/NightPhase/FlashcardCarousel.tsx) to read/write `currentNightCardIndex` from game state
+- [x] Add optional `onCardChange?: (index: number) => void` callback prop to [`FlashcardCarousel.tsx`](../../UI/src/components/NightPhase/FlashcardCarousel.tsx)
+- [x] Call `onCardChange` whenever the current card index changes (in `goTo` and `goToIndex`)
+- [x] Add tests for the `onCardChange` callback in `FlashcardCarousel.test.tsx`
 
-### Phase 3: Update Tab Switching Logic
+### Phase 3: NightTabPanel — New Inline Wrapper Component
 
-- [ ] In [`GameViewPage.tsx`](../../UI/src/pages/GameViewPage.tsx), update Night tab click to:
-  - If `nightInProgress`: resume at `currentNightCardIndex`
-  - If not `nightInProgress`: dispatch `START_NIGHT` and show flashcard at index 0
-- [ ] When switching from Night to Day tab: preserve `currentNightCardIndex` in state (no reset)
-- [ ] When switching back to Night tab: restore carousel position from `currentNightCardIndex`
+- [x] Create [`NightTabPanel.tsx`](../../UI/src/components/NightPhase/NightTabPanel.tsx) — thin wrapper that renders `FlashcardCarousel` inline in the tab content area
+- [x] Extract night-start and completion logic from [`NightPhaseOverlay.tsx`](../../UI/src/components/NightPhase/NightPhaseOverlay.tsx):
+  - `handleUpdateProgress`
+  - `handleUpdateNotes`
+  - `handleUpdateSelection`
+  - `handleComplete`
+- [x] NightTabPanel is a normal flex-child (`flex: 1, overflow: hidden`), NOT a `position: fixed` overlay
+- [x] Apply the dark gradient background styling to the tab content area
+- [x] Pass `setNightCardIndex` as the `onCardChange` callback to FlashcardCarousel
+- [x] Create tests in `NightTabPanel.test.tsx`
 
-### Phase 4: Update Night Completion Logic
+### Phase 4: PhaseBar — Remove Dialog, Add Callbacks
 
-- [ ] Ensure viewing all flashcards does NOT automatically complete the night
-- [ ] Add/verify "Complete Night" button at end of carousel or in night view header
-- [ ] "Complete Night" button dispatches `COMPLETE_NIGHT` action which:
-  - Saves the current night to history (existing behavior)
-  - Resets `currentNightCardIndex` to 0
-  - Sets `nightInProgress` to false
-  - Increments night count
-  - Switches back to Day tab
+- [x] Remove the night mode confirmation dialog from [`PhaseBar.tsx`](../../UI/src/components/PhaseBar/PhaseBar.tsx)
+- [x] Unblock Night→Day switching (remove the guard that prevents clicking Day during Night phase)
+- [x] Add `onNightClick` callback prop — called when user clicks Night chip
+- [x] Add `onDayClick` callback prop — called when user clicks Day chip
+- [x] Remove any confirmation dialog state and handlers
+- [x] Update tests in `PhaseBar.test.tsx` — remove dialog tests, add callback tests
+- [x] Update `PhaseBar.stories.tsx` to reflect the new behavior
 
-### Phase 5: Remove Moon Icon from Navbar
+### Phase 5: GameViewPage — Wire Together
 
-- [ ] Identify the moon icon button in the navbar component
-- [ ] Remove the moon icon button and its click handler
-- [ ] Verify no other components reference the moon icon's functionality
-- [ ] Adjust navbar layout if needed after removal
+- [x] Render `NightTabPanel` inline in the tab content area when Night phase is active (replacing whatever bottom tab content was showing)
+- [x] When Night phase is not active, render the normal 4 bottom tabs
+- [x] Remove [`NightPhaseOverlay`](../../UI/src/components/NightPhase/NightPhaseOverlay.tsx) import and rendering
+- [x] Remove moon icon button from the AppBar
+- [x] Wire PhaseBar `onNightClick` to: dispatch `START_NIGHT` (if no active night) or resume (if night in progress)
+- [x] Wire PhaseBar `onDayClick` to: switch view back to Day tabs (night progress preserved)
+- [x] Update tests in `GameViewPage.test.tsx` for the new inline night behavior
 
-### Phase 6: Update Tests & Stories
+### Phase 6: Delete NightPhaseOverlay
 
-- [ ] Remove tests for the deleted confirmation dialog
-- [ ] Add tests for direct flashcard entry on Night tab click
-- [ ] Add tests for card position persistence across tab switches
-- [ ] Add tests for night completion only via "Complete Night" button
-- [ ] Update Storybook stories for [`PhaseBar`](../../UI/src/components/PhaseBar/PhaseBar.tsx) if it shows the tab UI
-- [ ] Update [`GameViewPage.test.tsx`](../../UI/src/pages/GameViewPage.test.tsx) for new tab behavior
+- [x] Delete [`NightPhaseOverlay.tsx`](../../UI/src/components/NightPhase/NightPhaseOverlay.tsx)
+- [x] Delete [`NightPhaseOverlay.test.tsx`](../../UI/src/components/NightPhase/NightPhaseOverlay.test.tsx)
+- [x] Verify no other files import or reference NightPhaseOverlay
+
+### Phase 7: Tests & Storybook Updates
+
+- [x] Ensure all new components have tests with meaningful coverage
+- [x] Add Storybook stories for `NightTabPanel` if it has visual content worth demonstrating
+- [x] Update any Storybook stories that reference the old overlay behavior
+- [x] Run full test suite and verify all tests pass
+
+### Phase 8: Development Checklist
+
+- [x] `cd UI && npx tsc --noEmit` — TypeScript compilation (0 errors)
+- [x] `cd UI && npx eslint .` — Linting (0 errors)
+- [x] `cd UI && npm test` — All tests pass
 
 ---
 
 ## 5. Files Affected
 
-### Owned by This Milestone
+### New Files
+
+| File | Purpose |
+|------|---------|
+| [`UI/src/components/NightPhase/NightTabPanel.tsx`](../../UI/src/components/NightPhase/NightTabPanel.tsx) | Inline wrapper for FlashcardCarousel — replaces NightPhaseOverlay |
+| [`UI/src/components/NightPhase/NightTabPanel.test.tsx`](../../UI/src/components/NightPhase/NightTabPanel.test.tsx) | Tests for NightTabPanel |
+
+### Modified Files
 
 | File | Change |
 |------|--------|
-| [`UI/src/pages/GameViewPage.tsx`](../../UI/src/pages/GameViewPage.tsx) | Tab switching logic — Night tab directly enters flashcards |
-| [`UI/src/pages/GameViewPage.test.tsx`](../../UI/src/pages/GameViewPage.test.tsx) | Updated tests for new tab behavior |
-| [`UI/src/components/NightPhase/NightPhaseOverlay.tsx`](../../UI/src/components/NightPhase/NightPhaseOverlay.tsx) | Remove confirmation dialog |
-| [`UI/src/components/NightPhase/NightPhaseOverlay.test.tsx`](../../UI/src/components/NightPhase/NightPhaseOverlay.test.tsx) | Remove confirmation dialog tests |
+| [`UI/src/context/GameContext.tsx`](../../UI/src/context/GameContext.tsx) | Add `SET_NIGHT_CARD_INDEX` action + `setNightCardIndex` helper |
+| [`UI/src/context/GameContext.test.tsx`](../../UI/src/context/GameContext.test.tsx) | Tests for new reducer action |
+| [`UI/src/components/NightPhase/FlashcardCarousel.tsx`](../../UI/src/components/NightPhase/FlashcardCarousel.tsx) | Add `onCardChange` callback prop |
+| [`UI/src/components/NightPhase/FlashcardCarousel.test.tsx`](../../UI/src/components/NightPhase/FlashcardCarousel.test.tsx) | Tests for `onCardChange` callback |
+| [`UI/src/components/PhaseBar/PhaseBar.tsx`](../../UI/src/components/PhaseBar/PhaseBar.tsx) | Remove confirmation dialog, unblock Night→Day, add `onNightClick`/`onDayClick` callback props |
+| [`UI/src/components/PhaseBar/PhaseBar.test.tsx`](../../UI/src/components/PhaseBar/PhaseBar.test.tsx) | Remove dialog tests, add callback tests |
+| [`UI/src/components/PhaseBar/PhaseBar.stories.tsx`](../../UI/src/components/PhaseBar/PhaseBar.stories.tsx) | Update stories for new behavior |
+| [`UI/src/pages/GameViewPage.tsx`](../../UI/src/pages/GameViewPage.tsx) | Render NightTabPanel inline when Night active; remove NightPhaseOverlay import + moon icon; wire PhaseBar callbacks |
+| [`UI/src/pages/GameViewPage.test.tsx`](../../UI/src/pages/GameViewPage.test.tsx) | Update tests for inline night tab behavior |
 
-### Modified by This Milestone
+### Deleted Files
 
-| File | Change |
+| File | Reason |
 |------|--------|
-| [`UI/src/context/GameContext.tsx`](../../UI/src/context/GameContext.tsx) | Add `currentNightCardIndex`, `nightInProgress` state + reducer actions |
-| [`UI/src/context/GameContext.test.tsx`](../../UI/src/context/GameContext.test.tsx) | Tests for new state fields and reducer actions |
-| [`UI/src/components/NightPhase/FlashcardCarousel.tsx`](../../UI/src/components/NightPhase/FlashcardCarousel.tsx) | Read/write card index from game state |
-| [`UI/src/components/NightPhase/FlashcardCarousel.test.tsx`](../../UI/src/components/NightPhase/FlashcardCarousel.test.tsx) | Tests for position tracking |
-| [`UI/src/components/PhaseBar/PhaseBar.tsx`](../../UI/src/components/PhaseBar/PhaseBar.tsx) | Possibly remove moon icon from navbar |
-| Navbar component (if separate from PhaseBar) | Remove moon icon button |
+| [`UI/src/components/NightPhase/NightPhaseOverlay.tsx`](../../UI/src/components/NightPhase/NightPhaseOverlay.tsx) | Replaced by NightTabPanel — no longer needed |
+| [`UI/src/components/NightPhase/NightPhaseOverlay.test.tsx`](../../UI/src/components/NightPhase/NightPhaseOverlay.test.tsx) | Tests replaced by NightTabPanel tests |
 
-### NOT Modified
+### Unchanged Files
 
-- Night flashcard content rendering (`NightFlashcard.tsx`, `SubActionChecklist.tsx`) — M14's territory
-- Night order logic (`_nightOrder.ts`, `nightOrderFilter.ts`)
-- Night history components — M19's territory
-- TownSquare components — M16's territory
-- Character data files
+| File | Reason |
+|------|--------|
+| [`UI/src/components/NightOrder/NightOrderTab.tsx`](../../UI/src/components/NightOrder/NightOrderTab.tsx) | Always shows reference list — no changes |
+| [`UI/src/components/NightPhase/NightFlashcard.tsx`](../../UI/src/components/NightPhase/NightFlashcard.tsx) | Card rendering unchanged |
+| [`UI/src/components/NightPhase/NightProgressBar.tsx`](../../UI/src/components/NightPhase/NightProgressBar.tsx) | Progress bar unchanged |
+| [`UI/src/components/NightPhase/StructuralCard.tsx`](../../UI/src/components/NightPhase/StructuralCard.tsx) | Structural card unchanged |
+| [`UI/src/components/NightPhase/SubActionChecklist.tsx`](../../UI/src/components/NightPhase/SubActionChecklist.tsx) | Sub-action checklist unchanged |
+| NightHistoryDrawer, NightHistoryReview | Stay as overlay — review past data, not active gameplay |
+| Character data files | Never modified |
 
 ### Potential Overlap with Other Milestones
 
 | Milestone | Shared File | Coordination |
 |-----------|-------------|--------------|
 | M14 (Night Flashcard UX) | `NightFlashcard.tsx` (minor) | M15 changes carousel navigation; M14 changes card content. Low conflict risk. |
-| M19 (Night History) | `GameContext.tsx` | Both milestones modify game context — M15 adds night tracking state, M19 adds history editing actions. Additive changes, but should coordinate on reducer structure. |
+| M19 (Night History) | `GameContext.tsx` | Both milestones modify game context — M15 adds `SET_NIGHT_CARD_INDEX`, M19 adds history editing actions. Additive changes, but should coordinate on reducer structure. |
 
 ---
 
@@ -226,29 +322,41 @@ Minor coordination needed with M19 on [`GameContext.tsx`](../../UI/src/context/G
 
 ### Unit Tests
 
-- [ ] `GameContext.test.tsx`: Test `SET_NIGHT_CARD_INDEX` action updates state correctly
-- [ ] `GameContext.test.tsx`: Test `START_NIGHT` action initializes night state
-- [ ] `GameContext.test.tsx`: Test `COMPLETE_NIGHT` action resets night state, saves to history
-- [ ] `GameViewPage.test.tsx`: Test Night tab click goes directly to flashcards (no dialog)
-- [ ] `GameViewPage.test.tsx`: Test switching Day→Night→Day→Night preserves card position
-- [ ] `GameViewPage.test.tsx`: Test night is NOT complete after viewing all cards
-- [ ] `GameViewPage.test.tsx`: Test "Complete Night" button finalizes the night
-- [ ] `FlashcardCarousel.test.tsx`: Test carousel starts at `currentNightCardIndex` from state
-- [ ] `FlashcardCarousel.test.tsx`: Test swiping updates `currentNightCardIndex` in state
-- [ ] Verify removed confirmation dialog tests are cleaned up (no orphaned test code)
+- [x] `GameContext.test.tsx`: Test `SET_NIGHT_CARD_INDEX` action updates `nightProgress.currentCardIndex` correctly
+- [x] `GameContext.test.tsx`: Test `SET_NIGHT_CARD_INDEX` is a no-op when `nightProgress` is null
+- [x] `FlashcardCarousel.test.tsx`: Test `onCardChange` callback fires on card navigation
+- [x] `FlashcardCarousel.test.tsx`: Test carousel works correctly without `onCardChange` (optional prop)
+- [x] `NightTabPanel.test.tsx`: Test renders FlashcardCarousel inline (no fixed positioning or overlay)
+- [x] `NightTabPanel.test.tsx`: Test passes `setNightCardIndex` as `onCardChange` to FlashcardCarousel
+- [x] `NightTabPanel.test.tsx`: Test handles night completion correctly
+- [x] `PhaseBar.test.tsx`: Test Night chip click calls `onNightClick` callback (no dialog)
+- [x] `PhaseBar.test.tsx`: Test Day chip click calls `onDayClick` callback (unblocked during Night)
+- [x] `PhaseBar.test.tsx`: Test no confirmation dialog is rendered
+- [x] `GameViewPage.test.tsx`: Test Night chip click renders inline flashcard panel (no overlay)
+- [x] `GameViewPage.test.tsx`: Test Day chip click returns to normal bottom tabs
+- [x] `GameViewPage.test.tsx`: Test switching Day→Night→Day→Night preserves card position
+- [x] `GameViewPage.test.tsx`: Test night is NOT complete after viewing all cards
+- [x] `GameViewPage.test.tsx`: Test "Complete Night" button finalizes the night
+- [x] `GameViewPage.test.tsx`: Test moon icon is not present in the AppBar
+- [x] `GameViewPage.test.tsx`: Test Night Order tab (index 3) always shows reference list
+- [x] Verify deleted NightPhaseOverlay tests are cleaned up (no orphaned test code)
 
 ### Storybook Tests
 
-- [ ] Update `PhaseBar.stories.tsx` to reflect no moon icon (if applicable)
-- [ ] Add stories showing tab-based night entry flow
+- [x] Update `PhaseBar.stories.tsx` to reflect no confirmation dialog and new callback props
+- [x] Add stories for `NightTabPanel` showing the inline flashcard view
+- [x] Ensure any stories referencing NightPhaseOverlay are removed or updated
 
 ### Integration Verification
 
-- [ ] Run the app and verify:
-  - Clicking Night tab immediately shows flashcards
-  - Switching to Day and back to Night returns to the same flashcard
+- [x] Run the app and verify:
+  - Clicking Night chip in PhaseBar immediately shows inline flashcards
+  - Clicking Day chip returns to normal bottom tabs with night progress preserved
+  - Clicking Night chip again returns to the saved flashcard position
   - Night only completes via "Complete Night" button
-  - Moon icon is no longer in the navbar
+  - Moon icon is no longer in the AppBar
+  - Night Order tab (index 3) always shows the reference list, even during an active night
+  - NightHistoryDrawer and NightHistoryReview still work as overlays
 
 ### Development Checklist
 
@@ -262,14 +370,20 @@ Before completing this milestone, run and pass all three:
 
 ## 8. Acceptance Criteria
 
-- [ ] No confirmation dialog appears when switching to Night mode
-- [ ] Clicking the Night tab immediately displays the flashcard carousel
-- [ ] Switching from Night to Day and back preserves the Storyteller's position in the carousel
-- [ ] Night is ONLY considered complete when the user explicitly presses "Complete Night"
-- [ ] Viewing all flashcards without pressing "Complete Night" does NOT finalize the night
-- [ ] The moon icon button is removed from the navbar
-- [ ] Night state (`currentNightCardIndex`, `nightInProgress`) persists in `localStorage`
-- [ ] Starting a new night (after completing the previous one) resets to the first flashcard
-- [ ] All existing non-dialog tests pass; dialog-related tests removed cleanly
-- [ ] New tests cover tab behavior, position persistence, and completion logic
-- [ ] TypeScript compilation, ESLint, and test suite all pass
+- [x] No confirmation dialog appears when switching to Night mode
+- [x] Clicking the Night chip in PhaseBar immediately displays the flashcard carousel **inline in the tab content area**
+- [x] No full-screen overlay is used for the active night — `NightPhaseOverlay.tsx` is deleted
+- [x] Switching from Night to Day (via PhaseBar Day chip) returns normal bottom tabs with night progress preserved
+- [x] Switching back to Night (via PhaseBar Night chip) resumes at the saved card position
+- [x] Day↔Night switching is free and unblocked in **both directions** via PhaseBar
+- [x] Night is ONLY considered complete when the user explicitly presses "Complete Night"
+- [x] Viewing all flashcards without pressing "Complete Night" does NOT finalize the night
+- [x] The moon icon button is removed from the AppBar
+- [x] The Night Order tab (index 3) **always** shows the reference list, even during an active night
+- [x] All 4 bottom tabs remain unchanged (Town Square, Players, Script, Night Order)
+- [x] NightHistoryDrawer and NightHistoryReview continue to work as overlays (unchanged)
+- [x] Card position is synced to GameContext via `SET_NIGHT_CARD_INDEX` action
+- [x] Starting a new night (after completing the previous one) resets to the first flashcard
+- [x] NightPhaseOverlay tests are removed; NightTabPanel tests cover the replacement logic
+- [x] New tests cover inline rendering, phase switching, position persistence, and completion logic
+- [x] TypeScript compilation, ESLint, and test suite all pass

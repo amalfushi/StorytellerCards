@@ -76,6 +76,7 @@ type GameAction =
       };
     }
   | { type: 'COMPLETE_NIGHT' }
+  | { type: 'SET_NIGHT_CARD_INDEX'; payload: { index: number } }
   | { type: 'SAVE_GAME' }
   | { type: 'ADD_TOKEN'; payload: { seat: number; token: PlayerToken } }
   | { type: 'REMOVE_TOKEN'; payload: { seat: number; tokenId: string } }
@@ -288,6 +289,17 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'SET_NIGHT_CARD_INDEX': {
+      if (!state.nightProgress) return state;
+      return {
+        ...state,
+        nightProgress: {
+          ...state.nightProgress,
+          currentCardIndex: action.payload.index,
+        },
+      };
+    }
+
     default:
       return state;
   }
@@ -345,6 +357,7 @@ interface GameContextValue {
   ) => void;
   completeNight: () => void;
   saveGame: () => void;
+  setNightCardIndex: (index: number) => void;
   addToken: (seat: number, token: PlayerToken) => void;
   removeToken: (seat: number, tokenId: string) => void;
   updateNightHistory: (index: number, entry: NightHistoryEntry) => void;
@@ -455,6 +468,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'REMOVE_TOKEN', payload: { seat, tokenId } });
   }, []);
 
+  const setNightCardIndex = useCallback((index: number) => {
+    dispatch({ type: 'SET_NIGHT_CARD_INDEX', payload: { index } });
+  }, []);
+
   const updateNightHistory = useCallback((index: number, entry: NightHistoryEntry) => {
     dispatch({ type: 'UPDATE_NIGHT_HISTORY', payload: { index, entry } });
   }, []);
@@ -473,6 +490,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     updateNightProgress,
     completeNight,
     saveGame,
+    setNightCardIndex,
     addToken,
     removeToken,
     updateNightHistory,
