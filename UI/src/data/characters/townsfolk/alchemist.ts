@@ -81,6 +81,11 @@ export const alchemist: CharacterDef = {
     'Visit the interior of the Earth. By rectification thou shalt find the hidden stone. Above the gold, lieth the red. Kether in Malkuth.',
   edition: 'carousel',
   remindersGlobal: [
-    { id: 'alchemist-global-isthealchemist', text: 'Is The Alchemist', isGlobal: true },
+    {
+      id: 'alchemist-global-isthealchemist',
+      text: 'Is The Alchemist',
+      isGlobal: true,
+      sourceCharacterId: 'alchemist',
+    },
   ],
 };

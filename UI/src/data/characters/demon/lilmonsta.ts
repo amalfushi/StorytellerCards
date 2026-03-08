@@ -136,7 +136,17 @@ export const lilmonsta: CharacterDef = {
   edition: 'carousel',
   setup: true,
   remindersGlobal: [
-    { id: 'lilmonsta-global-isthedemon', text: 'Is The Demon', isGlobal: true },
-    { id: 'lilmonsta-global-dead', text: 'Dead', isGlobal: true },
+    {
+      id: 'lilmonsta-global-isthedemon',
+      text: 'Is The Demon',
+      isGlobal: true,
+      sourceCharacterId: 'lilmonsta',
+    },
+    {
+      id: 'lilmonsta-global-dead',
+      text: 'Dead',
+      isGlobal: true,
+      sourceCharacterId: 'lilmonsta',
+    },
   ],
 };

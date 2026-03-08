@@ -62,6 +62,17 @@ const KNOWN_PROMPTS: Record<string, PromptRule> = {
   bountyhunter: {
     prompt: 'Designate 1 good Townsfolk as registering evil for the Bounty Hunter',
   },
+  lycanthrope: {
+    prompt: "Place 'Faux Paw' token on a good player (they register as evil to the Lycanthrope)",
+  },
+  fortuneteller: {
+    prompt:
+      "Place 'Red Herring' token on a good player (they register as Demon to the Fortune Teller)",
+  },
+  marionette: {
+    prompt:
+      "Swap the Marionette's character token with the character they believe they are, and add that character's reminder tokens to maintain the illusion",
+  },
 };
 
 // ── Public API ──

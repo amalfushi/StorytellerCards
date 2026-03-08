@@ -40,5 +40,12 @@ export const drunk: CharacterDef = {
   flavor: 'I’m only a *hic* social drinker, my dear. Admittedly, I am a heavy *burp* socializer.',
   edition: 'tb',
   setup: true,
-  remindersGlobal: [{ id: 'drunk-global-isthedrunk', text: 'Is The Drunk', isGlobal: true }],
+  remindersGlobal: [
+    {
+      id: 'drunk-global-isthedrunk',
+      text: 'Is The Drunk',
+      isGlobal: true,
+      sourceCharacterId: 'drunk',
+    },
+  ],
 };

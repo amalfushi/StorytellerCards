@@ -68,7 +68,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     removeToken,
     swapPlayerSeats,
   } = useGame();
-  const { getCharacter, getCharactersByIds } = useCharacterLookup();
+  const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
 
   const isTablet = useMediaQuery('(min-width:600px)');
   const isSmallViewport = useMediaQuery('(max-width:479px)');
@@ -359,6 +359,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         player={actionsPlayer}
         showCharacters={showCharacters}
         scriptCharacters={scriptCharacters}
+        allCharacters={allCharacters}
         onClose={handleActionsClose}
         onToggleAlive={handleToggleAlive}
         onToggleGhostVote={handleToggleGhostVote}

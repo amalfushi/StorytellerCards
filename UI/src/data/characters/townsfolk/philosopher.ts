@@ -66,6 +66,11 @@ export const philosopher: CharacterDef = {
   flavor: 'If anything is real, beer is real. Drink, for tomorrow we may die.',
   edition: 'snv',
   remindersGlobal: [
-    { id: 'philosopher-global-isthephilosopher', text: 'Is The Philosopher', isGlobal: true },
+    {
+      id: 'philosopher-global-isthephilosopher',
+      text: 'Is The Philosopher',
+      isGlobal: true,
+      sourceCharacterId: 'philosopher',
+    },
   ],
 };
