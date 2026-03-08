@@ -32,6 +32,7 @@ import { NightOrderTab } from '@/components/NightOrder/NightOrderTab.tsx';
 import { NightTabPanel } from '@/components/NightPhase/NightTabPanel.tsx';
 import { NightHistoryDrawer } from '@/components/NightHistory/NightHistoryDrawer.tsx';
 import { CharacterAssignmentDialog } from '@/components/CharacterAssignment/CharacterAssignmentDialog.tsx';
+import { CharacterSelection } from '@/components/Setup/CharacterSelection.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
 import { Phase as PhaseEnum } from '@/types/index.ts';
@@ -49,12 +50,20 @@ export function GameViewPage() {
   const { sessionId, gameId } = useParams<{ sessionId: string; gameId: string }>();
   const navigate = useNavigate();
   const { state: sessionState } = useSession();
-  const { state: gameState, loadGame, updatePlayer, saveGame, setPhase } = useGame();
+  const {
+    state: gameState,
+    loadGame,
+    updatePlayer,
+    saveGame,
+    setPhase,
+    setInPlayCharacters,
+  } = useGame();
   const { allCharacters, getCharactersByIds } = useCharacterLookup();
 
   const [tabIndex, setTabIndex] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [charSelectionOpen, setCharSelectionOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
 
   // ── Day timer (lifted here so state survives tab switches) ──
@@ -149,6 +158,33 @@ export function GameViewPage() {
     const nonTravellers = game.players.filter((p) => !p.isTraveller);
     return nonTravellers.length > 0 && nonTravellers.every((p) => !p.characterId);
   }, [game]);
+
+  // Check if in-play character selection is needed (no inPlayCharacterIds yet)
+  const needsCharacterSelection = useMemo(() => {
+    if (!game) return false;
+    return needsCharacterAssignment && !game.inPlayCharacterIds?.length;
+  }, [game, needsCharacterAssignment]);
+
+  // Handle confirming in-play character selection
+  const handleConfirmInPlayCharacters = useCallback(
+    (characterIds: string[]) => {
+      setInPlayCharacters(characterIds);
+      saveGame();
+      // Proceed to assignment dialog after selection
+      setCharSelectionOpen(false);
+      setAssignDialogOpen(true);
+    },
+    [setInPlayCharacters, saveGame],
+  );
+
+  // Use in-play characters for assignment if available, else all script characters
+  const inPlayIds = game?.inPlayCharacterIds;
+  const assignmentCharacterDefs = useMemo(() => {
+    if (inPlayIds?.length) {
+      return getCharactersByIds(inPlayIds);
+    }
+    return scriptCharacterDefs;
+  }, [inPlayIds, getCharactersByIds, scriptCharacterDefs]);
 
   // Handle confirming character assignments
   const handleConfirmAssignments = useCallback(
@@ -271,18 +307,30 @@ export function GameViewPage() {
         <Alert
           severity="info"
           action={
-            <Button
-              color="inherit"
-              size="small"
-              startIcon={<AssignmentIndIcon />}
-              onClick={() => setAssignDialogOpen(true)}
-            >
-              Setup Characters
-            </Button>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              {needsCharacterSelection && (
+                <Button
+                  color="inherit"
+                  size="small"
+                  startIcon={<AssignmentIndIcon />}
+                  onClick={() => setCharSelectionOpen(true)}
+                >
+                  Select Characters
+                </Button>
+              )}
+              <Button
+                color="inherit"
+                size="small"
+                startIcon={<AssignmentIndIcon />}
+                onClick={() => setAssignDialogOpen(true)}
+              >
+                {needsCharacterSelection ? 'Skip to Assign' : 'Setup Characters'}
+              </Button>
+            </Box>
           }
           sx={{ borderRadius: 0 }}
         >
-          Characters haven't been assigned yet. Set up characters before the first night!
+          Characters haven&apos;t been assigned yet. Set up characters before the first night!
         </Alert>
       )}
 
@@ -353,8 +401,20 @@ export function GameViewPage() {
           open={assignDialogOpen}
           onClose={() => setAssignDialogOpen(false)}
           players={game.players}
-          scriptCharacters={scriptCharacterDefs}
+          scriptCharacters={assignmentCharacterDefs}
           onConfirm={handleConfirmAssignments}
+        />
+      )}
+
+      {/* Character Selection Dialog */}
+      {game && (
+        <CharacterSelection
+          open={charSelectionOpen}
+          onClose={() => setCharSelectionOpen(false)}
+          scriptCharacters={scriptCharacterDefs}
+          playerCount={game.players.filter((p) => !p.isTraveller).length}
+          initialSelected={game.inPlayCharacterIds}
+          onConfirm={handleConfirmInPlayCharacters}
         />
       )}
     </Box>

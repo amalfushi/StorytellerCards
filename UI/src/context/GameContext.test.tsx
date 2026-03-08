@@ -1602,4 +1602,247 @@ describe('GameContext', () => {
       expect(persisted.players[0].actualAlignment).toBe(Alignment.Evil);
     });
   });
+
+  // ── SET_IN_PLAY_CHARACTERS ──
+
+  describe('SET_IN_PLAY_CHARACTERS', () => {
+    it('sets inPlayCharacterIds on the game', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.setInPlayCharacters(['washerwoman', 'imp', 'poisoner']);
+      });
+
+      expect(result.current.state.game!.inPlayCharacterIds).toEqual([
+        'washerwoman',
+        'imp',
+        'poisoner',
+      ]);
+    });
+
+    it('replaces existing inPlayCharacterIds', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ inPlayCharacterIds: ['old1', 'old2'] }));
+      });
+
+      act(() => {
+        result.current.setInPlayCharacters(['new1', 'new2', 'new3']);
+      });
+
+      expect(result.current.state.game!.inPlayCharacterIds).toEqual(['new1', 'new2', 'new3']);
+    });
+
+    it('can set empty array', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ inPlayCharacterIds: ['a', 'b'] }));
+      });
+
+      act(() => {
+        result.current.setInPlayCharacters([]);
+      });
+
+      expect(result.current.state.game!.inPlayCharacterIds).toEqual([]);
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.setInPlayCharacters(['washerwoman']);
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+
+    it('persists inPlayCharacterIds to localStorage', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ id: 'in-play-persist' }));
+      });
+
+      act(() => {
+        result.current.setInPlayCharacters(['washerwoman', 'imp']);
+      });
+
+      const raw = localStorage.getItem('storyteller-game-in-play-persist');
+      expect(raw).not.toBeNull();
+      const persisted = JSON.parse(raw!) as Game;
+      expect(persisted.inPlayCharacterIds).toEqual(['washerwoman', 'imp']);
+    });
+  });
+
+  // ── SWAP_PLAYER_SEATS ──
+
+  describe('SWAP_PLAYER_SEATS', () => {
+    it('swaps all properties of two players while keeping seat numbers', () => {
+      const { result } = renderGameHook();
+      const p1 = makePlayer({
+        seat: 1,
+        playerName: 'Alice',
+        characterId: 'washerwoman',
+        actualAlignment: Alignment.Good,
+        startingAlignment: Alignment.Good,
+      });
+      const p2 = makePlayer({
+        seat: 2,
+        playerName: 'Bob',
+        characterId: 'imp',
+        actualAlignment: Alignment.Evil,
+        startingAlignment: Alignment.Evil,
+      });
+      act(() => {
+        result.current.loadGame(makeGame({ players: [p1, p2] }));
+      });
+
+      act(() => {
+        result.current.swapPlayerSeats(1, 2);
+      });
+
+      const players = result.current.state.game!.players;
+      // Seat 1 should now have Bob's data
+      const seat1 = players.find((p) => p.seat === 1)!;
+      expect(seat1.playerName).toBe('Bob');
+      expect(seat1.characterId).toBe('imp');
+      expect(seat1.actualAlignment).toBe(Alignment.Evil);
+
+      // Seat 2 should now have Alice's data
+      const seat2 = players.find((p) => p.seat === 2)!;
+      expect(seat2.playerName).toBe('Alice');
+      expect(seat2.characterId).toBe('washerwoman');
+      expect(seat2.actualAlignment).toBe(Alignment.Good);
+    });
+
+    it('swaps tokens and reminders along with players', () => {
+      const { result } = renderGameHook();
+      const tok1: PlayerToken = { id: 't1', type: 'drunk', label: 'Drunk' };
+      const tok2: PlayerToken = { id: 't2', type: 'poisoned', label: 'Poisoned' };
+      const p1 = makePlayer({
+        seat: 1,
+        playerName: 'Alice',
+        tokens: [tok1],
+        activeReminders: ['reminder-1'],
+      });
+      const p2 = makePlayer({
+        seat: 2,
+        playerName: 'Bob',
+        tokens: [tok2],
+        activeReminders: ['reminder-2'],
+      });
+      act(() => {
+        result.current.loadGame(makeGame({ players: [p1, p2] }));
+      });
+
+      act(() => {
+        result.current.swapPlayerSeats(1, 2);
+      });
+
+      const players = result.current.state.game!.players;
+      const seat1 = players.find((p) => p.seat === 1)!;
+      const seat2 = players.find((p) => p.seat === 2)!;
+      expect(seat1.tokens).toEqual([tok2]);
+      expect(seat1.activeReminders).toEqual(['reminder-2']);
+      expect(seat2.tokens).toEqual([tok1]);
+      expect(seat2.activeReminders).toEqual(['reminder-1']);
+    });
+
+    it('does nothing when swapping same seat', () => {
+      const { result } = renderGameHook();
+      const p1 = makePlayer({ seat: 1, playerName: 'Alice' });
+      act(() => {
+        result.current.loadGame(makeGame({ players: [p1] }));
+      });
+
+      act(() => {
+        result.current.swapPlayerSeats(1, 1);
+      });
+
+      expect(result.current.state.game!.players[0].playerName).toBe('Alice');
+    });
+
+    it('does nothing when one seat does not exist', () => {
+      const { result } = renderGameHook();
+      const p1 = makePlayer({ seat: 1, playerName: 'Alice' });
+      act(() => {
+        result.current.loadGame(makeGame({ players: [p1] }));
+      });
+
+      act(() => {
+        result.current.swapPlayerSeats(1, 99);
+      });
+
+      expect(result.current.state.game!.players[0].playerName).toBe('Alice');
+    });
+
+    it('does not affect other players', () => {
+      const { result } = renderGameHook();
+      const p1 = makePlayer({ seat: 1, playerName: 'Alice' });
+      const p2 = makePlayer({ seat: 2, playerName: 'Bob' });
+      const p3 = makePlayer({ seat: 3, playerName: 'Charlie', characterId: 'chef' });
+      act(() => {
+        result.current.loadGame(makeGame({ players: [p1, p2, p3] }));
+      });
+
+      act(() => {
+        result.current.swapPlayerSeats(1, 2);
+      });
+
+      const seat3 = result.current.state.game!.players.find((p) => p.seat === 3)!;
+      expect(seat3.playerName).toBe('Charlie');
+      expect(seat3.characterId).toBe('chef');
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.swapPlayerSeats(1, 2);
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+
+    it('persists swap to localStorage', () => {
+      const { result } = renderGameHook();
+      const p1 = makePlayer({ seat: 1, playerName: 'Alice' });
+      const p2 = makePlayer({ seat: 2, playerName: 'Bob' });
+      act(() => {
+        result.current.loadGame(makeGame({ id: 'swap-persist', players: [p1, p2] }));
+      });
+
+      act(() => {
+        result.current.swapPlayerSeats(1, 2);
+      });
+
+      const raw = localStorage.getItem('storyteller-game-swap-persist');
+      expect(raw).not.toBeNull();
+      const persisted = JSON.parse(raw!) as Game;
+      expect(persisted.players.find((p) => p.seat === 1)!.playerName).toBe('Bob');
+      expect(persisted.players.find((p) => p.seat === 2)!.playerName).toBe('Alice');
+    });
+
+    it('preserves alive/dead and ghostVoteUsed during swap', () => {
+      const { result } = renderGameHook();
+      const p1 = makePlayer({ seat: 1, playerName: 'Alice', alive: true, ghostVoteUsed: false });
+      const p2 = makePlayer({ seat: 2, playerName: 'Bob', alive: false, ghostVoteUsed: true });
+      act(() => {
+        result.current.loadGame(makeGame({ players: [p1, p2] }));
+      });
+
+      act(() => {
+        result.current.swapPlayerSeats(1, 2);
+      });
+
+      const seat1 = result.current.state.game!.players.find((p) => p.seat === 1)!;
+      const seat2 = result.current.state.game!.players.find((p) => p.seat === 2)!;
+      expect(seat1.alive).toBe(false);
+      expect(seat1.ghostVoteUsed).toBe(true);
+      expect(seat2.alive).toBe(true);
+      expect(seat2.ghostVoteUsed).toBe(false);
+    });
+  });
 });

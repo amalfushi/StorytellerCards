@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import HowToVoteIcon from '@mui/icons-material/HowToVote';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { characterColors } from '@/theme/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
@@ -22,6 +23,10 @@ interface PlayerRowProps {
   onToggleAlive: (seat: number) => void;
   onToggleGhostVote: (seat: number) => void;
   onRowClick: (seat: number) => void;
+  /** Optional swap handler — shows a swap icon button in the row. */
+  onSwap?: (seat: number) => void;
+  /** Whether this row is the active swap source. */
+  isSwapSource?: boolean;
 }
 
 /**
@@ -41,6 +46,8 @@ export function PlayerRow({
   onToggleAlive,
   onToggleGhostVote,
   onRowClick,
+  onSwap,
+  isSwapSource,
 }: PlayerRowProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const typeColor = character ? getCharacterTypeColor(character.type) : '#9e9e9e';
@@ -90,7 +97,7 @@ export function PlayerRow({
           cursor: showCharacters ? 'pointer' : 'default',
           borderLeft: travellerBorder,
           borderRight: travellerBorder,
-          backgroundColor: travellerBackground,
+          backgroundColor: isSwapSource ? 'rgba(237, 108, 2, 0.15)' : travellerBackground,
         }}
       >
         {/* Seat # */}
@@ -232,6 +239,23 @@ export function PlayerRow({
             </IconButton>
           )}
         </TableCell>
+
+        {/* Swap button (visible mode only, when onSwap provided) */}
+        {showCharacters && onSwap && (
+          <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
+            <IconButton
+              size="small"
+              onClick={(e) => {
+                e.stopPropagation();
+                onSwap(player.seat);
+              }}
+              aria-label={`swap seat ${player.seat}`}
+              data-testid={`swap-btn-${player.seat}`}
+            >
+              <SwapHorizIcon fontSize="small" />
+            </IconButton>
+          </TableCell>
+        )}
       </TableRow>
 
       {/* Character Detail Modal */}

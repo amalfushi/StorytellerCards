@@ -1,5 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
@@ -8,6 +9,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type { CharacterDef, Alignment } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -25,9 +27,10 @@ interface PlayerListTabProps {
  * Night view adds character name, type, alignment, and inline edit on tap.
  */
 export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
-  const { state, updatePlayer } = useGame();
+  const { state, updatePlayer, swapPlayerSeats } = useGame();
   const { getCharacter, getCharactersByIds } = useCharacterLookup();
   const [editSeat, setEditSeat] = useState<number | null>(null);
+  const [swapSourceSeat, setSwapSourceSeat] = useState<number | null>(null);
 
   const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
   const showCharacters = state.showCharacters;
@@ -67,8 +70,19 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   };
 
   const handleRowClick = (seat: number) => {
+    if (swapSourceSeat !== null) {
+      if (seat !== swapSourceSeat) {
+        swapPlayerSeats(swapSourceSeat, seat);
+      }
+      setSwapSourceSeat(null);
+      return;
+    }
     setEditSeat(seat);
   };
+
+  const handleStartSwap = useCallback((seat: number) => {
+    setSwapSourceSeat(seat);
+  }, []);
 
   const handleEditSave = (
     seat: number,
@@ -91,6 +105,18 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
 
   return (
     <Box sx={{ height: '100%', overflow: 'auto' }}>
+      {/* Swap mode indicator */}
+      {swapSourceSeat !== null && (
+        <Chip
+          icon={<SwapHorizIcon />}
+          label={`Tap a player to swap with Seat ${swapSourceSeat}`}
+          onDelete={() => setSwapSourceSeat(null)}
+          color="warning"
+          sx={{ m: 1 }}
+          data-testid="swap-mode-indicator"
+        />
+      )}
+
       <TableContainer>
         <Table size="small" stickyHeader>
           <TableHead>
@@ -119,6 +145,11 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
               <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
                 Vote
               </TableCell>
+              {showCharacters && (
+                <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
+                  Swap
+                </TableCell>
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -131,6 +162,8 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
                 onToggleAlive={handleToggleAlive}
                 onToggleGhostVote={handleToggleGhostVote}
                 onRowClick={handleRowClick}
+                onSwap={showCharacters ? handleStartSwap : undefined}
+                isSwapSource={swapSourceSeat === player.seat}
               />
             ))}
           </TableBody>
