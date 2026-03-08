@@ -21,6 +21,7 @@
 | M12 | Storybook Test Expansion | 📋 Planned | — |
 | M13 | Icon Replacement | ✅ Complete | [details](milestones/13%20-%20icon%20replacement/progress.md) |
 | M14 | Night Flashcard UX | ✅ Complete | [details](milestones/14%20-%20night%20flashcard%20ux/progress.md) |
+| M15 | Day/Night Tab Workflow | ✅ Complete | [details](milestones/15%20-%20day%20night%20tab%20workflow/milestone15.md) |
 | M16 | TownSquare Polish — card sizing, token center fix, visibility rules, PlayerActionsModal, dynamic token set, linear token layout | ✅ Complete | [details](milestones/16%20-%20townsquare%20polish/milestone16.md) |
 
 ## Key Design Decisions
