@@ -293,6 +293,8 @@ export interface Game {
   activeLoric?: string[];
   /** Character IDs selected as in-play for this game (subset of script). */
   inPlayCharacterIds?: string[];
+  /** Character IDs of the 3 not-in-play good characters shown to the Demon as bluffs. */
+  demonBluffs?: string[];
 }
 
 // ──────────────────────────────────────────────
