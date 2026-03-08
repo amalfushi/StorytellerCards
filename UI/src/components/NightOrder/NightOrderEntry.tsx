@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import Badge from '@mui/material/Badge';
 import Divider from '@mui/material/Divider';
 import type {
   NightOrderEntry as NightOrderEntryType,
@@ -90,24 +89,6 @@ export function NightOrderEntry({ entry, character, assignedPlayer }: NightOrder
         transition: 'opacity 0.2s',
       }}
     >
-      {/* Order badge */}
-      <Badge
-        badgeContent={entry.order}
-        color="default"
-        sx={{
-          '& .MuiBadge-badge': {
-            position: 'relative',
-            transform: 'none',
-            bgcolor: 'grey.700',
-            color: '#fff',
-            fontSize: '0.65rem',
-            minWidth: 22,
-            height: 22,
-          },
-          mt: 0.5,
-        }}
-      />
-
       {/* Character icon */}
       <CharacterIconImage
         characterId={entry.id}

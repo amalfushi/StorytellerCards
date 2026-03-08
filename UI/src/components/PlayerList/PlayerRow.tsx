@@ -28,9 +28,9 @@ interface PlayerRowProps {
  * A single row in the PlayerList table.
  *
  * Column order:
- * Seat | Player Name | Type (pill) | Icon | Character Name | abilityShort | Alive | Alignment | Ghost Vote
+ * Seat | Player Name | Type (pill) | Icon | Character Name | Ability | Tokens | Alignment | Alive | Ghost Vote
  *
- * Day view hides character-specific columns.
+ * Day view hides character-specific columns (except Traveller icons/names are always visible).
  * If a player's actualAlignment differs from their character's defaultAlignment,
  * the type pill gets a thick coloured border to signal the mismatch.
  */
@@ -46,12 +46,22 @@ export function PlayerRow({
   const typeColor = character ? getCharacterTypeColor(character.type) : '#9e9e9e';
   const isDead = !player.alive;
 
-  // Traveller border: split blue/red
-  const travellerBorder = player.isTraveller
-    ? `3px solid ${characterColors.travellerGood}`
+  // Traveller border: single-color based on alignment (only shown when showCharacters)
+  const travellerBorderColor = player.isTraveller
+    ? player.actualAlignment === 'Good'
+      ? characterColors.travellerGood
+      : player.actualAlignment === 'Evil'
+        ? characterColors.travellerEvil
+        : '#9e9e9e'
     : undefined;
-  const travellerBorderRight = player.isTraveller
-    ? `3px solid ${characterColors.travellerEvil}`
+  const travellerBorder =
+    player.isTraveller && showCharacters ? `3px solid ${travellerBorderColor}` : undefined;
+
+  // Traveller background tint: 10% opacity of type color (always visible)
+  const travellerBackground = player.isTraveller
+    ? player.actualAlignment === 'Evil'
+      ? 'rgba(211, 47, 47, 0.1)'
+      : 'rgba(25, 118, 210, 0.1)'
     : undefined;
 
   // M3-6: Alignment mismatch border on the type pill
@@ -79,7 +89,8 @@ export function PlayerRow({
           opacity: isDead ? 0.5 : 1,
           cursor: showCharacters ? 'pointer' : 'default',
           borderLeft: travellerBorder,
-          borderRight: travellerBorderRight,
+          borderRight: travellerBorder,
+          backgroundColor: travellerBackground,
         }}
       >
         {/* Seat # */}
@@ -112,8 +123,8 @@ export function PlayerRow({
           </TableCell>
         )}
 
-        {/* Character icon (night view only) */}
-        {showCharacters && (
+        {/* Character icon (night view OR Traveller always visible) */}
+        {(showCharacters || player.isTraveller) && (
           <TableCell align="center" sx={{ width: 60, px: 0.5 }}>
             {character ? (
               <Box sx={{ display: 'flex', justifyContent: 'center' }}>
@@ -135,14 +146,9 @@ export function PlayerRow({
           </TableCell>
         )}
 
-        {/* Character Name (night view only) */}
-        {showCharacters && <TableCell sx={{ px: 1 }}>{character?.name ?? '—'}</TableCell>}
-
-        {/* Active tokens (night view only, F3-17) */}
-        {showCharacters && (
-          <TableCell sx={{ px: 1 }}>
-            {player.tokens.length > 0 ? <TokenChips tokens={player.tokens} /> : '—'}
-          </TableCell>
+        {/* Character Name (night view OR Traveller always visible) */}
+        {(showCharacters || player.isTraveller) && (
+          <TableCell sx={{ px: 1 }}>{character?.name ?? '—'}</TableCell>
         )}
 
         {/* Ability short (night view only) — strikethrough when dead */}
@@ -150,10 +156,10 @@ export function PlayerRow({
           <TableCell
             sx={{
               px: 1,
-              maxWidth: 180,
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              whiteSpace: 'nowrap',
+              flex: 2,
+              wordWrap: 'break-word',
+              overflowWrap: 'break-word',
+              whiteSpace: 'normal',
               fontSize: '0.75rem',
               color: 'text.secondary',
               textDecoration: isDead ? 'line-through' : 'none',
@@ -163,20 +169,12 @@ export function PlayerRow({
           </TableCell>
         )}
 
-        {/* Alive/Dead toggle */}
-        <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
-          <IconButton
-            size="small"
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleAlive(player.seat);
-            }}
-            color={player.alive ? 'success' : 'error'}
-            aria-label={player.alive ? 'Mark as dead' : 'Mark as alive'}
-          >
-            {player.alive ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-          </IconButton>
-        </TableCell>
+        {/* Active tokens (night view only, F3-17) */}
+        {showCharacters && (
+          <TableCell sx={{ px: 1 }}>
+            {player.tokens.length > 0 ? <TokenChips tokens={player.tokens} /> : '—'}
+          </TableCell>
+        )}
 
         {/* Alignment indicator (night view only) */}
         {showCharacters && (
@@ -197,6 +195,21 @@ export function PlayerRow({
             />
           </TableCell>
         )}
+
+        {/* Alive/Dead toggle */}
+        <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
+          <IconButton
+            size="small"
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleAlive(player.seat);
+            }}
+            color={player.alive ? 'success' : 'error'}
+            aria-label={player.alive ? 'Mark as dead' : 'Mark as alive'}
+          >
+            {player.alive ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+          </IconButton>
+        </TableCell>
 
         {/* Ghost Vote */}
         <TableCell align="center" sx={{ width: 44, px: 0.5 }}>

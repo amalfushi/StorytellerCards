@@ -12,6 +12,67 @@ import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.t
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
+/**
+ * Parses `abilityDetailed` text that may contain `•` bullet characters.
+ * Splits into an intro paragraph (before the first `•`) and a `<ul>` list
+ * for lines starting with `•`.
+ */
+function renderAbilityDetailed(text: string) {
+  // If no bullet characters, render as plain text
+  if (!text.includes('•')) {
+    return <Typography variant="body2">{text}</Typography>;
+  }
+
+  // Split on newlines, then separate intro from bullet items
+  const lines = text.split('\n');
+  const introLines: string[] = [];
+  const bulletItems: string[] = [];
+  let foundBullet = false;
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('•')) {
+      foundBullet = true;
+      // Remove the leading bullet and whitespace
+      bulletItems.push(trimmed.replace(/^•\s*/, ''));
+    } else if (!foundBullet && trimmed.length > 0) {
+      introLines.push(trimmed);
+    } else if (trimmed.length > 0) {
+      // Non-bullet line after bullets — treat as another bullet item
+      bulletItems.push(trimmed);
+    }
+  }
+
+  return (
+    <>
+      {introLines.length > 0 && (
+        <Typography variant="body2" sx={{ mb: 0.5 }}>
+          {introLines.join(' ')}
+        </Typography>
+      )}
+      {bulletItems.length > 0 && (
+        <Box
+          component="ul"
+          sx={{
+            m: 0,
+            pl: 2.5,
+            '& li': {
+              fontSize: '0.8rem',
+              lineHeight: 1.4,
+              mb: 0.5,
+              color: 'text.secondary',
+            },
+          }}
+        >
+          {bulletItems.map((item, idx) => (
+            <li key={idx}>{item}</li>
+          ))}
+        </Box>
+      )}
+    </>
+  );
+}
+
 interface CharacterCardProps {
   character: CharacterDef;
 }
@@ -81,7 +142,7 @@ export function CharacterCard({ character }: CharacterCardProps) {
             <Typography variant="caption" fontWeight={600} color="text.secondary">
               Detailed Rules
             </Typography>
-            <Typography variant="body2">{character.abilityDetailed}</Typography>
+            {renderAbilityDetailed(character.abilityDetailed)}
           </Box>
         )}
 

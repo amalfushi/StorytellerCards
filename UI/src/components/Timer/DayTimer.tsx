@@ -166,7 +166,7 @@ export function DayTimer({ timer }: DayTimerProps) {
               slotProps={{
                 htmlInput: { min: 0.5, max: 60, step: 0.5 },
               }}
-              sx={{ width: 120 }}
+              sx={{ minWidth: 150 }}
             />
             <Button
               variant="contained"

@@ -30,6 +30,23 @@ vi.mock('@/components/common/CharacterDetailModal.tsx', () => ({
 // Mock data
 // ──────────────────────────────────────────────
 
+const bulletCharacter: CharacterDef = {
+  id: 'alhadikhia',
+  name: 'Al-Hadikhia',
+  type: CharacterType.Demon,
+  defaultAlignment: Alignment.Evil,
+  abilityShort: 'Each night*, choose 3 players: each silently chooses to live or die.',
+  abilityDetailed:
+    'The Al-Hadikhia puts three players in a dilemma.\n• The Al-Hadikhia may choose three players per night.\n• All players must be silent when the Al-Hadikhia acts.',
+  firstNight: null,
+  otherNights: {
+    order: 30,
+    helpText: 'The Al-Hadikhia points to three players.',
+    subActions: [{ id: 'alh-on-1', description: 'Points to three', isConditional: false }],
+  },
+  reminders: [],
+};
+
 const fullCharacter: CharacterDef = {
   id: 'fortuneteller',
   name: 'Fortune Teller',
@@ -208,5 +225,36 @@ describe('CharacterCard', () => {
   it('shows icon for demon character', () => {
     render(<CharacterCard character={demonCharacter} />);
     expect(screen.getByAltText('Imp')).toBeInTheDocument();
+  });
+
+  // ──────────────────────────────────────────────
+  // Bullet list rendering (M17)
+  // ──────────────────────────────────────────────
+
+  it('renders abilityDetailed with bullets as a <ul> list', () => {
+    render(<CharacterCard character={bulletCharacter} />);
+    expandAccordionFor(/Al-Hadikhia/);
+
+    // Intro paragraph should be rendered
+    expect(
+      screen.getByText('The Al-Hadikhia puts three players in a dilemma.'),
+    ).toBeInTheDocument();
+
+    // Bullet items should be rendered as <li> elements
+    const listItems = screen.getAllByRole('listitem');
+    expect(listItems).toHaveLength(2);
+    expect(listItems[0]).toHaveTextContent('The Al-Hadikhia may choose three players per night.');
+    expect(listItems[1]).toHaveTextContent('All players must be silent when the Al-Hadikhia acts.');
+  });
+
+  it('renders abilityDetailed without bullets as plain text', () => {
+    render(<CharacterCard character={fullCharacter} />);
+    expandAccordion();
+
+    // Should render as plain text with no list
+    expect(
+      screen.getByText(/There is a good player that registers as a Demon to you/),
+    ).toBeInTheDocument();
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0);
   });
 });

@@ -82,7 +82,7 @@ export const GhostVoteUsed: Story = {
   },
 };
 
-/** Traveller player (Good) — split blue/red border, Spirit of Ivory character data shown. */
+/** Traveller player (Good) — blue alignment-based border (night view), blue tint background. */
 export const TravellerPlayerGood: Story = {
   args: {
     player: travJackPlayer,
@@ -91,11 +91,20 @@ export const TravellerPlayerGood: Story = {
   },
 };
 
-/** Traveller player (Evil-aligned) — split border + red alignment dot, demonstrates ST-assigned evil alignment. */
+/** Traveller player (Evil-aligned) — red alignment-based border (night view) + red tint background. */
 export const TravellerPlayerEvil: Story = {
   args: {
     player: evilTravellerPlayer,
     showCharacters: true,
+    character: spiritOfIvory,
+  },
+};
+
+/** Traveller in Day mode — icon and name still visible, border hidden, blue tint background. */
+export const TravellerDayView: Story = {
+  args: {
+    player: travJackPlayer,
+    showCharacters: false,
     character: spiritOfIvory,
   },
 };

@@ -150,10 +150,10 @@ describe('NightOrderEntry', () => {
     expect(screen.getByText('Fortune Teller')).toBeInTheDocument();
   });
 
-  it('shows order number via badge', () => {
+  it('does not show order number (badge removed in M17)', () => {
     render(<NightOrderEntry entry={characterEntry} character={fortuneTellerCharacter} />);
-    // MUI Badge renders the content
-    expect(screen.getByText('19')).toBeInTheDocument();
+    // Order badge was removed — the order number should NOT be visible
+    expect(screen.queryByText('19')).not.toBeInTheDocument();
   });
 
   it('shows help text (abbreviated to first sentence)', () => {
