@@ -994,6 +994,171 @@ describe('GameContext', () => {
     });
   });
 
+  // ── UPDATE_NIGHT_HISTORY_NOTE ──
+
+  describe('UPDATE_NIGHT_HISTORY_NOTE', () => {
+    it('updates a note for a specific character in a history entry', () => {
+      const { result } = renderGameHook();
+      const entry = makeHistoryEntry({ dayNumber: 1, notes: { imp: 'old note' } });
+      act(() => {
+        result.current.loadGame(makeGame({ nightHistory: [entry] }));
+      });
+
+      act(() => {
+        result.current.updateNightHistoryNote(0, 'imp', 'updated note');
+      });
+
+      expect(result.current.state.game!.nightHistory[0].notes['imp']).toBe('updated note');
+    });
+
+    it('adds a new note without removing existing ones', () => {
+      const { result } = renderGameHook();
+      const entry = makeHistoryEntry({ dayNumber: 1, notes: { imp: 'imp note' } });
+      act(() => {
+        result.current.loadGame(makeGame({ nightHistory: [entry] }));
+      });
+
+      act(() => {
+        result.current.updateNightHistoryNote(0, 'fortuneteller', 'ft note');
+      });
+
+      expect(result.current.state.game!.nightHistory[0].notes['imp']).toBe('imp note');
+      expect(result.current.state.game!.nightHistory[0].notes['fortuneteller']).toBe('ft note');
+    });
+
+    it('does not modify history for out-of-range index', () => {
+      const { result } = renderGameHook();
+      const entry = makeHistoryEntry({ dayNumber: 1, notes: { imp: 'original' } });
+      act(() => {
+        result.current.loadGame(makeGame({ nightHistory: [entry] }));
+      });
+
+      act(() => {
+        result.current.updateNightHistoryNote(5, 'imp', 'should not apply');
+      });
+
+      expect(result.current.state.game!.nightHistory[0].notes['imp']).toBe('original');
+    });
+
+    it('does not modify history for negative index', () => {
+      const { result } = renderGameHook();
+      const entry = makeHistoryEntry({ dayNumber: 1, notes: {} });
+      act(() => {
+        result.current.loadGame(makeGame({ nightHistory: [entry] }));
+      });
+
+      act(() => {
+        result.current.updateNightHistoryNote(-1, 'imp', 'nope');
+      });
+
+      expect(result.current.state.game!.nightHistory[0].notes['imp']).toBeUndefined();
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.updateNightHistoryNote(0, 'imp', 'nope');
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
+
+  // ── UPDATE_NIGHT_HISTORY_CHOICE ──
+
+  describe('UPDATE_NIGHT_HISTORY_CHOICE', () => {
+    it('updates a selection for a specific character in a history entry', () => {
+      const { result } = renderGameHook();
+      const entry = makeHistoryEntry({ dayNumber: 1, selections: { imp: 'Alice' } });
+      act(() => {
+        result.current.loadGame(makeGame({ nightHistory: [entry] }));
+      });
+
+      act(() => {
+        result.current.updateNightHistoryChoice(0, 'imp', 'Bob');
+      });
+
+      expect(result.current.state.game!.nightHistory[0].selections['imp']).toBe('Bob');
+    });
+
+    it('handles array selections (multi-select)', () => {
+      const { result } = renderGameHook();
+      const entry = makeHistoryEntry({ dayNumber: 1, selections: {} });
+      act(() => {
+        result.current.loadGame(makeGame({ nightHistory: [entry] }));
+      });
+
+      act(() => {
+        result.current.updateNightHistoryChoice(0, 'fortuneteller', ['Alice', 'Bob']);
+      });
+
+      expect(result.current.state.game!.nightHistory[0].selections['fortuneteller']).toEqual([
+        'Alice',
+        'Bob',
+      ]);
+    });
+
+    it('adds a new selection without removing existing ones', () => {
+      const { result } = renderGameHook();
+      const entry = makeHistoryEntry({ dayNumber: 1, selections: { imp: 'Alice' } });
+      act(() => {
+        result.current.loadGame(makeGame({ nightHistory: [entry] }));
+      });
+
+      act(() => {
+        result.current.updateNightHistoryChoice(0, 'poisoner', 'Charlie');
+      });
+
+      expect(result.current.state.game!.nightHistory[0].selections['imp']).toBe('Alice');
+      expect(result.current.state.game!.nightHistory[0].selections['poisoner']).toBe('Charlie');
+    });
+
+    it('does not affect other night history entries', () => {
+      const { result } = renderGameHook();
+      const entry1 = makeHistoryEntry({ dayNumber: 1, selections: { imp: 'Alice' } });
+      const entry2 = makeHistoryEntry({
+        dayNumber: 2,
+        isFirstNight: false,
+        selections: { imp: 'Bob' },
+      });
+      act(() => {
+        result.current.loadGame(makeGame({ nightHistory: [entry1, entry2] }));
+      });
+
+      act(() => {
+        result.current.updateNightHistoryChoice(0, 'imp', 'Charlie');
+      });
+
+      expect(result.current.state.game!.nightHistory[0].selections['imp']).toBe('Charlie');
+      expect(result.current.state.game!.nightHistory[1].selections['imp']).toBe('Bob');
+    });
+
+    it('does not modify history for out-of-range index', () => {
+      const { result } = renderGameHook();
+      const entry = makeHistoryEntry({ dayNumber: 1, selections: { imp: 'Alice' } });
+      act(() => {
+        result.current.loadGame(makeGame({ nightHistory: [entry] }));
+      });
+
+      act(() => {
+        result.current.updateNightHistoryChoice(5, 'imp', 'nope');
+      });
+
+      expect(result.current.state.game!.nightHistory[0].selections['imp']).toBe('Alice');
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.updateNightHistoryChoice(0, 'imp', 'nope');
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
+
   // ── localStorage persistence via useEffect ──
 
   describe('localStorage persistence', () => {

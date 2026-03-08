@@ -80,7 +80,15 @@ type GameAction =
   | { type: 'SAVE_GAME' }
   | { type: 'ADD_TOKEN'; payload: { seat: number; token: PlayerToken } }
   | { type: 'REMOVE_TOKEN'; payload: { seat: number; tokenId: string } }
-  | { type: 'UPDATE_NIGHT_HISTORY'; payload: { index: number; entry: NightHistoryEntry } };
+  | { type: 'UPDATE_NIGHT_HISTORY'; payload: { index: number; entry: NightHistoryEntry } }
+  | {
+      type: 'UPDATE_NIGHT_HISTORY_NOTE';
+      payload: { nightIndex: number; characterId: string; note: string };
+    }
+  | {
+      type: 'UPDATE_NIGHT_HISTORY_CHOICE';
+      payload: { nightIndex: number; characterId: string; choiceValue: string | string[] };
+    };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -289,6 +297,34 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'UPDATE_NIGHT_HISTORY_NOTE': {
+      if (!state.game) return state;
+      const { nightIndex, characterId, note } = action.payload;
+      const noteHistory = [...state.game.nightHistory];
+      if (nightIndex < 0 || nightIndex >= noteHistory.length) return state;
+      const noteEntry = { ...noteHistory[nightIndex] };
+      noteEntry.notes = { ...noteEntry.notes, [characterId]: note };
+      noteHistory[nightIndex] = noteEntry;
+      return {
+        ...state,
+        game: { ...state.game, nightHistory: noteHistory },
+      };
+    }
+
+    case 'UPDATE_NIGHT_HISTORY_CHOICE': {
+      if (!state.game) return state;
+      const { nightIndex: choiceNightIdx, characterId: choiceCharId, choiceValue } = action.payload;
+      const choiceHistory = [...state.game.nightHistory];
+      if (choiceNightIdx < 0 || choiceNightIdx >= choiceHistory.length) return state;
+      const choiceEntry = { ...choiceHistory[choiceNightIdx] };
+      choiceEntry.selections = { ...(choiceEntry.selections ?? {}), [choiceCharId]: choiceValue };
+      choiceHistory[choiceNightIdx] = choiceEntry;
+      return {
+        ...state,
+        game: { ...state.game, nightHistory: choiceHistory },
+      };
+    }
+
     case 'SET_NIGHT_CARD_INDEX': {
       if (!state.nightProgress) return state;
       return {
@@ -361,6 +397,12 @@ interface GameContextValue {
   addToken: (seat: number, token: PlayerToken) => void;
   removeToken: (seat: number, tokenId: string) => void;
   updateNightHistory: (index: number, entry: NightHistoryEntry) => void;
+  updateNightHistoryNote: (nightIndex: number, characterId: string, note: string) => void;
+  updateNightHistoryChoice: (
+    nightIndex: number,
+    characterId: string,
+    choiceValue: string | string[],
+  ) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -476,6 +518,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'UPDATE_NIGHT_HISTORY', payload: { index, entry } });
   }, []);
 
+  const updateNightHistoryNote = useCallback(
+    (nightIndex: number, characterId: string, note: string) => {
+      dispatch({ type: 'UPDATE_NIGHT_HISTORY_NOTE', payload: { nightIndex, characterId, note } });
+    },
+    [],
+  );
+
+  const updateNightHistoryChoice = useCallback(
+    (nightIndex: number, characterId: string, choiceValue: string | string[]) => {
+      dispatch({
+        type: 'UPDATE_NIGHT_HISTORY_CHOICE',
+        payload: { nightIndex, characterId: characterId, choiceValue },
+      });
+    },
+    [],
+  );
+
   const value: GameContextValue = {
     state,
     dispatch,
@@ -494,6 +553,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     addToken,
     removeToken,
     updateNightHistory,
+    updateNightHistoryNote,
+    updateNightHistoryChoice,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

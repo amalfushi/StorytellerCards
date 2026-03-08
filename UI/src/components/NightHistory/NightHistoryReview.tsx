@@ -1,8 +1,11 @@
 import { useMemo, useCallback, useState } from 'react';
 import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import EditIcon from '@mui/icons-material/Edit';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import type { NightHistoryEntry, NightProgress } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 import { useNightOrder } from '@/hooks/useNightOrder.ts';
@@ -21,8 +24,10 @@ export interface NightHistoryReviewProps {
 /**
  * Full-screen overlay that renders a past night's flashcard carousel.
  *
- * M3-11: Now **editable** — checkmarks, notes, and selections can be modified
- * and are saved back to the game's nightHistory via `updateNightHistory`.
+ * Supports a read/edit toggle:
+ * - **View mode** (default): notes and choices shown as static read-only text.
+ * - **Edit mode**: notes and choices become interactive, matching the live flashcard UI.
+ *   All edits apply to the specific night's history entry via granular reducer actions.
  */
 export function NightHistoryReview({
   historyEntry,
@@ -31,8 +36,10 @@ export function NightHistoryReview({
   open,
   onClose,
 }: NightHistoryReviewProps) {
-  const { state, updateNightHistory } = useGame();
+  const { state, updateNightHistory, updateNightHistoryNote, updateNightHistoryChoice } = useGame();
   const { getCharacter, allCharacters } = useCharacterLookup();
+
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Derive the same script character IDs used in the game
   const scriptCharacterIds = useMemo(() => allCharacters.map((ch) => ch.id), [allCharacters]);
@@ -55,8 +62,6 @@ export function NightHistoryReview({
   }, [state.game?.players, historyEntry.tokenSnapshot]);
 
   // Get the night order entries that match the historical night type
-  // F3-10: Pass players so the night order only includes in-play characters,
-  // matching the live NightPhaseOverlay behaviour (M3-3).
   const entries = useNightOrder(scriptCharacterIds, isFirstNight, players);
 
   // Local editable copy of the history entry
@@ -97,34 +102,28 @@ export function NightHistoryReview({
     [entries, historyIndex, updateNightHistory],
   );
 
-  /** Update notes and save. */
+  /** Update notes and save via granular action. */
   const handleUpdateNotes = useCallback(
     (characterId: string, notes: string) => {
-      setLocalEntry((prev) => {
-        const newEntry: NightHistoryEntry = {
-          ...prev,
-          notes: { ...prev.notes, [characterId]: notes },
-        };
-        updateNightHistory(historyIndex, newEntry);
-        return newEntry;
-      });
+      setLocalEntry((prev) => ({
+        ...prev,
+        notes: { ...prev.notes, [characterId]: notes },
+      }));
+      updateNightHistoryNote(historyIndex, characterId, notes);
     },
-    [historyIndex, updateNightHistory],
+    [historyIndex, updateNightHistoryNote],
   );
 
-  /** Update selection and save. */
+  /** Update selection and save via granular action. */
   const handleUpdateSelection = useCallback(
     (characterId: string, value: string | string[]) => {
-      setLocalEntry((prev) => {
-        const newEntry: NightHistoryEntry = {
-          ...prev,
-          selections: { ...(prev.selections ?? {}), [characterId]: value },
-        };
-        updateNightHistory(historyIndex, newEntry);
-        return newEntry;
-      });
+      setLocalEntry((prev) => ({
+        ...prev,
+        selections: { ...(prev.selections ?? {}), [characterId]: value },
+      }));
+      updateNightHistoryChoice(historyIndex, characterId, value);
     },
-    [historyIndex, updateNightHistory],
+    [historyIndex, updateNightHistoryChoice],
   );
 
   if (!open) return null;
@@ -171,12 +170,29 @@ export function NightHistoryReview({
         >
           {nightLabel}
         </Typography>
-        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.4)', ml: 1, flexShrink: 0 }}>
-          Editable
-        </Typography>
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={isEditMode ? <VisibilityIcon /> : <EditIcon />}
+          onClick={() => setIsEditMode((prev) => !prev)}
+          aria-label={isEditMode ? 'Switch to view mode' : 'Switch to edit mode'}
+          sx={{
+            color: isEditMode ? '#66bb6a' : 'rgba(255,255,255,0.7)',
+            borderColor: isEditMode ? '#66bb6a' : 'rgba(255,255,255,0.25)',
+            textTransform: 'none',
+            fontSize: '0.8rem',
+            ml: 1,
+            flexShrink: 0,
+            '&:hover': {
+              borderColor: isEditMode ? '#81c784' : 'rgba(255,255,255,0.5)',
+            },
+          }}
+        >
+          {isEditMode ? 'View' : 'Edit'}
+        </Button>
       </Box>
 
-      {/* ── Carousel — now editable ── */}
+      {/* ── Carousel — readOnly controlled by edit mode ── */}
       <Box sx={{ flex: 1, minHeight: 0 }}>
         <FlashcardCarousel
           entries={entries}
@@ -187,6 +203,7 @@ export function NightHistoryReview({
           onUpdateNotes={handleUpdateNotes}
           onUpdateSelection={handleUpdateSelection}
           onComplete={() => {}}
+          readOnly={!isEditMode}
         />
       </Box>
     </Box>

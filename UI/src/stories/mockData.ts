@@ -417,6 +417,58 @@ export const mockManyNightHistoryEntries: NightHistoryEntry[] = [
   },
 ];
 
+/** Night history entries with selections for demonstrating actionable summaries. */
+export const mockNightHistoryWithSelections: NightHistoryEntry[] = [
+  {
+    dayNumber: 1,
+    isFirstNight: true,
+    completedAt: '2026-02-15T22:30:00.000Z',
+    subActionStates: {
+      noble: [true, true],
+      fortuneteller: [true, true],
+      imp: [true],
+    },
+    notes: {
+      noble: 'Shown Alice, Bob, Charlie — one is evil.',
+    },
+    selections: {
+      fortuneteller: ['Alice', 'Bob'],
+    },
+  },
+  {
+    dayNumber: 2,
+    isFirstNight: false,
+    completedAt: '2026-02-15T23:15:00.000Z',
+    subActionStates: {
+      fortuneteller: [true, true],
+      imp: [true],
+    },
+    notes: {
+      imp: 'Killed Diana.',
+    },
+    selections: {
+      imp: 'Diana',
+      fortuneteller: ['Charlie', 'Eve'],
+    },
+  },
+  {
+    dayNumber: 3,
+    isFirstNight: false,
+    completedAt: '2026-02-16T00:05:00.000Z',
+    subActionStates: {
+      fortuneteller: [true, true],
+      cerenovus: [true, true],
+      imp: [true],
+    },
+    notes: {},
+    selections: {
+      imp: 'Frank',
+      cerenovus: ['Grace', 'Noble'],
+      fortuneteller: ['Alice', 'Hank'],
+    },
+  },
+];
+
 // ──────────────────────────────────────────────
 // Mock Player Generator
 // ──────────────────────────────────────────────

@@ -21,7 +21,10 @@ const mockNightHistory: NightHistoryEntry[] = [
     notes: {
       noble: 'Shown Alice, Bob, Charlie — one is evil.',
     },
-    selections: {},
+    selections: {
+      imp: 'Alice',
+      fortuneteller: ['Bob', 'Charlie'],
+    },
   },
   {
     dayNumber: 2,
@@ -45,7 +48,9 @@ const mockNightHistory: NightHistoryEntry[] = [
     notes: {
       imp: 'Killed Diana.',
     },
-    selections: {},
+    selections: {
+      imp: 'Diana',
+    },
   },
 ];
 
@@ -70,6 +75,32 @@ const baseGame: Game = {
       isTraveller: false,
       tokens: [],
     },
+    {
+      seat: 2,
+      playerName: 'Bob',
+      characterId: 'imp',
+      alive: true,
+      ghostVoteUsed: false,
+      visibleAlignment: Alignment.Unknown,
+      actualAlignment: Alignment.Evil,
+      startingAlignment: Alignment.Evil,
+      activeReminders: [],
+      isTraveller: false,
+      tokens: [],
+    },
+    {
+      seat: 3,
+      playerName: 'Charlie',
+      characterId: 'fortuneteller',
+      alive: true,
+      ghostVoteUsed: false,
+      visibleAlignment: Alignment.Unknown,
+      actualAlignment: Alignment.Good,
+      startingAlignment: Alignment.Good,
+      activeReminders: [],
+      isTraveller: false,
+      tokens: [],
+    },
   ],
   nightHistory: mockNightHistory,
 };
@@ -79,6 +110,8 @@ const baseGame: Game = {
 // ──────────────────────────────────────────────
 
 const mockUpdateNightHistory = vi.fn();
+const mockUpdateNightHistoryNote = vi.fn();
+const mockUpdateNightHistoryChoice = vi.fn();
 
 let mockState: {
   game: Game | null;
@@ -90,6 +123,24 @@ vi.mock('@/context/GameContext.tsx', () => ({
   useGame: () => ({
     state: mockState,
     updateNightHistory: mockUpdateNightHistory,
+    updateNightHistoryNote: mockUpdateNightHistoryNote,
+    updateNightHistoryChoice: mockUpdateNightHistoryChoice,
+  }),
+}));
+
+// Mock useCharacterLookup for summary generation
+vi.mock('@/hooks/useCharacterLookup.ts', () => ({
+  useCharacterLookup: () => ({
+    getCharacter: (id: string) => {
+      const chars: Record<string, { id: string; name: string; type: string }> = {
+        imp: { id: 'imp', name: 'Imp', type: 'Demon' },
+        fortuneteller: { id: 'fortuneteller', name: 'Fortune Teller', type: 'Townsfolk' },
+        noble: { id: 'noble', name: 'Noble', type: 'Townsfolk' },
+        poisoner: { id: 'poisoner', name: 'Poisoner', type: 'Minion' },
+      };
+      return chars[id];
+    },
+    allCharacters: [],
   }),
 }));
 
@@ -118,9 +169,7 @@ describe('NightHistoryDrawer', () => {
   });
 
   it('renders without crashing', () => {
-    const { container } = render(
-      <NightHistoryDrawer open={false} onClose={vi.fn()} />,
-    );
+    const { container } = render(<NightHistoryDrawer open={false} onClose={vi.fn()} />);
     expect(container).toBeTruthy();
   });
 
@@ -205,5 +254,53 @@ describe('NightHistoryDrawer', () => {
     // Close review
     await userEvent.click(screen.getByText('Close Review'));
     expect(screen.queryByTestId('night-history-review')).not.toBeInTheDocument();
+  });
+
+  // ── Actionable Summary tests ──
+
+  describe('actionable summary', () => {
+    it('displays summary lines for nights with selections', () => {
+      render(<NightHistoryDrawer open={true} onClose={vi.fn()} />);
+      const summaryLines = screen.getAllByTestId('summary-line');
+      // Night 1 has imp + fortuneteller selections, Night 3 has imp selection
+      expect(summaryLines.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('shows Demon kill summary with (killed) suffix', () => {
+      render(<NightHistoryDrawer open={true} onClose={vi.fn()} />);
+      // Night 1: imp → Alice (killed), Night 3: imp → Diana (killed)
+      const summaryLines = screen.getAllByTestId('summary-line');
+      const killLines = summaryLines.filter((el) => el.textContent?.includes('(killed)'));
+      expect(killLines.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('shows multi-player selection summary', () => {
+      render(<NightHistoryDrawer open={true} onClose={vi.fn()} />);
+      // Night 1: fortuneteller selected Bob & Charlie
+      const summaryLines = screen.getAllByTestId('summary-line');
+      const ftLine = summaryLines.find((el) => el.textContent?.includes('Bob & Charlie'));
+      expect(ftLine).toBeDefined();
+    });
+
+    it('does not show summary lines for nights without selections', () => {
+      mockState = {
+        ...mockState,
+        game: {
+          ...baseGame,
+          nightHistory: [
+            {
+              dayNumber: 1,
+              isFirstNight: true,
+              completedAt: '2026-02-15T22:30:00.000Z',
+              subActionStates: { noble: [true] },
+              notes: {},
+              selections: {},
+            },
+          ],
+        },
+      };
+      render(<NightHistoryDrawer open={true} onClose={vi.fn()} />);
+      expect(screen.queryByTestId('summary-line')).not.toBeInTheDocument();
+    });
   });
 });

@@ -1,5 +1,15 @@
 # Milestone 19 — Night History Enhancements
 
+## Status: ✅ Complete
+
+**Completed:** July 2025
+
+All 5 phases implemented: edit/view mode toggle, editable notes (granular `UPDATE_NIGHT_HISTORY_NOTE` action), editable choices (granular `UPDATE_NIGHT_HISTORY_CHOICE` action), actionable night summaries in sidebar, and comprehensive tests + stories. See [progress.md](./progress.md) for detailed breakdown.
+
+**Verification:** 0 TypeScript errors, 0 ESLint errors, 2513 unit tests passing.
+
+---
+
 > **Goal:** Make night history entries fully editable (notes and choice dropdowns) with a read/edit mode toggle, and add actionable summaries to the night history sidebar for quick review.
 
 ---
