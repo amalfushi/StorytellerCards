@@ -16,10 +16,13 @@ export const cacklejack: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/cacklejackIcon.png',
-    medium: '/icons/characters/cacklejackIcon.png',
-    large: '/icons/characters/cacklejackIcon.png',
+    small: '/icons/characters/cacklejackIcon.webp',
+    medium: '/icons/characters/cacklejackIcon.webp',
+    large: '/icons/characters/cacklejackIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'cacklejack-notme', text: 'NOT ME' }],
+  flavor:
+    'Wire α To wire β. LigHt oN. BuZZer off. GAzOinks! Arms STra1ght. FingER 2 nose. hOooLd stiLL. BoiNgo-banGo! Ha-ha-ha!',
+  edition: 'carousel',
 };

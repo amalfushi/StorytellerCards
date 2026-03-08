@@ -42,9 +42,9 @@ export const organgrinder: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/organgrinderIcon.png',
-    medium: '/icons/characters/organgrinderIcon.png',
-    large: '/icons/characters/organgrinderIcon.png',
+    small: '/icons/characters/organgrinderIcon.webp',
+    medium: '/icons/characters/organgrinderIcon.webp',
+    large: '/icons/characters/organgrinderIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [
@@ -63,4 +63,6 @@ export const organgrinder: CharacterDef = {
         'If the Organ Grinder is causing eyes closed voting, the Butler may raise their hand to vote but their vote is only counted if their master voted too.',
     },
   ],
+  flavor: 'Round and round the handles go. The more you dance the less you know.',
+  edition: 'carousel',
 };

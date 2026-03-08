@@ -42,9 +42,9 @@ export const leviathan: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/leviathanIcon.png',
-    medium: '/icons/characters/leviathanIcon.png',
-    large: '/icons/characters/leviathanIcon.png',
+    small: '/icons/characters/leviathanIcon.webp',
+    medium: '/icons/characters/leviathanIcon.webp',
+    large: '/icons/characters/leviathanIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [{ id: 'leviathan-goodplayerexecuted', text: 'GOOD PLAYER EXECUTED' }],
@@ -103,4 +103,7 @@ export const leviathan: CharacterDef = {
       description: 'If the Leviathan nominates and executes the Soldier, good wins.',
     },
   ],
+  flavor:
+    'To the last, I grapple with thee. From Hell’s heart, I stab at thee. For hate’s sake, I spit my last breath at thee.',
+  edition: 'carousel',
 };

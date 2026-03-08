@@ -39,10 +39,13 @@ export const sailor: CharacterDef = {
     choices: [{ type: 'livingPlayer', maxSelections: 1, label: 'Choose a living player' }],
   },
   icon: {
-    small: '/icons/characters/sailorIcon.png',
-    medium: '/icons/characters/sailorIcon.png',
-    large: '/icons/characters/sailorIcon.png',
+    small: '/icons/characters/sailorIcon.webp',
+    medium: '/icons/characters/sailorIcon.webp',
+    large: '/icons/characters/sailorIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'sailor-drunk', text: 'DRUNK' }],
+  flavor:
+    "I'll drink any one of yer under the table! You! The chatterbox! Reckon you can take me? No? Howza 'bout you, Grandma? You ever tried Old McKillys Extra Spiced Rum before? Guaranteed to put hairs on yer chest! Step aboard, aye!",
+  edition: 'bmr',
 };

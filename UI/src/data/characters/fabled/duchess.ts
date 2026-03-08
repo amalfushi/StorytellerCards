@@ -33,13 +33,16 @@ export const duchess: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/duchessIcon.png',
-    medium: '/icons/characters/duchessIcon.png',
-    large: '/icons/characters/duchessIcon.png',
+    small: '/icons/characters/duchessIcon.webp',
+    medium: '/icons/characters/duchessIcon.webp',
+    large: '/icons/characters/duchessIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [
     { id: 'duchess-visitor', text: 'VISITOR' },
     { id: 'duchess-falseinfo', text: 'FALSE INFO' },
   ],
+  flavor:
+    'We shall entertain between the hours of 6 and 7 precisely. Tea at 6:15. Scones at 6:45. Do not be late. Formal wear applies, as always.',
+  edition: 'fabled',
 };

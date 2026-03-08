@@ -13,10 +13,13 @@ export const fool: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/foolIcon.png',
-    medium: '/icons/characters/foolIcon.png',
-    large: '/icons/characters/foolIcon.png',
+    small: '/icons/characters/foolIcon.webp',
+    medium: '/icons/characters/foolIcon.webp',
+    large: '/icons/characters/foolIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'fool-noability', text: 'NO ABILITY' }],
+  flavor:
+    "...and the King said 'What?! I've never even owned a pair of rubber pantaloons, let alone a custard cannon!' Ho-ho! Jolly day!",
+  edition: 'bmr',
 };

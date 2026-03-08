@@ -14,10 +14,13 @@ export const tealady: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/tealadyIcon.png',
-    medium: '/icons/characters/tealadyIcon.png',
-    large: '/icons/characters/tealadyIcon.png',
+    small: '/icons/characters/tealadyIcon.webp',
+    medium: '/icons/characters/tealadyIcon.webp',
+    large: '/icons/characters/tealadyIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'tealady-cannotdie', text: 'CANNOT DIE' }],
+  flavor:
+    'If you are cold, tea will warm you. If you are too heated, tea will cool you. If you are depressed, tea will cheer you. If you are excited, tea will calm you.',
+  edition: 'bmr',
 };

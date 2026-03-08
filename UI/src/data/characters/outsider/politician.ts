@@ -16,9 +16,9 @@ export const politician: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/politicianIcon.png',
-    medium: '/icons/characters/politicianIcon.png',
-    large: '/icons/characters/politicianIcon.png',
+    small: '/icons/characters/politicianIcon.webp',
+    medium: '/icons/characters/politicianIcon.webp',
+    large: '/icons/characters/politicianIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
@@ -32,4 +32,6 @@ export const politician: CharacterDef = {
     },
     { characterId: 'vizier', description: 'The Politician might register as evil to the Vizier.' },
   ],
+  flavor: "I'm glad you asked that question. Truly, I am. But I think the REAL question here is...",
+  edition: 'carousel',
 };

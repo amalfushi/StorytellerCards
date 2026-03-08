@@ -17,13 +17,16 @@ export const puzzlemaster: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/puzzlemasterIcon.png',
-    medium: '/icons/characters/puzzlemasterIcon.png',
-    large: '/icons/characters/puzzlemasterIcon.png',
+    small: '/icons/characters/puzzlemasterIcon.webp',
+    medium: '/icons/characters/puzzlemasterIcon.webp',
+    large: '/icons/characters/puzzlemasterIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [
     { id: 'puzzlemaster-drunk', text: 'DRUNK' },
     { id: 'puzzlemaster-guessused', text: 'GUESS USED' },
   ],
+  flavor:
+    'When one begins to think that some thing is merely some other thing, one is usually on the brink of an error. Patience, patience. Don’t confuse just and should with is and isn’t.',
+  edition: 'carousel',
 };

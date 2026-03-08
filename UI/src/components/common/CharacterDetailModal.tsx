@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import type { CharacterDef } from '@/types/index.ts';
+import { EditionLabel } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
@@ -77,6 +78,18 @@ export function CharacterDetailModal({ open, character, onClose }: CharacterDeta
                 height: 20,
               }}
             />
+            {character.edition && (
+              <Chip
+                label={EditionLabel[character.edition] ?? character.edition}
+                size="small"
+                variant="outlined"
+                sx={{
+                  fontWeight: 600,
+                  fontSize: '0.65rem',
+                  height: 20,
+                }}
+              />
+            )}
           </Box>
         </Box>
         <IconButton onClick={onClose} size="small" aria-label="close">
@@ -92,6 +105,13 @@ export function CharacterDetailModal({ open, character, onClose }: CharacterDeta
         <Typography variant="body1" sx={{ mb: 2 }}>
           {character.abilityShort}
         </Typography>
+
+        {/* Flavor text */}
+        {character.flavor && (
+          <Typography variant="body2" sx={{ mb: 2, fontStyle: 'italic', color: 'text.secondary' }}>
+            &ldquo;{character.flavor}&rdquo;
+          </Typography>
+        )}
 
         {/* Detailed ability */}
         <Typography variant="subtitle2" color="text.secondary" gutterBottom>

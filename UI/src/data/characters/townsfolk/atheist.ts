@@ -17,9 +17,9 @@ export const atheist: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/atheistIcon.png',
-    medium: '/icons/characters/atheistIcon.png',
-    large: '/icons/characters/atheistIcon.png',
+    small: '/icons/characters/atheistIcon.webp',
+    medium: '/icons/characters/atheistIcon.webp',
+    large: '/icons/characters/atheistIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -30,4 +30,8 @@ export const atheist: CharacterDef = {
         'During a riot, if the Storyteller is nominated, players vote. If they are "about to die", the game ends. If not, they nominate again.',
     },
   ],
+  flavor:
+    'Let us disperse with unnecessary conjecture and silly paranoia. There is a perfectly rational explanation for everything. Yes, a teacup may indeed be orbiting the planet, too small to see, but I shall drink my tea from the very real china in my very real hands.',
+  edition: 'carousel',
+  setup: true,
 };

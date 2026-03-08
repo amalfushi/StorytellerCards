@@ -38,9 +38,9 @@ export const boffin: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/boffinIcon.png',
-    medium: '/icons/characters/boffinIcon.png',
-    large: '/icons/characters/boffinIcon.png',
+    small: '/icons/characters/boffinIcon.webp',
+    medium: '/icons/characters/boffinIcon.webp',
+    large: '/icons/characters/boffinIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
@@ -69,4 +69,7 @@ export const boffin: CharacterDef = {
         'If there is a spare token, the Boffin can give the Demon the Village Idiot ability.',
     },
   ],
+  flavor:
+    'Stellar hydrogen, vast, inert; carbon, oxygen, neon gases, all ruined. Molecular chaos, entropy, yields new cosmic phenomena, rebirth from atomic chaos, dense matter collapsing. All in a teeny little bottle.',
+  edition: 'carousel',
 };

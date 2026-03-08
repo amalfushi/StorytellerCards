@@ -15,13 +15,15 @@ export const bishop: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/bishopIcon.png',
-    medium: '/icons/characters/bishopIcon.png',
-    large: '/icons/characters/bishopIcon.png',
+    small: '/icons/characters/bishopIcon.webp',
+    medium: '/icons/characters/bishopIcon.webp',
+    large: '/icons/characters/bishopIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [
     { id: 'bishop-nominateevil', text: 'NOMINATE EVIL' },
     { id: 'bishop-nominategood', text: 'NOMINATE GOOD' },
   ],
+  flavor: 'In nomine Patris, et Filii, et Spiritus Sancti… Nos mos Dei. Deus vult de nobis.',
+  edition: 'bmr',
 };

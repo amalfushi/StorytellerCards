@@ -25,10 +25,12 @@ export const buddhist: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/buddhistIcon.png',
-    medium: '/icons/characters/buddhistIcon.png',
-    large: '/icons/characters/buddhistIcon.png',
+    small: '/icons/characters/buddhistIcon.webp',
+    medium: '/icons/characters/buddhistIcon.webp',
+    large: '/icons/characters/buddhistIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [],
+  flavor: 'You throw thorns. Falling in my silence, they become flowers.',
+  edition: 'fabled',
 };

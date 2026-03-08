@@ -44,9 +44,9 @@ export const alhadikhia: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 3, label: 'Choose 3 players' }],
   },
   icon: {
-    small: '/icons/characters/alhadikhiaIcon.png',
-    medium: '/icons/characters/alhadikhiaIcon.png',
-    large: '/icons/characters/alhadikhiaIcon.png',
+    small: '/icons/characters/alhadikhiaIcon.webp',
+    medium: '/icons/characters/alhadikhiaIcon.webp',
+    large: '/icons/characters/alhadikhiaIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -67,4 +67,6 @@ export const alhadikhia: CharacterDef = {
         'If there would be two Demons, one of which was the Scarlet Woman, the Scarlet Woman becomes the Scarlet Woman again.',
     },
   ],
+  flavor: 'Alsukut min dhahab.',
+  edition: 'carousel',
 };

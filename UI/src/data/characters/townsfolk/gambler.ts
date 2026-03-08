@@ -29,10 +29,12 @@ export const gambler: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/gamblerIcon.png',
-    medium: '/icons/characters/gamblerIcon.png',
-    large: '/icons/characters/gamblerIcon.png',
+    small: '/icons/characters/gamblerIcon.webp',
+    medium: '/icons/characters/gamblerIcon.webp',
+    large: '/icons/characters/gamblerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: 'Heads, I win. Tails, you lose.',
+  edition: 'bmr',
 };

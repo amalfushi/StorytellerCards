@@ -23,10 +23,13 @@ export const chef: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/chefIcon.png',
-    medium: '/icons/characters/chefIcon.png',
-    large: '/icons/characters/chefIcon.png',
+    small: '/icons/characters/chefIcon.webp',
+    medium: '/icons/characters/chefIcon.webp',
+    large: '/icons/characters/chefIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    "This evening's reservations seem odd. Never before has Mrs. Mayweather kept company with that scamp from Hudson Lane. Yet, tonight, they have a table for two. Strange.",
+  edition: 'tb',
 };

@@ -16,10 +16,12 @@ export const djinn: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/djinnIcon.png',
-    medium: '/icons/characters/djinnIcon.png',
-    large: '/icons/characters/djinnIcon.png',
+    small: '/icons/characters/djinnIcon.webp',
+    medium: '/icons/characters/djinnIcon.webp',
+    large: '/icons/characters/djinnIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [],
+  flavor: 'نحن لسنا هنا. انت لست حقيقي. كل شيء هو وهم. أسئلتك هي جبل نار في يوم صافٍ.',
+  edition: 'fabled',
 };

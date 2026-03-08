@@ -24,9 +24,9 @@ export const nodashii: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/nodashiiIcon.png',
-    medium: '/icons/characters/nodashiiIcon.png',
-    large: '/icons/characters/nodashiiIcon.png',
+    small: '/icons/characters/nodashiiIcon.webp',
+    medium: '/icons/characters/nodashiiIcon.webp',
+    large: '/icons/characters/nodashiiIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -36,4 +36,7 @@ export const nodashii: CharacterDef = {
       description: 'Pick 3 not-in-play good characters to show the Demon as bluffs.',
     },
   ],
+  flavor:
+    'By the sins of Arnoch, I feel thy laden stench. By the curs-ed sun and her foul legion of tiny grinning gods, I corrupt thee. By the blessed night and the hidden depths of the horrid and unholy sea, I end thy squalid life upon this plane.',
+  edition: 'snv',
 };

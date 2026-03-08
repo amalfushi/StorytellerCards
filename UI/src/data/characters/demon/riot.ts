@@ -38,9 +38,9 @@ export const riot: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/riotIcon.png',
-    medium: '/icons/characters/riotIcon.png',
-    large: '/icons/characters/riotIcon.png',
+    small: '/icons/characters/riotIcon.webp',
+    medium: '/icons/characters/riotIcon.webp',
+    large: '/icons/characters/riotIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -101,4 +101,6 @@ export const riot: CharacterDef = {
       description: 'If Riot nominates and executes the Soldier, good wins.',
     },
   ],
+  flavor: 'Larga vida a la revolución! Mi revolucion!',
+  edition: 'carousel',
 };

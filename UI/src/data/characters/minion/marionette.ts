@@ -39,10 +39,47 @@ export const marionette: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/marionetteIcon.png',
-    medium: '/icons/characters/marionetteIcon.png',
-    large: '/icons/characters/marionetteIcon.png',
+    small: '/icons/characters/marionetteIcon.webp',
+    medium: '/icons/characters/marionetteIcon.webp',
+    large: '/icons/characters/marionetteIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'alchemist',
+      description: 'An Alchemist-Marionette has no Marionette ability & the Marionette is in play.',
+    },
+    {
+      characterId: 'magician',
+      description:
+        "If the Magician is alive, the Demon doesn't know which neighbor is the Marionette.",
+    },
+    {
+      characterId: 'mathematician',
+      description:
+        "The Mathematician might learn if the Marionette's ability yielded false info or failed to work properly.",
+    },
+    {
+      characterId: 'plaguedoctor',
+      description:
+        "If the Storyteller would gain the Marionette ability, one of the Demon's good neighbors becomes the Marionette.",
+    },
+    {
+      characterId: 'summoner',
+      description:
+        'If there would be a Marionette in play, they enter play after the Demon & must start as their neighbor.',
+    },
+    {
+      characterId: 'lilmonsta',
+      description:
+        'If there would be a Marionette in play, they enter play after the Demon & must start as their neighbor.',
+    },
+  ],
+  flavor: "Words, words. They're all we have to go on.",
+  edition: 'carousel',
+  setup: true,
+  remindersGlobal: [
+    { id: 'marionette-global-isthemarionette', text: 'Is The Marionette', isGlobal: true },
+  ],
 };

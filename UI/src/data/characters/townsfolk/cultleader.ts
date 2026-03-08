@@ -49,9 +49,9 @@ export const cultleader: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/cultleaderIcon.png',
-    medium: '/icons/characters/cultleaderIcon.png',
-    large: '/icons/characters/cultleaderIcon.png',
+    small: '/icons/characters/cultleaderIcon.webp',
+    medium: '/icons/characters/cultleaderIcon.webp',
+    large: '/icons/characters/cultleaderIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -67,4 +67,6 @@ export const cultleader: CharacterDef = {
         "If the Pit-Hag turns an evil player into the Cult Leader, they can't turn good due to their own ability.",
     },
   ],
+  flavor: 'Thinking themselves wise, they became fools.',
+  edition: 'carousel',
 };

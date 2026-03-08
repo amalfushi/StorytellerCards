@@ -34,10 +34,38 @@ export const spy: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/spyIcon.png',
-    medium: '/icons/characters/spyIcon.png',
-    large: '/icons/characters/spyIcon.png',
+    small: '/icons/characters/spyIcon.webp',
+    medium: '/icons/characters/spyIcon.webp',
+    large: '/icons/characters/spyIcon.webp',
     placeholder: '#e53935',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'alchemist',
+      description:
+        'An Alchemist-Spy has no Spy ability & a Spy is in play. After each execution, a living Alchemist-Spy may publicly guess a living player as the Spy. If correct, the Demon must choose the Spy tonight.',
+    },
+    {
+      characterId: 'magician',
+      description:
+        "When the Spy sees the Grimoire, the Demon and Magician's character tokens are removed.",
+    },
+    {
+      characterId: 'poppygrower',
+      description: 'If the Poppy Grower has their ability, the Spy does not see the Grimoire.',
+    },
+    {
+      characterId: 'heretic',
+      description: 'Only 1 jinxed character can be in play.',
+    },
+    {
+      characterId: 'plaguedoctor',
+      description:
+        'If the Storyteller would gain the Spy ability, a Minion gains it, and learns this.',
+    },
+  ],
+  flavor:
+    'Any brewmaster worth their liquor, knows no concoction pours trouble quicker, than one where spies seem double.',
+  edition: 'tb',
 };

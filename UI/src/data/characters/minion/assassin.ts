@@ -26,10 +26,12 @@ export const assassin: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/assassinIcon.png',
-    medium: '/icons/characters/assassinIcon.png',
-    large: '/icons/characters/assassinIcon.png',
+    small: '/icons/characters/assassinIcon.webp',
+    medium: '/icons/characters/assassinIcon.webp',
+    large: '/icons/characters/assassinIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [{ id: 'assassin-noability', text: 'NO ABILITY' }],
+  flavor: '...',
+  edition: 'bmr',
 };

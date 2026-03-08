@@ -28,9 +28,9 @@ export const alchemist: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/alchemistIcon.png',
-    medium: '/icons/characters/alchemistIcon.png',
-    large: '/icons/characters/alchemistIcon.png',
+    small: '/icons/characters/alchemistIcon.webp',
+    medium: '/icons/characters/alchemistIcon.webp',
+    large: '/icons/characters/alchemistIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'alchemist-isthealchemist', text: 'IS THE ALCHEMIST' }],
@@ -74,5 +74,11 @@ export const alchemist: CharacterDef = {
       description:
         'An Alchemist-Wraith has no Wraith ability & a Wraith is in play. After each execution, a living Alchemist-Wraith may publicly guess a living player as the Wraith. If correct, the Demon must choose the Wraith tonight.',
     },
+  ],
+  flavor:
+    'Visit the interior of the Earth. By rectification thou shalt find the hidden stone. Above the gold, lieth the red. Kether in Malkuth.',
+  edition: 'carousel',
+  remindersGlobal: [
+    { id: 'alchemist-global-isthealchemist', text: 'Is The Alchemist', isGlobal: true },
   ],
 };

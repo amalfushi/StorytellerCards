@@ -29,9 +29,9 @@ export const legion: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/legionIcon.png',
-    medium: '/icons/characters/legionIcon.png',
-    large: '/icons/characters/legionIcon.png',
+    small: '/icons/characters/legionIcon.webp',
+    medium: '/icons/characters/legionIcon.webp',
+    large: '/icons/characters/legionIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [{ id: 'legion-abouttodie', text: 'ABOUT TO DIE' }],
@@ -68,4 +68,8 @@ export const legion: CharacterDef = {
     },
     { characterId: 'zealot', description: 'The Zealot might register as evil to Legion.' },
   ],
+  flavor:
+    'We are the chill wind on a winter’s day. We are the shadow in the moonless night. We are the poison in your tea and the whisper in your ear. We are everywhere.',
+  edition: 'carousel',
+  setup: true,
 };

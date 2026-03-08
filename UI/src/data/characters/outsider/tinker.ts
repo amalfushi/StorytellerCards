@@ -23,10 +23,13 @@ export const tinker: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/tinkerIcon.png',
-    medium: '/icons/characters/tinkerIcon.png',
-    large: '/icons/characters/tinkerIcon.png',
+    small: '/icons/characters/tinkerIcon.webp',
+    medium: '/icons/characters/tinkerIcon.webp',
+    large: '/icons/characters/tinkerIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
+  flavor:
+    'I think I see the problem. Luckily, I have an idea! This catapult will shoot twice as far with just a minor adjustment...',
+  edition: 'bmr',
 };

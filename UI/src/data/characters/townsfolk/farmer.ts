@@ -34,10 +34,24 @@ export const farmer: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/farmerIcon.png',
-    medium: '/icons/characters/farmerIcon.png',
-    large: '/icons/characters/farmerIcon.png',
+    small: '/icons/characters/farmerIcon.webp',
+    medium: '/icons/characters/farmerIcon.webp',
+    large: '/icons/characters/farmerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'leviathan',
+      description:
+        'Each night*, the Leviathan chooses an alive good player (different to previous nights): a chosen Farmer uses their ability but does not die.',
+    },
+    {
+      characterId: 'riot',
+      description:
+        'Each night*, Riot chooses an alive good player (different to previous nights): a chosen Farmer uses their ability but does not die.',
+    },
+  ],
+  flavor: 'Even the high and mighty need food on the table. Without us, the city starves.',
+  edition: 'carousel',
 };

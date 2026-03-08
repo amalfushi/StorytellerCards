@@ -24,10 +24,25 @@ export const sage: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/sageIcon.png',
-    medium: '/icons/characters/sageIcon.png',
-    large: '/icons/characters/sageIcon.png',
+    small: '/icons/characters/sageIcon.webp',
+    medium: '/icons/characters/sageIcon.webp',
+    large: '/icons/characters/sageIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'leviathan',
+      description:
+        'Each night*, the Leviathan chooses an alive good player (different to previous nights): a chosen Sage uses their ability but does not die.',
+    },
+    {
+      characterId: 'riot',
+      description:
+        'Each night*, Riot chooses an alive good player (different to previous nights): a chosen Sage uses their ability but does not die.',
+    },
+  ],
+  flavor:
+    'These mountainous tomes guard the secret, I am sure of it! Twixt word and word, it lies in wait. More candles, boy! More ink! These notes may look arcane, but the infernal puzzle is revealing itself.',
+  edition: 'snv',
 };

@@ -16,10 +16,13 @@ export const voudon: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/voudonIcon.png',
-    medium: '/icons/characters/voudonIcon.png',
-    large: '/icons/characters/voudonIcon.png',
+    small: '/icons/characters/voudonIcon.webp',
+    medium: '/icons/characters/voudonIcon.webp',
+    large: '/icons/characters/voudonIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'Bien venu. Sit down. Breathe deep. Enter the land of the dead. See with their eyes. Speak with their voice. Yon sel lang se janm ase.',
+  edition: 'bmr',
 };

@@ -73,10 +73,12 @@ export const harpy: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
   },
   icon: {
-    small: '/icons/characters/harpyIcon.png',
-    medium: '/icons/characters/harpyIcon.png',
-    large: '/icons/characters/harpyIcon.png',
+    small: '/icons/characters/harpyIcon.webp',
+    medium: '/icons/characters/harpyIcon.webp',
+    large: '/icons/characters/harpyIcon.webp',
     placeholder: '#e53935',
   },
   reminders: [],
+  flavor: 'So fair a day I never did see, nor so fowl a presence hanging over me.',
+  edition: 'carousel',
 };

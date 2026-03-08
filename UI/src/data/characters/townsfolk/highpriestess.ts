@@ -35,10 +35,13 @@ export const highpriestess: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/highpriestessIcon.png',
-    medium: '/icons/characters/highpriestessIcon.png',
-    large: '/icons/characters/highpriestessIcon.png',
+    small: '/icons/characters/highpriestessIcon.webp',
+    medium: '/icons/characters/highpriestessIcon.webp',
+    large: '/icons/characters/highpriestessIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'There is life behind the personality that uses personalities as masks. There are times when life puts off the mask and deep answers to deep.',
+  edition: 'carousel',
 };

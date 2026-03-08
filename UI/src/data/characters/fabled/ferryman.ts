@@ -16,10 +16,12 @@ export const ferryman: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/ferrymanIcon.png',
-    medium: '/icons/characters/ferrymanIcon.png',
-    large: '/icons/characters/ferrymanIcon.png',
+    small: '/icons/characters/ferrymanIcon.webp',
+    medium: '/icons/characters/ferrymanIcon.webp',
+    large: '/icons/characters/ferrymanIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [],
+  flavor: 'When righteous dreams come, they have the weight of truth.',
+  edition: 'carousel',
 };

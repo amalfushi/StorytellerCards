@@ -28,10 +28,13 @@ export const moonchild: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/moonchildIcon.png',
-    medium: '/icons/characters/moonchildIcon.png',
-    large: '/icons/characters/moonchildIcon.png',
+    small: '/icons/characters/moonchildIcon.webp',
+    medium: '/icons/characters/moonchildIcon.webp',
+    large: '/icons/characters/moonchildIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
+  flavor:
+    'Scorpio looks sideways at the lovers, and you have a choice to make. With silver cross my palm, and your fate shall be revealed. With steel cross my throat, and by the stars you shall regret it.',
+  edition: 'bmr',
 };

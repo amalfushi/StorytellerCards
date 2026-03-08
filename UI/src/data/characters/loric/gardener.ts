@@ -15,10 +15,13 @@ export const gardener: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/gardenerIcon.png',
-    medium: '/icons/characters/gardenerIcon.png',
-    large: '/icons/characters/gardenerIcon.png',
+    small: '/icons/characters/gardenerIcon.webp',
+    medium: '/icons/characters/gardenerIcon.webp',
+    large: '/icons/characters/gardenerIcon.webp',
     placeholder: '#558b2f',
   },
   reminders: [],
+  flavor:
+    'When sophistry becomes stupidity and hypocrisy cruelty, retreat to the garden. The final love of old men is flowers and stones.',
+  edition: 'loric',
 };

@@ -23,9 +23,9 @@ export const clockmaker: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/clockmakerIcon.png',
-    medium: '/icons/characters/clockmakerIcon.png',
-    large: '/icons/characters/clockmakerIcon.png',
+    small: '/icons/characters/clockmakerIcon.webp',
+    medium: '/icons/characters/clockmakerIcon.webp',
+    large: '/icons/characters/clockmakerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -35,4 +35,7 @@ export const clockmaker: CharacterDef = {
       description: 'The Summoner registers as the Demon to the Clockmaker.',
     },
   ],
+  flavor:
+    'Do not disturb me. The tick must continue, for the circle is a symbol of life and contains all things - all answers - in its divine machinery. I must work.',
+  edition: 'snv',
 };

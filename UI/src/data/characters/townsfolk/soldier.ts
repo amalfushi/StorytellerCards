@@ -13,9 +13,9 @@ export const soldier: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/soldierIcon.png',
-    medium: '/icons/characters/soldierIcon.png',
-    large: '/icons/characters/soldierIcon.png',
+    small: '/icons/characters/soldierIcon.webp',
+    medium: '/icons/characters/soldierIcon.webp',
+    large: '/icons/characters/soldierIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -26,4 +26,7 @@ export const soldier: CharacterDef = {
     },
     { characterId: 'riot', description: 'If Riot nominates and executes the Soldier, good wins.' },
   ],
+  flavor:
+    'As David said to Goliath, as Theseus said to the Minotaur, as Arjuna said to Bhagadatta... No.',
+  edition: 'tb',
 };

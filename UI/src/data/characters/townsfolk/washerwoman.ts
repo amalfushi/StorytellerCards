@@ -28,13 +28,15 @@ export const washerwoman: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/washerwomanIcon.png',
-    medium: '/icons/characters/washerwomanIcon.png',
-    large: '/icons/characters/washerwomanIcon.png',
+    small: '/icons/characters/washerwomanIcon.webp',
+    medium: '/icons/characters/washerwomanIcon.webp',
+    large: '/icons/characters/washerwomanIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [
     { id: 'washerwoman-townsfolk', text: 'TOWNSFOLK' },
     { id: 'washerwoman-wrong', text: 'WRONG' },
   ],
+  flavor: 'Bloodstains on a dinner jacket? No, this is cooking sherry. How careless.',
+  edition: 'tb',
 };

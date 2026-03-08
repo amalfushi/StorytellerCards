@@ -28,9 +28,9 @@ export const banshee: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/bansheeIcon.png',
-    medium: '/icons/characters/bansheeIcon.png',
-    large: '/icons/characters/bansheeIcon.png',
+    small: '/icons/characters/bansheeIcon.webp',
+    medium: '/icons/characters/bansheeIcon.webp',
+    large: '/icons/characters/bansheeIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'banshee-hasability', text: 'HAS ABILITY' }],
@@ -50,4 +50,6 @@ export const banshee: CharacterDef = {
       description: 'If the Vortox kills the Banshee, all players learn that the Banshee has died.',
     },
   ],
+  flavor: 'Gorm do shúile, dearg do ghruaig, ní bheidh sé i bhfad, is a mbeidh tú san uaigh.',
+  edition: 'carousel',
 };

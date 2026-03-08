@@ -36,10 +36,12 @@ export const amnesiac: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/amnesiacIcon.png',
-    medium: '/icons/characters/amnesiacIcon.png',
-    large: '/icons/characters/amnesiacIcon.png',
+    small: '/icons/characters/amnesiacIcon.webp',
+    medium: '/icons/characters/amnesiacIcon.webp',
+    large: '/icons/characters/amnesiacIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: 'Wait. What. Who? Oh, ok. Wait. What?',
+  edition: 'carousel',
 };

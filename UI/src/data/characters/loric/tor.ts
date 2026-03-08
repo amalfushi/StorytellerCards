@@ -28,10 +28,14 @@ export const tor: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/torIcon.png',
-    medium: '/icons/characters/torIcon.png',
-    large: '/icons/characters/torIcon.png',
+    small: '/icons/characters/torIcon.webp',
+    medium: '/icons/characters/torIcon.webp',
+    large: '/icons/characters/torIcon.webp',
     placeholder: '#558b2f',
   },
   reminders: [],
+  flavor:
+    'With thunder as my voice and lightning as my blade, I, the eternal guardian, feast upon the fools who dare approach the forbidden gate. Behold, my sacred goal! To purge the beetle from the belly of the rocky earth, to ensnare it in a net of stars, on the hilltop where heaven meets earth.',
+  edition: 'loric',
+  setup: true,
 };

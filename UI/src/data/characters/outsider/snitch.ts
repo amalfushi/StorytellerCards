@@ -35,10 +35,12 @@ export const snitch: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/snitchIcon.png',
-    medium: '/icons/characters/snitchIcon.png',
-    large: '/icons/characters/snitchIcon.png',
+    small: '/icons/characters/snitchIcon.webp',
+    medium: '/icons/characters/snitchIcon.webp',
+    large: '/icons/characters/snitchIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
+  flavor: 'It was John.',
+  edition: 'carousel',
 };

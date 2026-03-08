@@ -17,9 +17,9 @@ export const mayor: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/mayorIcon.png',
-    medium: '/icons/characters/mayorIcon.png',
-    large: '/icons/characters/mayorIcon.png',
+    small: '/icons/characters/mayorIcon.webp',
+    medium: '/icons/characters/mayorIcon.webp',
+    large: '/icons/characters/mayorIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -35,4 +35,7 @@ export const mayor: CharacterDef = {
         'The Mayor may choose to stop the riot. If they do so when only 1 Riot is alive, good wins. Otherwise, evil wins.',
     },
   ],
+  flavor:
+    'We must put our differences aside, and cease this senseless killing. We are all taxpayers after all. Well, most of us.',
+  edition: 'tb',
 };

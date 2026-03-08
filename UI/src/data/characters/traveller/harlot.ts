@@ -15,10 +15,13 @@ export const harlot: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/harlotIcon.png',
-    medium: '/icons/characters/harlotIcon.png',
-    large: '/icons/characters/harlotIcon.png',
+    small: '/icons/characters/harlotIcon.webp',
+    medium: '/icons/characters/harlotIcon.webp',
+    large: '/icons/characters/harlotIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    "Enchanté, Sailor. You look like you need someone to really listen to your troubles. I'm a good listener. Very, very good.",
+  edition: 'snv',
 };

@@ -17,9 +17,9 @@ export const zealot: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/zealotIcon.png',
-    medium: '/icons/characters/zealotIcon.png',
-    large: '/icons/characters/zealotIcon.png',
+    small: '/icons/characters/zealotIcon.webp',
+    medium: '/icons/characters/zealotIcon.webp',
+    large: '/icons/characters/zealotIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
@@ -31,4 +31,7 @@ export const zealot: CharacterDef = {
     { characterId: 'legion', description: 'The Zealot might register as evil to Legion.' },
     { characterId: 'vizier', description: 'The Zealot might register as evil to the Vizier.' },
   ],
+  flavor:
+    'I enjoy talking to you. Your mind appeals to me. It resembles my own mind except that you happen to be insane.',
+  edition: 'carousel',
 };

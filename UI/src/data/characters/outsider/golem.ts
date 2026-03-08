@@ -15,10 +15,12 @@ export const golem: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/golemIcon.png',
-    medium: '/icons/characters/golemIcon.png',
-    large: '/icons/characters/golemIcon.png',
+    small: '/icons/characters/golemIcon.webp',
+    medium: '/icons/characters/golemIcon.webp',
+    large: '/icons/characters/golemIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
+  flavor: 'Golem help? Golem smash! Golem help.',
+  edition: 'carousel',
 };

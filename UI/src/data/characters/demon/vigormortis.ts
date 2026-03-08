@@ -33,9 +33,9 @@ export const vigormortis: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/vigormortisIcon.png',
-    medium: '/icons/characters/vigormortisIcon.png',
-    large: '/icons/characters/vigormortisIcon.png',
+    small: '/icons/characters/vigormortisIcon.webp',
+    medium: '/icons/characters/vigormortisIcon.webp',
+    large: '/icons/characters/vigormortisIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [
@@ -52,4 +52,8 @@ export const vigormortis: CharacterDef = {
       description: 'A Mastermind that has their ability keeps it if the Vigormortis dies.',
     },
   ],
+  flavor:
+    'All doors are one door. All keys are one key. All cups are one cup, but whosoever drinketh of the water that I give shall never thirst, but the water shall be in him a well springing up into everlasting life.',
+  edition: 'snv',
+  setup: true,
 };

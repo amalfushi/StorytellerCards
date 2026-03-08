@@ -18,10 +18,12 @@ export const revolutionary: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/revolutionaryIcon.png',
-    medium: '/icons/characters/revolutionaryIcon.png',
-    large: '/icons/characters/revolutionaryIcon.png',
+    small: '/icons/characters/revolutionaryIcon.webp',
+    medium: '/icons/characters/revolutionaryIcon.webp',
+    large: '/icons/characters/revolutionaryIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [],
+  flavor: 'United we feigned. Divided, we stalled.',
+  edition: 'fabled',
 };

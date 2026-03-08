@@ -24,13 +24,16 @@ export const angel: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/angelIcon.png',
-    medium: '/icons/characters/angelIcon.png',
-    large: '/icons/characters/angelIcon.png',
+    small: '/icons/characters/angelIcon.webp',
+    medium: '/icons/characters/angelIcon.webp',
+    large: '/icons/characters/angelIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [
     { id: 'angel-protected', text: 'PROTECTED' },
     { id: 'angel-somethingbad', text: 'SOMETHING BAD' },
   ],
+  flavor:
+    'Let those who are without sin dare to raise their hand to my chosen, for I shall strike such fools down with the fury and righteousness of a thousand storms.',
+  edition: 'fabled',
 };

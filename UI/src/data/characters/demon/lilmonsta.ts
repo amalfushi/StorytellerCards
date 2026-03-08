@@ -87,9 +87,9 @@ export const lilmonsta: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/lilmonstaIcon.png',
-    medium: '/icons/characters/lilmonstaIcon.png',
-    large: '/icons/characters/lilmonstaIcon.png',
+    small: '/icons/characters/lilmonstaIcon.webp',
+    medium: '/icons/characters/lilmonstaIcon.webp',
+    large: '/icons/characters/lilmonstaIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [
@@ -131,5 +131,12 @@ export const lilmonsta: CharacterDef = {
       characterId: 'vizier',
       description: "If the Vizier is babysitting Lil' Monsta, they die when executed.",
     },
+  ],
+  flavor: 'Step 1: Be cute. Step 2: World domination. Step 3: Bweakfast.',
+  edition: 'carousel',
+  setup: true,
+  remindersGlobal: [
+    { id: 'lilmonsta-global-isthedemon', text: 'Is The Demon', isGlobal: true },
+    { id: 'lilmonsta-global-dead', text: 'Dead', isGlobal: true },
   ],
 };

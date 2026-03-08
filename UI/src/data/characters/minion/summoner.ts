@@ -67,9 +67,9 @@ export const summoner: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/summonerIcon.png',
-    medium: '/icons/characters/summonerIcon.png',
-    large: '/icons/characters/summonerIcon.png',
+    small: '/icons/characters/summonerIcon.webp',
+    medium: '/icons/characters/summonerIcon.webp',
+    large: '/icons/characters/summonerIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
@@ -139,4 +139,8 @@ export const summoner: CharacterDef = {
         'If the Summoner summons a dead player into the Zombuul, the Zombuul has already "died once".',
     },
   ],
+  flavor:
+    'Hail the guardians of the north; by my intellect, thou art cut. Hail the guardians of the east; by my will, thou art dominated. Hail the guardians of the south; by that which lies beyond, the mystery is revealed. Hail the guardians of the west; a shield in the darkness',
+  edition: 'carousel',
+  setup: true,
 };

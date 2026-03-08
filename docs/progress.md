@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-06
+> Last updated: 2026-03-08
 
 ## Milestone Overview
 
@@ -26,6 +26,8 @@
 | M17 | List Views & Minor Fixes | ✅ Complete | [details](milestones/17%20-%20list%20views%20and%20minor%20fixes/milestone17.md) |
 | M18 | Traveller, Fabled & Loric Integration | ✅ Complete | [details](milestones/18%20-%20traveller%20fabled%20loric%20integration/progress.md) |
 | M19 | Night History Enhancements — edit mode toggle, editable notes/choices, actionable summaries | ✅ Complete | [details](milestones/19%20-%20night%20history%20enhancements/progress.md) |
+| M21 | BotC Release Data Research | ✅ Complete | [details](milestones/21%20-%20botc-release%20data%20import/milestone21.md) |
+| M22 | BotC Official Data Import — flavor text, edition, WebP icons, night order validation, setup flags, global reminders, jinx mirroring | ✅ Complete | [details](milestones/22%20-%20botc-data-import/progress.md) |
 
 ## Key Design Decisions
 
@@ -37,14 +39,14 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M18 Complete)
+## Verification (as of M22 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 2515/2515 passing (57 test files)
+- Tests: 3461/3461 passing (58 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~93+ stories including `play()` interaction tests
 - Go build: success
 - Go tests: all passing
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)
-- Character icons: 179/179 downloaded, all rendered via `CharacterIconImage` component
+- Character icons: 179/179 WebP icons (85.9% size reduction from PNG)

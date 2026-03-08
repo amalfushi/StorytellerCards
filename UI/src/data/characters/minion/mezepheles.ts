@@ -42,10 +42,12 @@ export const mezepheles: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/mezephelesIcon.png',
-    medium: '/icons/characters/mezephelesIcon.png',
-    large: '/icons/characters/mezephelesIcon.png',
+    small: '/icons/characters/mezephelesIcon.webp',
+    medium: '/icons/characters/mezephelesIcon.webp',
+    large: '/icons/characters/mezephelesIcon.webp',
     placeholder: '#e53935',
   },
   reminders: [],
+  flavor: 'That which issues from the heart alone, will bend the hearts of others to your own.',
+  edition: 'carousel',
 };

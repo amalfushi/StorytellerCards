@@ -29,10 +29,12 @@ export const lycanthrope: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/lycanthropeIcon.png',
-    medium: '/icons/characters/lycanthropeIcon.png',
-    large: '/icons/characters/lycanthropeIcon.png',
+    small: '/icons/characters/lycanthropeIcon.webp',
+    medium: '/icons/characters/lycanthropeIcon.webp',
+    large: '/icons/characters/lycanthropeIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'lycanthrope-fauxpaw', text: 'FAUX PAW' }],
+  flavor: 'Beneath the thin veneer of civilisation lies a howling madness.',
+  edition: 'carousel',
 };

@@ -42,9 +42,9 @@ export const widow: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/widowIcon.png',
-    medium: '/icons/characters/widowIcon.png',
-    large: '/icons/characters/widowIcon.png',
+    small: '/icons/characters/widowIcon.webp',
+    medium: '/icons/characters/widowIcon.webp',
+    large: '/icons/characters/widowIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [
@@ -72,4 +72,6 @@ export const widow: CharacterDef = {
       description: 'If the Poppy Grower has their ability, the Widow does not see the Grimoire.',
     },
   ],
+  flavor: 'More wine? Château d’Ergot ’07 is a very special vintage. My yes, very special indeed.',
+  edition: 'carousel',
 };

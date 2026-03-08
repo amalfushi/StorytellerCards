@@ -50,9 +50,9 @@ export const fanggu: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/fangguIcon.png',
-    medium: '/icons/characters/fangguIcon.png',
-    large: '/icons/characters/fangguIcon.png',
+    small: '/icons/characters/fangguIcon.webp',
+    medium: '/icons/characters/fangguIcon.webp',
+    large: '/icons/characters/fangguIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -65,4 +65,7 @@ export const fanggu: CharacterDef = {
   setupModification: {
     description: 'There is an extra Outsider in play. [+1 Outsider]',
   },
+  flavor: 'Your walls and your weapons are but smoke in dreams.',
+  edition: 'snv',
+  setup: true,
 };

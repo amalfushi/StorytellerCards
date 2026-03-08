@@ -40,9 +40,9 @@ export const yaggababble: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/yaggababbleIcon.png',
-    medium: '/icons/characters/yaggababbleIcon.png',
-    large: '/icons/characters/yaggababbleIcon.png',
+    small: '/icons/characters/yaggababbleIcon.webp',
+    medium: '/icons/characters/yaggababbleIcon.webp',
+    large: '/icons/characters/yaggababbleIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
@@ -53,4 +53,7 @@ export const yaggababble: CharacterDef = {
         'If the Exorcist chooses the Yaggababble, the Yaggababble does not kill tonight.',
     },
   ],
+  flavor:
+    'Murders inside the Rue Morgue? Фальшивые новости! Hounds on the Baskerville moor? Фальшивые новости! Death while sailing the Nile? Фальшивые новости!',
+  edition: 'carousel',
 };

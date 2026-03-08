@@ -28,9 +28,9 @@ export const vizier: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/vizierIcon.png',
-    medium: '/icons/characters/vizierIcon.png',
-    large: '/icons/characters/vizierIcon.png',
+    small: '/icons/characters/vizierIcon.webp',
+    medium: '/icons/characters/vizierIcon.webp',
+    large: '/icons/characters/vizierIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
@@ -73,4 +73,7 @@ export const vizier: CharacterDef = {
     },
     { characterId: 'zealot', description: 'The Zealot might register as evil to the Vizier.' },
   ],
+  flavor:
+    'An excellent decision, as always, sire. Such a petty crime as bumping into the Bishop indeed deserves your ‘justice’ and ‘mercy’. Take a stroll in the gardens. Visit the gallery and peruse the sculptures of Von Strauf. Relax, sire. Leave everything… to me.',
+  edition: 'carousel',
 };

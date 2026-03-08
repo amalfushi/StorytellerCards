@@ -15,7 +15,7 @@ describe('CharacterIconImage', () => {
     render(<CharacterIconImage {...defaultProps} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
     expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.png');
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.webp');
     expect(img).toHaveAttribute('alt', 'Fortune Teller');
   });
 

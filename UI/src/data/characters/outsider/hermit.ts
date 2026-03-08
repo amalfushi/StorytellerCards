@@ -17,10 +17,13 @@ export const hermit: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/hermitIcon.png',
-    medium: '/icons/characters/hermitIcon.png',
-    large: '/icons/characters/hermitIcon.png',
+    small: '/icons/characters/hermitIcon.webp',
+    medium: '/icons/characters/hermitIcon.webp',
+    large: '/icons/characters/hermitIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
+  flavor: 'In the lost and forgotten places of the earth, the soul’s light beckons.',
+  edition: 'carousel',
+  setup: true,
 };

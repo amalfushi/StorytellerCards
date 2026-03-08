@@ -13,10 +13,13 @@ export const saint: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/saintIcon.png',
-    medium: '/icons/characters/saintIcon.png',
-    large: '/icons/characters/saintIcon.png',
+    small: '/icons/characters/saintIcon.webp',
+    medium: '/icons/characters/saintIcon.webp',
+    large: '/icons/characters/saintIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
+  flavor:
+    'Wisdom begets peace. Patience begets wisdom. Fear not, for the time shall come when fear too shall pass. Let us pray, and may the unity of our vision make saints of us all.',
+  edition: 'tb',
 };

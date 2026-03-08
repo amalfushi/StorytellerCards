@@ -14,10 +14,12 @@ export const pacifist: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/pacifistIcon.png',
-    medium: '/icons/characters/pacifistIcon.png',
-    large: '/icons/characters/pacifistIcon.png',
+    small: '/icons/characters/pacifistIcon.webp',
+    medium: '/icons/characters/pacifistIcon.webp',
+    large: '/icons/characters/pacifistIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: 'Distrust all in whom the impulse to punish is powerful.',
+  edition: 'bmr',
 };

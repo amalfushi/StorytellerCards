@@ -30,10 +30,12 @@ export const po: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 3, label: 'Choose 3 players' }],
   },
   icon: {
-    small: '/icons/characters/poIcon.png',
-    medium: '/icons/characters/poIcon.png',
-    large: '/icons/characters/poIcon.png',
+    small: '/icons/characters/poIcon.webp',
+    medium: '/icons/characters/poIcon.webp',
+    large: '/icons/characters/poIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [],
+  flavor: "Would you like a flower? I'm so lonely.",
+  edition: 'bmr',
 };

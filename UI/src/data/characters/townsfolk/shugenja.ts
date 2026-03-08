@@ -29,10 +29,12 @@ export const shugenja: CharacterDef = {
   },
   otherNights: null,
   icon: {
-    small: '/icons/characters/shugenjaIcon.png',
-    medium: '/icons/characters/shugenjaIcon.png',
-    large: '/icons/characters/shugenjaIcon.png',
+    small: '/icons/characters/shugenjaIcon.webp',
+    medium: '/icons/characters/shugenjaIcon.webp',
+    large: '/icons/characters/shugenjaIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: 'これは夢。それも夢。すべ て夢です。',
+  edition: 'carousel',
 };

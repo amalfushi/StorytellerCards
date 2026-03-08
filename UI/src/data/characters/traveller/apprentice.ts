@@ -17,10 +17,13 @@ export const apprentice: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/apprenticeIcon.png',
-    medium: '/icons/characters/apprenticeIcon.png',
-    large: '/icons/characters/apprenticeIcon.png',
+    small: '/icons/characters/apprenticeIcon.webp',
+    medium: '/icons/characters/apprenticeIcon.webp',
+    large: '/icons/characters/apprenticeIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'apprentice-istheapprentice', text: 'IS THE APPRENTICE' }],
+  flavor:
+    'For years have I traveled, studying the ways of The Craft. Which craft, you ask? Simply that of the simple folk. Nothing to worry about. Not yet.',
+  edition: 'bmr',
 };

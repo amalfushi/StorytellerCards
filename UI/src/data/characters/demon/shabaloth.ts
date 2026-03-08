@@ -31,10 +31,12 @@ export const shabaloth: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
   },
   icon: {
-    small: '/icons/characters/shabalothIcon.png',
-    medium: '/icons/characters/shabalothIcon.png',
-    large: '/icons/characters/shabalothIcon.png',
+    small: '/icons/characters/shabalothIcon.webp',
+    medium: '/icons/characters/shabalothIcon.webp',
+    large: '/icons/characters/shabalothIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [{ id: 'shabaloth-alive', text: 'ALIVE' }],
+  flavor: "Blarg f'taag nm mataan! No sho gumtha m'sik na yuuu. Fluuuuuuuuurg h-sikkkh.",
+  edition: 'bmr',
 };

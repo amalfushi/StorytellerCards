@@ -98,10 +98,13 @@ export const snakecharmer: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/snakecharmerIcon.png',
-    medium: '/icons/characters/snakecharmerIcon.png',
-    large: '/icons/characters/snakecharmerIcon.png',
+    small: '/icons/characters/snakecharmerIcon.webp',
+    medium: '/icons/characters/snakecharmerIcon.webp',
+    large: '/icons/characters/snakecharmerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'Effendi... I am but a humble man, but my pipe is golden and a single tune will tame the wildest djinn, Inshallah. They say that greed hangs more men than rope. But not I, Effendi... not I.',
+  edition: 'snv',
 };

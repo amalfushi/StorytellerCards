@@ -36,10 +36,12 @@ export const poisoner: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/poisonerIcon.png',
-    medium: '/icons/characters/poisonerIcon.png',
-    large: '/icons/characters/poisonerIcon.png',
+    small: '/icons/characters/poisonerIcon.webp',
+    medium: '/icons/characters/poisonerIcon.webp',
+    large: '/icons/characters/poisonerIcon.webp',
     placeholder: '#e53935',
   },
   reminders: [],
+  flavor: 'Add compound Alpha to compound Beta... NOT TOO MUCH!',
+  edition: 'tb',
 };

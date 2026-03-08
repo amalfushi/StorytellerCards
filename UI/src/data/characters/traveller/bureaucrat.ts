@@ -16,10 +16,13 @@ export const bureaucrat: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/bureaucratIcon.png',
-    medium: '/icons/characters/bureaucratIcon.png',
-    large: '/icons/characters/bureaucratIcon.png',
+    small: '/icons/characters/bureaucratIcon.webp',
+    medium: '/icons/characters/bureaucratIcon.webp',
+    large: '/icons/characters/bureaucratIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    "Sign here please. And here. And here. Aaaaaaaaand here. This should all be sorted and tallied by the end of the day, assuming everyone's signatures are legible. We haven't had a mix-up in the paperwork for ages. Yesterday noon, if memory serves...",
+  edition: 'tb',
 };

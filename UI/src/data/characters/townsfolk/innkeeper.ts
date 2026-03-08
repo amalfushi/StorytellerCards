@@ -25,9 +25,9 @@ export const innkeeper: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
   },
   icon: {
-    small: '/icons/characters/innkeeperIcon.png',
-    medium: '/icons/characters/innkeeperIcon.png',
-    large: '/icons/characters/innkeeperIcon.png',
+    small: '/icons/characters/innkeeperIcon.webp',
+    medium: '/icons/characters/innkeeperIcon.webp',
+    large: '/icons/characters/innkeeperIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [
@@ -45,4 +45,7 @@ export const innkeeper: CharacterDef = {
       description: 'If Riot nominates and executes an Innkeeper-protected player, good wins.',
     },
   ],
+  flavor:
+    'Come inside, fair traveller, and rest your weary bones. Drink and be merry, for the legions of the Dark One shall not harass thee tonight.',
+  edition: 'bmr',
 };

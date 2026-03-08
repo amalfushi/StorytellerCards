@@ -1,7 +1,7 @@
 /**
  * Utility for resolving character icon paths.
  *
- * All character icons live in `/icons/characters/{characterId}Icon.png`.
+ * All character icons live in `/icons/characters/{characterId}Icon.webp`.
  * The `getCharacterIconPath()` helper constructs the correct path from a
  * character ID so callers never need to know the naming convention.
  */
@@ -10,17 +10,17 @@ import { Alignment } from '@/types/index.ts';
 
 /**
  * Get the icon path for a character by ID.
- * Returns the path to the character's PNG icon.
+ * Returns the path to the character's WebP icon.
  *
  * @param characterId - lowercase, no-spaces character identifier
  *                      (e.g. `"fortuneteller"`, `"fanggu"`)
  */
 export function getCharacterIconPath(characterId: string): string {
-  return `/icons/characters/${characterId}Icon.png`;
+  return `/icons/characters/${characterId}Icon.webp`;
 }
 
 /** Fallback path used when a character icon fails to load. */
-export const FALLBACK_ICON_PATH = '/icons/characters/_fallbackIcon.png';
+export const FALLBACK_ICON_PATH = '/icons/characters/_fallbackIcon.webp';
 
 /**
  * Resolve the border colour for a character icon based on alignment.

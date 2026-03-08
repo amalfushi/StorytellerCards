@@ -13,10 +13,12 @@ export const deviant: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/deviantIcon.png',
-    medium: '/icons/characters/deviantIcon.png',
-    large: '/icons/characters/deviantIcon.png',
+    small: '/icons/characters/deviantIcon.webp',
+    medium: '/icons/characters/deviantIcon.webp',
+    large: '/icons/characters/deviantIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: "Twas the lady's quip, forsooth.",
+  edition: 'snv',
 };

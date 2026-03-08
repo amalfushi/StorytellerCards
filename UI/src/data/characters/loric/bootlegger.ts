@@ -17,10 +17,13 @@ export const bootlegger: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/bootleggerIcon.png',
-    medium: '/icons/characters/bootleggerIcon.png',
-    large: '/icons/characters/bootleggerIcon.png',
+    small: '/icons/characters/bootleggerIcon.webp',
+    medium: '/icons/characters/bootleggerIcon.webp',
+    large: '/icons/characters/bootleggerIcon.webp',
     placeholder: '#558b2f',
   },
   reminders: [],
+  flavor:
+    'When I was born, I was named ‘Homebrewy McHomebrewface’, like my father before me. A respectable name, for a dignified age.',
+  edition: 'loric',
 };

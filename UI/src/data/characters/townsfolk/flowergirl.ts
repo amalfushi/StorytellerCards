@@ -26,13 +26,15 @@ export const flowergirl: CharacterDef = {
     choices: [{ type: 'yesno', maxSelections: 1, label: 'Nod / Shake' }],
   },
   icon: {
-    small: '/icons/characters/flowergirlIcon.png',
-    medium: '/icons/characters/flowergirlIcon.png',
-    large: '/icons/characters/flowergirlIcon.png',
+    small: '/icons/characters/flowergirlIcon.webp',
+    medium: '/icons/characters/flowergirlIcon.webp',
+    large: '/icons/characters/flowergirlIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [
     { id: 'flowergirl-demonnotvoted', text: 'DEMON NOT VOTED' },
     { id: 'flowergirl-demonvoted', text: 'DEMON VOTED' },
   ],
+  flavor: "Yesterday's violets have withered and died, but today my poppies bloom.",
+  edition: 'snv',
 };

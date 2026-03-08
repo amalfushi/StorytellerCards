@@ -13,10 +13,13 @@ export const sentinel: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/sentinelIcon.png',
-    medium: '/icons/characters/sentinelIcon.png',
-    large: '/icons/characters/sentinelIcon.png',
+    small: '/icons/characters/sentinelIcon.webp',
+    medium: '/icons/characters/sentinelIcon.webp',
+    large: '/icons/characters/sentinelIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [],
+  flavor: 'Name, please. Papers, please. Weapons, please.',
+  edition: 'fabled',
+  setup: true,
 };

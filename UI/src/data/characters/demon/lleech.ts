@@ -39,9 +39,9 @@ export const lleech: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/lleechIcon.png',
-    medium: '/icons/characters/lleechIcon.png',
-    large: '/icons/characters/lleechIcon.png',
+    small: '/icons/characters/lleechIcon.webp',
+    medium: '/icons/characters/lleechIcon.webp',
+    large: '/icons/characters/lleechIcon.webp',
     placeholder: '#b71c1c',
   },
   reminders: [{ id: 'lleech-poisoned', text: 'POISONED' }],
@@ -54,4 +54,7 @@ export const lleech: CharacterDef = {
     },
     { characterId: 'slayer', description: 'If the Slayer slays the Lleech host, the host dies.' },
   ],
+  flavor:
+    'Tasty, tasty, tasty, tasty, tasty, tasty, tasty, tasty brai- I mean pie! Yes. Tasty pie. That’s what I meant to say.',
+  edition: 'carousel',
 };

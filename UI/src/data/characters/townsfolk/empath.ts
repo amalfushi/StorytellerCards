@@ -34,10 +34,12 @@ export const empath: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/empathIcon.png',
-    medium: '/icons/characters/empathIcon.png',
-    large: '/icons/characters/empathIcon.png',
+    small: '/icons/characters/empathIcon.webp',
+    medium: '/icons/characters/empathIcon.webp',
+    large: '/icons/characters/empathIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: 'My skin prickles. Something is not right here. I can feel it.',
+  edition: 'tb',
 };

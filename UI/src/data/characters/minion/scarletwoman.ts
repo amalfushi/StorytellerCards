@@ -29,10 +29,30 @@ export const scarletwoman: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/scarletwomanIcon.png',
-    medium: '/icons/characters/scarletwomanIcon.png',
-    large: '/icons/characters/scarletwomanIcon.png',
+    small: '/icons/characters/scarletwomanIcon.webp',
+    medium: '/icons/characters/scarletwomanIcon.webp',
+    large: '/icons/characters/scarletwomanIcon.webp',
     placeholder: '#d32f2f',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'plaguedoctor',
+      description:
+        'If the Storyteller would gain the Scarlet Woman ability, a Minion gains it, and learns this.',
+    },
+    {
+      characterId: 'alhadikhia',
+      description:
+        'If there would be two Demons, one of which was the Scarlet Woman, the Scarlet Woman becomes the Scarlet Woman again.',
+    },
+    {
+      characterId: 'lilmonsta',
+      description:
+        "If Lil' Monsta dies with 5 or more players alive, the Scarlet Woman babysits Lil' Monsta for the rest of the game.",
+    },
+  ],
+  flavor:
+    'You have shown me the secrets of the Council of the Purple Flame. We have lain together in fire and in lust and in beastly commune, and I am forever your servant. But tonight, my dear, I am your master.',
+  edition: 'tb',
 };

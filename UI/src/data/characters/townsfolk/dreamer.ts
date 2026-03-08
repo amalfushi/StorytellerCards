@@ -49,10 +49,13 @@ export const dreamer: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/dreamerIcon.png',
-    medium: '/icons/characters/dreamerIcon.png',
-    large: '/icons/characters/dreamerIcon.png',
+    small: '/icons/characters/dreamerIcon.webp',
+    medium: '/icons/characters/dreamerIcon.webp',
+    large: '/icons/characters/dreamerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'I remember the Clockmaker. The sky was red and it was raining fractal triangles. There was a smell of violets and a bubbling sound. A woman with glowing eyes and a scraggly beard was hissing at the sky. Then, I awoke.',
+  edition: 'snv',
 };

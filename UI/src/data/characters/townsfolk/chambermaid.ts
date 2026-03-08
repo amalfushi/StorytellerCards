@@ -49,9 +49,9 @@ export const chambermaid: CharacterDef = {
     choices: [{ type: 'livingPlayer', maxSelections: 2, label: 'Choose 2 living players' }],
   },
   icon: {
-    small: '/icons/characters/chambermaidIcon.png',
-    medium: '/icons/characters/chambermaidIcon.png',
-    large: '/icons/characters/chambermaidIcon.png',
+    small: '/icons/characters/chambermaidIcon.webp',
+    medium: '/icons/characters/chambermaidIcon.webp',
+    large: '/icons/characters/chambermaidIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -61,4 +61,7 @@ export const chambermaid: CharacterDef = {
       description: 'The Chambermaid can detect if the Mathematician will wake tonight.',
     },
   ],
+  flavor:
+    "I aint seen nothin' untoward, Milady. Begging your pardon, but if I did see somethin', it certainly weren't the master o' the house sneaking into the professor's laboratory 'round eleven o'clock and mixing up fancy potions, just like you said, Miss.",
+  edition: 'bmr',
 };

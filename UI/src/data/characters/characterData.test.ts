@@ -1,12 +1,13 @@
 import { describe, it, expect } from 'vitest';
 import { allCharacters, characterMap, getCharacter } from './index.ts';
-import { CharacterType, Alignment, NightChoiceType } from '@/types/index.ts';
+import { CharacterType, Alignment, NightChoiceType, Edition } from '@/types/index.ts';
 
 // ── Valid value sets ──
 
 const validCharacterTypes = Object.values(CharacterType) as string[];
 const validAlignments = Object.values(Alignment) as string[];
 const validNightChoiceTypes = Object.values(NightChoiceType) as string[];
+const validEditions = Object.values(Edition) as string[];
 
 // ── Expected type→alignment mapping ──
 
@@ -161,6 +162,54 @@ describe.each(allCharacters)('Character: $name ($id)', (char) => {
       expect(step.description.length).toBeGreaterThan(0);
     }
   });
+
+  // ── 10. M22: Flavor text validation ──
+
+  it('has non-empty flavor text', () => {
+    expect(typeof char.flavor).toBe('string');
+    expect(char.flavor!.length).toBeGreaterThan(0);
+  });
+
+  // ── 11. M22: Edition validation ──
+
+  it('has a valid edition', () => {
+    expect(char.edition).toBeDefined();
+    expect(validEditions).toContain(char.edition);
+  });
+
+  // ── 12. M22: Jinx validation (if present) ──
+
+  it('has valid jinx entries (if present)', () => {
+    if (!char.jinxes || char.jinxes.length === 0) return;
+    for (const jinx of char.jinxes) {
+      expect(typeof jinx.characterId).toBe('string');
+      expect(jinx.characterId.length).toBeGreaterThan(0);
+      expect(typeof jinx.description).toBe('string');
+      expect(jinx.description.length).toBeGreaterThan(0);
+    }
+  });
+
+  // ── 13. M22: Setup flag validation ──
+
+  it('has valid setup flag (if present)', () => {
+    if (char.setup !== undefined) {
+      expect(typeof char.setup).toBe('boolean');
+    }
+  });
+
+  // ── 14. M22: Global reminders validation ──
+
+  it('has valid remindersGlobal (if present)', () => {
+    if (!char.remindersGlobal) return;
+    expect(Array.isArray(char.remindersGlobal)).toBe(true);
+    for (const r of char.remindersGlobal) {
+      expect(typeof r.id).toBe('string');
+      expect(r.id.length).toBeGreaterThan(0);
+      expect(typeof r.text).toBe('string');
+      expect(r.text.length).toBeGreaterThan(0);
+      expect(r.isGlobal).toBe(true);
+    }
+  });
 });
 
 // ══════════════════════════════════════════════════
@@ -270,5 +319,96 @@ describe('Character registry summary', () => {
     // Sanity: total must match
     const sum = Object.values(counts).reduce((a, b) => a + b, 0);
     expect(sum).toBe(allCharacters.length);
+  });
+});
+
+// ══════════════════════════════════════════════════
+// M22: BotC data import validations
+// ══════════════════════════════════════════════════
+
+describe('M22 — Jinx data validation', () => {
+  it('has at least 27 characters with jinxes', () => {
+    const withJinxes = allCharacters.filter((c) => c.jinxes && c.jinxes.length > 0);
+    expect(withJinxes.length).toBeGreaterThanOrEqual(27);
+  });
+
+  it('has bidirectional jinx mirroring', () => {
+    // For every jinx A→B, there should be B→A
+    const missingMirrors: string[] = [];
+    for (const char of allCharacters) {
+      if (!char.jinxes) continue;
+      for (const jinx of char.jinxes) {
+        const other = allCharacters.find((c) => c.id === jinx.characterId);
+        if (!other) continue;
+        const mirror = other.jinxes?.find((j) => j.characterId === char.id);
+        if (!mirror) {
+          missingMirrors.push(`${char.id} → ${jinx.characterId}`);
+        }
+      }
+    }
+    expect(missingMirrors).toEqual([]);
+  });
+
+  it('all jinx characterIds reference existing characters', () => {
+    const invalid: string[] = [];
+    for (const char of allCharacters) {
+      if (!char.jinxes) continue;
+      for (const jinx of char.jinxes) {
+        if (!characterMap.has(jinx.characterId)) {
+          invalid.push(`${char.id} → ${jinx.characterId}`);
+        }
+      }
+    }
+    expect(invalid).toEqual([]);
+  });
+});
+
+describe('M22 — Setup flag validation', () => {
+  it('has exactly 23 characters with setup: true', () => {
+    const withSetup = allCharacters.filter((c) => c.setup === true);
+    expect(withSetup.length).toBe(23);
+  });
+});
+
+describe('M22 — Global reminders validation', () => {
+  it('has exactly 5 characters with remindersGlobal', () => {
+    const withGlobal = allCharacters.filter(
+      (c) => c.remindersGlobal && c.remindersGlobal.length > 0,
+    );
+    expect(withGlobal.length).toBe(5);
+  });
+
+  it('all global reminders have isGlobal: true', () => {
+    for (const char of allCharacters) {
+      if (!char.remindersGlobal) continue;
+      for (const r of char.remindersGlobal) {
+        expect(r.isGlobal).toBe(true);
+      }
+    }
+  });
+});
+
+describe('M22 — Edition data validation', () => {
+  it('has all editions represented', () => {
+    const editionsFound = new Set(allCharacters.map((c) => c.edition).filter(Boolean));
+    for (const edition of validEditions) {
+      expect(editionsFound.has(edition)).toBe(true);
+    }
+  });
+});
+
+describe('M22 — WebP icon paths', () => {
+  it('all character icon paths use .webp extension', () => {
+    const wrongExtension: string[] = [];
+    for (const char of allCharacters) {
+      if (!char.icon) continue;
+      const paths = [char.icon.small, char.icon.medium, char.icon.large].filter(Boolean);
+      for (const p of paths) {
+        if (p && !p.endsWith('.webp')) {
+          wrongExtension.push(`${char.id}: ${p}`);
+        }
+      }
+    }
+    expect(wrongExtension).toEqual([]);
   });
 });

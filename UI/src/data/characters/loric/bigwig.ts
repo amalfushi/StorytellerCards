@@ -18,10 +18,13 @@ export const bigwig: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/bigwigIcon.png',
-    medium: '/icons/characters/bigwigIcon.png',
-    large: '/icons/characters/bigwigIcon.png',
+    small: '/icons/characters/bigwigIcon.webp',
+    medium: '/icons/characters/bigwigIcon.webp',
+    large: '/icons/characters/bigwigIcon.webp',
     placeholder: '#558b2f',
   },
   reminders: [],
+  flavor:
+    'Vanity asks ‘Is it popular?’ Cowardice asks ‘Is it safe?’ Conscience asks ‘Is it right?’ Who among us will ask: ‘Is it true?’',
+  edition: 'loric',
 };

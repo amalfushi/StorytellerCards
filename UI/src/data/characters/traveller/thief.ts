@@ -16,10 +16,13 @@ export const thief: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/thiefIcon.png',
-    medium: '/icons/characters/thiefIcon.png',
-    large: '/icons/characters/thiefIcon.png',
+    small: '/icons/characters/thiefIcon.webp',
+    medium: '/icons/characters/thiefIcon.webp',
+    large: '/icons/characters/thiefIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'thief-negativevote', text: 'NEGATIVE VOTE' }],
+  flavor:
+    "I ain't done nuffink. I weren't even in dat alley last night! It weren't me what stole Mayor Bruno's briefcase wiv all dem fancy dockoments innit. Besides, it was too 'eavy to carry far.",
+  edition: 'tb',
 };

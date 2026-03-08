@@ -14,9 +14,9 @@ export const drunk: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/drunkIcon.png',
-    medium: '/icons/characters/drunkIcon.png',
-    large: '/icons/characters/drunkIcon.png',
+    small: '/icons/characters/drunkIcon.webp',
+    medium: '/icons/characters/drunkIcon.webp',
+    large: '/icons/characters/drunkIcon.webp',
     placeholder: '#42a5f5',
   },
   reminders: [],
@@ -26,4 +26,19 @@ export const drunk: CharacterDef = {
       description: 'Choose a Townsfolk character. The Drunk thinks they are this character.',
     },
   ],
+  jinxes: [
+    {
+      characterId: 'mathematician',
+      description:
+        "The Mathematician might learn if the Drunk's ability yielded false info or failed to work properly.",
+    },
+    {
+      characterId: 'boffin',
+      description: 'The Demon cannot have the Drunk ability.',
+    },
+  ],
+  flavor: 'I’m only a *hic* social drinker, my dear. Admittedly, I am a heavy *burp* socializer.',
+  edition: 'tb',
+  setup: true,
+  remindersGlobal: [{ id: 'drunk-global-isthedrunk', text: 'Is The Drunk', isGlobal: true }],
 };

@@ -17,10 +17,24 @@ export const goon: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/goonIcon.png',
-    medium: '/icons/characters/goonIcon.png',
-    large: '/icons/characters/goonIcon.png',
+    small: '/icons/characters/goonIcon.webp',
+    medium: '/icons/characters/goonIcon.webp',
+    large: '/icons/characters/goonIcon.webp',
     placeholder: '#1565c0',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'boffin',
+      description: 'If the Demon has the Goon ability, they can’t turn good due to this ability.',
+    },
+    {
+      characterId: 'pithag',
+      description:
+        "If the Pit-Hag turns an evil player into the Goon, they can't turn good due to their own ability.",
+    },
+  ],
+  flavor:
+    "Yes boss. I explained fings real good to dat geezer. He don't want me explain it again. Nah boss, I don't need no doctor - it's only a knife wound. Be right come mornin'",
+  edition: 'bmr',
 };

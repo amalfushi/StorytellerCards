@@ -72,10 +72,14 @@ export const huntsman: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/huntsmanIcon.png',
-    medium: '/icons/characters/huntsmanIcon.png',
-    large: '/icons/characters/huntsmanIcon.png',
+    small: '/icons/characters/huntsmanIcon.webp',
+    medium: '/icons/characters/huntsmanIcon.webp',
+    large: '/icons/characters/huntsmanIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'My cabin is warm and sturdy. My axe by the door, my boots drying by the fire, and elk stew a-simmering… Hark! A scream echoes through the valley! The rain and the mud and the cold, cold wind mask the scent of the wolves, but I know the path and my pace is steady. I am coming.',
+  edition: 'carousel',
+  setup: true,
 };

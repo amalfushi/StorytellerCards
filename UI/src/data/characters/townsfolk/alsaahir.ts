@@ -21,9 +21,9 @@ export const alsaahir: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/alsaahirIcon.png',
-    medium: '/icons/characters/alsaahirIcon.png',
-    large: '/icons/characters/alsaahirIcon.png',
+    small: '/icons/characters/alsaahirIcon.webp',
+    medium: '/icons/characters/alsaahirIcon.webp',
+    large: '/icons/characters/alsaahirIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
@@ -33,4 +33,6 @@ export const alsaahir: CharacterDef = {
       description: "The Storyteller doesn't declare the Vizier is in play.",
     },
   ],
+  flavor: 'I am here because of you, and you are here because of me.',
+  edition: 'carousel',
 };

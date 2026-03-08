@@ -15,10 +15,12 @@ export const gunslinger: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/gunslingerIcon.png',
-    medium: '/icons/characters/gunslingerIcon.png',
-    large: '/icons/characters/gunslingerIcon.png',
+    small: '/icons/characters/gunslingerIcon.webp',
+    medium: '/icons/characters/gunslingerIcon.webp',
+    large: '/icons/characters/gunslingerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor: "It's time someone took matters into their own hands. That someone... is me.",
+  edition: 'tb',
 };

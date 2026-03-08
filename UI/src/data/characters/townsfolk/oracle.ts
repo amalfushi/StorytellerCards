@@ -24,10 +24,13 @@ export const oracle: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/oracleIcon.png',
-    medium: '/icons/characters/oracleIcon.png',
-    large: '/icons/characters/oracleIcon.png',
+    small: '/icons/characters/oracleIcon.webp',
+    medium: '/icons/characters/oracleIcon.webp',
+    large: '/icons/characters/oracleIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  flavor:
+    'Only the chosen may gaze beyond the veil. The dead are restless, and they point in silence toward the icy north.',
+  edition: 'snv',
 };

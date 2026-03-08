@@ -38,9 +38,9 @@ export const courtier: CharacterDef = {
     choices: [{ type: 'character', maxSelections: 1, label: 'Choose a character' }],
   },
   icon: {
-    small: '/icons/characters/courtierIcon.png',
-    medium: '/icons/characters/courtierIcon.png',
-    large: '/icons/characters/courtierIcon.png',
+    small: '/icons/characters/courtierIcon.webp',
+    medium: '/icons/characters/courtierIcon.webp',
+    large: '/icons/characters/courtierIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'courtier-noability', text: 'NO ABILITY' }],
@@ -56,4 +56,7 @@ export const courtier: CharacterDef = {
         'If the Vizier loses their ability, they learn this, and cannot die during the day.',
     },
   ],
+  flavor:
+    'I am more afraid of an army of one hundred sheep led by a lion than an army of one hundred lions led by a sheep.',
+  edition: 'bmr',
 };

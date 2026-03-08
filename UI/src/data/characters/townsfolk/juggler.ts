@@ -25,9 +25,9 @@ export const juggler: CharacterDef = {
     ],
   },
   icon: {
-    small: '/icons/characters/jugglerIcon.png',
-    medium: '/icons/characters/jugglerIcon.png',
-    large: '/icons/characters/jugglerIcon.png',
+    small: '/icons/characters/jugglerIcon.webp',
+    medium: '/icons/characters/jugglerIcon.webp',
+    large: '/icons/characters/jugglerIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'juggler-correct', text: 'CORRECT' }],
@@ -38,4 +38,7 @@ export const juggler: CharacterDef = {
         'If the Juggler guesses on their first day and dies by execution, tonight the living Cannibal learns how many guesses the Juggler got correct.',
     },
   ],
+  flavor:
+    'For my next trick, as per request, I will need a flower, a bag of beans, a toy snake, a paintbrush, and a motorized gasoline-powered hedge trimming device. I warn you, this trick may be my last. Oh dear.',
+  edition: 'snv',
 };

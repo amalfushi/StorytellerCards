@@ -59,10 +59,25 @@ export const villageidiot: CharacterDef = {
     choices: [{ type: 'player', maxSelections: 1, label: 'Choose a player' }],
   },
   icon: {
-    small: '/icons/characters/villageidiotIcon.png',
-    medium: '/icons/characters/villageidiotIcon.png',
-    large: '/icons/characters/villageidiotIcon.png',
+    small: '/icons/characters/villageidiotIcon.webp',
+    medium: '/icons/characters/villageidiotIcon.webp',
+    large: '/icons/characters/villageidiotIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [],
+  jinxes: [
+    {
+      characterId: 'boffin',
+      description:
+        'If there is a spare token, the Boffin can give the Demon the Village Idiot ability.',
+    },
+    {
+      characterId: 'pithag',
+      description:
+        'If there is a spare token, the Pit-Hag can create an extra Village Idiot. If so, the drunk Village Idiot might change.',
+    },
+  ],
+  flavor: 'Roses are blue, and violets are red, Please reverse what I just said.',
+  edition: 'carousel',
+  setup: true,
 };

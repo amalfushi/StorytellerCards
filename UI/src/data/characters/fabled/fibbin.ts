@@ -15,10 +15,12 @@ export const fibbin: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/fibbinIcon.png',
-    medium: '/icons/characters/fibbinIcon.png',
-    large: '/icons/characters/fibbinIcon.png',
+    small: '/icons/characters/fibbinIcon.webp',
+    medium: '/icons/characters/fibbinIcon.webp',
+    large: '/icons/characters/fibbinIcon.webp',
     placeholder: '#ff9800',
   },
   reminders: [{ id: 'fibbin-noability', text: 'NO ABILITY' }],
+  flavor: 'Tee-hee-hee. Tee. Hee. Hee.',
+  edition: 'fabled',
 };

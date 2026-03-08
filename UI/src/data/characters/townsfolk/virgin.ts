@@ -16,10 +16,13 @@ export const virgin: CharacterDef = {
   firstNight: null,
   otherNights: null,
   icon: {
-    small: '/icons/characters/virginIcon.png',
-    medium: '/icons/characters/virginIcon.png',
-    large: '/icons/characters/virginIcon.png',
+    small: '/icons/characters/virginIcon.webp',
+    medium: '/icons/characters/virginIcon.webp',
+    large: '/icons/characters/virginIcon.webp',
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'virgin-noability', text: 'NO ABILITY' }],
+  flavor:
+    'I am pure. Let those who are without sin cast themselves down and suffer in my stead. My reputation shall not be stained with your venomous accusations.',
+  edition: 'tb',
 };
