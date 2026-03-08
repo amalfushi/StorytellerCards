@@ -1427,4 +1427,179 @@ describe('GameContext', () => {
       expect(persisted.activeLoric).toEqual(['bigwig']);
     });
   });
+
+  // ── M4: Alignment auto-update on character change ──
+
+  describe('alignment auto-update', () => {
+    it('auto-updates alignment to Evil when character changes to a Demon', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({
+                seat: 1,
+                characterId: 'washerwoman',
+                actualAlignment: Alignment.Good,
+              }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.updatePlayer(1, { characterId: 'imp' });
+      });
+
+      expect(result.current.state.game!.players[0].actualAlignment).toBe(Alignment.Evil);
+    });
+
+    it('auto-updates alignment to Evil when character changes to a Minion', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({
+                seat: 1,
+                characterId: 'washerwoman',
+                actualAlignment: Alignment.Good,
+              }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.updatePlayer(1, { characterId: 'poisoner' });
+      });
+
+      expect(result.current.state.game!.players[0].actualAlignment).toBe(Alignment.Evil);
+    });
+
+    it('auto-updates alignment to Good when character changes to a Townsfolk', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({
+                seat: 1,
+                characterId: 'imp',
+                actualAlignment: Alignment.Evil,
+              }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.updatePlayer(1, { characterId: 'washerwoman' });
+      });
+
+      expect(result.current.state.game!.players[0].actualAlignment).toBe(Alignment.Good);
+    });
+
+    it('auto-updates alignment to Good when character changes to an Outsider', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({
+                seat: 1,
+                characterId: 'imp',
+                actualAlignment: Alignment.Evil,
+              }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.updatePlayer(1, { characterId: 'drunk' });
+      });
+
+      expect(result.current.state.game!.players[0].actualAlignment).toBe(Alignment.Good);
+    });
+
+    it('allows explicit alignment override when characterId also changes', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({
+                seat: 1,
+                characterId: 'washerwoman',
+                actualAlignment: Alignment.Good,
+              }),
+            ],
+          }),
+        );
+      });
+
+      // Explicitly set alignment to Good even though new character is a Demon (e.g. Marionette scenario)
+      act(() => {
+        result.current.updatePlayer(1, {
+          characterId: 'imp',
+          actualAlignment: Alignment.Good,
+        });
+      });
+
+      expect(result.current.state.game!.players[0].actualAlignment).toBe(Alignment.Good);
+    });
+
+    it('does not change alignment when characterId does not change', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({
+                seat: 1,
+                characterId: 'imp',
+                actualAlignment: Alignment.Good, // Intentionally "wrong" for test
+              }),
+            ],
+          }),
+        );
+      });
+
+      // Update something other than characterId
+      act(() => {
+        result.current.updatePlayer(1, { alive: false });
+      });
+
+      // Alignment should remain as-is
+      expect(result.current.state.game!.players[0].actualAlignment).toBe(Alignment.Good);
+    });
+
+    it('persists auto-updated alignment to localStorage', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            id: 'alignment-persist',
+            players: [
+              makePlayer({
+                seat: 1,
+                characterId: 'washerwoman',
+                actualAlignment: Alignment.Good,
+              }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.updatePlayer(1, { characterId: 'imp' });
+      });
+
+      const raw = localStorage.getItem('storyteller-game-alignment-persist');
+      expect(raw).not.toBeNull();
+      const persisted = JSON.parse(raw!) as Game;
+      expect(persisted.players[0].actualAlignment).toBe(Alignment.Evil);
+    });
+  });
 });

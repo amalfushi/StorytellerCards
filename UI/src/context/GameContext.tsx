@@ -7,7 +7,8 @@ import type {
   NightProgress,
   NightHistoryEntry,
 } from '@/types/index.ts';
-import { Phase, Alignment } from '@/types/index.ts';
+import { Phase, Alignment, CharacterType } from '@/types/index.ts';
+import { getCharacter } from '@/data/characters/index.ts';
 
 // ──────────────────────────────────────────────
 // State
@@ -26,6 +27,21 @@ const INITIAL_STATE: GameViewState = {
   showCharacters: false,
   nightProgress: null,
 };
+
+// ──────────────────────────────────────────────
+// Helpers
+// ──────────────────────────────────────────────
+
+/**
+ * Derive a player's alignment from their character type.
+ * Demons and Minions → Evil; Townsfolk and Outsiders → Good.
+ * Travellers, Fabled, Loric, and unknown types return undefined (no change).
+ */
+function deriveAlignmentFromType(type: CharacterType): Alignment | undefined {
+  if (type === CharacterType.Demon || type === CharacterType.Minion) return Alignment.Evil;
+  if (type === CharacterType.Townsfolk || type === CharacterType.Outsider) return Alignment.Good;
+  return undefined;
+}
 
 // ──────────────────────────────────────────────
 // Actions
@@ -130,7 +146,22 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         ...state,
         game: {
           ...state.game,
-          players: state.game.players.map((p) => (p.seat === seat ? { ...p, ...updates } : p)),
+          players: state.game.players.map((p) => {
+            if (p.seat !== seat) return p;
+            const merged = { ...p, ...updates };
+            // M4: Auto-update alignment when characterId changes
+            if (updates.characterId !== undefined && updates.characterId !== p.characterId) {
+              const charDef = getCharacter(updates.characterId);
+              if (charDef) {
+                const newAlignment = deriveAlignmentFromType(charDef.type);
+                // Only auto-update if alignment was not explicitly set in this update
+                if (updates.actualAlignment === undefined) {
+                  merged.actualAlignment = newAlignment;
+                }
+              }
+            }
+            return merged;
+          }),
         },
       };
     }

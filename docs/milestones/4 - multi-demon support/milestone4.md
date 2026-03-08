@@ -1,5 +1,13 @@
 # Milestone 4 — Multi-Demon & Edge Case Support
 
+## Status: ✅ Complete
+
+**Completed:** 2025-07-18
+
+All 4 phases implemented — distribution rules flexibility, alignment auto-update, night order edge cases, and comprehensive tests. See [progress.md](progress.md) for details.
+
+---
+
 > **Goal:** Handle game scenarios where there are multiple demons (Legion, Pit-Hag creation), no demon (Lil' Monsta, Atheist), or a non-standard demon setup — ensuring the app doesn't break or produce incorrect behavior in these cases.
 
 ---

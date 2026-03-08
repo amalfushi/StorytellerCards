@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { PLAYER_COUNT_DISTRIBUTION, getDistribution } from './playerCountRules';
+import {
+  PLAYER_COUNT_DISTRIBUTION,
+  getDistribution,
+  getDistributionSuggestions,
+  getDistributionWarnings,
+  DistributionWarningSeverity,
+} from './playerCountRules';
 import type { Distribution } from './playerCountRules';
 
 describe('PLAYER_COUNT_DISTRIBUTION', () => {
@@ -119,5 +125,121 @@ describe('getDistribution', () => {
     assertSum(getDistribution(5), 5);
     assertSum(getDistribution(10), 10);
     assertSum(getDistribution(15), 15);
+  });
+});
+
+// ──────────────────────────────────────────────
+// M4: Script-aware distribution suggestions
+// ──────────────────────────────────────────────
+
+describe('getDistributionSuggestions', () => {
+  it('returns empty array for a normal script', () => {
+    const suggestions = getDistributionSuggestions(
+      ['imp', 'poisoner', 'washerwoman'],
+      getDistribution(7),
+    );
+    expect(suggestions).toEqual([]);
+  });
+
+  it('returns Atheist suggestion when script contains atheist', () => {
+    const suggestions = getDistributionSuggestions(
+      ['atheist', 'washerwoman', 'librarian'],
+      getDistribution(7),
+    );
+    expect(suggestions).toHaveLength(1);
+    expect(suggestions[0].suggested).toEqual({ demons: 0, minions: 0 });
+    expect(suggestions[0].reason).toContain('Atheist');
+  });
+
+  it('returns Legion suggestion when script contains legion', () => {
+    const base = getDistribution(7); // minions: 1
+    const suggestions = getDistributionSuggestions(['legion', 'washerwoman'], base);
+    expect(suggestions).toHaveLength(1);
+    expect(suggestions[0].suggested.demons).toBe(2); // minions + 1
+    expect(suggestions[0].suggested.minions).toBe(0);
+    expect(suggestions[0].reason).toContain('Legion');
+  });
+
+  it("returns Lil' Monsta suggestion when script contains lilmonsta", () => {
+    const suggestions = getDistributionSuggestions(['lilmonsta', 'poisoner'], getDistribution(7));
+    expect(suggestions).toHaveLength(1);
+    expect(suggestions[0].suggested.demons).toBe(0);
+    expect(suggestions[0].reason).toContain("Lil' Monsta");
+  });
+
+  it('returns multiple suggestions when multiple edge-case characters present', () => {
+    const suggestions = getDistributionSuggestions(['atheist', 'legion'], getDistribution(10));
+    expect(suggestions).toHaveLength(2);
+    const reasons = suggestions.map((s) => s.reason);
+    expect(reasons.some((r) => r.includes('Atheist'))).toBe(true);
+    expect(reasons.some((r) => r.includes('Legion'))).toBe(true);
+  });
+
+  it('Legion suggestion scales with player count (more minions at higher counts)', () => {
+    const base10 = getDistribution(10); // minions: 2
+    const suggestions = getDistributionSuggestions(['legion'], base10);
+    expect(suggestions[0].suggested.demons).toBe(3); // 2 + 1
+  });
+});
+
+// ──────────────────────────────────────────────
+// M4: Distribution warnings
+// ──────────────────────────────────────────────
+
+describe('getDistributionWarnings', () => {
+  it('returns no warnings for standard distribution', () => {
+    const dist: Distribution = { townsfolk: 5, outsiders: 0, minions: 1, demons: 1 };
+    const warnings = getDistributionWarnings(dist, ['imp', 'poisoner']);
+    expect(warnings).toEqual([]);
+  });
+
+  it("warns about zero demons without Atheist or Lil' Monsta", () => {
+    const dist: Distribution = { townsfolk: 5, outsiders: 0, minions: 1, demons: 0 };
+    const warnings = getDistributionWarnings(dist, ['poisoner']);
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0].severity).toBe(DistributionWarningSeverity.Warning);
+    expect(warnings[0].message).toContain('No Demons');
+  });
+
+  it('does not warn about zero demons when Atheist is on script', () => {
+    const dist: Distribution = { townsfolk: 5, outsiders: 0, minions: 0, demons: 0 };
+    const warnings = getDistributionWarnings(dist, ['atheist']);
+    // No "No Demons" warning, no "No Minions" warning (Atheist suppresses both)
+    expect(warnings).toEqual([]);
+  });
+
+  it("does not warn about zero demons when Lil' Monsta is on script", () => {
+    const dist: Distribution = { townsfolk: 5, outsiders: 0, minions: 1, demons: 0 };
+    const warnings = getDistributionWarnings(dist, ['lilmonsta', 'poisoner']);
+    expect(warnings).toEqual([]);
+  });
+
+  it('warns about multiple demons without Legion', () => {
+    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 0, demons: 2 };
+    const warnings = getDistributionWarnings(dist, ['imp']);
+    const demonWarning = warnings.find((w) => w.message.includes('Multiple Demons'));
+    expect(demonWarning).toBeDefined();
+    expect(demonWarning!.severity).toBe(DistributionWarningSeverity.Info);
+  });
+
+  it('does not warn about multiple demons when Legion is on script', () => {
+    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 0, demons: 3 };
+    const warnings = getDistributionWarnings(dist, ['legion']);
+    const demonWarning = warnings.find((w) => w.message.includes('Multiple Demons'));
+    expect(demonWarning).toBeUndefined();
+  });
+
+  it('warns about zero minions without Atheist or Legion', () => {
+    const dist: Distribution = { townsfolk: 5, outsiders: 0, minions: 0, demons: 1 };
+    const warnings = getDistributionWarnings(dist, ['imp']);
+    const minionWarning = warnings.find((w) => w.message.includes('No Minions'));
+    expect(minionWarning).toBeDefined();
+  });
+
+  it('does not warn about zero minions with Legion', () => {
+    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 0, demons: 3 };
+    const warnings = getDistributionWarnings(dist, ['legion']);
+    const minionWarning = warnings.find((w) => w.message.includes('No Minions'));
+    expect(minionWarning).toBeUndefined();
   });
 });
