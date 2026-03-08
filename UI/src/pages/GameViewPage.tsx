@@ -13,7 +13,6 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
-import ChecklistIcon from '@mui/icons-material/Checklist';
 import GroupsIcon from '@mui/icons-material/Groups';
 import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
@@ -34,7 +33,6 @@ import { NightTabPanel } from '@/components/NightPhase/NightTabPanel.tsx';
 import { NightHistoryDrawer } from '@/components/NightHistory/NightHistoryDrawer.tsx';
 import { CharacterAssignmentDialog } from '@/components/CharacterAssignment/CharacterAssignmentDialog.tsx';
 import { CharacterSelection } from '@/components/Setup/CharacterSelection.tsx';
-import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
 import { Phase as PhaseEnum } from '@/types/index.ts';
@@ -66,7 +64,6 @@ export function GameViewPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [charSelectionOpen, setCharSelectionOpen] = useState(false);
-  const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
 
   // ── Day timer (lifted here so state survives tab switches) ──
@@ -166,17 +163,6 @@ export function GameViewPage() {
   const needsCharacterSelection = useMemo(() => {
     if (!game) return false;
     return needsCharacterAssignment && !game.inPlayCharacterIds?.length;
-  }, [game, needsCharacterAssignment]);
-
-  // Characters are assigned but first night hasn't been played yet — show setup checklist
-  const showSetupChecklistBanner = useMemo(() => {
-    if (!game) return false;
-    return (
-      !needsCharacterAssignment &&
-      game.isFirstNight &&
-      game.nightHistory.length === 0 &&
-      (game.inPlayCharacterIds?.length ?? 0) > 0
-    );
   }, [game, needsCharacterAssignment]);
 
   // Handle confirming in-play character selection
@@ -346,42 +332,6 @@ export function GameViewPage() {
         >
           Characters haven&apos;t been assigned yet. Set up characters before the first night!
         </Alert>
-      )}
-
-      {/* ── Setup Checklist Banner ── */}
-      {showSetupChecklistBanner && viewMode === 'day' && (
-        <Alert
-          severity="success"
-          action={
-            <Button
-              color="inherit"
-              size="small"
-              startIcon={<ChecklistIcon />}
-              onClick={() => setSetupChecklistOpen(!setupChecklistOpen)}
-            >
-              {setupChecklistOpen ? 'Hide Checklist' : 'Setup Checklist'}
-            </Button>
-          }
-          sx={{ borderRadius: 0 }}
-        >
-          Characters assigned! Review the setup checklist before starting Night 1.
-        </Alert>
-      )}
-
-      {/* ── Setup Checklist Panel ── */}
-      {setupChecklistOpen && game && game.inPlayCharacterIds && viewMode === 'day' && (
-        <Box sx={{ maxHeight: '60vh', overflow: 'auto', borderBottom: 1, borderColor: 'divider' }}>
-          <SetupChecklist
-            gameId={game.id}
-            players={game.players}
-            inPlayCharacterIds={game.inPlayCharacterIds}
-            scriptCharacterIds={scriptCharacterIds}
-            onStartNight={() => {
-              setSetupChecklistOpen(false);
-              handleNightClick();
-            }}
-          />
-        </Box>
       )}
 
       {/* ── Tab content / Night panel ── */}
