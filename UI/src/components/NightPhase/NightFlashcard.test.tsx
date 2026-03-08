@@ -209,4 +209,58 @@ describe('NightFlashcard', () => {
     const style = window.getComputedStyle(abilityEl);
     expect(style.fontStyle).not.toBe('italic');
   });
+
+  // ── M5: Jinx reminder tests ──
+
+  it('shows jinx reminder banner when activeJinxes is provided', () => {
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        activeJinxes={[
+          {
+            character1Id: 'fortuneteller',
+            character1Name: 'Fortune Teller',
+            character2Id: 'spy',
+            character2Name: 'Spy',
+            description: 'The Spy may register as a Demon to the Fortune Teller.',
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByTestId('jinx-reminder')).toBeInTheDocument();
+    expect(screen.getByText('Jinx: Spy')).toBeInTheDocument();
+    expect(screen.getByText(/Spy may register/)).toBeInTheDocument();
+    expect(screen.getByText('⚡')).toBeInTheDocument();
+  });
+
+  it('does not show jinx reminder when no active jinxes', () => {
+    render(<NightFlashcard {...defaultProps} activeJinxes={[]} />);
+    expect(screen.queryByTestId('jinx-reminder')).not.toBeInTheDocument();
+  });
+
+  it('shows multiple jinx reminders for characters with several jinxes', () => {
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        activeJinxes={[
+          {
+            character1Id: 'fortuneteller',
+            character1Name: 'Fortune Teller',
+            character2Id: 'spy',
+            character2Name: 'Spy',
+            description: 'The Spy may register as a Demon to the Fortune Teller.',
+          },
+          {
+            character1Id: 'fortuneteller',
+            character1Name: 'Fortune Teller',
+            character2Id: 'witch',
+            character2Name: 'Witch',
+            description: 'Something about witches.',
+          },
+        ]}
+      />,
+    );
+    expect(screen.getByText('Jinx: Spy')).toBeInTheDocument();
+    expect(screen.getByText('Jinx: Witch')).toBeInTheDocument();
+  });
 });

@@ -5,7 +5,7 @@ import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import PersonIcon from '@mui/icons-material/Person';
-import type { NightOrderEntry, PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type { NightOrderEntry, PlayerSeat, CharacterDef, ActiveJinx } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
@@ -34,6 +34,8 @@ export interface NightFlashcardProps {
   onSelectionChange?: (value: string | string[]) => void;
   /** Previous night's selection for context display. */
   previousSelection?: string | string[];
+  /** Active jinxes for the current character. */
+  activeJinxes?: ActiveJinx[];
 }
 
 /**
@@ -57,6 +59,7 @@ export function NightFlashcard({
   selectionValue,
   onSelectionChange,
   previousSelection,
+  activeJinxes = [],
 }: NightFlashcardProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
@@ -291,6 +294,43 @@ export function NightFlashcard({
       <Divider
         sx={{ borderColor: 'rgba(255,255,255,0.12)', mb: 1, position: 'relative', zIndex: 1 }}
       />
+
+      {/* Jinx reminder banners */}
+      {activeJinxes.length > 0 && (
+        <Box sx={{ mb: 1, position: 'relative', zIndex: 1 }} data-testid="jinx-reminder">
+          {activeJinxes.map((jinx) => (
+            <Box
+              key={`${jinx.character1Id}-${jinx.character2Id}`}
+              sx={{
+                display: 'flex',
+                alignItems: 'flex-start',
+                gap: 0.75,
+                p: 1,
+                mb: 0.5,
+                borderRadius: 1.5,
+                bgcolor: 'rgba(245, 158, 11, 0.15)',
+                border: '1px solid rgba(245, 158, 11, 0.4)',
+              }}
+            >
+              <Typography sx={{ fontSize: '1rem', lineHeight: 1.4, flexShrink: 0 }}>⚡</Typography>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography
+                  variant="body2"
+                  sx={{ fontWeight: 700, color: '#f59e0b', lineHeight: 1.3 }}
+                >
+                  Jinx: {jinx.character2Name}
+                </Typography>
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'rgba(255,255,255,0.75)', display: 'block', lineHeight: 1.3 }}
+                >
+                  {jinx.description}
+                </Typography>
+              </Box>
+            </Box>
+          ))}
+        </Box>
+      )}
 
       {/* Sub-action checklist + choice selectors inline */}
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', position: 'relative', zIndex: 1 }}>

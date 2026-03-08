@@ -11,7 +11,7 @@
 | M2 | Bug fixes, character assignment, script importing | ✅ Complete | [details](milestones/2%20-%20basic%20botc%20setup/progress.md) |
 | M3 | Night phase improvements, token system, script builder, UI polish | ✅ Complete (+ Feedback Rounds 1 & 2) | [details](milestones/3%20-%20tokens,%20breadcrumbs,%20characterModal,%20errorCheckpoints/progress.md) |
 | M4 | Multi-demon support | 📋 Planned | — |
-| M5 | Jinxes | 📋 Planned | — |
+| M5 | Jinxes UI — active jinx detection, script view, character modal, night flashcard, script builder | ✅ Complete | [details](milestones/5%20-%20jinxes/progress.md) |
 | M6 | Character data restructuring (individual .ts files, declarative night choices) | ✅ Complete | [details](milestones/6 - character restructuring/progress.md) |
 | M7 | Testing Improvements | ✅ Complete (Phases 1-5) | [details](milestones/7 - testing improvements/milestone7.md) |
 | M8 | Wiki scraping — populate remaining characters + download icons | ✅ Complete (M8.1 + M8.2) | [details](milestones/8%20-%20wiki%20scraping/progress.md) |
@@ -39,11 +39,11 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M22 Complete)
+## Verification (as of M5 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 3461/3461 passing (58 test files)
+- Tests: 3494/3494 passing (59 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~93+ stories including `play()` interaction tests
 - Go build: success
