@@ -10,7 +10,7 @@
 | M1 | Code quality, testing, dev tooling, documentation | ✅ Complete | [details](milestones/1%20-%20initial%20app%20setup/progress.md) |
 | M2 | Bug fixes, character assignment, script importing | ✅ Complete | [details](milestones/2%20-%20basic%20botc%20setup/progress.md) |
 | M3 | Night phase improvements, token system, script builder, UI polish | ✅ Complete (+ Feedback Rounds 1 & 2) | [details](milestones/3%20-%20tokens,%20breadcrumbs,%20characterModal,%20errorCheckpoints/progress.md) |
-| M4 | Multi-demon support | 📋 Planned | — |
+| M4 | Multi-demon support | ✅ Complete | [details](milestones/4%20-%20multi-demon%20support/progress.md) |
 | M5 | Jinxes | 📋 Planned | — |
 | M6 | Character data restructuring (individual .ts files, declarative night choices) | ✅ Complete | [details](milestones/6 - character restructuring/progress.md) |
 | M7 | Testing Improvements | ✅ Complete (Phases 1-5) | [details](milestones/7 - testing improvements/milestone7.md) |
@@ -43,7 +43,7 @@
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 3461/3461 passing (58 test files)
+- Tests: 3494/3494 passing (58 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~93+ stories including `play()` interaction tests
 - Go build: success
