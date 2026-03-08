@@ -34,6 +34,8 @@ export interface FlashcardCarouselProps {
   onDotClick?: (index: number) => void;
   /** Callback fired whenever the current card index changes */
   onCardChange?: (index: number) => void;
+  /** Callback when a reminder token is clicked (navigates to Day view). */
+  onReminderTokenClick?: (tokenText: string) => void;
 }
 
 /**
@@ -56,6 +58,7 @@ export function FlashcardCarousel({
   previousNightHistory,
   onDotClick,
   onCardChange,
+  onReminderTokenClick,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
   const [slideDir, setSlideDir] = useState<'none' | 'left' | 'right'>('none');
@@ -178,6 +181,7 @@ export function FlashcardCarousel({
     const note = nightProgress.notes[entry.id] ?? '';
     const selectionValue = nightProgress.selections?.[entry.id];
     const prevSelection = previousNightHistory?.selections?.[entry.id];
+    const prevNote = previousNightHistory?.notes?.[entry.id];
 
     if (entry.type === 'structural') {
       return (
@@ -210,6 +214,9 @@ export function FlashcardCarousel({
         selectionValue={selectionValue}
         onSelectionChange={(v) => handleSelection(entry.id, v)}
         previousSelection={prevSelection}
+        characterLookup={characterLookup}
+        previousNotes={prevNote}
+        onReminderTokenClick={onReminderTokenClick}
       />
     );
   };

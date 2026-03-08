@@ -237,6 +237,12 @@ export function GameViewPage() {
     setViewMode('day');
   }, []);
 
+  // Phase 2: Reminder token click — switch to Day view (TownSquare tab)
+  const handleReminderTokenClick = useCallback(() => {
+    setViewMode('day');
+    setTabIndex(0);
+  }, []);
+
   if (loading) {
     return <LoadingState message="Loading game data…" />;
   }
@@ -431,6 +437,7 @@ export function GameViewPage() {
           players={players}
           scriptCharacterIds={scriptCharacterIds}
           onComplete={handleNightComplete}
+          onReminderTokenClick={handleReminderTokenClick}
         />
       ) : (
         <>

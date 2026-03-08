@@ -11,6 +11,8 @@ export interface NightTabPanelProps {
   scriptCharacterIds: string[];
   /** Called when the night is completed so the parent can switch back to Day view */
   onComplete?: () => void;
+  /** Called when a reminder token is clicked — switches to Day view */
+  onReminderTokenClick?: (tokenText: string) => void;
 }
 
 /**
@@ -25,6 +27,7 @@ export function NightTabPanel({
   players,
   scriptCharacterIds,
   onComplete,
+  onReminderTokenClick,
 }: NightTabPanelProps) {
   const { state, startNight, updateNightProgress, completeNight, setNightCardIndex } = useGame();
   const { nightProgress } = state;
@@ -121,6 +124,7 @@ export function NightTabPanel({
         onCardChange={handleCardChange}
         scriptCharacters={scriptCharacters}
         previousNightHistory={previousNightHistory}
+        onReminderTokenClick={onReminderTokenClick}
       />
     </Box>
   );
