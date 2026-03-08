@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { TownSquareLayout } from '@/components/TownSquare/TownSquareLayout.tsx';
-import type { TokenPosition } from '@/components/TownSquare/TownSquareLayout.tsx';
+import type { TokenPosition, CornerCharacter } from '@/components/TownSquare/TownSquareLayout.tsx';
 import type { PlayerSeat } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
 
@@ -10,19 +10,22 @@ import { Alignment } from '@/types/index.ts';
 // ──────────────────────────────────────────────
 
 function makePlayers(count: number): PlayerSeat[] {
-  return Array.from({ length: count }, (_, i): PlayerSeat => ({
-    seat: i + 1,
-    playerName: `Player ${i + 1}`,
-    characterId: 'noble',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  }));
+  return Array.from(
+    { length: count },
+    (_, i): PlayerSeat => ({
+      seat: i + 1,
+      playerName: `Player ${i + 1}`,
+      characterId: 'noble',
+      alive: true,
+      ghostVoteUsed: false,
+      visibleAlignment: Alignment.Unknown,
+      actualAlignment: Alignment.Good,
+      startingAlignment: Alignment.Good,
+      activeReminders: [],
+      isTraveller: false,
+      tokens: [],
+    }),
+  );
 }
 
 // ──────────────────────────────────────────────
@@ -181,7 +184,11 @@ describe('TownSquareLayout', () => {
     );
     expect(mockRenderToken).toHaveBeenCalledWith(
       expect.objectContaining({ seat: 1 }),
-      expect.objectContaining({ x: expect.any(Number), y: expect.any(Number), angle: expect.any(Number) }),
+      expect.objectContaining({
+        x: expect.any(Number),
+        y: expect.any(Number),
+        angle: expect.any(Number),
+      }),
     );
   });
 
@@ -206,5 +213,107 @@ describe('TownSquareLayout', () => {
       />,
     );
     expect(callOrder).toEqual(['First', 'Second', 'Third']);
+  });
+
+  // ── Corner display tests ──
+
+  const mockFabled: CornerCharacter[] = [
+    { id: 'angel', name: 'Angel', abilityShort: 'Protects new players.' },
+    { id: 'djinn', name: 'Djinn', abilityShort: 'Manages jinxes.' },
+  ];
+
+  const mockLoric: CornerCharacter[] = [
+    { id: 'bigwig', name: 'Big Wig', abilityShort: 'Gives defence lawyer.' },
+  ];
+
+  it('renders Fabled chips in upper-left corner', () => {
+    render(
+      <TownSquareLayout
+        players={makePlayers(5)}
+        renderToken={renderToken}
+        shape="circle"
+        containerWidth={400}
+        containerHeight={400}
+        activeFabled={mockFabled}
+      />,
+    );
+    expect(screen.getByTestId('fabled-corner')).toBeInTheDocument();
+    expect(screen.getByTestId('fabled-chip-angel')).toBeInTheDocument();
+    expect(screen.getByTestId('fabled-chip-djinn')).toBeInTheDocument();
+  });
+
+  it('renders Loric chips in upper-right corner', () => {
+    render(
+      <TownSquareLayout
+        players={makePlayers(5)}
+        renderToken={renderToken}
+        shape="circle"
+        containerWidth={400}
+        containerHeight={400}
+        activeLoric={mockLoric}
+      />,
+    );
+    expect(screen.getByTestId('loric-corner')).toBeInTheDocument();
+    expect(screen.getByTestId('loric-chip-bigwig')).toBeInTheDocument();
+  });
+
+  it('does not render corners when no Fabled or Loric are active', () => {
+    render(
+      <TownSquareLayout
+        players={makePlayers(5)}
+        renderToken={renderToken}
+        shape="circle"
+        containerWidth={400}
+        containerHeight={400}
+      />,
+    );
+    expect(screen.queryByTestId('fabled-corner')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('loric-corner')).not.toBeInTheDocument();
+  });
+
+  it('renders both Fabled and Loric corners simultaneously', () => {
+    render(
+      <TownSquareLayout
+        players={makePlayers(5)}
+        renderToken={renderToken}
+        shape="circle"
+        containerWidth={400}
+        containerHeight={400}
+        activeFabled={mockFabled}
+        activeLoric={mockLoric}
+      />,
+    );
+    expect(screen.getByTestId('fabled-corner')).toBeInTheDocument();
+    expect(screen.getByTestId('loric-corner')).toBeInTheDocument();
+  });
+
+  it('shows ability dialog when Fabled chip is clicked', () => {
+    render(
+      <TownSquareLayout
+        players={makePlayers(5)}
+        renderToken={renderToken}
+        shape="circle"
+        containerWidth={400}
+        containerHeight={400}
+        activeFabled={mockFabled}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('fabled-chip-angel'));
+    expect(screen.getByText('Protects new players.')).toBeInTheDocument();
+  });
+
+  it('shows ability dialog when Loric chip is clicked', () => {
+    render(
+      <TownSquareLayout
+        players={makePlayers(5)}
+        renderToken={renderToken}
+        shape="circle"
+        containerWidth={400}
+        containerHeight={400}
+        activeLoric={mockLoric}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('loric-chip-bigwig'));
+    expect(screen.getByText('Gives defence lawyer.')).toBeInTheDocument();
   });
 });

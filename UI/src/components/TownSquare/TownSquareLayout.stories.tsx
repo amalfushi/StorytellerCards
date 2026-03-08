@@ -356,3 +356,57 @@ export const DesktopViewport: Story = {
     viewport: { defaultViewport: 'desktop' },
   },
 };
+
+// ────────────────────────────────────────────────────────
+// Fabled / Loric corner display variants (M18)
+// ────────────────────────────────────────────────────────
+
+/** TownSquare with Fabled characters in the upper-left corner. */
+export const WithFabledCorner: Story = {
+  args: {
+    players: generateMockPlayers(8),
+    shape: 'circle',
+    containerWidth: 600,
+    containerHeight: 600,
+    activeFabled: [
+      {
+        id: 'angel',
+        name: 'Angel',
+        abilityShort:
+          'Something bad might happen to whoever is most responsible for the death of a new player.',
+      },
+      { id: 'djinn', name: 'Djinn', abilityShort: "Use the Djinn's special rule." },
+    ],
+  },
+};
+
+/** TownSquare with Loric characters in the upper-right corner. */
+export const WithLoricCorner: Story = {
+  args: {
+    players: generateMockPlayers(8),
+    shape: 'circle',
+    containerWidth: 600,
+    containerHeight: 600,
+    activeLoric: [
+      {
+        id: 'bigwig',
+        name: 'Big Wig',
+        abilityShort: 'Each nominee chooses a player: until voting, only they may speak.',
+      },
+    ],
+  },
+};
+
+/** TownSquare with both Fabled and Loric corners active. */
+export const WithBothCorners: Story = {
+  args: {
+    players: generateMockPlayers(10),
+    shape: 'circle',
+    containerWidth: 600,
+    containerHeight: 600,
+    activeFabled: [{ id: 'angel', name: 'Angel', abilityShort: 'Protects new players.' }],
+    activeLoric: [
+      { id: 'bigwig', name: 'Big Wig', abilityShort: 'Gives nominees a defence lawyer.' },
+    ],
+  },
+};

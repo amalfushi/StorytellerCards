@@ -24,6 +24,7 @@
 | M15 | Day/Night Tab Workflow | ✅ Complete | [details](milestones/15%20-%20day%20night%20tab%20workflow/milestone15.md) |
 | M16 | TownSquare Polish — card sizing, token center fix, visibility rules, PlayerActionsModal, dynamic token set, linear token layout | ✅ Complete | [details](milestones/16%20-%20townsquare%20polish/milestone16.md) |
 | M17 | List Views & Minor Fixes | ✅ Complete | [details](milestones/17%20-%20list%20views%20and%20minor%20fixes/milestone17.md) |
+| M18 | Traveller, Fabled & Loric Integration | ✅ Complete | [details](milestones/18%20-%20traveller%20fabled%20loric%20integration/progress.md) |
 | M19 | Night History Enhancements — edit mode toggle, editable notes/choices, actionable summaries | ✅ Complete | [details](milestones/19%20-%20night%20history%20enhancements/progress.md) |
 
 ## Key Design Decisions
@@ -36,13 +37,13 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 
-## Verification (as of M17 Complete)
+## Verification (as of M18 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 2460/2460 passing (57 test files)
+- Tests: 2515/2515 passing (57 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
-- Storybook: 18 story files with ~90+ stories including `play()` interaction tests
+- Storybook: 18 story files with ~93+ stories including `play()` interaction tests
 - Go build: success
 - Go tests: all passing
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)

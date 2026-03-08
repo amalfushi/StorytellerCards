@@ -81,14 +81,10 @@ type GameAction =
   | { type: 'ADD_TOKEN'; payload: { seat: number; token: PlayerToken } }
   | { type: 'REMOVE_TOKEN'; payload: { seat: number; tokenId: string } }
   | { type: 'UPDATE_NIGHT_HISTORY'; payload: { index: number; entry: NightHistoryEntry } }
-  | {
-      type: 'UPDATE_NIGHT_HISTORY_NOTE';
-      payload: { nightIndex: number; characterId: string; note: string };
-    }
-  | {
-      type: 'UPDATE_NIGHT_HISTORY_CHOICE';
-      payload: { nightIndex: number; characterId: string; choiceValue: string | string[] };
-    };
+  | { type: 'ADD_FABLED'; payload: { characterId: string } }
+  | { type: 'REMOVE_FABLED'; payload: { characterId: string } }
+  | { type: 'ADD_LORIC'; payload: { characterId: string } }
+  | { type: 'REMOVE_LORIC'; payload: { characterId: string } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -336,6 +332,52 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'ADD_FABLED': {
+      if (!state.game) return state;
+      const currentFabled = state.game.activeFabled ?? [];
+      if (currentFabled.includes(action.payload.characterId)) return state;
+      return {
+        ...state,
+        game: { ...state.game, activeFabled: [...currentFabled, action.payload.characterId] },
+      };
+    }
+
+    case 'REMOVE_FABLED': {
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          activeFabled: (state.game.activeFabled ?? []).filter(
+            (id) => id !== action.payload.characterId,
+          ),
+        },
+      };
+    }
+
+    case 'ADD_LORIC': {
+      if (!state.game) return state;
+      const currentLoric = state.game.activeLoric ?? [];
+      if (currentLoric.includes(action.payload.characterId)) return state;
+      return {
+        ...state,
+        game: { ...state.game, activeLoric: [...currentLoric, action.payload.characterId] },
+      };
+    }
+
+    case 'REMOVE_LORIC': {
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          activeLoric: (state.game.activeLoric ?? []).filter(
+            (id) => id !== action.payload.characterId,
+          ),
+        },
+      };
+    }
+
     default:
       return state;
   }
@@ -403,6 +445,10 @@ interface GameContextValue {
     characterId: string,
     choiceValue: string | string[],
   ) => void;
+  addFabled: (characterId: string) => void;
+  removeFabled: (characterId: string) => void;
+  addLoric: (characterId: string) => void;
+  removeLoric: (characterId: string) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -534,6 +580,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
+  const addFabled = useCallback((characterId: string) => {
+    dispatch({ type: 'ADD_FABLED', payload: { characterId } });
+  }, []);
+
+  const removeFabled = useCallback((characterId: string) => {
+    dispatch({ type: 'REMOVE_FABLED', payload: { characterId } });
+  }, []);
+
+  const addLoric = useCallback((characterId: string) => {
+    dispatch({ type: 'ADD_LORIC', payload: { characterId } });
+  }, []);
+
+  const removeLoric = useCallback((characterId: string) => {
+    dispatch({ type: 'REMOVE_LORIC', payload: { characterId } });
+  }, []);
 
   const value: GameContextValue = {
     state,
@@ -555,6 +616,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     updateNightHistory,
     updateNightHistoryNote,
     updateNightHistoryChoice,
+    addFabled,
+    removeFabled,
+    addLoric,
+    removeLoric,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

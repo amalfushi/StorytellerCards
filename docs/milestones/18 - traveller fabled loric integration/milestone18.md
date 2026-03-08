@@ -1,5 +1,13 @@
 # Milestone 18 — Traveller, Fabled & Loric Integration
 
+## Status: ✅ Complete
+**Completed:** 2025-07-17
+- All 7 phases implemented
+- 36 new tests added (2515 total, 57 test files)
+- 3 new Storybook stories
+- 0 TypeScript errors, 0 ESLint errors
+- See [progress.md](progress.md) for detailed implementation notes
+
 > **Goal:** Add full Traveller, Fabled, and Loric support across script management (creation, import, view) and game views (TownSquare corners, Players List bottom section).
 
 ---

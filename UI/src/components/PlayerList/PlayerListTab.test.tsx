@@ -127,6 +127,26 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
           otherNights: null,
           reminders: [],
         },
+        angel: {
+          id: 'angel',
+          name: 'Angel',
+          type: 'Fabled',
+          defaultAlignment: 'Good',
+          abilityShort: 'Protects new players from death.',
+          firstNight: null,
+          otherNights: null,
+          reminders: [],
+        },
+        bigwig: {
+          id: 'bigwig',
+          name: 'Big Wig',
+          type: 'Loric',
+          defaultAlignment: 'Good',
+          abilityShort: 'Gives nominees a defence lawyer.',
+          firstNight: null,
+          otherNights: null,
+          reminders: [],
+        },
       };
       return chars[id];
     },
@@ -145,6 +165,21 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
         })),
     allCharacters: [],
   }),
+}));
+
+// Mock characterTypeColor
+vi.mock('@/components/common/characterTypeColor.ts', () => ({
+  getCharacterTypeColor: (type: string) => {
+    const colors: Record<string, string> = {
+      Townsfolk: '#1976d2',
+      Outsider: '#42a5f5',
+      Minion: '#d32f2f',
+      Demon: '#b71c1c',
+      Fabled: '#ff9800',
+      Loric: '#558b2f',
+    };
+    return colors[type] ?? '#9e9e9e';
+  },
 }));
 
 // Mock PlayerRow to simplify
@@ -265,5 +300,48 @@ describe('PlayerListTab', () => {
     expect(rows[0]).toHaveAttribute('data-testid', 'player-row-1');
     expect(rows[1]).toHaveAttribute('data-testid', 'player-row-2');
     expect(rows[2]).toHaveAttribute('data-testid', 'player-row-3');
+  });
+
+  // ── Game Modifiers section tests ──
+
+  it('shows "Game Modifiers" section when Fabled are active', () => {
+    mockGame = { ...baseGame, activeFabled: ['angel'] };
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    expect(screen.getByTestId('game-modifiers-section')).toBeInTheDocument();
+    expect(screen.getByText('Game Modifiers')).toBeInTheDocument();
+  });
+
+  it('shows "Game Modifiers" section when Loric are active', () => {
+    mockGame = { ...baseGame, activeLoric: ['bigwig'] };
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    expect(screen.getByTestId('game-modifiers-section')).toBeInTheDocument();
+  });
+
+  it('does not show "Game Modifiers" section when no Fabled/Loric active', () => {
+    mockGame = { ...baseGame };
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    expect(screen.queryByTestId('game-modifiers-section')).not.toBeInTheDocument();
+  });
+
+  it('renders Fabled character name and ability in Game Modifiers', () => {
+    mockGame = { ...baseGame, activeFabled: ['angel'] };
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    expect(screen.getByTestId('modifier-angel')).toBeInTheDocument();
+    expect(screen.getByText('Angel')).toBeInTheDocument();
+    expect(screen.getByText('Protects new players from death.')).toBeInTheDocument();
+  });
+
+  it('renders Loric character name and type in Game Modifiers', () => {
+    mockGame = { ...baseGame, activeLoric: ['bigwig'] };
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    expect(screen.getByTestId('modifier-bigwig')).toBeInTheDocument();
+    expect(screen.getByText('Big Wig')).toBeInTheDocument();
+  });
+
+  it('renders both Fabled and Loric in Game Modifiers', () => {
+    mockGame = { ...baseGame, activeFabled: ['angel'], activeLoric: ['bigwig'] };
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    expect(screen.getByTestId('modifier-angel')).toBeInTheDocument();
+    expect(screen.getByTestId('modifier-bigwig')).toBeInTheDocument();
   });
 });

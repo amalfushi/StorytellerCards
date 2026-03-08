@@ -1,5 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import Dialog from '@mui/material/Dialog';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import Typography from '@mui/material/Typography';
 import type { PlayerSeat } from '@/types/index.ts';
 
@@ -7,6 +11,13 @@ export interface TokenPosition {
   x: number;
   y: number;
   angle: number;
+}
+
+/** Lightweight character data for corner displays. */
+export interface CornerCharacter {
+  id: string;
+  name: string;
+  abilityShort: string;
 }
 
 export interface TownSquareLayoutProps {
@@ -17,6 +28,10 @@ export interface TownSquareLayoutProps {
   containerHeight: number;
   /** Half-width of the largest token (px) — used as inset padding so tokens don't clip edges. */
   tokenRadius?: number;
+  /** Active Fabled characters shown in upper-left corner. */
+  activeFabled?: CornerCharacter[];
+  /** Active Loric characters shown in upper-right corner. */
+  activeLoric?: CornerCharacter[];
 }
 
 /**
@@ -37,7 +52,10 @@ export function TownSquareLayout({
   containerWidth,
   containerHeight,
   tokenRadius = 36,
+  activeFabled = [],
+  activeLoric = [],
 }: TownSquareLayoutProps) {
+  const [abilityDialog, setAbilityDialog] = useState<CornerCharacter | null>(null);
   const sorted = useMemo(() => [...players].sort((a, b) => a.seat - b.seat), [players]);
 
   const positions = useMemo(() => {
@@ -128,6 +146,90 @@ export function TownSquareLayout({
           </Box>
         );
       })}
+
+      {/* Fabled corner — upper-left */}
+      {activeFabled.length > 0 && (
+        <Box
+          data-testid="fabled-corner"
+          sx={{
+            position: 'absolute',
+            top: 4,
+            left: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5,
+            zIndex: 2,
+          }}
+        >
+          {activeFabled.map((ch) => (
+            <Chip
+              key={ch.id}
+              label={ch.name}
+              size="small"
+              data-testid={`fabled-chip-${ch.id}`}
+              onClick={() => setAbilityDialog(ch)}
+              sx={{
+                bgcolor: '#ff9800',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: '0.65rem',
+                cursor: 'pointer',
+              }}
+            />
+          ))}
+        </Box>
+      )}
+
+      {/* Loric corner — upper-right */}
+      {activeLoric.length > 0 && (
+        <Box
+          data-testid="loric-corner"
+          sx={{
+            position: 'absolute',
+            top: 4,
+            right: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5,
+            alignItems: 'flex-end',
+            zIndex: 2,
+          }}
+        >
+          {activeLoric.map((ch) => (
+            <Chip
+              key={ch.id}
+              label={ch.name}
+              size="small"
+              data-testid={`loric-chip-${ch.id}`}
+              onClick={() => setAbilityDialog(ch)}
+              sx={{
+                bgcolor: '#558b2f',
+                color: '#fff',
+                fontWeight: 600,
+                fontSize: '0.65rem',
+                cursor: 'pointer',
+              }}
+            />
+          ))}
+        </Box>
+      )}
+
+      {/* Ability text dialog */}
+      <Dialog
+        open={abilityDialog !== null}
+        onClose={() => setAbilityDialog(null)}
+        maxWidth="xs"
+        fullWidth
+      >
+        {abilityDialog && (
+          <>
+            <DialogTitle>{abilityDialog.name}</DialogTitle>
+            <DialogContent>
+              <Typography variant="body2">{abilityDialog.abilityShort}</Typography>
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
     </Box>
   );
 }

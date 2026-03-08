@@ -165,9 +165,9 @@ Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
 
 See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 
-### Current Test Stats (as of M19 Complete)
-- **2513 tests** across **57 test files** — all passing
-- **18 story files** with **~90+ stories** including `play()` interaction tests
+### Current Test Stats (as of M18 Complete)
+- **2515 tests** across **57 test files** — all passing
+- **18 story files** with **~93+ stories** including `play()` interaction tests
 - **0 TypeScript errors**, **0 ESLint errors**
 
 ## Documentation Maintenance

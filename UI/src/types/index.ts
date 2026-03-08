@@ -250,6 +250,10 @@ export interface Game {
   isFirstNight: boolean;
   players: PlayerSeat[];
   nightHistory: NightHistoryEntry[];
+  /** Character IDs of active Fabled game modifiers. */
+  activeFabled?: string[];
+  /** Character IDs of active Loric game modifiers. */
+  activeLoric?: string[];
 }
 
 // ──────────────────────────────────────────────

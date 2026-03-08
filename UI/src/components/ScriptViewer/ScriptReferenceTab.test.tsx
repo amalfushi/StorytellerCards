@@ -28,20 +28,14 @@ describe('ScriptReferenceTab', () => {
   });
 
   it('shows list of characters from the script', () => {
-    render(
-      <ScriptReferenceTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
-    );
+    render(<ScriptReferenceTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.getByText('Noble')).toBeInTheDocument();
     expect(screen.getByText('Imp')).toBeInTheDocument();
     expect(screen.getByText('Fortune Teller')).toBeInTheDocument();
   });
 
   it('groups characters by type with section headers', () => {
-    render(
-      <ScriptReferenceTab
-        scriptCharacterIds={['noble', 'drunk', 'baron', 'imp']}
-      />,
-    );
+    render(<ScriptReferenceTab scriptCharacterIds={['noble', 'drunk', 'baron', 'imp']} />);
     // Should have type section headers
     expect(screen.getByText(/Townsfolk/)).toBeInTheDocument();
     expect(screen.getByText(/Outsiders/)).toBeInTheDocument();
@@ -50,31 +44,21 @@ describe('ScriptReferenceTab', () => {
   });
 
   it('shows section counts in headers', () => {
-    render(
-      <ScriptReferenceTab
-        scriptCharacterIds={['noble', 'fortuneteller', 'imp']}
-      />,
-    );
+    render(<ScriptReferenceTab scriptCharacterIds={['noble', 'fortuneteller', 'imp']} />);
     // Townsfolk section shows count
     expect(screen.getByText(/Townsfolk \(2\)/)).toBeInTheDocument();
     expect(screen.getByText(/Demons \(1\)/)).toBeInTheDocument();
   });
 
   it('does not show empty type sections', () => {
-    render(
-      <ScriptReferenceTab scriptCharacterIds={['noble', 'imp']} />,
-    );
+    render(<ScriptReferenceTab scriptCharacterIds={['noble', 'imp']} />);
     // Should NOT have Outsiders section if no outsiders present
     expect(screen.queryByText(/Outsiders/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Minions/)).not.toBeInTheDocument();
   });
 
   it('renders character cards for each character', () => {
-    render(
-      <ScriptReferenceTab
-        scriptCharacterIds={['noble', 'imp', 'drunk']}
-      />,
-    );
+    render(<ScriptReferenceTab scriptCharacterIds={['noble', 'imp', 'drunk']} />);
     const cards = screen.getAllByTestId('character-card');
     expect(cards).toHaveLength(3);
   });
@@ -83,11 +67,51 @@ describe('ScriptReferenceTab', () => {
     // Unknown characters get type='Unknown' which doesn't match any TYPE_SECTIONS,
     // so they are not rendered in any group. The component should still render
     // without crashing.
-    const { container } = render(
-      <ScriptReferenceTab scriptCharacterIds={['unknownchar']} />,
-    );
+    const { container } = render(<ScriptReferenceTab scriptCharacterIds={['unknownchar']} />);
     expect(container).toBeTruthy();
     // Unknown characters are not shown (their type doesn't match any section)
     expect(screen.queryByTestId('character-card')).not.toBeInTheDocument();
+  });
+
+  it('renders Traveller section when Traveller characters are present', () => {
+    render(<ScriptReferenceTab scriptCharacterIds={['noble', 'butcher']} />);
+    expect(screen.getByText(/Travellers/)).toBeInTheDocument();
+  });
+
+  it('renders Fabled section when Fabled characters are present', () => {
+    render(<ScriptReferenceTab scriptCharacterIds={['noble', 'angel']} />);
+    expect(screen.getByText(/Fabled/)).toBeInTheDocument();
+  });
+
+  it('renders Loric section when Loric characters are present', () => {
+    render(<ScriptReferenceTab scriptCharacterIds={['noble', 'bigwig']} />);
+    expect(screen.getByText(/Loric/)).toBeInTheDocument();
+  });
+
+  it('renders sections in correct order: TF → OS → MN → DM → TR → FB → LO', () => {
+    const { container } = render(
+      <ScriptReferenceTab
+        scriptCharacterIds={['noble', 'drunk', 'baron', 'imp', 'butcher', 'angel', 'bigwig']}
+      />,
+    );
+    const headers = container.querySelectorAll('[class*="MuiTypography-subtitle2"]');
+    const headerTexts = Array.from(headers).map((h) => h.textContent);
+    const expectedOrder = [
+      'Townsfolk',
+      'Outsiders',
+      'Minions',
+      'Demons',
+      'Travellers',
+      'Fabled',
+      'Loric',
+    ];
+    const filteredTexts = headerTexts.filter((t) => expectedOrder.some((e) => t?.includes(e)));
+    expect(filteredTexts.length).toBeGreaterThanOrEqual(7);
+    // Verify ordering
+    for (let i = 0; i < expectedOrder.length - 1; i++) {
+      const idxA = filteredTexts.findIndex((t) => t?.includes(expectedOrder[i]));
+      const idxB = filteredTexts.findIndex((t) => t?.includes(expectedOrder[i + 1]));
+      expect(idxA).toBeLessThan(idxB);
+    }
   });
 });
