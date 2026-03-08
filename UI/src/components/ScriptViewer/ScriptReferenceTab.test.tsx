@@ -88,6 +88,34 @@ describe('ScriptReferenceTab', () => {
     expect(screen.getByText(/Loric/)).toBeInTheDocument();
   });
 
+  // ── M5: Jinxes section tests ──
+
+  it('shows jinxes section when script has active jinx pairs', () => {
+    // alchemist + boffin have a jinx
+    render(<ScriptReferenceTab scriptCharacterIds={['alchemist', 'boffin', 'chef']} />);
+    expect(screen.getByTestId('jinxes-section')).toBeInTheDocument();
+    expect(screen.getByText(/⚡ Jinxes/)).toBeInTheDocument();
+  });
+
+  it('hides jinxes section when no active jinx pairs exist', () => {
+    render(<ScriptReferenceTab scriptCharacterIds={['chef', 'empath', 'washerwoman']} />);
+    expect(screen.queryByTestId('jinxes-section')).not.toBeInTheDocument();
+  });
+
+  it('shows both character names and description in jinx entries', () => {
+    render(<ScriptReferenceTab scriptCharacterIds={['alchemist', 'boffin']} />);
+    // Names appear in both character card and jinx section
+    expect(screen.getAllByText('Alchemist').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Boffin').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/Boffin ability/)).toBeInTheDocument();
+  });
+
+  it('shows correct jinx count in header', () => {
+    // alchemist has jinxes with boffin and spy
+    render(<ScriptReferenceTab scriptCharacterIds={['alchemist', 'boffin', 'spy']} />);
+    expect(screen.getByText(/⚡ Jinxes \(2\)/)).toBeInTheDocument();
+  });
+
   it('renders sections in correct order: TF → OS → MN → DM → TR → FB → LO', () => {
     const { container } = render(
       <ScriptReferenceTab

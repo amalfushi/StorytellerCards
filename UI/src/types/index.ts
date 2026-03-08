@@ -329,6 +329,15 @@ export interface NightSummaryLine {
   action: string;
 }
 
+/** A resolved jinx pair where both characters are on the active script. */
+export interface ActiveJinx {
+  character1Id: string;
+  character1Name: string;
+  character2Id: string;
+  character2Name: string;
+  description: string;
+}
+
 /** Current in-flight night walkthrough progress. */
 export interface NightProgress {
   currentCardIndex: number;
