@@ -287,6 +287,8 @@ export interface Game {
   activeFabled?: string[];
   /** Character IDs of active Loric game modifiers. */
   activeLoric?: string[];
+  /** Character IDs selected as in-play for this game (subset of script). */
+  inPlayCharacterIds?: string[];
 }
 
 // ──────────────────────────────────────────────

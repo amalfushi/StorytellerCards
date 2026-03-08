@@ -100,7 +100,9 @@ type GameAction =
   | { type: 'ADD_FABLED'; payload: { characterId: string } }
   | { type: 'REMOVE_FABLED'; payload: { characterId: string } }
   | { type: 'ADD_LORIC'; payload: { characterId: string } }
-  | { type: 'REMOVE_LORIC'; payload: { characterId: string } };
+  | { type: 'REMOVE_LORIC'; payload: { characterId: string } }
+  | { type: 'SET_IN_PLAY_CHARACTERS'; payload: { characterIds: string[] } }
+  | { type: 'SWAP_PLAYER_SEATS'; payload: { seatA: number; seatB: number } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -409,6 +411,44 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'SET_IN_PLAY_CHARACTERS': {
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: { ...state.game, inPlayCharacterIds: action.payload.characterIds },
+      };
+    }
+
+    case 'SWAP_PLAYER_SEATS': {
+      if (!state.game) return state;
+      const { seatA, seatB } = action.payload;
+      if (seatA === seatB) return state;
+      const playerA = state.game.players.find((p) => p.seat === seatA);
+      const playerB = state.game.players.find((p) => p.seat === seatB);
+      if (!playerA || !playerB) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: state.game.players.map((p) => {
+            if (p.seat === seatA) {
+              return {
+                ...playerB,
+                seat: seatA,
+              };
+            }
+            if (p.seat === seatB) {
+              return {
+                ...playerA,
+                seat: seatB,
+              };
+            }
+            return p;
+          }),
+        },
+      };
+    }
+
     default:
       return state;
   }
@@ -480,6 +520,8 @@ interface GameContextValue {
   removeFabled: (characterId: string) => void;
   addLoric: (characterId: string) => void;
   removeLoric: (characterId: string) => void;
+  setInPlayCharacters: (characterIds: string[]) => void;
+  swapPlayerSeats: (seatA: number, seatB: number) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -627,6 +669,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'REMOVE_LORIC', payload: { characterId } });
   }, []);
 
+  const setInPlayCharacters = useCallback((characterIds: string[]) => {
+    dispatch({ type: 'SET_IN_PLAY_CHARACTERS', payload: { characterIds } });
+  }, []);
+
+  const swapPlayerSeats = useCallback((seatA: number, seatB: number) => {
+    dispatch({ type: 'SWAP_PLAYER_SEATS', payload: { seatA, seatB } });
+  }, []);
+
   const value: GameContextValue = {
     state,
     dispatch,
@@ -651,6 +701,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     removeFabled,
     addLoric,
     removeLoric,
+    setInPlayCharacters,
+    swapPlayerSeats,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

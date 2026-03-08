@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Fab from '@mui/material/Fab';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
@@ -7,6 +8,7 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import AddIcon from '@mui/icons-material/Add';
 import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
+import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type {
   CharacterDef,
   Alignment,
@@ -57,7 +59,15 @@ const TOKEN_HALF = { large: 75, medium: 70, small: 65 } as const;
  *   border; tap opens `PlayerEditDialog`.
  */
 export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabProps) {
-  const { state, updatePlayer, addTraveller, removeTraveller, addToken, removeToken } = useGame();
+  const {
+    state,
+    updatePlayer,
+    addTraveller,
+    removeTraveller,
+    addToken,
+    removeToken,
+    swapPlayerSeats,
+  } = useGame();
   const { getCharacter, getCharactersByIds } = useCharacterLookup();
 
   const isTablet = useMediaQuery('(min-width:600px)');
@@ -127,6 +137,8 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
   /** Seat number of the player whose actions modal is open (null = closed). */
   const [actionsSeat, setActionsSeat] = useState<number | null>(null);
+  /** Seat number of the player initiating a swap (null = not in swap mode). */
+  const [swapSourceSeat, setSwapSourceSeat] = useState<number | null>(null);
   /** Derive the current player from live state so the modal always sees fresh data. */
   const actionsPlayer =
     actionsSeat !== null ? (players.find((p) => p.seat === actionsSeat) ?? null) : null;
@@ -144,11 +156,20 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
 
   const handleTokenClick = useCallback(
     (player: PlayerSeat, _event: React.MouseEvent<HTMLElement>) => {
-      // Both day and night views open the unified PlayerActionsModal
+      if (swapSourceSeat !== null) {
+        // In swap mode — complete the swap
+        if (player.seat !== swapSourceSeat) {
+          swapPlayerSeats(swapSourceSeat, player.seat);
+        }
+        setSwapSourceSeat(null);
+        setSelectedSeat(null);
+        return;
+      }
+      // Normal mode — open PlayerActionsModal
       setActionsSeat(player.seat);
       setSelectedSeat(player.seat);
     },
-    [],
+    [swapSourceSeat, swapPlayerSeats],
   );
 
   const handleActionsClose = useCallback(() => {
@@ -192,6 +213,11 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     },
     [updatePlayer],
   );
+
+  const handleSwapWith = useCallback((seat: number) => {
+    setSwapSourceSeat(seat);
+    setSelectedSeat(seat);
+  }, []);
 
   const handleManageTokens = useCallback((seat: number) => {
     setTokenSeat(seat);
@@ -278,6 +304,27 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         overflow: 'hidden',
       }}
     >
+      {/* ── Swap mode indicator ── */}
+      {swapSourceSeat !== null && (
+        <Chip
+          icon={<SwapHorizIcon />}
+          label={`Tap a player to swap with Seat ${swapSourceSeat}`}
+          onDelete={() => {
+            setSwapSourceSeat(null);
+            setSelectedSeat(null);
+          }}
+          color="warning"
+          sx={{
+            position: 'absolute',
+            top: 8,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 20,
+          }}
+          data-testid="swap-mode-indicator"
+        />
+      )}
+
       {/* ── Circle / Ovoid layout ── */}
       {dims.width > 0 && dims.height > 0 && (
         <TownSquareLayout
@@ -302,6 +349,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         onRemoveTraveller={handleRemoveTraveller}
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
+        onSwapWith={handleSwapWith}
       />
 
       {/* ── Token layout toggle ── */}
