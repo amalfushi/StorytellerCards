@@ -1063,4 +1063,203 @@ describe('GameContext', () => {
       consoleSpy.mockRestore();
     });
   });
+
+  // ── ADD_FABLED / REMOVE_FABLED ──
+
+  describe('ADD_FABLED', () => {
+    it('adds a fabled character ID to activeFabled', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.addFabled('angel');
+      });
+
+      expect(result.current.state.game!.activeFabled).toEqual(['angel']);
+    });
+
+    it('appends multiple fabled characters', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.addFabled('angel');
+      });
+      act(() => {
+        result.current.addFabled('djinn');
+      });
+
+      expect(result.current.state.game!.activeFabled).toEqual(['angel', 'djinn']);
+    });
+
+    it('does not add duplicate fabled', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.addFabled('angel');
+      });
+      act(() => {
+        result.current.addFabled('angel');
+      });
+
+      expect(result.current.state.game!.activeFabled).toEqual(['angel']);
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.addFabled('angel');
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
+
+  describe('REMOVE_FABLED', () => {
+    it('removes a fabled character from activeFabled', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ activeFabled: ['angel', 'djinn'] }));
+      });
+
+      act(() => {
+        result.current.removeFabled('angel');
+      });
+
+      expect(result.current.state.game!.activeFabled).toEqual(['djinn']);
+    });
+
+    it('handles removing non-existent fabled gracefully', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ activeFabled: ['angel'] }));
+      });
+
+      act(() => {
+        result.current.removeFabled('nonexistent');
+      });
+
+      expect(result.current.state.game!.activeFabled).toEqual(['angel']);
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.removeFabled('angel');
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
+
+  // ── ADD_LORIC / REMOVE_LORIC ──
+
+  describe('ADD_LORIC', () => {
+    it('adds a loric character ID to activeLoric', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.addLoric('bigwig');
+      });
+
+      expect(result.current.state.game!.activeLoric).toEqual(['bigwig']);
+    });
+
+    it('does not add duplicate loric', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.addLoric('bigwig');
+      });
+      act(() => {
+        result.current.addLoric('bigwig');
+      });
+
+      expect(result.current.state.game!.activeLoric).toEqual(['bigwig']);
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.addLoric('bigwig');
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
+
+  describe('REMOVE_LORIC', () => {
+    it('removes a loric character from activeLoric', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ activeLoric: ['bigwig', 'gardener'] }));
+      });
+
+      act(() => {
+        result.current.removeLoric('bigwig');
+      });
+
+      expect(result.current.state.game!.activeLoric).toEqual(['gardener']);
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.removeLoric('bigwig');
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
+
+  // ── Active Fabled/Loric persistence ──
+
+  describe('activeFabled/activeLoric persistence', () => {
+    it('persists activeFabled to localStorage', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ id: 'fabled-persist' }));
+      });
+      act(() => {
+        result.current.addFabled('angel');
+      });
+
+      const raw = localStorage.getItem('storyteller-game-fabled-persist');
+      expect(raw).not.toBeNull();
+      const persisted = JSON.parse(raw!) as Game;
+      expect(persisted.activeFabled).toEqual(['angel']);
+    });
+
+    it('persists activeLoric to localStorage', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ id: 'loric-persist' }));
+      });
+      act(() => {
+        result.current.addLoric('bigwig');
+      });
+
+      const raw = localStorage.getItem('storyteller-game-loric-persist');
+      expect(raw).not.toBeNull();
+      const persisted = JSON.parse(raw!) as Game;
+      expect(persisted.activeLoric).toEqual(['bigwig']);
+    });
+  });
 });

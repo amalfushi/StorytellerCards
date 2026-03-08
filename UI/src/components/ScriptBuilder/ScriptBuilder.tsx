@@ -31,6 +31,9 @@ const TYPE_ORDER: string[] = [
   CharacterType.Outsider,
   CharacterType.Minion,
   CharacterType.Demon,
+  CharacterType.Traveller,
+  CharacterType.Fabled,
+  CharacterType.Loric,
 ];
 
 /**
@@ -60,20 +63,8 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
     }
   }
 
-  // Filter to non-Traveller/Fabled/Loric game characters, sorted by script rules
-  const gameCharacters = useMemo(
-    () =>
-      sortScriptCharacters(
-        allCharacters.filter(
-          (c) =>
-            c.type === CharacterType.Townsfolk ||
-            c.type === CharacterType.Outsider ||
-            c.type === CharacterType.Minion ||
-            c.type === CharacterType.Demon,
-        ),
-      ),
-    [allCharacters],
-  );
+  // All characters sorted by script rules (includes all types)
+  const gameCharacters = useMemo(() => sortScriptCharacters(allCharacters), [allCharacters]);
 
   // Group by type (preserving sort order within groups)
   const grouped = useMemo(() => {

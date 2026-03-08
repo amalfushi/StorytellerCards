@@ -56,4 +56,58 @@ describe('importScript', () => {
     const json = [{ id: '_meta', name: 'Test' }];
     expect(() => importScript(json)).toThrow('_meta');
   });
+
+  it('imports script with Traveller character IDs', () => {
+    const json = [
+      { id: '_meta', name: 'Traveller Script', author: 'Test' },
+      'noble',
+      'butcher',
+      'scapegoat',
+    ];
+    const result = importScript(json);
+    expect(result.characterIds).toContain('butcher');
+    expect(result.characterIds).toContain('scapegoat');
+  });
+
+  it('imports script with Fabled character IDs', () => {
+    const json = [{ id: '_meta', name: 'Fabled Script', author: 'Test' }, 'imp', 'angel', 'djinn'];
+    const result = importScript(json);
+    expect(result.characterIds).toContain('angel');
+    expect(result.characterIds).toContain('djinn');
+  });
+
+  it('imports script with Loric character IDs', () => {
+    const json = [
+      { id: '_meta', name: 'Loric Script', author: 'Test' },
+      'imp',
+      'bigwig',
+      'gardener',
+    ];
+    const result = importScript(json);
+    expect(result.characterIds).toContain('bigwig');
+    expect(result.characterIds).toContain('gardener');
+  });
+
+  it('imports script with all character types mixed', () => {
+    const json = [
+      { id: '_meta', name: 'Full Script', author: 'Test' },
+      'noble',
+      'drunk',
+      'poisoner',
+      'imp',
+      'butcher',
+      'angel',
+      'bigwig',
+    ];
+    const result = importScript(json);
+    expect(result.characterIds).toEqual([
+      'noble',
+      'drunk',
+      'poisoner',
+      'imp',
+      'butcher',
+      'angel',
+      'bigwig',
+    ]);
+  });
 });
