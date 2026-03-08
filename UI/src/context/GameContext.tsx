@@ -102,7 +102,8 @@ type GameAction =
   | { type: 'ADD_LORIC'; payload: { characterId: string } }
   | { type: 'REMOVE_LORIC'; payload: { characterId: string } }
   | { type: 'SET_IN_PLAY_CHARACTERS'; payload: { characterIds: string[] } }
-  | { type: 'SWAP_PLAYER_SEATS'; payload: { seatA: number; seatB: number } };
+  | { type: 'SWAP_PLAYER_SEATS'; payload: { seatA: number; seatB: number } }
+  | { type: 'SET_APPARENT_CHARACTER'; payload: { seat: number; apparentCharacterId: string } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -449,6 +450,20 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'SET_APPARENT_CHARACTER': {
+      if (!state.game) return state;
+      const { seat: acSeat, apparentCharacterId } = action.payload;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: state.game.players.map((p) =>
+            p.seat === acSeat ? { ...p, apparentCharacterId } : p,
+          ),
+        },
+      };
+    }
+
     default:
       return state;
   }
@@ -522,6 +537,7 @@ interface GameContextValue {
   removeLoric: (characterId: string) => void;
   setInPlayCharacters: (characterIds: string[]) => void;
   swapPlayerSeats: (seatA: number, seatB: number) => void;
+  setApparentCharacter: (seat: number, apparentCharacterId: string) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -677,6 +693,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SWAP_PLAYER_SEATS', payload: { seatA, seatB } });
   }, []);
 
+  const setApparentCharacter = useCallback((seat: number, apparentCharacterId: string) => {
+    dispatch({ type: 'SET_APPARENT_CHARACTER', payload: { seat, apparentCharacterId } });
+  }, []);
+
   const value: GameContextValue = {
     state,
     dispatch,
@@ -703,6 +723,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     removeLoric,
     setInPlayCharacters,
     swapPlayerSeats,
+    setApparentCharacter,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
