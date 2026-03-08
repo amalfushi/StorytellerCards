@@ -26,6 +26,9 @@ describe('useNightOrder', () => {
   // Gather script IDs from all characters that have night actions
   const allCharacterIds = allCharacters.map((c) => c.id);
 
+  // Script without Atheist for standard structural entry tests (M4: Atheist suppresses minioninfo/demoninfo)
+  const standardCharacterIds = allCharacterIds.filter((id) => id !== 'atheist');
+
   describe('first night', () => {
     it('returns an array of night order entries', () => {
       const { result } = renderHook(() => useNightOrder(allCharacterIds, true));
@@ -33,20 +36,28 @@ describe('useNightOrder', () => {
       expect(result.current.length).toBeGreaterThan(0);
     });
 
-    it('contains MinionInfo structural entry', () => {
-      const { result } = renderHook(() => useNightOrder(allCharacterIds, true));
+    it('contains MinionInfo structural entry (non-Atheist script)', () => {
+      const { result } = renderHook(() => useNightOrder(standardCharacterIds, true));
       const minionInfo = result.current.find((e) => e.id === 'minioninfo');
       expect(minionInfo).toBeDefined();
       expect(minionInfo!.type).toBe('structural');
       expect(minionInfo!.name).toBe('Minion Info');
     });
 
-    it('contains DemonInfo structural entry', () => {
-      const { result } = renderHook(() => useNightOrder(allCharacterIds, true));
+    it('contains DemonInfo structural entry (non-Atheist script)', () => {
+      const { result } = renderHook(() => useNightOrder(standardCharacterIds, true));
       const demonInfo = result.current.find((e) => e.id === 'demoninfo');
       expect(demonInfo).toBeDefined();
       expect(demonInfo!.type).toBe('structural');
       expect(demonInfo!.name).toBe('Demon Info');
+    });
+
+    it('omits MinionInfo and DemonInfo when Atheist is on the script', () => {
+      const { result } = renderHook(() => useNightOrder(['atheist', 'imp', 'poisoner'], true));
+      const minionInfo = result.current.find((e) => e.id === 'minioninfo');
+      const demonInfo = result.current.find((e) => e.id === 'demoninfo');
+      expect(minionInfo).toBeUndefined();
+      expect(demonInfo).toBeUndefined();
     });
 
     it('contains character entries for characters with first night actions', () => {

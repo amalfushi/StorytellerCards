@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -17,7 +18,11 @@ import Typography from '@mui/material/Typography';
 import CasinoIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
-import { getDistribution } from '@/data/playerCountRules.ts';
+import {
+  getDistribution,
+  getDistributionWarnings,
+  getDistributionSuggestions,
+} from '@/data/playerCountRules.ts';
 import type { Distribution } from '@/data/playerCountRules.ts';
 import { randomlyAssignCharacters } from '@/utils/characterAssignment.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
@@ -58,6 +63,29 @@ export function CharacterAssignmentDialog({
   const [localPlayers, setLocalPlayers] = useState<PlayerSeat[]>([...players]);
   const [error, setError] = useState<string | null>(null);
 
+  // IDs of characters that allow duplicates (e.g. Legion)
+  const duplicateAllowedIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const ch of scriptCharacters) {
+      if (ch.id === 'legion') ids.add(ch.id);
+    }
+    return ids;
+  }, [scriptCharacters]);
+
+  const scriptCharacterIds = useMemo(() => scriptCharacters.map((c) => c.id), [scriptCharacters]);
+
+  // Script-aware distribution suggestions
+  const suggestions = useMemo(
+    () => getDistributionSuggestions(scriptCharacterIds, baseDistribution),
+    [scriptCharacterIds, baseDistribution],
+  );
+
+  // Distribution warnings (soft, not blocking)
+  const warnings = useMemo(
+    () => getDistributionWarnings(distribution, scriptCharacterIds),
+    [distribution, scriptCharacterIds],
+  );
+
   // Reset state when dialog opens
   const handleEnter = useCallback(() => {
     setDistribution(getDistribution(players.filter((p) => !p.isTraveller).length));
@@ -81,14 +109,16 @@ export function CharacterAssignmentDialog({
     return groups;
   }, [scriptCharacters]);
 
-  // Track which characters are already assigned
+  // Track which characters are already assigned (excluding duplicate-allowed ones)
   const assignedIds = useMemo(() => {
     const ids = new Set<string>();
     for (const p of localPlayers) {
-      if (p.characterId) ids.add(p.characterId);
+      if (p.characterId && !duplicateAllowedIds.has(p.characterId)) {
+        ids.add(p.characterId);
+      }
     }
     return ids;
-  }, [localPlayers]);
+  }, [localPlayers, duplicateAllowedIds]);
 
   const handleDistributionChange = (key: keyof Distribution, value: number) => {
     setDistribution((prev) => ({ ...prev, [key]: Math.max(0, value) }));
@@ -179,6 +209,20 @@ export function CharacterAssignmentDialog({
           </Typography>
         )}
 
+        {/* Script-aware distribution suggestions */}
+        {suggestions.map((s, i) => (
+          <Alert key={`suggestion-${i}`} severity="info" sx={{ mb: 1 }}>
+            {s.reason}
+          </Alert>
+        ))}
+
+        {/* Distribution warnings (soft, not blocking) */}
+        {warnings.map((w, i) => (
+          <Alert key={`warning-${i}`} severity={w.severity} sx={{ mb: 1 }}>
+            {w.message}
+          </Alert>
+        ))}
+
         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
           <Button variant="outlined" startIcon={<CasinoIcon />} onClick={handleRandomize}>
             Randomize
@@ -252,10 +296,19 @@ export function CharacterAssignmentDialog({
                         <MenuItem
                           key={c.id}
                           value={c.id}
-                          disabled={assignedIds.has(c.id) && player.characterId !== c.id}
+                          disabled={
+                            assignedIds.has(c.id) &&
+                            player.characterId !== c.id &&
+                            !duplicateAllowedIds.has(c.id)
+                          }
                           sx={{
                             color: getCharacterTypeColor(c.type),
-                            opacity: assignedIds.has(c.id) && player.characterId !== c.id ? 0.4 : 1,
+                            opacity:
+                              assignedIds.has(c.id) &&
+                              player.characterId !== c.id &&
+                              !duplicateAllowedIds.has(c.id)
+                                ? 0.4
+                                : 1,
                           }}
                         >
                           {c.name} ({c.type})

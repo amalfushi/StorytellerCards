@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterNightOrder } from './nightOrderFilter';
+import { filterNightOrder, getPlayerNamesForCharacter } from './nightOrderFilter';
 import type { NightOrderEntry, PlayerSeat } from '../types/index';
 import { Alignment } from '../types/index';
 
@@ -81,7 +81,7 @@ describe('filterNightOrder', () => {
     expect(ids).toEqual(['dusk', 'monk', 'dawn']);
   });
 
-  it('always includes structural entries', () => {
+  it('always includes structural entries (non-Atheist script)', () => {
     const result = filterNightOrder(masterFirstNight, [], true);
     const types = result.map((e) => e.type);
 
@@ -89,7 +89,7 @@ describe('filterNightOrder', () => {
     expect(result.length).toBe(4); // dusk, minioninfo, demoninfo, dawn
   });
 
-  it('empty character list returns only structural entries', () => {
+  it('empty character list returns only structural entries (non-Atheist)', () => {
     const result = filterNightOrder(masterFirstNight, [], true);
 
     expect(result.length).toBe(4);
@@ -136,7 +136,7 @@ describe('filterNightOrder', () => {
       expect(charIds).not.toContain('pixie');
     });
 
-    it('keeps structural entries even with players', () => {
+    it('keeps structural entries even with players (non-Atheist script)', () => {
       const players = [player(1, 'noble')];
       const result = filterNightOrder(masterFirstNight, allScriptIds, true, players);
 
@@ -156,5 +156,100 @@ describe('filterNightOrder', () => {
       const charIds = result.filter((e) => e.type === 'character').map((e) => e.id);
       expect(charIds).toEqual(['poisoner', 'washerwoman', 'librarian', 'noble', 'pixie']);
     });
+  });
+
+  // ── M4: Conditional structural entries ──
+
+  describe('conditional structural entries', () => {
+    it('skips minioninfo on first night when Atheist is on the script', () => {
+      const result = filterNightOrder(masterFirstNight, ['atheist', 'noble'], true);
+      const ids = result.map((e) => e.id);
+      expect(ids).not.toContain('minioninfo');
+    });
+
+    it('skips demoninfo on first night when Atheist is on the script', () => {
+      const result = filterNightOrder(masterFirstNight, ['atheist', 'noble'], true);
+      const ids = result.map((e) => e.id);
+      expect(ids).not.toContain('demoninfo');
+    });
+
+    it('keeps other structural entries (dusk/dawn) when Atheist is on the script', () => {
+      const result = filterNightOrder(masterFirstNight, ['atheist'], true);
+      const ids = result.map((e) => e.id);
+      expect(ids).toContain('dusk');
+      expect(ids).toContain('dawn');
+    });
+
+    it("keeps demoninfo when Lil' Monsta is on the script (even with no demon players)", () => {
+      const players = [player(1, 'poisoner')]; // No demon player
+      const result = filterNightOrder(masterFirstNight, ['lilmonsta', 'poisoner'], true, players);
+      const ids = result.map((e) => e.id);
+      expect(ids).toContain('demoninfo');
+    });
+
+    it('keeps minioninfo and demoninfo on other nights (no conditional logic)', () => {
+      const otherNights: NightOrderEntry[] = [
+        structural('minioninfo'),
+        structural('demoninfo'),
+        character('imp', 1),
+      ];
+      const result = filterNightOrder(otherNights, ['atheist', 'imp'], false);
+      const ids = result.map((e) => e.id);
+      expect(ids).toContain('minioninfo');
+      expect(ids).toContain('demoninfo');
+    });
+
+    it('keeps minioninfo and demoninfo for a normal script on first night', () => {
+      const result = filterNightOrder(masterFirstNight, ['imp', 'poisoner'], true);
+      const ids = result.map((e) => e.id);
+      expect(ids).toContain('minioninfo');
+      expect(ids).toContain('demoninfo');
+    });
+  });
+
+  // ── M4: Deduplication ──
+
+  describe('deduplication', () => {
+    it('deduplicates entries when multiple players share a character (Legion)', () => {
+      const nightOrder: NightOrderEntry[] = [
+        structural('dusk'),
+        character('legion', 1),
+        character('legion', 1), // duplicate from buildNightOrder won't happen but filterNightOrder should handle duplicates in input
+        structural('dawn'),
+      ];
+      const players = [player(1, 'legion'), player(2, 'legion'), player(3, 'legion')];
+      const result = filterNightOrder(nightOrder, ['legion'], true, players);
+      const legionEntries = result.filter((e) => e.id === 'legion');
+      expect(legionEntries).toHaveLength(1);
+    });
+
+    it('does not deduplicate different characters', () => {
+      const nightOrder: NightOrderEntry[] = [character('imp', 1), character('poisoner', 2)];
+      const result = filterNightOrder(nightOrder, ['imp', 'poisoner'], true);
+      const charEntries = result.filter((e) => e.type === 'character');
+      expect(charEntries).toHaveLength(2);
+    });
+  });
+});
+
+// ── M4: getPlayerNamesForCharacter ──
+
+describe('getPlayerNamesForCharacter', () => {
+  it('returns player names for a given character ID', () => {
+    const players = [player(1, 'legion'), player(2, 'legion'), player(3, 'imp')];
+    const names = getPlayerNamesForCharacter('legion', players);
+    expect(names).toEqual(['Player 1', 'Player 2']);
+  });
+
+  it('returns empty array when no players have the character', () => {
+    const players = [player(1, 'imp')];
+    const names = getPlayerNamesForCharacter('legion', players);
+    expect(names).toEqual([]);
+  });
+
+  it('returns single name for unique character', () => {
+    const players = [player(1, 'imp'), player(2, 'poisoner')];
+    const names = getPlayerNamesForCharacter('imp', players);
+    expect(names).toEqual(['Player 1']);
   });
 });
