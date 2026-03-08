@@ -14,21 +14,30 @@ import { EditionLabel } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
+import { getCharacterActiveJinxes } from '@/utils/jinxUtils.ts';
 
 export interface CharacterDetailModalProps {
   open: boolean;
   character: CharacterDef | null;
   onClose: () => void;
+  /** Character IDs on the current script (for jinx context). Empty = show all jinxes. */
+  scriptCharacterIds?: string[];
 }
 
 /**
  * Modal showing full character details: name, type, abilities, night actions, wiki link.
  * Can be opened from any character icon/name in the app.
  */
-export function CharacterDetailModal({ open, character, onClose }: CharacterDetailModalProps) {
+export function CharacterDetailModal({
+  open,
+  character,
+  onClose,
+  scriptCharacterIds = [],
+}: CharacterDetailModalProps) {
   if (!character) return null;
 
   const typeColor = getCharacterTypeColor(character.type);
+  const jinxes = getCharacterActiveJinxes(character.id, scriptCharacterIds);
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
@@ -165,6 +174,47 @@ export function CharacterDetailModal({ open, character, onClose }: CharacterDeta
                 <Chip key={r.id} label={r.text} size="small" variant="outlined" />
               ))}
             </Box>
+          </Box>
+        )}
+
+        {/* Jinxes */}
+        {jinxes.length > 0 && (
+          <Box sx={{ mb: 1.5 }} data-testid="jinx-section">
+            <Divider sx={{ my: 1.5 }} />
+            <Typography variant="subtitle2" sx={{ color: '#f59e0b', fontWeight: 700, mb: 1 }}>
+              ⚡ Jinxes ({jinxes.length})
+            </Typography>
+            {jinxes.map((jinx) => (
+              <Box
+                key={jinx.character2Id}
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  alignItems: 'flex-start',
+                  mb: 1,
+                  p: 1,
+                  borderRadius: 1,
+                  bgcolor: 'rgba(245, 158, 11, 0.08)',
+                  border: '1px solid rgba(245, 158, 11, 0.2)',
+                }}
+              >
+                <CharacterIconImage
+                  characterId={jinx.character2Id}
+                  characterName={jinx.character2Name}
+                  typeColor="#f59e0b"
+                  size={32}
+                  borderColor="#f59e0b"
+                />
+                <Box sx={{ minWidth: 0 }}>
+                  <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    {jinx.character2Name}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {jinx.description}
+                  </Typography>
+                </Box>
+              </Box>
+            ))}
           </Box>
         )}
 

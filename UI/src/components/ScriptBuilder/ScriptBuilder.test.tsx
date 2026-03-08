@@ -155,6 +155,12 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
   }),
 }));
 
+// Mock jinxUtils so we can control active jinxes in tests
+const mockGetActiveJinxes = vi.fn().mockReturnValue([]);
+vi.mock('@/utils/jinxUtils.ts', () => ({
+  getActiveJinxes: (...args: unknown[]) => mockGetActiveJinxes(...args),
+}));
+
 import { ScriptBuilder } from '@/components/ScriptBuilder/ScriptBuilder.tsx';
 
 // ──────────────────────────────────────────────
@@ -410,5 +416,77 @@ describe('ScriptBuilder', () => {
     expect(savedScript.characterIds).toContain('butcher');
     expect(savedScript.characterIds).toContain('angel');
     expect(savedScript.characterIds).toContain('bigwig');
+  });
+
+  // ── M5: Jinx indicator tests ──
+
+  it('does not show jinx indicator when no active jinxes', () => {
+    mockGetActiveJinxes.mockReturnValue([]);
+    render(<ScriptBuilder {...defaultProps} />);
+    expect(screen.queryByTestId('jinx-indicator')).not.toBeInTheDocument();
+  });
+
+  it('shows jinx indicator chip when characters with jinxes are selected', () => {
+    mockGetActiveJinxes.mockReturnValue([
+      {
+        character1Id: 'washerwoman',
+        character1Name: 'Washerwoman',
+        character2Id: 'imp',
+        character2Name: 'Imp',
+        description: 'Test jinx description',
+      },
+    ]);
+    render(<ScriptBuilder {...defaultProps} />);
+    // Select two characters to trigger rerender
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[0]);
+    fireEvent.click(checkboxes[6]); // imp checkbox
+    expect(screen.getByTestId('jinx-indicator')).toBeInTheDocument();
+    expect(screen.getByText(/⚡ 1 Jinx$/)).toBeInTheDocument();
+  });
+
+  it('shows jinx details in Selection tab when jinxes are active', () => {
+    mockGetActiveJinxes.mockReturnValue([
+      {
+        character1Id: 'washerwoman',
+        character1Name: 'Washerwoman',
+        character2Id: 'imp',
+        character2Name: 'Imp',
+        description: 'Test jinx detail text',
+      },
+    ]);
+    render(<ScriptBuilder {...defaultProps} />);
+    // Select characters
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[0]);
+    fireEvent.click(checkboxes[6]);
+    // Switch to Selection tab
+    fireEvent.click(screen.getByRole('tab', { name: /Selection/i }));
+    expect(screen.getByTestId('jinx-details')).toBeInTheDocument();
+    expect(screen.getByText(/Washerwoman ↔ Imp/)).toBeInTheDocument();
+    expect(screen.getByText('Test jinx detail text')).toBeInTheDocument();
+  });
+
+  it('shows correct plural form for multiple jinxes', () => {
+    mockGetActiveJinxes.mockReturnValue([
+      {
+        character1Id: 'a',
+        character1Name: 'A',
+        character2Id: 'b',
+        character2Name: 'B',
+        description: 'test',
+      },
+      {
+        character1Id: 'c',
+        character1Name: 'C',
+        character2Id: 'd',
+        character2Name: 'D',
+        description: 'test2',
+      },
+    ]);
+    render(<ScriptBuilder {...defaultProps} />);
+    const checkboxes = screen.getAllByRole('checkbox');
+    fireEvent.click(checkboxes[0]);
+    expect(screen.getByText(/⚡ 2 Jinxes/)).toBeInTheDocument();
   });
 });

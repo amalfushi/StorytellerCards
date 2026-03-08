@@ -19,6 +19,7 @@ import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { sortScriptCharacters } from '@/utils/scriptSortRules.ts';
 import { generateId } from '@/utils/idGenerator.ts';
+import { getActiveJinxes } from '@/utils/jinxUtils.ts';
 
 export interface ScriptBuilderProps {
   open: boolean;
@@ -163,6 +164,9 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
     });
   }, []);
 
+  // Active jinxes for the current selection
+  const activeJinxes = useMemo(() => getActiveJinxes(Array.from(selectedIds)), [selectedIds]);
+
   const canSave = scriptName.trim().length > 0 && selectedIds.size > 0;
 
   const handleSave = () => {
@@ -232,6 +236,19 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
             color="primary"
             variant="outlined"
           />
+          {activeJinxes.length > 0 && (
+            <Chip
+              label={`⚡ ${activeJinxes.length} Jinx${activeJinxes.length === 1 ? '' : 'es'}`}
+              size="small"
+              data-testid="jinx-indicator"
+              sx={{
+                bgcolor: 'rgba(245, 158, 11, 0.15)',
+                color: '#f59e0b',
+                fontWeight: 600,
+                border: '1px solid rgba(245, 158, 11, 0.4)',
+              }}
+            />
+          )}
         </Box>
 
         {/* Tabs */}
@@ -259,7 +276,39 @@ export function ScriptBuilder({ open, onClose, onSave }: ScriptBuilderProps) {
             />
           )}
           {activeTab === 1 && (
-            <SelectionPanel selectedGrouped={selectedGrouped} onToggle={toggleCharacter} />
+            <>
+              <SelectionPanel selectedGrouped={selectedGrouped} onToggle={toggleCharacter} />
+              {activeJinxes.length > 0 && (
+                <Box sx={{ mt: 2 }} data-testid="jinx-details">
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ fontWeight: 700, color: '#f59e0b', mb: 0.5 }}
+                  >
+                    ⚡ Jinxes ({activeJinxes.length})
+                  </Typography>
+                  <Divider sx={{ mb: 1 }} />
+                  {activeJinxes.map((jinx) => (
+                    <Box
+                      key={`${jinx.character1Id}-${jinx.character2Id}`}
+                      sx={{
+                        mb: 1,
+                        p: 1,
+                        borderRadius: 1,
+                        bgcolor: 'rgba(245, 158, 11, 0.08)',
+                        border: '1px solid rgba(245, 158, 11, 0.2)',
+                      }}
+                    >
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        {jinx.character1Name} ↔ {jinx.character2Name}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {jinx.description}
+                      </Typography>
+                    </Box>
+                  ))}
+                </Box>
+              )}
+            </>
           )}
         </Box>
       </DialogContent>
