@@ -1,8 +1,12 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Fab from '@mui/material/Fab';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import AddIcon from '@mui/icons-material/Add';
+import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
+import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import type {
   CharacterDef,
   Alignment,
@@ -12,16 +16,20 @@ import type {
 import { Phase } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
-import { PlayerEditDialog } from '@/components/PlayerList/PlayerEditDialog.tsx';
-import { PlayerToken } from '@/components/TownSquare/PlayerToken.tsx';
+import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
+import { PlayerToken, SIZE_MAP } from '@/components/TownSquare/PlayerToken.tsx';
 import type { TokenSize } from '@/components/TownSquare/PlayerToken.tsx';
 import { TownSquareLayout } from '@/components/TownSquare/TownSquareLayout.tsx';
 import type { TokenPosition } from '@/components/TownSquare/TownSquareLayout.tsx';
-import { PlayerQuickActions } from '@/components/TownSquare/PlayerQuickActions.tsx';
+import { PlayerActionsModal } from '@/components/TownSquare/PlayerActionsModal.tsx';
 import { AddTravellerDialog } from '@/components/TownSquare/AddTravellerDialog.tsx';
 import { TokenManager, TokenBadges } from '@/components/TownSquare/TokenManager.tsx';
 import type { UseTimerReturn } from '@/hooks/useTimer.ts';
 import { DayTimerFab } from '@/components/Timer/DayTimerFab.tsx';
+import { buildAvailableTokens } from '@/utils/buildAvailableTokens.ts';
+
+/** Persisted layout preference — `'auto'` defers to viewport size. */
+type TokenLayoutPref = 'radial' | 'linear' | 'auto';
 
 interface TownSquareTabProps {
   scriptCharacterIds: string[];
@@ -36,8 +44,8 @@ function tokenSizeForCount(count: number): TokenSize {
   return 'small';
 }
 
-/** Half-size of the token box (used as padding inset for the layout). */
-const TOKEN_HALF = { large: 44, medium: 36, small: 30 } as const;
+/** Half-height of the token card (used as padding inset for the layout). */
+const TOKEN_HALF = { large: 75, medium: 70, small: 65 } as const;
 
 /**
  * Town Square tab — the signature circular / ovoid "clock face" layout.
@@ -53,7 +61,21 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
   const { getCharacter, getCharactersByIds } = useCharacterLookup();
 
   const isTablet = useMediaQuery('(min-width:600px)');
+  const isSmallViewport = useMediaQuery('(max-width:479px)');
   const shape = isTablet ? 'circle' : 'ovoid';
+
+  // ── Token layout preference (radial / linear / auto) ──
+  const [layoutPref, setLayoutPref] = useLocalStorage<TokenLayoutPref>(
+    'storyteller-token-layout',
+    'auto',
+  );
+
+  const effectiveLayout: 'radial' | 'linear' =
+    layoutPref === 'auto' ? (isSmallViewport ? 'linear' : 'radial') : layoutPref;
+
+  const handleToggleLayout = useCallback(() => {
+    setLayoutPref((prev) => (prev === 'linear' ? 'radial' : 'linear'));
+  }, [setLayoutPref]);
 
   const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
   const showCharacters = state.showCharacters;
@@ -65,6 +87,16 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     () => getCharactersByIds(scriptCharacterIds),
     [getCharactersByIds, scriptCharacterIds],
   );
+
+  // ── Dynamic token set from active characters ──
+  const activeCharacters = useMemo(() => {
+    if (!state.game) return [];
+    return state.game.players
+      .map((p) => getCharacter(p.characterId))
+      .filter((c): c is CharacterDef => c !== undefined);
+  }, [state.game, getCharacter]);
+
+  const availableTokens = useMemo(() => buildAvailableTokens(activeCharacters), [activeCharacters]);
 
   const tokenSize = tokenSizeForCount(sorted.length);
 
@@ -91,15 +123,13 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     return () => ro.disconnect();
   }, []);
 
-  // ── Selection / quick-actions state ──
+  // ── Selection / actions modal state ──
   const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
-  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const [menuPlayer, setMenuPlayer] = useState<PlayerSeat | null>(null);
-
-  // ── Edit dialog state ──
-  const [editSeat, setEditSeat] = useState<number | null>(null);
-  const editingPlayer =
-    editSeat !== null ? (players.find((p) => p.seat === editSeat) ?? null) : null;
+  /** Seat number of the player whose actions modal is open (null = closed). */
+  const [actionsSeat, setActionsSeat] = useState<number | null>(null);
+  /** Derive the current player from live state so the modal always sees fresh data. */
+  const actionsPlayer =
+    actionsSeat !== null ? (players.find((p) => p.seat === actionsSeat) ?? null) : null;
 
   // ── Add traveller dialog ──
   const [addTravellerOpen, setAddTravellerOpen] = useState(false);
@@ -113,24 +143,16 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
   // ── Handlers ──
 
   const handleTokenClick = useCallback(
-    (player: PlayerSeat, event: React.MouseEvent<HTMLElement>) => {
-      if (showCharacters) {
-        // Night view → open edit dialog
-        setEditSeat(player.seat);
-        setSelectedSeat(player.seat);
-      } else {
-        // Day view → open quick-action menu
-        setMenuAnchor(event.currentTarget);
-        setMenuPlayer(player);
-        setSelectedSeat(player.seat);
-      }
+    (player: PlayerSeat, _event: React.MouseEvent<HTMLElement>) => {
+      // Both day and night views open the unified PlayerActionsModal
+      setActionsSeat(player.seat);
+      setSelectedSeat(player.seat);
     },
-    [showCharacters],
+    [],
   );
 
-  const handleMenuClose = useCallback(() => {
-    setMenuAnchor(null);
-    setMenuPlayer(null);
+  const handleActionsClose = useCallback(() => {
+    setActionsSeat(null);
     setSelectedSeat(null);
   }, []);
 
@@ -157,10 +179,6 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     [players, updatePlayer],
   );
 
-  const handleEditCharacter = useCallback((seat: number) => {
-    setEditSeat(seat);
-  }, []);
-
   const handleRemoveTraveller = useCallback(
     (seat: number) => {
       removeTraveller(seat);
@@ -168,24 +186,12 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     [removeTraveller],
   );
 
-  const handleEditSave = useCallback(
-    (
-      seat: number,
-      updates: {
-        characterId?: string;
-        actualAlignment?: Alignment;
-        visibleAlignment?: Alignment;
-      },
-    ) => {
+  const handleSaveCharacter = useCallback(
+    (seat: number, updates: { characterId?: string; actualAlignment?: Alignment }) => {
       updatePlayer(seat, updates);
     },
     [updatePlayer],
   );
-
-  const handleEditClose = useCallback(() => {
-    setEditSeat(null);
-    setSelectedSeat(null);
-  }, []);
 
   const handleManageTokens = useCallback((seat: number) => {
     setTokenSeat(seat);
@@ -232,19 +238,31 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
             onClick={(e: React.MouseEvent<HTMLElement>) => handleTokenClick(player, e)}
             size={tokenSize}
           />
-          {playerTokens.length > 0 && (
+          {showCharacters && playerTokens.length > 0 && (
             <TokenBadges
               tokens={playerTokens}
               tileX={position.x}
               tileY={position.y}
               centerX={centerX}
               centerY={centerY}
+              cardWidth={SIZE_MAP[tokenSize].width}
+              cardHeight={SIZE_MAP[tokenSize].height}
+              tokenLayout={effectiveLayout}
             />
           )}
         </Box>
       );
     },
-    [getCharacter, showCharacters, selectedSeat, handleTokenClick, tokenSize, centerX, centerY],
+    [
+      getCharacter,
+      showCharacters,
+      selectedSeat,
+      handleTokenClick,
+      tokenSize,
+      centerX,
+      centerY,
+      effectiveLayout,
+    ],
   );
 
   return (
@@ -272,28 +290,47 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         />
       )}
 
-      {/* ── Quick-actions context menu (day view) ── */}
-      <PlayerQuickActions
-        anchorEl={menuAnchor}
-        player={menuPlayer}
+      {/* ── Unified player actions modal (day & night views) ── */}
+      <PlayerActionsModal
+        open={actionsSeat !== null}
+        player={actionsPlayer}
         showCharacters={showCharacters}
-        onClose={handleMenuClose}
+        scriptCharacters={scriptCharacters}
+        onClose={handleActionsClose}
         onToggleAlive={handleToggleAlive}
         onToggleGhostVote={handleToggleGhostVote}
-        onEditCharacter={handleEditCharacter}
         onRemoveTraveller={handleRemoveTraveller}
         onManageTokens={handleManageTokens}
+        onSaveCharacter={handleSaveCharacter}
       />
 
-      {/* ── Edit dialog (night view) ── */}
-      <PlayerEditDialog
-        key={editingPlayer?.seat ?? 'none'}
-        open={editSeat !== null}
-        player={editingPlayer}
-        scriptCharacters={scriptCharacters}
-        onClose={handleEditClose}
-        onSave={handleEditSave}
-      />
+      {/* ── Token layout toggle ── */}
+      <Tooltip
+        title={effectiveLayout === 'radial' ? 'Switch to linear tokens' : 'Switch to radial tokens'}
+      >
+        <IconButton
+          size="small"
+          aria-label="toggle token layout"
+          onClick={handleToggleLayout}
+          sx={{
+            position: 'absolute',
+            top: 8,
+            right: 8,
+            zIndex: 10,
+            bgcolor: 'rgba(0,0,0,0.35)',
+            color: '#fff',
+            '&:hover': { bgcolor: 'rgba(0,0,0,0.55)' },
+            width: 32,
+            height: 32,
+          }}
+        >
+          {effectiveLayout === 'radial' ? (
+            <ScatterPlotIcon fontSize="small" />
+          ) : (
+            <LinearScaleIcon fontSize="small" />
+          )}
+        </IconButton>
+      </Tooltip>
 
       {/* ── Add Traveller FAB ── */}
       <Fab
@@ -328,6 +365,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         onAddToken={handleAddToken}
         onRemoveToken={handleRemoveToken}
         characterDef={tokenPlayer?.characterId ? getCharacter(tokenPlayer.characterId) : undefined}
+        availableTokens={availableTokens}
       />
 
       {/* ── Day Timer FAB (visible during Day phase) ── */}

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Box from '@mui/material/Box';
-import { PlayerToken } from './PlayerToken';
+import { PlayerToken, SIZE_MAP } from './PlayerToken';
 import { TokenBadges } from './TokenManager';
 import {
   mockCharacters,
@@ -14,6 +14,7 @@ import {
   playerWithPoisoned,
   playerWithMultipleTokens,
   playerWithManyTokens,
+  spiritOfIvory,
 } from '../../stories/mockData';
 import type { CharacterDef, PlayerSeat } from '../../types';
 
@@ -44,6 +45,7 @@ function PlayerTokenWithBadges({
   // Simulate the centre being above the token so badges fan downward
   const centerX = 0;
   const centerY = -120;
+  const dims = SIZE_MAP[size];
   return (
     <Box sx={{ position: 'relative', display: 'inline-block' }}>
       <PlayerToken
@@ -68,6 +70,8 @@ function PlayerTokenWithBadges({
             tileY={tileY}
             centerX={centerX}
             centerY={centerY}
+            cardWidth={dims.width}
+            cardHeight={dims.height}
           />
         </Box>
       )}
@@ -201,6 +205,51 @@ export const LargeSize: Story = {
     showCharacters: true,
     size: 'large',
   },
+};
+
+// ────────────────────────────────────────────────────────
+// Hidden mode stories (Phase 7B)
+// ────────────────────────────────────────────────────────
+
+/**
+ * Hidden mode — regular (non-traveller) player.
+ * Only shows name, seat number, and death info. No character icon or alignment.
+ */
+export const HiddenModeRegularPlayer: Story = {
+  args: {
+    player: alicePlayer,
+    characterDef: char('noble'),
+    showCharacters: false,
+    size: 'medium',
+  },
+};
+
+/**
+ * Hidden mode — traveller player.
+ * Shows character icon with blue/red split border but no alignment tint.
+ * Traveller identity is always public knowledge.
+ */
+export const HiddenModeTraveller: Story = {
+  args: {
+    player: travJackPlayer,
+    characterDef: spiritOfIvory,
+    showCharacters: false,
+    size: 'medium',
+  },
+};
+
+/**
+ * Visible mode with tokens — full info shown including token badges.
+ * Demonstrates the complete night-view state with character, alignment, and token badges.
+ */
+export const VisibleModeWithTokens: StoryObj = {
+  render: () => (
+    <PlayerTokenWithBadges
+      player={playerWithMultipleTokens}
+      characterDef={char('cerenovus')}
+      showCharacters={true}
+    />
+  ),
 };
 
 // ────────────────────────────────────────────────────────

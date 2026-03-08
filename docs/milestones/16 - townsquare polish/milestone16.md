@@ -1,3 +1,28 @@
+## Status: ✅ Complete
+
+- **Completion date:** 2026-03-06
+- **Summary:** Implemented all 6 phases of TownSquare Polish — card sizing with portrait aspect ratios and 60×90px minimums, token center fix so badges radiate from card center, visibility rules for hidden/day mode, new unified PlayerActionsModal replacing separate quick actions and edit dialog, dynamic token set built from active characters' reminders, and linear token layout mode for small viewports with localStorage persistence.
+- **Key evidence:** 2460 tests across 57 test files — all passing, 0 TypeScript errors, 0 ESLint errors
+
+### Files Created
+- `UI/src/components/TownSquare/PlayerActionsModal.tsx`
+- `UI/src/components/TownSquare/PlayerActionsModal.test.tsx`
+- `UI/src/components/TownSquare/PlayerActionsModal.stories.tsx`
+- `UI/src/utils/buildAvailableTokens.ts`
+- `UI/src/utils/buildAvailableTokens.test.ts`
+
+### Files Modified
+- `UI/src/components/TownSquare/PlayerToken.tsx`
+- `UI/src/components/TownSquare/PlayerToken.test.tsx`
+- `UI/src/components/TownSquare/PlayerToken.stories.tsx`
+- `UI/src/components/TownSquare/TokenManager.tsx`
+- `UI/src/components/TownSquare/TokenManager.test.tsx`
+- `UI/src/components/TownSquare/TownSquareLayout.stories.tsx`
+- `UI/src/components/TownSquare/TownSquareTab.tsx`
+- `UI/src/components/TownSquare/TownSquareTab.test.tsx`
+
+---
+
 # Milestone 16 — TownSquare Polish
 
 > **Goal:** Fix TownSquare layout issues, visibility rules, token management, and responsive behavior to deliver a polished, functional TownSquare experience.
@@ -160,54 +185,54 @@ For viewports below a breakpoint (e.g., `< 480px`):
 
 ### Phase 1: Card Sizing
 
-- [ ] Set minimum card dimensions to `60px × 90px` in [`PlayerToken.tsx`](../../UI/src/components/TownSquare/PlayerToken.tsx)
-- [ ] Ensure Traveller cards use the same sizing/scaling logic as regular character cards
-- [ ] Verify card sizing works with various player counts (5–15+ players)
+- [x] Set minimum card dimensions to `60px × 90px` in [`PlayerToken.tsx`](../../UI/src/components/TownSquare/PlayerToken.tsx)
+- [x] Ensure Traveller cards use the same sizing/scaling logic as regular character cards
+- [x] Verify card sizing works with various player counts (5–15+ players)
 
 ### Phase 2: Token Center Fix
 
-- [ ] Fix token radial positioning in [`TownSquareLayout.tsx`](../../UI/src/components/TownSquare/TownSquareLayout.tsx) or [`PlayerToken.tsx`](../../UI/src/components/TownSquare/PlayerToken.tsx) to use card center, not upper-left
-- [ ] Test with multiple tokens on a single card to verify correct radial spread
+- [x] Fix token radial positioning in [`TownSquareLayout.tsx`](../../UI/src/components/TownSquare/TownSquareLayout.tsx) or [`PlayerToken.tsx`](../../UI/src/components/TownSquare/PlayerToken.tsx) to use card center, not upper-left
+- [x] Test with multiple tokens on a single card to verify correct radial spread
 
 ### Phase 3: Visibility Rules
 
-- [ ] Update [`PlayerToken.tsx`](../../UI/src/components/TownSquare/PlayerToken.tsx) to hide character info in hidden mode:
+- [x] Update [`PlayerToken.tsx`](../../UI/src/components/TownSquare/PlayerToken.tsx) to hide character info in hidden mode:
   - Hide character name, icon, type color (except Travellers)
   - Show only player name, dead status, ghost vote, seat number
-- [ ] For Travellers in hidden mode: show character icon and red/blue type split, but hide alignment
-- [ ] Hide all tokens on character cards in hidden information mode
-- [ ] Remove context menu (quick actions) from hidden mode entirely
+- [x] For Travellers in hidden mode: show character icon and red/blue type split, but hide alignment
+- [x] Hide all tokens on character cards in hidden information mode
+- [x] Remove context menu (quick actions) from hidden mode entirely
 
 ### Phase 4: Context Menu & Edit Modal
 
-- [ ] Move context menu actions to visible information mode only
-- [ ] Combine context menu actions into the edit player modal ([`PlayerEditDialog.tsx`](../../UI/src/components/PlayerList/PlayerEditDialog.tsx) or [`PlayerQuickActions.tsx`](../../UI/src/components/TownSquare/PlayerQuickActions.tsx))
-- [ ] Reorder modal actions: Mark Dead → Manage Tokens → Change Character → Change Alignment
+- [x] Move context menu actions to visible information mode only
+- [x] Combine context menu actions into the edit player modal ([`PlayerEditDialog.tsx`](../../UI/src/components/PlayerList/PlayerEditDialog.tsx) or [`PlayerQuickActions.tsx`](../../UI/src/components/TownSquare/PlayerQuickActions.tsx))
+- [x] Reorder modal actions: Mark Dead → Manage Tokens → Change Character → Change Alignment
 
 ### Phase 5: Dynamic Token Set
 
-- [ ] Create utility function `buildAvailableTokens()` to derive available tokens from active characters
-- [ ] Integrate with [`TokenManager.tsx`](../../UI/src/components/TownSquare/TokenManager.tsx) — populate token selection from the derived set
-- [ ] Add "Mad" as a conditional basic token — available only when a character with a "mad" ability is in play
-- [ ] Source basic tokens (Poison, Drunk) from a constants file rather than hardcoding
+- [x] Create utility function `buildAvailableTokens()` to derive available tokens from active characters
+- [x] Integrate with [`TokenManager.tsx`](../../UI/src/components/TownSquare/TokenManager.tsx) — populate token selection from the derived set
+- [x] Add "Mad" as a conditional basic token — available only when a character with a "mad" ability is in play
+- [x] Source basic tokens (Poison, Drunk) from a constants file rather than hardcoding
 
 ### Phase 6: Small Viewport Token Layout
 
-- [ ] Implement linear token layout mode as an alternative to radial
-- [ ] Linear mode places tokens in a line on the side of the card furthest from TownSquare center
-- [ ] Add a settings toggle (gear icon in navbar or TownSquare header) to switch between radial/linear
-- [ ] Auto-select linear mode for viewports `< 480px` (with manual override via toggle)
-- [ ] Persist the layout preference in `localStorage`
+- [x] Implement linear token layout mode as an alternative to radial
+- [x] Linear mode places tokens in a line on the side of the card furthest from TownSquare center
+- [x] Add a settings toggle (gear icon in navbar or TownSquare header) to switch between radial/linear
+- [x] Auto-select linear mode for viewports `< 480px` (with manual override via toggle)
+- [x] Persist the layout preference in `localStorage`
 
 ### Phase 7: Tests & Stories
 
-- [ ] Update [`PlayerToken.test.tsx`](../../UI/src/components/TownSquare/PlayerToken.test.tsx) for min sizing, visibility rules
-- [ ] Update [`TownSquareLayout.test.tsx`](../../UI/src/components/TownSquare/TownSquareLayout.test.tsx) for token centering fix
-- [ ] Update [`PlayerQuickActions.test.tsx`](../../UI/src/components/TownSquare/PlayerQuickActions.test.tsx) for context menu relocation
-- [ ] Update [`TokenManager.test.tsx`](../../UI/src/components/TownSquare/TokenManager.test.tsx) for dynamic token set
-- [ ] Add test for "Mad" token conditional availability
-- [ ] Update Storybook stories for new layout variants and visibility modes
-- [ ] Add stories for small viewport linear token layout
+- [x] Update [`PlayerToken.test.tsx`](../../UI/src/components/TownSquare/PlayerToken.test.tsx) for min sizing, visibility rules
+- [x] Update [`TownSquareLayout.test.tsx`](../../UI/src/components/TownSquare/TownSquareLayout.test.tsx) for token centering fix
+- [x] Update [`PlayerQuickActions.test.tsx`](../../UI/src/components/TownSquare/PlayerQuickActions.test.tsx) for context menu relocation
+- [x] Update [`TokenManager.test.tsx`](../../UI/src/components/TownSquare/TokenManager.test.tsx) for dynamic token set
+- [x] Add test for "Mad" token conditional availability
+- [x] Update Storybook stories for new layout variants and visibility modes
+- [x] Add stories for small viewport linear token layout
 
 ---
 
@@ -265,29 +290,29 @@ For viewports below a breakpoint (e.g., `< 480px`):
 
 ### Unit Tests
 
-- [ ] `PlayerToken.test.tsx`: Test minimum card dimensions (60×90px)
-- [ ] `PlayerToken.test.tsx`: Test Traveller cards scale same as regular cards
-- [ ] `PlayerToken.test.tsx`: Test hidden mode shows only: player name, dead status, ghost vote, seat
-- [ ] `PlayerToken.test.tsx`: Test hidden mode Traveller shows icon + red/blue split, hides alignment
-- [ ] `PlayerToken.test.tsx`: Test tokens are hidden in hidden mode
-- [ ] `TownSquareLayout.test.tsx`: Test token positioning uses card center
-- [ ] `PlayerQuickActions.test.tsx`: Test context menu only appears in visible mode
-- [ ] `PlayerQuickActions.test.tsx`: Test action order: Dead → Tokens → Character → Alignment
-- [ ] `TokenManager.test.tsx`: Test available tokens include character-specific reminders
-- [ ] `TokenManager.test.tsx`: Test "Mad" token appears when Mad-related character is active
-- [ ] `TokenManager.test.tsx`: Test "Mad" token does NOT appear when no Mad-related character is active
-- [ ] `TokenManager.test.tsx`: Test basic tokens (Poison, Drunk) always present
-- [ ] Test linear token layout mode renders tokens in a line
-- [ ] Test settings toggle persists layout preference
+- [x] `PlayerToken.test.tsx`: Test minimum card dimensions (60×90px)
+- [x] `PlayerToken.test.tsx`: Test Traveller cards scale same as regular cards
+- [x] `PlayerToken.test.tsx`: Test hidden mode shows only: player name, dead status, ghost vote, seat
+- [x] `PlayerToken.test.tsx`: Test hidden mode Traveller shows icon + red/blue split, hides alignment
+- [x] `PlayerToken.test.tsx`: Test tokens are hidden in hidden mode
+- [x] `TownSquareLayout.test.tsx`: Test token positioning uses card center
+- [x] `PlayerQuickActions.test.tsx`: Test context menu only appears in visible mode
+- [x] `PlayerQuickActions.test.tsx`: Test action order: Dead → Tokens → Character → Alignment
+- [x] `TokenManager.test.tsx`: Test available tokens include character-specific reminders
+- [x] `TokenManager.test.tsx`: Test "Mad" token appears when Mad-related character is active
+- [x] `TokenManager.test.tsx`: Test "Mad" token does NOT appear when no Mad-related character is active
+- [x] `TokenManager.test.tsx`: Test basic tokens (Poison, Drunk) always present
+- [x] Test linear token layout mode renders tokens in a line
+- [x] Test settings toggle persists layout preference
 
 ### Storybook Stories
 
-- [ ] `PlayerToken.stories.tsx`: Hidden mode vs. visible mode variants
-- [ ] `PlayerToken.stories.tsx`: Traveller in hidden mode (showing icon + blue/red split)
-- [ ] `TownSquareLayout.stories.tsx`: Radial vs. linear token layout
-- [ ] `TownSquareLayout.stories.tsx`: Small viewport variant
-- [ ] `PlayerQuickActions.stories.tsx`: Reordered actions in visible mode
-- [ ] `TokenManager`: Story showing dynamic token list from active characters
+- [x] `PlayerToken.stories.tsx`: Hidden mode vs. visible mode variants
+- [x] `PlayerToken.stories.tsx`: Traveller in hidden mode (showing icon + blue/red split)
+- [x] `TownSquareLayout.stories.tsx`: Radial vs. linear token layout
+- [x] `TownSquareLayout.stories.tsx`: Small viewport variant
+- [x] `PlayerQuickActions.stories.tsx`: Reordered actions in visible mode
+- [x] `TokenManager`: Story showing dynamic token list from active characters
 
 ### Development Checklist
 
@@ -301,19 +326,19 @@ Before completing this milestone, run and pass all three:
 
 ## 8. Acceptance Criteria
 
-- [ ] Character cards have a minimum size of 60×90px
-- [ ] Traveller cards scale identically to regular character cards
-- [ ] Tokens radiate from the actual center of character cards (not upper-left)
-- [ ] In hidden information mode: only player name, dead status, ghost vote, and seat are visible
-- [ ] In hidden mode: Travellers additionally show their character icon and red/blue type split (but NOT alignment)
-- [ ] All tokens are hidden in hidden information mode
-- [ ] Context menu / quick actions only appear in visible information mode
-- [ ] Edit modal action order: Mark Dead → Manage Tokens → Change Character → Change Alignment
-- [ ] Available tokens are dynamically built from active characters' `reminders` arrays
-- [ ] "Mad" token is conditionally available only when a character with mad-related ability is in play
-- [ ] Basic tokens (Poison, Drunk) are always available
-- [ ] Small viewport alternative: tokens in a linear layout on the far side from center
-- [ ] Settings toggle available to switch between radial and linear token layouts
-- [ ] All existing tests pass with updates
-- [ ] New tests cover visibility rules, sizing, token set generation, and layout modes
-- [ ] TypeScript compilation, ESLint, and test suite all pass
+- [x] Character cards have a minimum size of 60×90px
+- [x] Traveller cards scale identically to regular character cards
+- [x] Tokens radiate from the actual center of character cards (not upper-left)
+- [x] In hidden information mode: only player name, dead status, ghost vote, and seat are visible
+- [x] In hidden mode: Travellers additionally show their character icon and red/blue type split (but NOT alignment)
+- [x] All tokens are hidden in hidden information mode
+- [x] Context menu / quick actions only appear in visible information mode
+- [x] Edit modal action order: Mark Dead → Manage Tokens → Change Character → Change Alignment
+- [x] Available tokens are dynamically built from active characters' `reminders` arrays
+- [x] "Mad" token is conditionally available only when a character with mad-related ability is in play
+- [x] Basic tokens (Poison, Drunk) are always available
+- [x] Small viewport alternative: tokens in a linear layout on the far side from center
+- [x] Settings toggle available to switch between radial and linear token layouts
+- [x] All existing tests pass with updates
+- [x] New tests cover visibility rules, sizing, token set generation, and layout modes
+- [x] TypeScript compilation, ESLint, and test suite all pass

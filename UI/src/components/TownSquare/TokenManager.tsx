@@ -8,7 +8,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import type { PlayerSeat, PlayerToken, CharacterDef } from '@/types/index.ts';
+import type { PlayerSeat, PlayerToken, CharacterDef, ReminderToken } from '@/types/index.ts';
 import { generateId } from '@/utils/idGenerator.ts';
 
 // ──────────────────────────────────────────────
@@ -18,6 +18,8 @@ import { generateId } from '@/utils/idGenerator.ts';
 const TOKEN_COLORS = {
   drunk: '#1976d2', // blue
   poisoned: '#7b1fa2', // purple
+  mad: '#ff9800', // orange
+  character: '#00897b', // teal — character-specific reminders
   custom: '#ff9800', // orange fallback
 } as const;
 
@@ -31,54 +33,160 @@ const MAX_CUSTOM_TOKENS = 10;
 export interface TokenBadgesProps {
   /** The player's active tokens. */
   tokens: PlayerToken[];
-  /** Position of the tile centre in pixels. */
+  /** Position of the tile centre in pixels (container coordinate space). */
   tileX: number;
   tileY: number;
-  /** Centre of the town square in pixels. */
+  /** Centre of the town square in pixels (container coordinate space). */
   centerX: number;
   centerY: number;
+  /** Width of the player card in pixels — used to offset badges from card centre. */
+  cardWidth: number;
+  /** Height of the player card in pixels — used to offset badges from card centre. */
+  cardHeight: number;
+  /**
+   * Layout mode for token badges.
+   * - `'radial'` — fan pattern radiating from the card centre (default).
+   * - `'linear'` — straight line along the card edge furthest from the town square centre.
+   */
+  tokenLayout?: 'radial' | 'linear';
 }
 
 /**
- * Abbreviate a token label for compact badge display.
- * ≤ 5 chars → full, otherwise first 4 + "…"
+ * Compute badge position for radial (fan) layout.
  */
-function abbreviateLabel(label: string): string {
-  return label.length <= 5 ? label : `${label.slice(0, 4)}…`;
+function computeRadialPosition(
+  i: number,
+  tokenCount: number,
+  angleToCenter: number,
+  halfW: number,
+  halfH: number,
+): { dx: number; dy: number } {
+  const slotRadius = BADGE_SLOT_SIZE / 2;
+  const badgeDistance = Math.max(halfW, halfH) + slotRadius + 12;
+
+  if (tokenCount >= 5) {
+    // Full 360° distribution, starting from the top (−π/2)
+    const badgeAngle = -Math.PI / 2 + (2 * Math.PI * i) / tokenCount;
+    return {
+      dx: halfW + badgeDistance * Math.cos(badgeAngle),
+      dy: halfH + badgeDistance * Math.sin(badgeAngle),
+    };
+  }
+
+  // Fan pattern for fewer than 5 tokens
+  const maxStep = 35;
+  const minStep = 18;
+  const stepDeg = tokenCount <= 3 ? maxStep : Math.max(minStep, maxStep - (tokenCount - 3) * 2);
+  const offsetStep = (stepDeg * Math.PI) / 180;
+
+  const sign = i % 2 === 0 ? 1 : -1;
+  const multiplier = Math.ceil((i + 1) / 2);
+  const badgeAngle = i === 0 ? angleToCenter : angleToCenter + sign * multiplier * offsetStep;
+
+  return {
+    dx: halfW + badgeDistance * Math.cos(badgeAngle),
+    dy: halfH + badgeDistance * Math.sin(badgeAngle),
+  };
+}
+
+/** Slot size used for positioning / spacing calculations, in px. */
+const BADGE_SLOT_SIZE = 28;
+/** Gap between badges in linear layout, in px. */
+const LINEAR_GAP = 5;
+/** Offset from card edge to badge centre, in px. */
+const EDGE_OFFSET = BADGE_SLOT_SIZE / 2 + 2;
+
+/** Maximum badges per row in linear layout. */
+const MAX_PER_ROW = 5;
+
+/**
+ * Compute badge position for linear layout.
+ *
+ * Badges are placed in a line along the card edge furthest from the
+ * town square centre, centred on that edge. When there are more than
+ * {@link MAX_PER_ROW} badges, they wrap into additional rows that are
+ * offset further from the card edge by {@link BADGE_SLOT_SIZE} each.
+ */
+function computeLinearPosition(
+  i: number,
+  tokenCount: number,
+  tileX: number,
+  tileY: number,
+  centerX: number,
+  centerY: number,
+  halfW: number,
+  halfH: number,
+): { dx: number; dy: number } {
+  // Determine the dominant axis: the one where the tile is further from centre
+  const absDx = Math.abs(tileX - centerX);
+  const absDy = Math.abs(tileY - centerY);
+
+  // Multi-row: split badges into rows of MAX_PER_ROW
+  const row = Math.floor(i / MAX_PER_ROW);
+  const col = i % MAX_PER_ROW;
+  const countInRow = Math.min(MAX_PER_ROW, tokenCount - row * MAX_PER_ROW);
+
+  // Total span of badges in this row
+  const totalSpan = countInRow * BADGE_SLOT_SIZE + (countInRow - 1) * LINEAR_GAP;
+  // Offset from the centre of the line for the col-th badge in this row
+  const startOffset = -totalSpan / 2 + BADGE_SLOT_SIZE / 2;
+  const linearPos = startOffset + col * (BADGE_SLOT_SIZE + LINEAR_GAP);
+
+  // Each subsequent row is offset further from the card edge
+  const rowOffset = row * (BADGE_SLOT_SIZE + 8);
+
+  if (absDx >= absDy) {
+    // Horizontal dominant → place tokens left or right of card
+    const isRight = tileX >= centerX; // tile is right-of or at centre → tokens go right
+    const baseDx = isRight ? halfW * 2 + EDGE_OFFSET : -EDGE_OFFSET;
+    const dx = isRight ? baseDx + rowOffset : baseDx - rowOffset;
+    const dy = halfH + linearPos;
+    return { dx, dy };
+  } else {
+    // Vertical dominant → place tokens above or below card
+    const isBelow = tileY >= centerY; // tile is below or at centre → tokens go below
+    const dx = halfW + linearPos;
+    const baseDy = isBelow ? halfH * 2 + EDGE_OFFSET : -EDGE_OFFSET;
+    const dy = isBelow ? baseDy + rowOffset : baseDy - rowOffset;
+    return { dx, dy };
+  }
 }
 
 /**
  * Renders small coloured token badges around a player tile.
  *
- * Tokens radiate outward from the centre-facing angle of the tile,
- * alternating clockwise/counterclockwise in a fan pattern.
+ * - **Radial mode**: tokens radiate outward from the centre-facing angle of the tile,
+ *   alternating clockwise/counterclockwise in a fan pattern.
+ * - **Linear mode**: tokens are placed in a straight line along the card edge
+ *   furthest from the town square centre.
  */
-export function TokenBadges({ tokens, tileX, tileY, centerX, centerY }: TokenBadgesProps) {
+export function TokenBadges({
+  tokens,
+  tileX,
+  tileY,
+  centerX,
+  centerY,
+  cardWidth,
+  cardHeight,
+  tokenLayout = 'radial',
+}: TokenBadgesProps) {
   if (!tokens || tokens.length === 0) return null;
 
-  // Angle from tile to the centre of the town square
+  // Angle from tile centre to the centre of the town square
   const angleToCenter = Math.atan2(centerY - tileY, centerX - tileX);
 
-  // Distance from tile centre to each badge
-  const badgeDistance = 40;
-  // Angular offset between consecutive badges — shrinks as token count grows
-  // so that many badges (up to 12) still fit without excessive overlap.
-  const maxStep = 35; // degrees for ≤3 tokens
-  const minStep = 18; // degrees floor for many tokens
-  const stepDeg =
-    tokens.length <= 3 ? maxStep : Math.max(minStep, maxStep - (tokens.length - 3) * 2);
-  const offsetStep = (stepDeg * Math.PI) / 180;
+  // Offset from card top-left to card centre (badges are positioned
+  // relative to the card's top-left via position: absolute)
+  const halfW = cardWidth / 2;
+  const halfH = cardHeight / 2;
 
   return (
     <>
       {tokens.map((token, i) => {
-        // Fan layout: 0 → center angle, 1 → +offset, 2 → -offset, 3 → +2*offset, …
-        const sign = i % 2 === 0 ? 1 : -1;
-        const multiplier = Math.ceil((i + 1) / 2);
-        const badgeAngle = i === 0 ? angleToCenter : angleToCenter + sign * multiplier * offsetStep;
-
-        const dx = badgeDistance * Math.cos(badgeAngle);
-        const dy = badgeDistance * Math.sin(badgeAngle);
+        const { dx, dy } =
+          tokenLayout === 'linear'
+            ? computeLinearPosition(i, tokens.length, tileX, tileY, centerX, centerY, halfW, halfH)
+            : computeRadialPosition(i, tokens.length, angleToCenter, halfW, halfH);
 
         const bgColor = token.color ?? TOKEN_COLORS[token.type] ?? TOKEN_COLORS.custom;
 
@@ -91,19 +199,23 @@ export function TokenBadges({ tokens, tileX, tileY, centerX, centerY }: TokenBad
               left: dx,
               top: dy,
               transform: 'translate(-50%, -50%)',
-              minWidth: 20,
-              height: 20,
-              borderRadius: '10px',
+              minWidth: 24,
+              maxWidth: 60,
+              minHeight: 18,
+              height: 'auto',
+              borderRadius: '8px',
               bgcolor: bgColor,
               color: '#fff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              px: 0.4,
-              fontSize: '0.55rem',
+              px: 0.5,
+              py: 0.2,
+              fontSize: '0.6rem',
               fontWeight: 700,
-              lineHeight: 1,
-              whiteSpace: 'nowrap',
+              lineHeight: 1.15,
+              wordWrap: 'break-word',
+              textAlign: 'center',
               boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
               border: '1px solid rgba(255,255,255,0.4)',
               pointerEvents: 'none',
@@ -111,12 +223,44 @@ export function TokenBadges({ tokens, tileX, tileY, centerX, centerY }: TokenBad
               zIndex: 5,
             }}
           >
-            {abbreviateLabel(token.label)}
+            {token.label}
           </Box>
         );
       })}
     </>
   );
+}
+
+// ──────────────────────────────────────────────
+// Helpers — map ReminderToken → PlayerToken props
+// ──────────────────────────────────────────────
+
+/**
+ * Determine the PlayerToken `type` and `color` for a given available reminder token.
+ */
+function tokenPropsForReminder(reminder: ReminderToken): {
+  type: PlayerToken['type'];
+  color: string;
+  sourceCharacterId?: string;
+} {
+  switch (reminder.id) {
+    case 'basic-drunk':
+      return { type: 'drunk', color: TOKEN_COLORS.drunk };
+    case 'basic-poisoned':
+      return { type: 'poisoned', color: TOKEN_COLORS.poisoned };
+    case 'basic-mad':
+      return { type: 'custom', color: TOKEN_COLORS.mad };
+    default:
+      // Character-specific reminder — extract source character from the id prefix
+      // e.g. "lycanthrope-fauxpaw" → sourceCharacterId = "lycanthrope"
+      return {
+        type: 'custom',
+        color: TOKEN_COLORS.character,
+        sourceCharacterId: reminder.id.includes('-')
+          ? reminder.id.slice(0, reminder.id.indexOf('-'))
+          : undefined,
+      };
+  }
 }
 
 // ──────────────────────────────────────────────
@@ -131,10 +275,12 @@ export interface TokenManagerProps {
   onRemoveToken: (seat: number, tokenId: string) => void;
   /** Character definition for the player, used to show character-specific reminders. */
   characterDef?: CharacterDef;
+  /** All available tokens built from active characters in the game. */
+  availableTokens?: ReminderToken[];
 }
 
 /**
- * Dialog to add/remove status tokens (Drunk, Poisoned, custom) from a player.
+ * Dialog to add/remove status tokens (Drunk, Poisoned, character reminders, custom) from a player.
  */
 export function TokenManager({
   open,
@@ -143,6 +289,7 @@ export function TokenManager({
   onAddToken,
   onRemoveToken,
   characterDef,
+  availableTokens,
 }: TokenManagerProps) {
   const [customLabel, setCustomLabel] = useState('');
 
@@ -151,36 +298,43 @@ export function TokenManager({
   const tokens = player.tokens ?? [];
   const reminders = characterDef?.reminders ?? [];
 
-  // Lookup existing drunk / poisoned tokens for toggle behaviour
-  const existingDrunk = tokens.find((t) => t.type === 'drunk');
-  const existingPoisoned = tokens.find((t) => t.type === 'poisoned');
-
   // Count of custom tokens (includes character reminders that use type 'custom')
   const customTokenCount = tokens.filter((t) => t.type === 'custom').length;
 
-  /** Toggle a preset token: if it already exists, remove it; otherwise add it. */
-  const handleTogglePreset = (type: 'drunk' | 'poisoned', label: string, color: string) => {
-    const existing = type === 'drunk' ? existingDrunk : existingPoisoned;
+  // Split available tokens into basic (Drunk/Poisoned/Mad) and character-specific
+  const basicTokens = (availableTokens ?? []).filter((t) => t.id.startsWith('basic-'));
+  const characterTokens = (availableTokens ?? []).filter((t) => !t.id.startsWith('basic-'));
+
+  // Set of this player's character reminder IDs for highlighting
+  const playerReminderIds = new Set(reminders.map((r) => r.id));
+
+  /** Toggle a basic token: if it already exists, remove it; otherwise add it. */
+  const handleToggleBasic = (reminder: ReminderToken) => {
+    const props = tokenPropsForReminder(reminder);
+    const existing = tokens.find((t) => t.type === props.type && t.label === reminder.text);
     if (existing) {
       onRemoveToken(player.seat, existing.id);
     } else {
       onAddToken(player.seat, {
         id: generateId(),
-        type,
-        label,
-        color,
+        type: props.type,
+        label: reminder.text,
+        color: props.color,
+        sourceCharacterId: props.sourceCharacterId,
       });
     }
   };
 
-  const handleAddReminder = (text: string) => {
+  /** Add a character-specific reminder token. */
+  const handleAddCharacterReminder = (reminder: ReminderToken) => {
     if (customTokenCount >= MAX_CUSTOM_TOKENS) return;
+    const props = tokenPropsForReminder(reminder);
     onAddToken(player.seat, {
       id: generateId(),
-      type: 'custom',
-      label: text,
-      sourceCharacterId: characterDef?.id,
-      color: TOKEN_COLORS.custom,
+      type: props.type,
+      label: reminder.text,
+      color: props.color,
+      sourceCharacterId: props.sourceCharacterId,
     });
   };
 
@@ -194,6 +348,12 @@ export function TokenManager({
       color: TOKEN_COLORS.custom,
     });
     setCustomLabel('');
+  };
+
+  /** Check whether a basic token is currently active on this player. */
+  const isBasicActive = (reminder: ReminderToken): boolean => {
+    const props = tokenPropsForReminder(reminder);
+    return tokens.some((t) => t.type === props.type && t.label === reminder.text);
   };
 
   return (
@@ -228,31 +388,116 @@ export function TokenManager({
           </Box>
         )}
 
-        {/* Preset toggle buttons (on/off — max 1 each) */}
-        <Typography variant="subtitle2" gutterBottom>
-          Status Tokens
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-          <Button
-            variant={existingDrunk ? 'contained' : 'outlined'}
-            size="small"
-            onClick={() => handleTogglePreset('drunk', 'Drunk', TOKEN_COLORS.drunk)}
-            sx={{ textTransform: 'none' }}
-          >
-            🍺 Drunk
-          </Button>
-          <Button
-            variant={existingPoisoned ? 'contained' : 'outlined'}
-            size="small"
-            onClick={() => handleTogglePreset('poisoned', 'Poisoned', TOKEN_COLORS.poisoned)}
-            sx={{ textTransform: 'none' }}
-          >
-            ☠️ Poisoned
-          </Button>
-        </Box>
+        {/* Basic tokens (Drunk / Poisoned / Mad) — toggle on/off */}
+        {basicTokens.length > 0 && (
+          <>
+            <Typography variant="subtitle2" gutterBottom>
+              Status Tokens
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+              {basicTokens.map((bt) => {
+                const active = isBasicActive(bt);
+                const props = tokenPropsForReminder(bt);
+                return (
+                  <Button
+                    key={bt.id}
+                    variant={active ? 'contained' : 'outlined'}
+                    size="small"
+                    onClick={() => handleToggleBasic(bt)}
+                    sx={{
+                      textTransform: 'none',
+                      ...(active && {
+                        bgcolor: props.color,
+                        '&:hover': { bgcolor: props.color, filter: 'brightness(0.9)' },
+                      }),
+                    }}
+                  >
+                    {bt.text}
+                  </Button>
+                );
+              })}
+            </Box>
+          </>
+        )}
 
-        {/* Character-specific reminder tokens */}
-        {reminders.length > 0 && (
+        {/* Fallback when no availableTokens provided — hardcoded Drunk/Poisoned */}
+        {!availableTokens && (
+          <>
+            <Typography variant="subtitle2" gutterBottom>
+              Status Tokens
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+              {(['drunk', 'poisoned'] as const).map((preset) => {
+                const existing = tokens.find((t) => t.type === preset);
+                const label = preset === 'drunk' ? 'Drunk' : 'Poisoned';
+                const color = TOKEN_COLORS[preset];
+                return (
+                  <Button
+                    key={preset}
+                    variant={existing ? 'contained' : 'outlined'}
+                    size="small"
+                    onClick={() => {
+                      if (existing) {
+                        onRemoveToken(player.seat, existing.id);
+                      } else {
+                        onAddToken(player.seat, {
+                          id: generateId(),
+                          type: preset,
+                          label,
+                          color,
+                        });
+                      }
+                    }}
+                    sx={{
+                      textTransform: 'none',
+                      ...(existing && {
+                        bgcolor: color,
+                        '&:hover': { bgcolor: color, filter: 'brightness(0.9)' },
+                      }),
+                    }}
+                  >
+                    {label}
+                  </Button>
+                );
+              })}
+            </Box>
+          </>
+        )}
+
+        {/* Character-specific reminder tokens from ALL active characters */}
+        {characterTokens.length > 0 && (
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" gutterBottom>
+              Character Reminders
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+              {characterTokens.map((r) => {
+                const isPlayerReminder = playerReminderIds.has(r.id);
+                return (
+                  <Button
+                    key={r.id}
+                    variant="outlined"
+                    size="small"
+                    onClick={() => handleAddCharacterReminder(r)}
+                    disabled={customTokenCount >= MAX_CUSTOM_TOKENS}
+                    sx={{
+                      textTransform: 'none',
+                      fontSize: '0.75rem',
+                      borderColor: isPlayerReminder ? TOKEN_COLORS.character : undefined,
+                      color: isPlayerReminder ? TOKEN_COLORS.character : undefined,
+                      fontWeight: isPlayerReminder ? 700 : 400,
+                    }}
+                  >
+                    {r.text}
+                  </Button>
+                );
+              })}
+            </Box>
+          </Box>
+        )}
+
+        {/* Fallback: character-specific reminders when no availableTokens provided */}
+        {!availableTokens && reminders.length > 0 && (
           <Box sx={{ mb: 2 }}>
             <Typography variant="subtitle2" gutterBottom>
               {characterDef?.name} Reminders
@@ -263,7 +508,8 @@ export function TokenManager({
                   key={r.id}
                   variant="outlined"
                   size="small"
-                  onClick={() => handleAddReminder(r.text)}
+                  onClick={() => handleAddCharacterReminder(r)}
+                  disabled={customTokenCount >= MAX_CUSTOM_TOKENS}
                   sx={{ textTransform: 'none', fontSize: '0.75rem' }}
                 >
                   {r.text}

@@ -103,12 +103,20 @@ const renderToken = (player: PlayerSeat, _position: TokenPosition) => (
   <TokenPlaceholder player={player} />
 );
 
+/** Placeholder card dimensions (48×48 square). */
+const PLACEHOLDER_CARD_W = 48;
+const PLACEHOLDER_CARD_H = 48;
+
 /**
  * Rich renderToken that also renders TokenBadges for players with tokens.
  * Uses the layout's position to compute badge angles relative to the
  * container centre (passed via closure).
  */
-function createRichTokenWithBadges(containerWidth: number, containerHeight: number) {
+function createRichTokenWithBadges(
+  containerWidth: number,
+  containerHeight: number,
+  tokenLayout: 'radial' | 'linear' = 'radial',
+) {
   const centerX = containerWidth / 2;
   const centerY = containerHeight / 2;
 
@@ -123,6 +131,9 @@ function createRichTokenWithBadges(containerWidth: number, containerHeight: numb
             tileY={position.y}
             centerX={centerX}
             centerY={centerY}
+            cardWidth={PLACEHOLDER_CARD_W}
+            cardHeight={PLACEHOLDER_CARD_H}
+            tokenLayout={tokenLayout}
           />
         </Box>
       )}
@@ -289,6 +300,40 @@ export const WorstCaseOvoidVisible: Story = {
     containerWidth: 800,
     containerHeight: 400,
     renderToken: createRichTokenWithBadges(375, 500),
+  },
+};
+
+// ────────────────────────────────────────────────────────
+// Token badge layout variants (Phase 7B)
+// ────────────────────────────────────────────────────────
+
+/**
+ * Radial token badge layout — badges fan outward from the
+ * tile centre away from the town square centre.
+ * This is the default badge layout mode.
+ */
+export const RadialTokenBadges: Story = {
+  args: {
+    players: worstCase20Players,
+    shape: 'circle',
+    containerWidth: 600,
+    containerHeight: 600,
+    renderToken: createRichTokenWithBadges(600, 600, 'radial'),
+  },
+};
+
+/**
+ * Linear token badge layout — badges are placed in a straight line
+ * along the card edge furthest from the town square centre.
+ * Useful for dense layouts where fan overlap is a problem.
+ */
+export const LinearTokenBadges: Story = {
+  args: {
+    players: worstCase20Players,
+    shape: 'circle',
+    containerWidth: 600,
+    containerHeight: 600,
+    renderToken: createRichTokenWithBadges(600, 600, 'linear'),
   },
 };
 

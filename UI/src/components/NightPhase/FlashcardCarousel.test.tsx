@@ -16,15 +16,17 @@ vi.mock('react-swipeable', () => ({
 // Mock data
 // ──────────────────────────────────────────────
 
-const makeEntry = (id: string, name: string, type: 'structural' | 'character' = 'character'): NightOrderEntry => ({
+const makeEntry = (
+  id: string,
+  name: string,
+  type: 'structural' | 'character' = 'character',
+): NightOrderEntry => ({
   order: 0,
   type,
   id,
   name,
   helpText: `Help text for ${name}`,
-  subActions: [
-    { id: `${id}-sa1`, description: `Wake ${name}`, isConditional: false },
-  ],
+  subActions: [{ id: `${id}-sa1`, description: `Wake ${name}`, isConditional: false }],
 });
 
 const duskEntry = makeEntry('dusk', 'Dusk', 'structural');
@@ -133,9 +135,7 @@ describe('FlashcardCarousel', () => {
 
   it('has correct aria-label on carousel container', () => {
     render(<FlashcardCarousel {...defaultProps} />);
-    expect(
-      screen.getByLabelText('Night phase flashcard carousel'),
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText('Night phase flashcard carousel')).toBeInTheDocument();
   });
 
   it('does not show previous button on first card', () => {
@@ -154,10 +154,7 @@ describe('FlashcardCarousel', () => {
 
   it('shows "Complete Night" button on the last card', () => {
     render(
-      <FlashcardCarousel
-        {...defaultProps}
-        nightProgress={makeNightProgress(entries.length - 1)}
-      />,
+      <FlashcardCarousel {...defaultProps} nightProgress={makeNightProgress(entries.length - 1)} />,
     );
     expect(screen.getByText(/Complete Night/)).toBeInTheDocument();
   });
@@ -204,12 +201,7 @@ describe('FlashcardCarousel', () => {
   });
 
   it('renders character flashcard for character entries at the right index', () => {
-    render(
-      <FlashcardCarousel
-        {...defaultProps}
-        nightProgress={makeNightProgress(1)}
-      />,
-    );
+    render(<FlashcardCarousel {...defaultProps} nightProgress={makeNightProgress(1)} />);
     // Index 1 is Fortune Teller — a character entry
     expect(screen.getByText('Fortune Teller')).toBeInTheDocument();
     expect(screen.getByText('Alice (Seat 1)')).toBeInTheDocument();
@@ -223,5 +215,37 @@ describe('FlashcardCarousel', () => {
     // Navigation is animated so immediate DOM check may still show initial card
     // But the event should not throw
     expect(carousel).toBeInTheDocument();
+  });
+
+  // ── onCardChange callback ──
+
+  it('calls onCardChange when navigating to the next card', () => {
+    vi.useFakeTimers();
+    const onCardChange = vi.fn();
+    render(<FlashcardCarousel {...defaultProps} onCardChange={onCardChange} />);
+
+    // Click the next arrow button
+    const rightIcon = document.querySelector('[data-testid="ChevronRightIcon"]');
+    expect(rightIcon).toBeInTheDocument();
+    fireEvent.click(rightIcon!.closest('button')!);
+
+    // The callback fires after the 300ms animation timeout
+    vi.advanceTimersByTime(300);
+    expect(onCardChange).toHaveBeenCalledWith(1);
+    vi.useRealTimers();
+  });
+
+  it('does not break when onCardChange is not provided', () => {
+    vi.useFakeTimers();
+    render(<FlashcardCarousel {...defaultProps} />);
+
+    const rightIcon = document.querySelector('[data-testid="ChevronRightIcon"]');
+    expect(rightIcon).toBeInTheDocument();
+    fireEvent.click(rightIcon!.closest('button')!);
+
+    // Should not throw even without onCardChange
+    vi.advanceTimersByTime(300);
+    expect(screen.getByRole('region')).toBeInTheDocument();
+    vi.useRealTimers();
   });
 });
