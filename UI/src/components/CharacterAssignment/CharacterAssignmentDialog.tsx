@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import Alert from '@mui/material/Alert';
+import AlertTitle from '@mui/material/AlertTitle';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -26,6 +27,8 @@ import {
 import type { Distribution } from '@/data/playerCountRules.ts';
 import { randomlyAssignCharacters } from '@/utils/characterAssignment.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { getSetupModifiers, getNetAdjustment } from '@/utils/setupModifiers.ts';
+import { getRequiredCharacters, getSetupPrompts } from '@/utils/requiredCharacters.ts';
 
 export interface CharacterAssignmentDialogProps {
   open: boolean;
@@ -85,6 +88,19 @@ export function CharacterAssignmentDialog({
     () => getDistributionWarnings(distribution, scriptCharacterIds),
     [distribution, scriptCharacterIds],
   );
+
+  // Setup modifiers (Baron +2 Outsiders, etc.)
+  const setupModifiers = useMemo(() => getSetupModifiers(scriptCharacterIds), [scriptCharacterIds]);
+  const netAdjustment = useMemo(() => getNetAdjustment(setupModifiers), [setupModifiers]);
+
+  // Required character detection (Choirboy → King, etc.)
+  const requiredCharacters = useMemo(
+    () => getRequiredCharacters(scriptCharacterIds),
+    [scriptCharacterIds],
+  );
+
+  // Setup prompts (Bounty Hunter evil townsfolk designation, etc.)
+  const setupPrompts = useMemo(() => getSetupPrompts(scriptCharacterIds), [scriptCharacterIds]);
 
   // Reset state when dialog opens
   const handleEnter = useCallback(() => {
@@ -220,6 +236,54 @@ export function CharacterAssignmentDialog({
         {warnings.map((w, i) => (
           <Alert key={`warning-${i}`} severity={w.severity} sx={{ mb: 1 }}>
             {w.message}
+          </Alert>
+        ))}
+
+        {/* Setup distribution modifiers */}
+        {setupModifiers.length > 0 && (
+          <Alert severity="info" sx={{ mb: 1 }}>
+            <AlertTitle>Distribution Modifiers</AlertTitle>
+            {setupModifiers.map((m) => (
+              <Typography key={`${m.characterId}-${m.type}`} variant="body2">
+                {m.description} ({m.characterName}){m.adjustment === 'variable' && ' — ST decides'}
+              </Typography>
+            ))}
+            {typeof netAdjustment.outsiders === 'number' && netAdjustment.outsiders !== 0 && (
+              <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 600 }}>
+                Net Outsider adjustment: {netAdjustment.outsiders > 0 ? '+' : ''}
+                {netAdjustment.outsiders}
+              </Typography>
+            )}
+            {netAdjustment.outsiders === 'variable' && (
+              <Typography variant="body2" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+                Net Outsider adjustment is variable — Storyteller decides
+              </Typography>
+            )}
+            {typeof netAdjustment.minions === 'number' && netAdjustment.minions !== 0 && (
+              <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 600 }}>
+                Net Minion adjustment: {netAdjustment.minions > 0 ? '+' : ''}
+                {netAdjustment.minions}
+              </Typography>
+            )}
+            {netAdjustment.minions === 'variable' && (
+              <Typography variant="body2" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+                Net Minion adjustment is variable — Storyteller decides
+              </Typography>
+            )}
+          </Alert>
+        )}
+
+        {/* Required character warnings */}
+        {requiredCharacters.map((req) => (
+          <Alert key={`req-${req.sourceCharacterId}`} severity="warning" sx={{ mb: 1 }}>
+            ⚠️ {req.reason}
+          </Alert>
+        ))}
+
+        {/* Setup prompts (e.g. Bounty Hunter evil townsfolk) */}
+        {setupPrompts.map((sp) => (
+          <Alert key={`prompt-${sp.characterId}`} severity="info" sx={{ mb: 1 }}>
+            📋 {sp.characterName}: {sp.prompt}
           </Alert>
         ))}
 
