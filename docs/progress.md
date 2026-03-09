@@ -33,6 +33,7 @@
 | M24 | UI Polish & Bug Fixes | ✅ Complete | [details](milestones/24%20-%20ui%20polish%20and%20bug%20fixes/milestone24.md) |
 | M25 | Night Flashcard Enhancements | ✅ Complete | [details](milestones/25%20-%20night%20flashcard%20enhancements/milestone25.md) |
 | M26 | Demon Bluffs | ✅ Complete | [details](milestones/26%20-%20demon%20bluffs/milestone26.md) |
+| M27 | Character Selection & Assignment Redesign | ✅ Complete | [details](milestones/27%20-%20character%20selection%20redesign/milestone27.md) |
 
 ## Key Design Decisions
 
@@ -43,12 +44,13 @@
 - **Simple Day/Night toggle** — Dawn/Dusk removed in M3 (don't add value)
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
+- **Adaptive distribution engine in M27** — replaces static distribution with real-time targets responding to setup-affecting characters (Baron, Legion, Atheist, Xaan, etc.)
 
-## Verification (as of M26 Complete)
+## Verification (as of M27 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 3695/3695 passing (67 test files)
+- Tests: 3796/3796 passing (69 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~93+ stories including `play()` interaction tests
 - Go build: success

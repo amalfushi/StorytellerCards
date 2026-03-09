@@ -55,6 +55,39 @@ const scriptCharacters: CharacterDef[] = [
   makeChar({ id: 'angel', name: 'Angel', type: CharacterType.Fabled }),
 ];
 
+// Script with setup-affecting characters for modifier tests
+const scriptWithModifiers: CharacterDef[] = [
+  ...scriptCharacters.filter((c) => c.type !== 'Traveller' && c.type !== 'Fabled'),
+  makeChar({
+    id: 'baron',
+    name: 'Baron',
+    type: CharacterType.Minion,
+    defaultAlignment: Alignment.Evil,
+    abilityShort: '+2 Outsiders',
+  }),
+  makeChar({
+    id: 'xaan',
+    name: 'Xaan',
+    type: CharacterType.Minion,
+    defaultAlignment: Alignment.Evil,
+    abilityShort: 'X Outsiders',
+  }),
+  makeChar({
+    id: 'villageidiot',
+    name: 'Village Idiot',
+    type: CharacterType.Townsfolk,
+    defaultAlignment: Alignment.Good,
+    abilityShort: 'Can have 0-2 extra copies.',
+  }),
+  makeChar({
+    id: 'legion',
+    name: 'Legion',
+    type: CharacterType.Demon,
+    defaultAlignment: Alignment.Evil,
+    abilityShort: 'Most players are Legion.',
+  }),
+];
+
 // ──────────────────────────────────────────────
 // Tests
 // ──────────────────────────────────────────────
@@ -212,5 +245,125 @@ describe('CharacterSelection', () => {
     expect(screen.queryByTestId('total-count-chip')).not.toBeInTheDocument();
     expect(screen.getByTestId('summary-chip-Townsfolk')).toHaveTextContent('Townsfolk: 1/5');
     expect(screen.getByTestId('summary-chip-Demon')).toHaveTextContent('Demon: 1/1');
+  });
+
+  // ──────────────────────────────────────────
+  // M27: Adaptive targets & modifier chips
+  // ──────────────────────────────────────────
+
+  describe('adaptive targets and modifier chips', () => {
+    it('shows modifier chip when Baron is selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['baron']}
+        />,
+      );
+      expect(screen.getByTestId('modifier-chips')).toBeInTheDocument();
+      expect(screen.getByTestId('modifier-chip-baron')).toBeInTheDocument();
+    });
+
+    it('updates outsider target when Baron is selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+        />,
+      );
+
+      // Before Baron: target is 1 outsider for 8 players
+      expect(screen.getByTestId('summary-chip-Outsider')).toHaveTextContent('Outsider: 0/1');
+
+      // Select Baron
+      fireEvent.click(screen.getByTestId('char-toggle-baron'));
+
+      // After Baron: target becomes 3 outsiders (1 + 2)
+      expect(screen.getByTestId('summary-chip-Outsider')).toHaveTextContent('Outsider: 0/3');
+    });
+
+    it('does not show modifier chips when no modifiers active', () => {
+      render(<CharacterSelection {...defaultProps} />);
+      expect(screen.queryByTestId('modifier-chips')).not.toBeInTheDocument();
+    });
+
+    it('shows Xaan input when Xaan is selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['xaan']}
+        />,
+      );
+      expect(screen.getByTestId('xaan-input')).toBeInTheDocument();
+      expect(screen.getByLabelText('Xaan X value')).toBeInTheDocument();
+    });
+
+    it('hides Xaan input when Xaan is not selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+        />,
+      );
+      expect(screen.queryByTestId('xaan-input')).not.toBeInTheDocument();
+    });
+  });
+
+  // ──────────────────────────────────────────
+  // M27: Duplicate character support
+  // ──────────────────────────────────────────
+
+  describe('duplicate character selection', () => {
+    it('shows duplicate stepper for Village Idiot when selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['villageidiot']}
+        />,
+      );
+      expect(screen.getByTestId('duplicate-stepper-villageidiot')).toBeInTheDocument();
+    });
+
+    it('does not show duplicate stepper when Village Idiot is not selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+        />,
+      );
+      expect(screen.queryByTestId('duplicate-stepper-villageidiot')).not.toBeInTheDocument();
+    });
+
+    it('shows duplicate stepper for Legion when selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['legion']}
+        />,
+      );
+      expect(screen.getByTestId('duplicate-stepper-legion')).toBeInTheDocument();
+    });
+
+    it('does not show duplicate stepper for non-duplicate characters', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['imp']}
+        />,
+      );
+      expect(screen.queryByTestId('duplicate-stepper-imp')).not.toBeInTheDocument();
+    });
   });
 });

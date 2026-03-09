@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
+import AddIcon from '@mui/icons-material/Add';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -15,6 +16,7 @@ import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
+import RemoveIcon from '@mui/icons-material/Remove';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -22,11 +24,12 @@ import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import type { CharacterDef, CharacterType } from '@/types/index.ts';
-import { getDistribution } from '@/data/playerCountRules.ts';
 import type { Distribution } from '@/data/playerCountRules.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
+import { calculateAdaptiveTargets } from '@/utils/adaptiveDistribution.ts';
+import type { AdaptiveDistributionOptions } from '@/utils/adaptiveDistribution.ts';
 
 /** Ordered list of character type groups to display (Travellers omitted). */
 const TYPE_GROUP_ORDER: CharacterType[] = [
@@ -46,6 +49,9 @@ const TYPE_TO_DIST_KEY: Partial<Record<CharacterType, keyof Distribution>> = {
   Demon: 'demons',
 };
 
+/** Characters that support duplicate copies in play. */
+const DUPLICATE_ALLOWED_IDS = new Set(['villageidiot', 'legion']);
+
 export interface CharacterSelectionProps {
   open: boolean;
   onClose: () => void;
@@ -60,8 +66,9 @@ export interface CharacterSelectionProps {
 /**
  * Full-screen dialog for selecting which characters from the script are in-play.
  *
- * Shows characters grouped by type with toggle checkboxes and
- * distribution target tracking based on player count.
+ * Uses the adaptive distribution engine for real-time target tracking that
+ * responds to setup-affecting characters (Baron, Legion, Atheist, etc.).
+ * Supports modifier chips, Xaan X input, and duplicate character selection.
  */
 export function CharacterSelection({
   open,
@@ -74,13 +81,44 @@ export function CharacterSelection({
 }: CharacterSelectionProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(initialSelected ?? []));
   const [searchQuery, setSearchQuery] = useState('');
+  const [xaanX, setXaanX] = useState<number | undefined>(undefined);
+  const [extraVillageIdiots, setExtraVillageIdiots] = useState(0);
+  const [extraLegionCopies, setExtraLegionCopies] = useState(0);
 
-  const distribution = useMemo(() => getDistribution(playerCount), [playerCount]);
+  // Build adaptive distribution options from current state
+  const adaptiveOptions: AdaptiveDistributionOptions = useMemo(
+    () => ({
+      xaanX,
+      extraVillageIdiots,
+      extraLegionCopies,
+    }),
+    [xaanX, extraVillageIdiots, extraLegionCopies],
+  );
+
+  // Adaptive distribution engine replaces static getDistribution
+  const adaptiveTargets = useMemo(
+    () => calculateAdaptiveTargets(playerCount, Array.from(selectedIds), adaptiveOptions),
+    [playerCount, selectedIds, adaptiveOptions],
+  );
+
+  // Map from AdaptiveTargets to Distribution-like shape for chip rendering
+  const distribution = useMemo(
+    () => ({
+      townsfolk: adaptiveTargets.townsfolk,
+      outsiders: adaptiveTargets.outsiders,
+      minions: adaptiveTargets.minions,
+      demons: adaptiveTargets.demons,
+    }),
+    [adaptiveTargets],
+  );
 
   // Reset when dialog opens
   const handleEnter = useCallback(() => {
     setSelectedIds(new Set(initialSelected ?? []));
     setSearchQuery('');
+    setXaanX(undefined);
+    setExtraVillageIdiots(0);
+    setExtraLegionCopies(0);
   }, [initialSelected]);
 
   // Filter out Travellers from script characters
@@ -103,7 +141,7 @@ export function CharacterSelection({
     return groups;
   }, [nonTravellerCharacters]);
 
-  // Count selected by type (only non-Traveller)
+  // Count selected by type (only non-Traveller), including duplicates
   const selectedCounts = useMemo(() => {
     const counts: Record<string, number> = {};
     for (const type of TYPE_GROUP_ORDER) {
@@ -113,10 +151,13 @@ export function CharacterSelection({
       const ch = nonTravellerCharacters.find((c) => c.id === id);
       if (ch) {
         counts[ch.type] = (counts[ch.type] ?? 0) + 1;
+        // Add duplicate copies
+        if (ch.id === 'villageidiot') counts[ch.type] += extraVillageIdiots;
+        if (ch.id === 'legion') counts[ch.type] += extraLegionCopies;
       }
     }
     return counts;
-  }, [selectedIds, nonTravellerCharacters]);
+  }, [selectedIds, nonTravellerCharacters, extraVillageIdiots, extraLegionCopies]);
 
   // Filter characters by search query
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -133,17 +174,24 @@ export function CharacterSelection({
     return filtered;
   }, [charsByType, normalizedQuery]);
 
-  const handleToggle = useCallback((characterId: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(characterId)) {
-        next.delete(characterId);
-      } else {
-        next.add(characterId);
-      }
-      return next;
-    });
-  }, []);
+  const handleToggle = useCallback(
+    (characterId: string) => {
+      setSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(characterId)) {
+          next.delete(characterId);
+          // Reset duplicates when deselecting
+          if (characterId === 'villageidiot') setExtraVillageIdiots(0);
+          if (characterId === 'legion') setExtraLegionCopies(0);
+          if (characterId === 'xaan') setXaanX(undefined);
+        } else {
+          next.add(characterId);
+        }
+        return next;
+      });
+    },
+    [setExtraVillageIdiots, setExtraLegionCopies, setXaanX],
+  );
 
   const handleSelectAll = useCallback(
     (type: CharacterType) => {
@@ -165,9 +213,17 @@ export function CharacterSelection({
   );
 
   const handleConfirm = useCallback(() => {
-    onConfirm(Array.from(selectedIds));
+    // Build the full selected list including duplicate copies
+    const ids = Array.from(selectedIds);
+    for (let i = 0; i < extraVillageIdiots; i++) {
+      ids.push('villageidiot');
+    }
+    for (let i = 0; i < extraLegionCopies; i++) {
+      ids.push('legion');
+    }
+    onConfirm(ids);
     onClose();
-  }, [selectedIds, onConfirm, onClose]);
+  }, [selectedIds, extraVillageIdiots, extraLegionCopies, onConfirm, onClose]);
 
   /** Render a distribution status chip for a counted type. */
   function renderDistChip(type: CharacterType) {
@@ -191,10 +247,54 @@ export function CharacterSelection({
     );
   }
 
-  /** Total count of all selected characters. */
-  const totalSelected = selectedIds.size;
+  /** Total count of all selected characters including duplicates. */
+  const totalSelected = selectedIds.size + extraVillageIdiots + extraLegionCopies;
 
   const dialogTitle = gameNumber ? `Game ${gameNumber}: Select Characters` : 'Select Characters';
+
+  /** Render duplicate stepper for Village Idiot or Legion. */
+  function renderDuplicateStepper(charId: string) {
+    if (!DUPLICATE_ALLOWED_IDS.has(charId) || !selectedIds.has(charId)) return null;
+
+    const isVI = charId === 'villageidiot';
+    const count = isVI ? extraVillageIdiots : extraLegionCopies;
+    const max = isVI ? 2 : playerCount - 1;
+    const setCount = isVI ? setExtraVillageIdiots : setExtraLegionCopies;
+    const label = isVI ? 'Village Idiot' : 'Legion';
+
+    return (
+      <Box
+        sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 5, mb: 0.5 }}
+        data-testid={`duplicate-stepper-${charId}`}
+      >
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            setCount(Math.max(0, count - 1));
+          }}
+          disabled={count <= 0}
+          aria-label={`Remove extra ${label}`}
+        >
+          <RemoveIcon fontSize="small" />
+        </IconButton>
+        <Typography variant="body2" sx={{ minWidth: 24, textAlign: 'center' }}>
+          ×{1 + count}
+        </Typography>
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            setCount(Math.min(max, count + 1));
+          }}
+          disabled={count >= max}
+          aria-label={`Add extra ${label}`}
+        >
+          <AddIcon fontSize="small" />
+        </IconButton>
+      </Box>
+    );
+  }
 
   return (
     <Dialog
@@ -250,6 +350,60 @@ export function CharacterSelection({
       </DialogTitle>
 
       <DialogContent dividers>
+        {/* Modifier chips — shown when setup-affecting characters are selected */}
+        {adaptiveTargets.modifiers.length > 0 && (
+          <Box
+            sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}
+            data-testid="modifier-chips"
+          >
+            {adaptiveTargets.modifiers.map((mod) => (
+              <Chip
+                key={`${mod.characterId}-${mod.description}`}
+                label={`⚠️ ${mod.characterName}: ${mod.description}`}
+                size="small"
+                variant="outlined"
+                color="warning"
+                data-testid={`modifier-chip-${mod.characterId}`}
+              />
+            ))}
+          </Box>
+        )}
+
+        {/* Adaptive warnings */}
+        {adaptiveTargets.warnings.length > 0 && (
+          <Box sx={{ mb: 1.5 }} data-testid="adaptive-warnings">
+            {adaptiveTargets.warnings.map((w, i) => (
+              <Typography key={i} variant="body2" color="warning.main" sx={{ mb: 0.5 }}>
+                ⚠️ {w}
+              </Typography>
+            ))}
+          </Box>
+        )}
+
+        {/* Xaan X input — shown when Xaan is selected */}
+        {selectedIds.has('xaan') && (
+          <Box
+            sx={{ mb: 1.5, display: 'flex', alignItems: 'center', gap: 1 }}
+            data-testid="xaan-input"
+          >
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>
+              Xaan — Choose X:
+            </Typography>
+            <TextField
+              type="number"
+              size="small"
+              value={xaanX ?? ''}
+              onChange={(e) => {
+                const val = parseInt(e.target.value, 10);
+                setXaanX(isNaN(val) ? undefined : Math.max(0, val));
+              }}
+              slotProps={{ htmlInput: { min: 0, max: 15, 'aria-label': 'Xaan X value' } }}
+              sx={{ width: 80 }}
+              placeholder="X"
+            />
+          </Box>
+        )}
+
         {/* Search filter */}
         <TextField
           fullWidth
@@ -338,6 +492,7 @@ export function CharacterSelection({
                           secondaryTypographyProps={{ sx: { ml: 1 } }}
                         />
                       </ListItemButton>
+                      {renderDuplicateStepper(ch.id)}
                     </ListItem>
                   );
                 })}

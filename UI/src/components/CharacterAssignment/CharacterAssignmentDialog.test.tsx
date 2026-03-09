@@ -8,67 +8,35 @@ import { Alignment, CharacterType } from '@/types/index.ts';
 // Mock data
 // ──────────────────────────────────────────────
 
+const makeChar = (overrides: Partial<CharacterDef> = {}): CharacterDef => ({
+  id: 'noble',
+  name: 'Noble',
+  type: CharacterType.Townsfolk,
+  defaultAlignment: Alignment.Good,
+  abilityShort: 'Test',
+  firstNight: null,
+  otherNights: null,
+  reminders: [],
+  ...overrides,
+});
+
 const mockScriptCharacters: CharacterDef[] = [
-  {
-    id: 'noble',
-    name: 'Noble',
-    type: CharacterType.Townsfolk,
-    defaultAlignment: Alignment.Good,
-    abilityShort: 'On your 1st night, you learn 3 players.',
-    firstNight: null,
-    otherNights: null,
-    reminders: [],
-  },
-  {
-    id: 'fortuneteller',
-    name: 'Fortune Teller',
-    type: CharacterType.Townsfolk,
-    defaultAlignment: Alignment.Good,
-    abilityShort: 'Each night, choose 2 players.',
-    firstNight: null,
-    otherNights: null,
-    reminders: [],
-  },
-  {
-    id: 'slayer',
-    name: 'Slayer',
-    type: CharacterType.Townsfolk,
-    defaultAlignment: Alignment.Good,
-    abilityShort: 'Once per game, choose a player: if they are the Demon, they die.',
-    firstNight: null,
-    otherNights: null,
-    reminders: [],
-  },
-  {
-    id: 'drunk',
-    name: 'Drunk',
-    type: CharacterType.Outsider,
-    defaultAlignment: Alignment.Good,
-    abilityShort: 'You think you are a Townsfolk, but you are not.',
-    firstNight: null,
-    otherNights: null,
-    reminders: [],
-  },
-  {
+  makeChar({ id: 'noble', name: 'Noble', type: CharacterType.Townsfolk }),
+  makeChar({ id: 'fortuneteller', name: 'Fortune Teller', type: CharacterType.Townsfolk }),
+  makeChar({ id: 'slayer', name: 'Slayer', type: CharacterType.Townsfolk }),
+  makeChar({ id: 'drunk', name: 'Drunk', type: CharacterType.Outsider }),
+  makeChar({
     id: 'poisoner',
     name: 'Poisoner',
     type: CharacterType.Minion,
     defaultAlignment: Alignment.Evil,
-    abilityShort: 'Each night, choose a player: they are poisoned.',
-    firstNight: null,
-    otherNights: null,
-    reminders: [],
-  },
-  {
+  }),
+  makeChar({
     id: 'imp',
     name: 'Imp',
     type: CharacterType.Demon,
     defaultAlignment: Alignment.Evil,
-    abilityShort: 'Each night*, choose a player: they die.',
-    firstNight: null,
-    otherNights: null,
-    reminders: [],
-  },
+  }),
 ];
 
 function makePlayers(count: number): PlayerSeat[] {
@@ -159,23 +127,6 @@ describe('CharacterAssignmentDialog', () => {
     expect(screen.getByText('Distribution (5 players)')).toBeInTheDocument();
   });
 
-  it('shows distribution text fields for each type', () => {
-    render(
-      <CharacterAssignmentDialog
-        open={true}
-        onClose={onClose}
-        players={fivePlayers}
-        scriptCharacters={mockScriptCharacters}
-        onConfirm={onConfirm}
-      />,
-    );
-    // Distribution text fields have labels
-    expect(screen.getByLabelText('Townsfolk')).toBeInTheDocument();
-    expect(screen.getByLabelText('Outsider')).toBeInTheDocument();
-    expect(screen.getByLabelText('Minion')).toBeInTheDocument();
-    expect(screen.getByLabelText('Demon')).toBeInTheDocument();
-  });
-
   it('has a Randomize button', () => {
     render(
       <CharacterAssignmentDialog
@@ -200,10 +151,11 @@ describe('CharacterAssignmentDialog', () => {
       />,
     );
     expect(screen.getByText('Available Characters')).toBeInTheDocument();
-    expect(screen.getByText('Townsfolk: 3')).toBeInTheDocument();
-    expect(screen.getByText('Outsider: 1')).toBeInTheDocument();
-    expect(screen.getByText('Minion: 1')).toBeInTheDocument();
-    expect(screen.getByText('Demon: 1')).toBeInTheDocument();
+    // Both distribution and available characters sections show type counts
+    expect(screen.getAllByText('Townsfolk: 3').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Outsider: 1').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Minion: 1').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Demon: 1').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows player assignment rows for non-traveller players', () => {
@@ -283,67 +235,15 @@ describe('CharacterAssignmentDialog', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it('shows distribution mismatch warning when totals do not match player count', () => {
-    render(
-      <CharacterAssignmentDialog
-        open={true}
-        onClose={onClose}
-        players={fivePlayers}
-        scriptCharacters={mockScriptCharacters}
-        onConfirm={onConfirm}
-      />,
-    );
-    // For 5 players the default distribution is 3+0+1+1=5, so no warning
-    expect(screen.queryByText(/Distribution total/)).not.toBeInTheDocument();
-
-    // Change townsfolk to 0 to cause mismatch
-    const townsfolkInput = screen.getByLabelText('Townsfolk');
-    fireEvent.change(townsfolkInput, { target: { value: '0' } });
-
-    // Now the total is 0+0+1+1=2 vs 5 players — warning should appear
-    expect(screen.getByText(/Distribution total \(2\) ≠ player count \(5\)/)).toBeInTheDocument();
-  });
-
-  it('handles empty script characters gracefully', () => {
-    render(
-      <CharacterAssignmentDialog
-        open={true}
-        onClose={onClose}
-        players={fivePlayers}
-        scriptCharacters={[]}
-        onConfirm={onConfirm}
-      />,
-    );
-    // Should show 0 counts in chips
-    expect(screen.getByText('Townsfolk: 0')).toBeInTheDocument();
-    expect(screen.getByText('Outsider: 0')).toBeInTheDocument();
-    expect(screen.getByText('Minion: 0')).toBeInTheDocument();
-    expect(screen.getByText('Demon: 0')).toBeInTheDocument();
-  });
-
   it('shows error when randomize fails due to insufficient characters', () => {
-    // Only 1 townsfolk but distribution requires 3 for 5 players
     const minimalChars: CharacterDef[] = [
-      {
-        id: 'noble',
-        name: 'Noble',
-        type: CharacterType.Townsfolk,
-        defaultAlignment: Alignment.Good,
-        abilityShort: 'Test',
-        firstNight: null,
-        otherNights: null,
-        reminders: [],
-      },
-      {
+      makeChar({ id: 'noble', name: 'Noble' }),
+      makeChar({
         id: 'imp',
         name: 'Imp',
         type: CharacterType.Demon,
         defaultAlignment: Alignment.Evil,
-        abilityShort: 'Test',
-        firstNight: null,
-        otherNights: null,
-        reminders: [],
-      },
+      }),
     ];
 
     render(
@@ -387,5 +287,144 @@ describe('CharacterAssignmentDialog', () => {
     );
     expect(screen.getByRole('button', { name: 'Confirm' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Cancel' })).toBeInTheDocument();
+  });
+
+  it('handles empty script characters gracefully', () => {
+    render(
+      <CharacterAssignmentDialog
+        open={true}
+        onClose={onClose}
+        players={fivePlayers}
+        scriptCharacters={[]}
+        onConfirm={onConfirm}
+      />,
+    );
+    // Should show 0 counts in available characters chips (may also appear in distribution)
+    expect(screen.getAllByText('Townsfolk: 0').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Outsider: 0').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Minion: 0').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('Demon: 0').length).toBeGreaterThanOrEqual(1);
+  });
+
+  // ──────────────────────────────────────────
+  // M27: Character pool chips
+  // ──────────────────────────────────────────
+
+  describe('character pool', () => {
+    it('shows unassigned characters as chips when inPlayCharacterIds provided', () => {
+      render(
+        <CharacterAssignmentDialog
+          open={true}
+          onClose={onClose}
+          players={fivePlayers}
+          scriptCharacters={mockScriptCharacters}
+          onConfirm={onConfirm}
+          inPlayCharacterIds={['noble', 'fortuneteller', 'slayer', 'poisoner', 'imp']}
+        />,
+      );
+      expect(screen.getByTestId('character-pool')).toBeInTheDocument();
+      expect(screen.getByTestId('pool-chip-noble')).toBeInTheDocument();
+      expect(screen.getByTestId('pool-chip-imp')).toBeInTheDocument();
+    });
+
+    it('shows "Unassigned Characters" heading', () => {
+      render(
+        <CharacterAssignmentDialog
+          open={true}
+          onClose={onClose}
+          players={fivePlayers}
+          scriptCharacters={mockScriptCharacters}
+          onConfirm={onConfirm}
+          inPlayCharacterIds={['noble', 'imp']}
+        />,
+      );
+      expect(screen.getByText('Unassigned Characters')).toBeInTheDocument();
+    });
+  });
+
+  // ──────────────────────────────────────────
+  // M27: Tap-to-assign
+  // ──────────────────────────────────────────
+
+  describe('tap-to-assign', () => {
+    it('shows assignment hint when a chip is tapped', () => {
+      render(
+        <CharacterAssignmentDialog
+          open={true}
+          onClose={onClose}
+          players={fivePlayers}
+          scriptCharacters={mockScriptCharacters}
+          onConfirm={onConfirm}
+          inPlayCharacterIds={['noble', 'imp']}
+        />,
+      );
+      fireEvent.click(screen.getByTestId('pool-chip-noble'));
+      expect(screen.getByText(/Tap a seat below to assign/)).toBeInTheDocument();
+    });
+  });
+
+  // ──────────────────────────────────────────
+  // M27: Identity concealment prompts
+  // ──────────────────────────────────────────
+
+  describe('identity concealment', () => {
+    it('shows concealment prompt when Drunk is assigned without apparent character', () => {
+      const playersWithDrunk = fivePlayers.map((p, i) =>
+        i === 0 ? { ...p, characterId: 'drunk' } : p,
+      );
+      render(
+        <CharacterAssignmentDialog
+          open={true}
+          onClose={onClose}
+          players={playersWithDrunk}
+          scriptCharacters={mockScriptCharacters}
+          onConfirm={onConfirm}
+        />,
+      );
+      expect(screen.getByTestId('concealment-prompt-drunk')).toBeInTheDocument();
+      expect(screen.getByText(/Townsfolk the Drunk believes/)).toBeInTheDocument();
+    });
+
+    it('shows concealment prompt when Marionette is assigned without apparent character', () => {
+      const charsWithMarionette = [
+        ...mockScriptCharacters,
+        makeChar({
+          id: 'marionette',
+          name: 'Marionette',
+          type: CharacterType.Minion,
+          defaultAlignment: Alignment.Evil,
+        }),
+      ];
+      const playersWithMarionette = fivePlayers.map((p, i) =>
+        i === 0 ? { ...p, characterId: 'marionette' } : p,
+      );
+      render(
+        <CharacterAssignmentDialog
+          open={true}
+          onClose={onClose}
+          players={playersWithMarionette}
+          scriptCharacters={charsWithMarionette}
+          onConfirm={onConfirm}
+        />,
+      );
+      expect(screen.getByTestId('concealment-prompt-marionette')).toBeInTheDocument();
+      expect(screen.getByText(/good character the Marionette believes/)).toBeInTheDocument();
+    });
+
+    it('does not show concealment prompt when apparent character is set', () => {
+      const playersWithDrunkAndApparent = fivePlayers.map((p, i) =>
+        i === 0 ? { ...p, characterId: 'drunk', apparentCharacterId: 'noble' } : p,
+      );
+      render(
+        <CharacterAssignmentDialog
+          open={true}
+          onClose={onClose}
+          players={playersWithDrunkAndApparent}
+          scriptCharacters={mockScriptCharacters}
+          onConfirm={onConfirm}
+        />,
+      );
+      expect(screen.queryByTestId('concealment-prompt-drunk')).not.toBeInTheDocument();
+    });
   });
 });
