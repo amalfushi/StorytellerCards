@@ -103,7 +103,8 @@ type GameAction =
   | { type: 'REMOVE_LORIC'; payload: { characterId: string } }
   | { type: 'SET_IN_PLAY_CHARACTERS'; payload: { characterIds: string[] } }
   | { type: 'SWAP_PLAYER_SEATS'; payload: { seatA: number; seatB: number } }
-  | { type: 'SET_APPARENT_CHARACTER'; payload: { seat: number; apparentCharacterId: string } };
+  | { type: 'SET_APPARENT_CHARACTER'; payload: { seat: number; apparentCharacterId: string } }
+  | { type: 'SET_DEMON_BLUFFS'; payload: { characterIds: string[] } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -464,6 +465,14 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'SET_DEMON_BLUFFS': {
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: { ...state.game, demonBluffs: action.payload.characterIds },
+      };
+    }
+
     default:
       return state;
   }
@@ -538,6 +547,7 @@ interface GameContextValue {
   setInPlayCharacters: (characterIds: string[]) => void;
   swapPlayerSeats: (seatA: number, seatB: number) => void;
   setApparentCharacter: (seat: number, apparentCharacterId: string) => void;
+  setDemonBluffs: (characterIds: string[]) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -697,6 +707,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_APPARENT_CHARACTER', payload: { seat, apparentCharacterId } });
   }, []);
 
+  const setDemonBluffs = useCallback((characterIds: string[]) => {
+    dispatch({ type: 'SET_DEMON_BLUFFS', payload: { characterIds } });
+  }, []);
+
   const value: GameContextValue = {
     state,
     dispatch,
@@ -724,6 +738,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setInPlayCharacters,
     swapPlayerSeats,
     setApparentCharacter,
+    setDemonBluffs,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

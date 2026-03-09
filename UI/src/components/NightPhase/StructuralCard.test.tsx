@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { StructuralCard } from '@/components/NightPhase/StructuralCard.tsx';
-import type { NightOrderEntry } from '@/types/index.ts';
+import type { NightOrderEntry, CharacterDef } from '@/types/index.ts';
+import { CharacterType, Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
 // Mock structural entries
@@ -208,5 +209,118 @@ describe('StructuralCard', () => {
     };
     render(<StructuralCard entry={unknownEntry} checkedStates={[]} onToggleSubAction={vi.fn()} />);
     expect(screen.getByText('Some unknown structural step.')).toBeInTheDocument();
+  });
+
+  // ── Demon Bluffs display on demoninfo ──
+
+  describe('Demon Bluffs on demoninfo', () => {
+    const bluffCharacters: CharacterDef[] = [
+      {
+        id: 'chef',
+        name: 'Chef',
+        type: CharacterType.Townsfolk,
+        defaultAlignment: Alignment.Good,
+        abilityShort: 'You know how many evil pairs there are.',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+      {
+        id: 'empath',
+        name: 'Empath',
+        type: CharacterType.Townsfolk,
+        defaultAlignment: Alignment.Good,
+        abilityShort: 'You learn how many neighbours are evil.',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+      {
+        id: 'butler',
+        name: 'Butler',
+        type: CharacterType.Outsider,
+        defaultAlignment: Alignment.Good,
+        abilityShort: 'Choose a player for your vote master.',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+    ];
+
+    it('shows bluff display section on demoninfo when bluffCharacters are provided', () => {
+      render(
+        <StructuralCard
+          entry={demonInfoEntry}
+          checkedStates={[false, false, false]}
+          onToggleSubAction={vi.fn()}
+          bluffCharacters={bluffCharacters}
+        />,
+      );
+      expect(screen.getByTestId('demoninfo-bluffs')).toBeInTheDocument();
+      expect(screen.getByText('Show these bluffs to the Demon')).toBeInTheDocument();
+    });
+
+    it('displays all 3 bluff character names', () => {
+      render(
+        <StructuralCard
+          entry={demonInfoEntry}
+          checkedStates={[false, false, false]}
+          onToggleSubAction={vi.fn()}
+          bluffCharacters={bluffCharacters}
+        />,
+      );
+      expect(screen.getByText('Chef')).toBeInTheDocument();
+      expect(screen.getByText('Empath')).toBeInTheDocument();
+      expect(screen.getByText('Butler')).toBeInTheDocument();
+    });
+
+    it('renders bluff character test IDs', () => {
+      render(
+        <StructuralCard
+          entry={demonInfoEntry}
+          checkedStates={[false, false, false]}
+          onToggleSubAction={vi.fn()}
+          bluffCharacters={bluffCharacters}
+        />,
+      );
+      expect(screen.getByTestId('bluff-display-chef')).toBeInTheDocument();
+      expect(screen.getByTestId('bluff-display-empath')).toBeInTheDocument();
+      expect(screen.getByTestId('bluff-display-butler')).toBeInTheDocument();
+    });
+
+    it('does not show bluff section on demoninfo when no bluffCharacters', () => {
+      render(
+        <StructuralCard
+          entry={demonInfoEntry}
+          checkedStates={[false, false, false]}
+          onToggleSubAction={vi.fn()}
+        />,
+      );
+      expect(screen.queryByTestId('demoninfo-bluffs')).not.toBeInTheDocument();
+    });
+
+    it('does not show bluff section on non-demoninfo entries even with bluffCharacters', () => {
+      render(
+        <StructuralCard
+          entry={minionInfoEntry}
+          checkedStates={[false, false, false]}
+          onToggleSubAction={vi.fn()}
+          bluffCharacters={bluffCharacters}
+        />,
+      );
+      expect(screen.queryByTestId('demoninfo-bluffs')).not.toBeInTheDocument();
+    });
+
+    it('does not show bluff section when bluffCharacters is empty array', () => {
+      render(
+        <StructuralCard
+          entry={demonInfoEntry}
+          checkedStates={[false, false, false]}
+          onToggleSubAction={vi.fn()}
+          bluffCharacters={[]}
+        />,
+      );
+      expect(screen.queryByTestId('demoninfo-bluffs')).not.toBeInTheDocument();
+    });
   });
 });

@@ -34,6 +34,8 @@ export interface FlashcardCarouselProps {
   onDotClick?: (index: number) => void;
   /** Callback fired whenever the current card index changes */
   onCardChange?: (index: number) => void;
+  /** Demon bluff character definitions (passed to demoninfo StructuralCard). */
+  bluffCharacters?: CharacterDef[];
 }
 
 /**
@@ -56,6 +58,7 @@ export function FlashcardCarousel({
   previousNightHistory,
   onDotClick,
   onCardChange,
+  bluffCharacters,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
   const [slideDir, setSlideDir] = useState<'none' | 'left' | 'right'>('none');
@@ -186,6 +189,7 @@ export function FlashcardCarousel({
           checkedStates={checked}
           onToggleSubAction={(i) => handleToggle(entry.id, i)}
           readOnly={readOnly}
+          bluffCharacters={entry.id === 'demoninfo' ? bluffCharacters : undefined}
         />
       );
     }

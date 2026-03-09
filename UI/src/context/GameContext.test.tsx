@@ -1845,4 +1845,48 @@ describe('GameContext', () => {
       expect(seat2.ghostVoteUsed).toBe(false);
     });
   });
+
+  // ── SET_DEMON_BLUFFS ──
+
+  describe('SET_DEMON_BLUFFS', () => {
+    it('sets demonBluffs on the game', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.setDemonBluffs(['washerwoman', 'librarian', 'empath']);
+      });
+
+      expect(result.current.state.game!.demonBluffs).toEqual([
+        'washerwoman',
+        'librarian',
+        'empath',
+      ]);
+    });
+
+    it('replaces existing demonBluffs', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ demonBluffs: ['washerwoman', 'librarian', 'empath'] }));
+      });
+
+      act(() => {
+        result.current.setDemonBluffs(['chef', 'butler', 'drunk']);
+      });
+
+      expect(result.current.state.game!.demonBluffs).toEqual(['chef', 'butler', 'drunk']);
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.setDemonBluffs(['washerwoman', 'librarian', 'empath']);
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
 });

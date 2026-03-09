@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
+import Avatar from '@mui/material/Avatar';
 import Dialog from '@mui/material/Dialog';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
@@ -19,6 +20,7 @@ import TokenIcon from '@mui/icons-material/Token';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type { PlayerSeat, CharacterDef, Alignment } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 
 /** Type display order for grouping in the character selector. */
 const TYPE_ORDER = ['Townsfolk', 'Outsider', 'Minion', 'Demon', 'Traveller', 'Fabled', 'Loric'];
@@ -40,6 +42,12 @@ export interface PlayerActionsModalProps {
   scriptCharacters: CharacterDef[];
   /** All characters from the registry — for "All Other" section in dropdown. */
   allCharacters?: CharacterDef[];
+  /** Current demon bluff character IDs (shown for demon players). */
+  demonBluffs?: string[];
+  /** Character definitions for the current demon bluffs. */
+  bluffCharacters?: CharacterDef[];
+  /** Available good characters not in play (for swapping bluffs). */
+  availableBluffCharacters?: CharacterDef[];
   onClose: () => void;
   onToggleAlive: (seat: number) => void;
   onToggleGhostVote: (seat: number) => void;
@@ -50,6 +58,8 @@ export interface PlayerActionsModalProps {
     updates: { characterId?: string; actualAlignment?: Alignment },
   ) => void;
   onSwapWith?: (seat: number) => void;
+  /** Called when a bluff is changed (old bluff ID replaced with new). */
+  onChangeBluff?: (oldBluffId: string, newBluffId: string) => void;
 }
 
 /**
@@ -66,6 +76,9 @@ export function PlayerActionsModal({
   showCharacters,
   scriptCharacters,
   allCharacters,
+  demonBluffs,
+  bluffCharacters,
+  availableBluffCharacters,
   onClose,
   onToggleAlive,
   onToggleGhostVote,
@@ -73,6 +86,7 @@ export function PlayerActionsModal({
   onManageTokens,
   onSaveCharacter,
   onSwapWith,
+  onChangeBluff,
 }: PlayerActionsModalProps) {
   if (!player || !open) return null;
 
@@ -83,6 +97,9 @@ export function PlayerActionsModal({
       showCharacters={showCharacters}
       scriptCharacters={scriptCharacters}
       allCharacters={allCharacters}
+      demonBluffs={demonBluffs}
+      bluffCharacters={bluffCharacters}
+      availableBluffCharacters={availableBluffCharacters}
       onClose={onClose}
       onToggleAlive={onToggleAlive}
       onToggleGhostVote={onToggleGhostVote}
@@ -90,6 +107,7 @@ export function PlayerActionsModal({
       onManageTokens={onManageTokens}
       onSaveCharacter={onSaveCharacter}
       onSwapWith={onSwapWith}
+      onChangeBluff={onChangeBluff}
     />
   );
 }
@@ -100,6 +118,9 @@ function PlayerActionsModalInner({
   showCharacters,
   scriptCharacters,
   allCharacters,
+  demonBluffs,
+  bluffCharacters,
+  availableBluffCharacters,
   onClose,
   onToggleAlive,
   onToggleGhostVote,
@@ -107,6 +128,7 @@ function PlayerActionsModalInner({
   onManageTokens,
   onSaveCharacter,
   onSwapWith,
+  onChangeBluff,
 }: Omit<PlayerActionsModalProps, 'open'> & { player: PlayerSeat }) {
   const [characterId, setCharacterId] = useState(player.characterId ?? '');
   const [actualAlignment, setActualAlignment] = useState<Alignment>(
@@ -253,6 +275,67 @@ function PlayerActionsModalInner({
             </Button>
           </>
         )}
+
+        {/* ── Demon Bluffs section (only for demon players with bluffs) ── */}
+        {showCharacters &&
+          demonBluffs &&
+          demonBluffs.length > 0 &&
+          bluffCharacters &&
+          bluffCharacters.length > 0 && (
+            <>
+              <Divider />
+              <Box data-testid="demon-bluffs-section">
+                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#b71c1c', mb: 0.5 }}>
+                  Demon Bluffs
+                </Typography>
+                {bluffCharacters.map((ch) => (
+                  <Box
+                    key={ch.id}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1,
+                      py: 0.5,
+                    }}
+                    data-testid={`bluff-${ch.id}`}
+                  >
+                    <Avatar
+                      src={getCharacterIconPath(ch.id)}
+                      alt={ch.name}
+                      sx={{ width: 28, height: 28 }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{
+                        flexGrow: 1,
+                        color: getCharacterTypeColor(ch.type),
+                        fontWeight: 500,
+                      }}
+                    >
+                      {ch.name}
+                    </Typography>
+                    {onChangeBluff && availableBluffCharacters && (
+                      <Autocomplete
+                        options={availableBluffCharacters.filter(
+                          (a) => !demonBluffs.includes(a.id),
+                        )}
+                        getOptionLabel={(opt) => opt.name}
+                        onChange={(_, newVal) => {
+                          if (newVal) onChangeBluff(ch.id, newVal.id);
+                        }}
+                        renderInput={(params) => (
+                          <TextField {...params} label="Swap" size="small" />
+                        )}
+                        size="small"
+                        sx={{ minWidth: 120 }}
+                        data-testid={`swap-bluff-${ch.id}`}
+                      />
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </>
+          )}
 
         {/* ── Visible-mode only actions ── */}
         {showCharacters && (
