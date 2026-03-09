@@ -52,6 +52,18 @@ const TYPE_TO_DIST_KEY: Partial<Record<CharacterType, keyof Distribution>> = {
 /** Characters that support duplicate copies in play. */
 const DUPLICATE_ALLOWED_IDS = new Set(['villageidiot', 'legion']);
 
+/**
+ * Configuration for characters whose outsider-modifier is variable.
+ * The stepper lets the Storyteller pick a concrete value within [min, max].
+ */
+const VARIABLE_MODIFIER_CONFIG: Record<string, { min: number; max: number; label: string }> = {
+  balloonist: { min: 0, max: 1, label: 'Balloonist' },
+  hermit: { min: -1, max: 0, label: 'Hermit' },
+  godfather: { min: -1, max: 1, label: 'Godfather' },
+  kazali: { min: -3, max: 5, label: 'Kazali' },
+  sentinel: { min: 0, max: 2, label: 'Sentinel' },
+} as const;
+
 export interface CharacterSelectionProps {
   open: boolean;
   onClose: () => void;
@@ -84,6 +96,7 @@ export function CharacterSelection({
   const [xaanX, setXaanX] = useState<number | undefined>(undefined);
   const [extraVillageIdiots, setExtraVillageIdiots] = useState(0);
   const [extraLegionCopies, setExtraLegionCopies] = useState(0);
+  const [variableModifiers, setVariableModifiers] = useState<Record<string, number>>({});
 
   // Build adaptive distribution options from current state
   const adaptiveOptions: AdaptiveDistributionOptions = useMemo(
@@ -91,8 +104,9 @@ export function CharacterSelection({
       xaanX,
       extraVillageIdiots,
       extraLegionCopies,
+      variableModifierValues: variableModifiers,
     }),
-    [xaanX, extraVillageIdiots, extraLegionCopies],
+    [xaanX, extraVillageIdiots, extraLegionCopies, variableModifiers],
   );
 
   // Adaptive distribution engine replaces static getDistribution
@@ -119,6 +133,7 @@ export function CharacterSelection({
     setXaanX(undefined);
     setExtraVillageIdiots(0);
     setExtraLegionCopies(0);
+    setVariableModifiers({});
   }, [initialSelected]);
 
   // Filter out Travellers from script characters
@@ -184,6 +199,14 @@ export function CharacterSelection({
           if (characterId === 'villageidiot') setExtraVillageIdiots(0);
           if (characterId === 'legion') setExtraLegionCopies(0);
           if (characterId === 'xaan') setXaanX(undefined);
+          // Reset variable modifier when deselecting
+          if (characterId in VARIABLE_MODIFIER_CONFIG) {
+            setVariableModifiers((prev) => {
+              const next = { ...prev };
+              delete next[characterId];
+              return next;
+            });
+          }
         } else {
           next.add(characterId);
         }
@@ -289,6 +312,54 @@ export function CharacterSelection({
           }}
           disabled={count >= max}
           aria-label={`Add extra ${label}`}
+        >
+          <AddIcon fontSize="small" />
+        </IconButton>
+      </Box>
+    );
+  }
+
+  /** Render outsider-adjustment stepper for a variable-modifier character. */
+  function renderVariableModifierStepper(charId: string) {
+    const config = VARIABLE_MODIFIER_CONFIG[charId];
+    if (!config || !selectedIds.has(charId)) return null;
+
+    const value = variableModifiers[charId] ?? 0;
+
+    return (
+      <Box
+        sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ml: 5, mb: 0.5 }}
+        data-testid={`variable-stepper-${charId}`}
+      >
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            setVariableModifiers((prev) => ({
+              ...prev,
+              [charId]: Math.max(config.min, value - 1),
+            }));
+          }}
+          disabled={value <= config.min}
+          aria-label={`Decrease ${config.label} outsider adjustment`}
+        >
+          <RemoveIcon fontSize="small" />
+        </IconButton>
+        <Typography variant="body2" sx={{ minWidth: 40, textAlign: 'center' }}>
+          {value > 0 ? '+' : ''}
+          {value} Out
+        </Typography>
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation();
+            setVariableModifiers((prev) => ({
+              ...prev,
+              [charId]: Math.min(config.max, value + 1),
+            }));
+          }}
+          disabled={value >= config.max}
+          aria-label={`Increase ${config.label} outsider adjustment`}
         >
           <AddIcon fontSize="small" />
         </IconButton>
@@ -493,6 +564,7 @@ export function CharacterSelection({
                         />
                       </ListItemButton>
                       {renderDuplicateStepper(ch.id)}
+                      {renderVariableModifierStepper(ch.id)}
                     </ListItem>
                   );
                 })}

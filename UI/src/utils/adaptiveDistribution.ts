@@ -39,6 +39,14 @@ export interface AdaptiveDistributionOptions {
   extraVillageIdiots?: number;
   /** Number of extra Legion copies beyond the first. */
   extraLegionCopies?: number;
+  /**
+   * Explicit outsider-adjustment values chosen by the Storyteller for
+   * variable-modifier characters (Balloonist, Hermit, Godfather, Kazali,
+   * Sentinel).  Key = character ID, value = outsider delta.
+   * When a character's value is set, it becomes a fixed modifier instead of
+   * "variable".
+   */
+  variableModifierValues?: Record<string, number>;
 }
 
 // ── Helpers ──
@@ -207,48 +215,88 @@ export function calculateAdaptiveTargets(
     });
   }
 
-  // Balloonist: +0 or +1 Outsider (variable)
+  // Balloonist: +0 or +1 Outsider (variable unless ST chooses)
   if (idSet.has('balloonist')) {
-    hasVariableOutsider = true;
+    const val = options.variableModifierValues?.balloonist;
     outsiderModifierIds.push('balloonist');
-    modifiers.push({
-      characterId: 'balloonist',
-      characterName: charName('balloonist'),
-      description: '+0 or +1 Outsider (variable)',
-    });
+    if (val !== undefined) {
+      outsiderDelta += val;
+      modifiers.push({
+        characterId: 'balloonist',
+        characterName: charName('balloonist'),
+        description: `+${val} Outsider`,
+      });
+    } else {
+      hasVariableOutsider = true;
+      modifiers.push({
+        characterId: 'balloonist',
+        characterName: charName('balloonist'),
+        description: '+0 or +1 Outsider (variable)',
+      });
+    }
   }
 
-  // Hermit: -0 or -1 Outsider (variable)
+  // Hermit: -0 or -1 Outsider (variable unless ST chooses)
   if (idSet.has('hermit')) {
-    hasVariableOutsider = true;
+    const val = options.variableModifierValues?.hermit;
     outsiderModifierIds.push('hermit');
-    modifiers.push({
-      characterId: 'hermit',
-      characterName: charName('hermit'),
-      description: '-0 or -1 Outsider (variable)',
-    });
+    if (val !== undefined) {
+      outsiderDelta += val;
+      modifiers.push({
+        characterId: 'hermit',
+        characterName: charName('hermit'),
+        description: `${val} Outsider`,
+      });
+    } else {
+      hasVariableOutsider = true;
+      modifiers.push({
+        characterId: 'hermit',
+        characterName: charName('hermit'),
+        description: '-0 or -1 Outsider (variable)',
+      });
+    }
   }
 
-  // Godfather: -1 or +1 Outsider (variable)
+  // Godfather: -1 or +1 Outsider (variable unless ST chooses)
   if (idSet.has('godfather')) {
-    hasVariableOutsider = true;
+    const val = options.variableModifierValues?.godfather;
     outsiderModifierIds.push('godfather');
-    modifiers.push({
-      characterId: 'godfather',
-      characterName: charName('godfather'),
-      description: '-1 or +1 Outsider (variable)',
-    });
+    if (val !== undefined) {
+      outsiderDelta += val;
+      modifiers.push({
+        characterId: 'godfather',
+        characterName: charName('godfather'),
+        description: `${val > 0 ? '+' : ''}${val} Outsider`,
+      });
+    } else {
+      hasVariableOutsider = true;
+      modifiers.push({
+        characterId: 'godfather',
+        characterName: charName('godfather'),
+        description: '-1 or +1 Outsider (variable)',
+      });
+    }
   }
 
   // Kazali: variable outsiders (ST chooses)
   if (idSet.has('kazali')) {
-    hasVariableOutsider = true;
+    const val = options.variableModifierValues?.kazali;
     outsiderModifierIds.push('kazali');
-    modifiers.push({
-      characterId: 'kazali',
-      characterName: charName('kazali'),
-      description: 'Variable Outsiders (ST chooses)',
-    });
+    if (val !== undefined) {
+      outsiderDelta += val;
+      modifiers.push({
+        characterId: 'kazali',
+        characterName: charName('kazali'),
+        description: `${val > 0 ? '+' : ''}${val} Outsiders`,
+      });
+    } else {
+      hasVariableOutsider = true;
+      modifiers.push({
+        characterId: 'kazali',
+        characterName: charName('kazali'),
+        description: 'Variable Outsiders (ST chooses)',
+      });
+    }
   }
 
   // Lord of Typhon variable outsider component
@@ -258,15 +306,25 @@ export function calculateAdaptiveTargets(
     // Modifier already added above for the +1 Minion
   }
 
-  // Sentinel: ±1 Outsider (variable)
+  // Sentinel: variable Outsiders (ST chooses)
   if (idSet.has('sentinel')) {
-    hasVariableOutsider = true;
+    const val = options.variableModifierValues?.sentinel;
     outsiderModifierIds.push('sentinel');
-    modifiers.push({
-      characterId: 'sentinel',
-      characterName: charName('sentinel'),
-      description: '±1 Outsider (variable)',
-    });
+    if (val !== undefined) {
+      outsiderDelta += val;
+      modifiers.push({
+        characterId: 'sentinel',
+        characterName: charName('sentinel'),
+        description: `+${val} Outsider${val !== 1 ? 's' : ''}`,
+      });
+    } else {
+      hasVariableOutsider = true;
+      modifiers.push({
+        characterId: 'sentinel',
+        characterName: charName('sentinel'),
+        description: '±1 Outsider (variable)',
+      });
+    }
   }
 
   // ── Xaan override: X Outsiders ──

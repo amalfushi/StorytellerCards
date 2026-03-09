@@ -86,6 +86,27 @@ const scriptWithModifiers: CharacterDef[] = [
     defaultAlignment: Alignment.Evil,
     abilityShort: 'Most players are Legion.',
   }),
+  makeChar({
+    id: 'balloonist',
+    name: 'Balloonist',
+    type: CharacterType.Townsfolk,
+    defaultAlignment: Alignment.Good,
+    abilityShort: '+0 or +1 Outsider',
+  }),
+  makeChar({
+    id: 'godfather',
+    name: 'Godfather',
+    type: CharacterType.Minion,
+    defaultAlignment: Alignment.Evil,
+    abilityShort: '-1 or +1 Outsider',
+  }),
+  makeChar({
+    id: 'sentinel',
+    name: 'Sentinel',
+    type: CharacterType.Fabled,
+    defaultAlignment: Alignment.Good,
+    abilityShort: 'Might add Outsiders',
+  }),
 ];
 
 // ──────────────────────────────────────────────
@@ -364,6 +385,73 @@ describe('CharacterSelection', () => {
         />,
       );
       expect(screen.queryByTestId('duplicate-stepper-imp')).not.toBeInTheDocument();
+    });
+  });
+
+  // ──────────────────────────────────────────
+  // M27: Variable modifier steppers
+  // ──────────────────────────────────────────
+
+  describe('variable modifier steppers', () => {
+    it('shows variable stepper for Balloonist when selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['balloonist']}
+        />,
+      );
+      expect(screen.getByTestId('variable-stepper-balloonist')).toBeInTheDocument();
+    });
+
+    it('shows variable stepper for Godfather when selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['godfather']}
+        />,
+      );
+      expect(screen.getByTestId('variable-stepper-godfather')).toBeInTheDocument();
+    });
+
+    it('shows variable stepper for Sentinel when selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['sentinel']}
+        />,
+      );
+      expect(screen.getByTestId('variable-stepper-sentinel')).toBeInTheDocument();
+    });
+
+    it('does not show variable stepper when character is not selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+        />,
+      );
+      expect(screen.queryByTestId('variable-stepper-balloonist')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('variable-stepper-godfather')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('variable-stepper-sentinel')).not.toBeInTheDocument();
+    });
+
+    it('does not show variable stepper for non-variable characters', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['washerwoman']}
+        />,
+      );
+      expect(screen.queryByTestId('variable-stepper-washerwoman')).not.toBeInTheDocument();
     });
   });
 });

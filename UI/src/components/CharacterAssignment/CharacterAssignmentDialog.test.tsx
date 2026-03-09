@@ -140,7 +140,7 @@ describe('CharacterAssignmentDialog', () => {
     expect(screen.getByRole('button', { name: /randomize/i })).toBeInTheDocument();
   });
 
-  it('shows available characters summary chips', () => {
+  it('shows available character types in distribution section', () => {
     render(
       <CharacterAssignmentDialog
         open={true}
@@ -150,12 +150,11 @@ describe('CharacterAssignmentDialog', () => {
         onConfirm={onConfirm}
       />,
     );
-    expect(screen.getByText('Available Characters')).toBeInTheDocument();
-    // Both distribution and available characters sections show type counts
-    expect(screen.getAllByText('Townsfolk: 3').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Outsider: 1').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Minion: 1').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Demon: 1').length).toBeGreaterThanOrEqual(1);
+    // Distribution section shows type counts
+    expect(screen.getByText('Townsfolk: 3')).toBeInTheDocument();
+    expect(screen.getByText('Outsider: 0')).toBeInTheDocument();
+    expect(screen.getByText('Minion: 1')).toBeInTheDocument();
+    expect(screen.getByText('Demon: 1')).toBeInTheDocument();
   });
 
   it('shows player assignment rows for non-traveller players', () => {
@@ -235,30 +234,21 @@ describe('CharacterAssignmentDialog', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
-  it('shows error when randomize fails due to insufficient characters', () => {
-    const minimalChars: CharacterDef[] = [
-      makeChar({ id: 'noble', name: 'Noble' }),
-      makeChar({
-        id: 'imp',
-        name: 'Imp',
-        type: CharacterType.Demon,
-        defaultAlignment: Alignment.Evil,
-      }),
-    ];
-
+  it('randomize assigns unassigned characters to empty seats', () => {
     render(
       <CharacterAssignmentDialog
         open={true}
         onClose={onClose}
         players={fivePlayers}
-        scriptCharacters={minimalChars}
+        scriptCharacters={mockScriptCharacters}
         onConfirm={onConfirm}
+        inPlayCharacterIds={['noble', 'fortuneteller', 'slayer', 'poisoner', 'imp']}
       />,
     );
 
     fireEvent.click(screen.getByRole('button', { name: /randomize/i }));
-    // Should display the error from randomlyAssignCharacters
-    expect(screen.getByText(/not enough townsfolk/i)).toBeInTheDocument();
+    // No error should be displayed — simplified randomize has no validation
+    expect(screen.queryByText(/not enough/i)).not.toBeInTheDocument();
   });
 
   it('excludes traveller count from distribution calculation', () => {
@@ -299,11 +289,11 @@ describe('CharacterAssignmentDialog', () => {
         onConfirm={onConfirm}
       />,
     );
-    // Should show 0 counts in available characters chips (may also appear in distribution)
-    expect(screen.getAllByText('Townsfolk: 0').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Outsider: 0').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Minion: 0').length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText('Demon: 0').length).toBeGreaterThanOrEqual(1);
+    // Distribution section shows 0 counts
+    expect(screen.getByText('Townsfolk: 3')).toBeInTheDocument();
+    expect(screen.getByText('Outsider: 0')).toBeInTheDocument();
+    expect(screen.getByText('Minion: 1')).toBeInTheDocument();
+    expect(screen.getByText('Demon: 1')).toBeInTheDocument();
   });
 
   // ──────────────────────────────────────────

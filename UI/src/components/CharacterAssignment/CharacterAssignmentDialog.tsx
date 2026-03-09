@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import Alert from '@mui/material/Alert';
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
@@ -16,22 +17,47 @@ import Select from '@mui/material/Select';
 import Typography from '@mui/material/Typography';
 import CasinoIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
-import PersonPinIcon from '@mui/icons-material/PersonPin';
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import { Alignment } from '@/types/index.ts';
 import {
   getDistribution,
   getDistributionWarnings,
   getDistributionSuggestions,
 } from '@/data/playerCountRules.ts';
 import type { Distribution } from '@/data/playerCountRules.ts';
-import { randomlyAssignCharacters } from '@/utils/characterAssignment.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { getSetupModifiers, getNetAdjustment } from '@/utils/setupModifiers.ts';
 import { getRequiredCharacters, getSetupPrompts } from '@/utils/requiredCharacters.ts';
 import { getSeatingWarnings, getMarionetteValidSeats } from '@/utils/seatingConstraints.ts';
+import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 
 /** Characters that trigger identity concealment prompts on assignment. */
 const CONCEALMENT_CHARACTERS = new Set(['marionette', 'drunk']);
+
+/** Sort order for character types in chips and dropdowns. */
+const TYPE_SORT_ORDER: Record<string, number> = {
+  Townsfolk: 0,
+  Outsider: 1,
+  Minion: 2,
+  Demon: 3,
+};
+
+/** Sort characters by type (Townsfolk→Outsider→Minion→Demon) then alphabetically. */
+function sortByTypeAndName(a: CharacterDef, b: CharacterDef): number {
+  const typeA = TYPE_SORT_ORDER[a.type] ?? 99;
+  const typeB = TYPE_SORT_ORDER[b.type] ?? 99;
+  if (typeA !== typeB) return typeA - typeB;
+  return a.name.localeCompare(b.name);
+}
+
+/** Fisher-Yates shuffle (in-place). */
+function shuffle<T>(arr: T[]): T[] {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
 
 export interface CharacterAssignmentDialogProps {
   open: boolean;
@@ -151,7 +177,7 @@ export function CharacterAssignmentDialog({
     return counts;
   }, [localPlayers]);
 
-  // Unassigned character pool (chips)
+  // Unassigned character pool (chips) — sorted by type then name
   const unassignedPool = useMemo(() => {
     const pool: CharacterDef[] = [];
     const remainingCounts = new Map<string, number>();
@@ -182,8 +208,33 @@ export function CharacterAssignmentDialog({
       }
     }
 
-    return pool;
+    return [...pool].sort(sortByTypeAndName);
   }, [availableCharacters, assignedCounts]);
+
+  // Total available count per character ID (for dropdown disable logic)
+  const totalAvailableCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const ch of availableCharacters) {
+      counts.set(ch.id, (counts.get(ch.id) ?? 0) + 1);
+    }
+    return counts;
+  }, [availableCharacters]);
+
+  // Deduplicated & sorted character list for dropdowns
+  const dropdownCharacters = useMemo(() => {
+    const source = inPlayCharacterIds
+      ? availableCharacters
+      : scriptCharacters.filter(
+          (c) => c.type !== 'Traveller' && c.type !== 'Fabled' && c.type !== 'Loric',
+        );
+    const seen = new Set<string>();
+    const deduped = source.filter((c) => {
+      if (seen.has(c.id)) return false;
+      seen.add(c.id);
+      return true;
+    });
+    return [...deduped].sort(sortByTypeAndName);
+  }, [inPlayCharacterIds, availableCharacters, scriptCharacters]);
 
   // Reset state when dialog opens
   const handleEnter = useCallback(() => {
@@ -193,30 +244,25 @@ export function CharacterAssignmentDialog({
     setSelectedChipId(null);
   }, [players]);
 
-  // Group script characters by type (for dropdown)
-  const charsByType = useMemo(() => {
-    const groups: Record<string, CharacterDef[]> = {
-      Townsfolk: [],
-      Outsider: [],
-      Minion: [],
-      Demon: [],
-    };
-    for (const ch of availableCharacters) {
-      if (groups[ch.type]) {
-        groups[ch.type].push(ch);
-      }
-    }
-    return groups;
-  }, [availableCharacters]);
-
+  // Simplified randomize: assign all unassigned characters to all empty seats
   const handleRandomize = () => {
     setError(null);
-    try {
-      const result = randomlyAssignCharacters(localPlayers, scriptCharacters, distribution);
-      setLocalPlayers(result);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to randomize');
-    }
+    const pool = shuffle([...unassignedPool]);
+    let idx = 0;
+    setLocalPlayers((prev) =>
+      prev.map((p) => {
+        if (p.isTraveller || p.characterId || idx >= pool.length) return p;
+        const ch = pool[idx++];
+        const alignment =
+          ch.type === 'Minion' || ch.type === 'Demon' ? Alignment.Evil : Alignment.Good;
+        return {
+          ...p,
+          characterId: ch.id,
+          actualAlignment: alignment,
+          startingAlignment: alignment,
+        };
+      }),
+    );
   };
 
   const handleCharacterChange = useCallback(
@@ -280,45 +326,6 @@ export function CharacterAssignmentDialog({
       </DialogTitle>
 
       <DialogContent dividers>
-        {/* Character Pool — unassigned characters as tappable chips */}
-        {unassignedPool.length > 0 && (
-          <>
-            <Typography variant="subtitle2" gutterBottom>
-              Unassigned Characters
-            </Typography>
-            <Box
-              sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}
-              data-testid="character-pool"
-            >
-              {unassignedPool.map((ch, idx) => (
-                <Chip
-                  key={`${ch.id}-${idx}`}
-                  label={ch.name}
-                  size="small"
-                  icon={<PersonPinIcon />}
-                  onClick={() => handleChipClick(ch.id)}
-                  variant={selectedChipId === ch.id ? 'filled' : 'outlined'}
-                  color={selectedChipId === ch.id ? 'primary' : 'default'}
-                  data-testid={`pool-chip-${ch.id}`}
-                  sx={{
-                    borderColor: getCharacterTypeColor(ch.type),
-                    color: selectedChipId === ch.id ? undefined : getCharacterTypeColor(ch.type),
-                    fontWeight: 600,
-                    cursor: 'pointer',
-                  }}
-                />
-              ))}
-            </Box>
-            {selectedChipId && (
-              <Typography variant="body2" color="primary" sx={{ mb: 1 }}>
-                Tap a seat below to assign{' '}
-                {scriptCharacters.find((c) => c.id === selectedChipId)?.name ?? selectedChipId}
-              </Typography>
-            )}
-            <Divider sx={{ mb: 2 }} />
-          </>
-        )}
-
         {/* Seating constraint warnings */}
         {seatingWarnings.map((w, i) => (
           <Alert
@@ -468,26 +475,50 @@ export function CharacterAssignmentDialog({
 
         <Divider sx={{ mb: 2 }} />
 
-        {/* Available Characters Summary */}
-        <Typography variant="subtitle2" gutterBottom>
-          Available Characters
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 2 }}>
-          {(['Townsfolk', 'Outsider', 'Minion', 'Demon'] as const).map((type) => (
-            <Chip
-              key={type}
-              label={`${type}: ${charsByType[type]?.length ?? 0}`}
-              size="small"
-              sx={{
-                backgroundColor: `${getCharacterTypeColor(type)}22`,
-                color: getCharacterTypeColor(type),
-                fontWeight: 600,
-              }}
-            />
-          ))}
-        </Box>
-
-        <Divider sx={{ mb: 2 }} />
+        {/* Unassigned Characters — tappable chips with character icons */}
+        {unassignedPool.length > 0 && (
+          <>
+            <Typography variant="subtitle2" gutterBottom>
+              Unassigned Characters
+            </Typography>
+            <Box
+              sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}
+              data-testid="character-pool"
+            >
+              {unassignedPool.map((ch, idx) => (
+                <Chip
+                  key={`${ch.id}-${idx}`}
+                  label={ch.name}
+                  size="small"
+                  avatar={
+                    <Avatar
+                      src={getCharacterIconPath(ch.id)}
+                      alt={ch.name}
+                      sx={{ width: 24, height: 24 }}
+                    />
+                  }
+                  onClick={() => handleChipClick(ch.id)}
+                  variant={selectedChipId === ch.id ? 'filled' : 'outlined'}
+                  color={selectedChipId === ch.id ? 'primary' : 'default'}
+                  data-testid={`pool-chip-${ch.id}`}
+                  sx={{
+                    borderColor: getCharacterTypeColor(ch.type),
+                    color: selectedChipId === ch.id ? undefined : getCharacterTypeColor(ch.type),
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                  }}
+                />
+              ))}
+            </Box>
+            {selectedChipId && (
+              <Typography variant="body2" color="primary" sx={{ mb: 1 }}>
+                Tap a seat below to assign{' '}
+                {scriptCharacters.find((c) => c.id === selectedChipId)?.name ?? selectedChipId}
+              </Typography>
+            )}
+            <Divider sx={{ mb: 2 }} />
+          </>
+        )}
 
         {/* Player Assignments */}
         <Typography variant="subtitle2" gutterBottom>
@@ -538,30 +569,27 @@ export function CharacterAssignmentDialog({
                       <MenuItem value="">
                         <em>None</em>
                       </MenuItem>
-                      {scriptCharacters
-                        .filter(
-                          (c) =>
-                            c.type !== 'Traveller' && c.type !== 'Fabled' && c.type !== 'Loric',
-                        )
-                        .map((c) => {
-                          const assignedCount = assignedCounts.get(c.id) ?? 0;
-                          const isCurrentPlayer = player.characterId === c.id;
-                          const isDuplicate = duplicateAllowedIds.has(c.id);
-                          const isDisabled = assignedCount > 0 && !isCurrentPlayer && !isDuplicate;
-                          return (
-                            <MenuItem
-                              key={c.id}
-                              value={c.id}
-                              disabled={isDisabled}
-                              sx={{
-                                color: getCharacterTypeColor(c.type),
-                                opacity: isDisabled ? 0.4 : 1,
-                              }}
-                            >
-                              {c.name} ({c.type})
-                            </MenuItem>
-                          );
-                        })}
+                      {dropdownCharacters.map((c) => {
+                        const assignedCount = assignedCounts.get(c.id) ?? 0;
+                        const isCurrentPlayer = player.characterId === c.id;
+                        const isDisabled = inPlayCharacterIds
+                          ? !isCurrentPlayer &&
+                            assignedCount >= (totalAvailableCounts.get(c.id) ?? 0)
+                          : assignedCount > 0 && !isCurrentPlayer && !duplicateAllowedIds.has(c.id);
+                        return (
+                          <MenuItem
+                            key={c.id}
+                            value={c.id}
+                            disabled={isDisabled}
+                            sx={{
+                              color: getCharacterTypeColor(c.type),
+                              opacity: isDisabled ? 0.4 : 1,
+                            }}
+                          >
+                            {c.name} ({c.type})
+                          </MenuItem>
+                        );
+                      })}
                     </Select>
                   </FormControl>
                 </Box>
