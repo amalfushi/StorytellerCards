@@ -20,7 +20,7 @@ import {
 } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
-import { TokenChips } from '@/components/common/TokenChips.tsx';
+import { ReminderTokenChips } from '@/components/common/ReminderTokenChips.tsx';
 import { getAlignmentBorderColor, getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { parseReminderMarkers, hasReminderMarkers } from '@/utils/reminderUtils.ts';
 import { detectSignalType } from '@/utils/signalDetection.ts';
@@ -302,7 +302,7 @@ export function NightFlashcard({
               data-testid="affecting-tokens"
               sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
             >
-              <TokenChips tokens={affectingTokens} size="small" />
+              <ReminderTokenChips tokens={affectingTokens} size="small" />
             </Box>
           )}
         </Box>

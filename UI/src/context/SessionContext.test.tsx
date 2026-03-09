@@ -624,6 +624,78 @@ describe('SessionContext', () => {
         result.current.state.sessions[0].gameIds[1],
       );
     });
+    it('excludes travellers when carrying forward from previous game', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+
+      // Create first game
+      act(() => {
+        result.current.addGameToSession(sessionId);
+      });
+
+      // Add a traveller to first game in localStorage
+      const firstGameId = result.current.state.sessions[0].gameIds[0];
+      const firstGameRaw = localStorage.getItem(`storyteller-game-${firstGameId}`);
+      const firstGame = JSON.parse(firstGameRaw!) as Game;
+      firstGame.players.push({
+        seat: 3,
+        playerName: 'Charlie',
+        characterId: 'barista',
+        alive: true,
+        ghostVoteUsed: false,
+        visibleAlignment: Alignment.Unknown,
+        actualAlignment: Alignment.Good,
+        startingAlignment: Alignment.Good,
+        activeReminders: [],
+        isTraveller: true,
+        tokens: [],
+      });
+      localStorage.setItem(`storyteller-game-${firstGameId}`, JSON.stringify(firstGame));
+
+      // Create second game — should NOT carry forward travellers
+      act(() => {
+        result.current.addGameToSession(sessionId);
+      });
+
+      const secondGameId = result.current.state.sessions[0].gameIds[1];
+      const secondGameRaw = localStorage.getItem(`storyteller-game-${secondGameId}`);
+      const secondGame = JSON.parse(secondGameRaw!) as Game;
+
+      expect(secondGame.players).toHaveLength(2);
+      expect(secondGame.players[0].playerName).toBe('Alice');
+      expect(secondGame.players[0].seat).toBe(1);
+      expect(secondGame.players[1].playerName).toBe('Bob');
+      expect(secondGame.players[1].seat).toBe(2);
+    });
+
+    it('players are always sorted by seat number in new game', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'boozling', ['Alice', 'Bob', 'Charlie']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+
+      act(() => {
+        result.current.addGameToSession(sessionId);
+      });
+
+      const gameId = result.current.state.sessions[0].gameIds[0];
+      const raw = localStorage.getItem(`storyteller-game-${gameId}`);
+      const game = JSON.parse(raw!) as Game;
+
+      // Players should be in sequential seat order
+      for (let i = 0; i < game.players.length; i++) {
+        expect(game.players[i].seat).toBe(i + 1);
+      }
+      expect(game.players[0].playerName).toBe('Alice');
+      expect(game.players[1].playerName).toBe('Bob');
+      expect(game.players[2].playerName).toBe('Charlie');
+    });
   });
 
   // ── getActiveSession ──

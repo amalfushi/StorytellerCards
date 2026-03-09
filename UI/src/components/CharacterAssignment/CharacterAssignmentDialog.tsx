@@ -95,7 +95,9 @@ export function CharacterAssignmentDialog({
   );
 
   const [distribution, setDistribution] = useState<Distribution>(baseDistribution);
-  const [localPlayers, setLocalPlayers] = useState<PlayerSeat[]>([...players]);
+  const [localPlayers, setLocalPlayers] = useState<PlayerSeat[]>(
+    [...players].sort((a, b) => a.seat - b.seat),
+  );
   const [error, setError] = useState<string | null>(null);
   const [selectedChipId, setSelectedChipId] = useState<string | null>(null);
 
@@ -256,7 +258,7 @@ export function CharacterAssignmentDialog({
     setDistribution(
       inPlayDistribution ?? getDistribution(players.filter((p) => !p.isTraveller).length),
     );
-    setLocalPlayers([...players]);
+    setLocalPlayers([...players].sort((a, b) => a.seat - b.seat));
     setError(null);
     setSelectedChipId(null);
   }, [players, inPlayDistribution]);

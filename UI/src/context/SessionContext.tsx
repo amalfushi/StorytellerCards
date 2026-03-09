@@ -268,18 +268,20 @@ export function SessionProvider({ children }: { children: ReactNode }) {
           const raw = localStorage.getItem(`storyteller-game-${lastGameId}`);
           if (raw) {
             const lastGame = JSON.parse(raw) as Game;
-            players = lastGame.players.map((p) => ({
-              ...p,
-              characterId: '',
-              alive: true,
-              ghostVoteUsed: false,
-              visibleAlignment: Alignment.Unknown,
-              actualAlignment: Alignment.Unknown,
-              startingAlignment: Alignment.Unknown,
-              activeReminders: [],
-              isTraveller: false,
-              tokens: [],
-            }));
+            players = lastGame.players
+              .filter((p) => !p.isTraveller)
+              .map((p) => ({
+                ...p,
+                characterId: '',
+                alive: true,
+                ghostVoteUsed: false,
+                visibleAlignment: Alignment.Unknown,
+                actualAlignment: Alignment.Unknown,
+                startingAlignment: Alignment.Unknown,
+                activeReminders: [],
+                isTraveller: false,
+                tokens: [],
+              }));
           } else {
             players = buildPlayersFromDefaults(session);
           }
@@ -289,6 +291,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       } else {
         players = buildPlayersFromDefaults(session);
       }
+
+      // Ensure players are always in sequential seat order
+      players.sort((a, b) => a.seat - b.seat);
 
       const game: Game = {
         id: gameId,

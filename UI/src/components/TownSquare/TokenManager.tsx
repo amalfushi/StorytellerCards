@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -15,6 +14,7 @@ import { generateId } from '@/utils/idGenerator.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { getCharacter } from '@/data/characters/index.ts';
 import { getReminderTokenColor } from '@/components/common/characterTypeColor.ts';
+import { ReminderTokenChips } from '@/components/common/ReminderTokenChips.tsx';
 
 // ──────────────────────────────────────────────
 // Token colour constants & limits
@@ -411,35 +411,12 @@ export function TokenManager({
             <Typography variant="subtitle2" gutterBottom>
               Active Tokens
             </Typography>
-            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
-              {tokens.map((t) => {
-                const sourceName = getSourceCharacterName(t.sourceCharacterId);
-                return (
-                  <Chip
-                    key={t.id}
-                    label={t.label}
-                    size="small"
-                    avatar={
-                      t.sourceCharacterId ? (
-                        <Tooltip title={sourceName ?? t.sourceCharacterId}>
-                          <Avatar
-                            src={getCharacterIconPath(t.sourceCharacterId)}
-                            alt={sourceName ?? t.sourceCharacterId}
-                            sx={{ width: 20, height: 20 }}
-                          />
-                        </Tooltip>
-                      ) : undefined
-                    }
-                    onDelete={() => onRemoveToken(player.seat, t.id)}
-                    sx={{
-                      bgcolor: t.color ?? TOKEN_COLORS[t.type] ?? '#9e9e9e',
-                      color: '#fff',
-                      fontWeight: 600,
-                    }}
-                  />
-                );
-              })}
-            </Box>
+            <ReminderTokenChips
+              tokens={tokens}
+              size="small"
+              onRemove={(tokenId) => onRemoveToken(player.seat, tokenId)}
+              getSourceName={getSourceCharacterName}
+            />
           </Box>
         )}
 

@@ -66,14 +66,25 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   const tokenPlayer =
     tokenManagerSeat !== null ? (players.find((p) => p.seat === tokenManagerSeat) ?? null) : null;
 
-  // Available tokens for token manager
-  const inPlayCharacterIds = useMemo(
-    () => state.game?.inPlayCharacterIds ?? scriptCharacterIds,
-    [state.game?.inPlayCharacterIds, scriptCharacterIds],
-  );
+  // Available tokens for token manager — resolve character IDs to CharacterDef objects
+  const activeCharacters = useMemo(() => {
+    if (!state.game) return [] as CharacterDef[];
+    return state.game.players
+      .map((p) => getCharacter(p.characterId))
+      .filter((c): c is CharacterDef => c !== undefined);
+  }, [state.game, getCharacter]);
+
+  const apparentCharacters = useMemo(() => {
+    if (!state.game) return [] as CharacterDef[];
+    return state.game.players
+      .filter((p) => p.apparentCharacterId)
+      .map((p) => getCharacter(p.apparentCharacterId!))
+      .filter((c): c is CharacterDef => c !== undefined);
+  }, [state.game, getCharacter]);
+
   const availableTokens = useMemo(
-    () => buildAvailableTokens(inPlayCharacterIds),
-    [inPlayCharacterIds],
+    () => buildAvailableTokens(activeCharacters, apparentCharacters),
+    [activeCharacters, apparentCharacters],
   );
 
   const handleToggleAlive = useCallback(
