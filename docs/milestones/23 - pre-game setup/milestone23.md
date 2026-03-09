@@ -1,5 +1,12 @@
 # Milestone 23 — Pre-Game Setup & Reminder Token System
 
+## Status: ✅ Complete
+
+**Completed:** 2026-03-09
+
+### Summary
+Built a comprehensive pre-game setup flow guiding Storytellers through character selection, distribution validation, character assignment, identity concealment (Drunk/Marionette/Lunatic), and reminder token placement — all before Night 1 begins. Added a full reminder token management system with type-colored chips and source character icons throughout the app.
+
 > **Goal:** Build a comprehensive pre-game setup flow and reminder token system so the Storyteller is guided through all character-driven setup requirements — distribution modifiers, required character dependencies, identity concealment (Drunk/Marionette/Lunatic), and reminder token placement — before Night 1 begins.
 
 ---

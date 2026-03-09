@@ -28,7 +28,7 @@ The app manages a hierarchy: **Sessions** (containers) → **Games** → **Playe
 |-------|-----------|
 | UI | React 19 + TypeScript + Vite 6 + MUI Core (free tier) |
 | State | React Context + `useReducer` + `localStorage` (primary), Go API (secondary sync) |
-| Testing | Vitest (3494 tests across 59 files), Storybook 8 (~93+ stories with `play()` interaction tests) |
+| Testing | Vitest (3695 tests across 67 files), Storybook 8 (~93+ stories with `play()` interaction tests) |
 | Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests + coverage) |
 | API | Go + Chi router, JSON file storage, 90-day auto-cleanup |
 | PWA | `manifest.json`, icons, mobile meta tags |
@@ -156,6 +156,17 @@ These run automatically and will block your commit/push if they fail:
 
 > **There is no GitHub Actions CI.** All quality gates are local git hooks only. Do not look for or reference CI status on PRs.
 
+#### Documentation Checklist (MANDATORY for Milestones)
+
+Before marking any milestone complete, agents **MUST** verify all of the following:
+
+- [ ] `milestoneN.md` has `## Status: ✅ Complete` section at top
+- [ ] `docs/progress.md` milestone table row updated to `✅ Complete`
+- [ ] `docs/progress.md` Verification section test counts updated
+- [ ] `docs/progress.md` "Last updated" date updated
+- [ ] `AGENTS.md` Tech Stack and Current Test Stats updated if counts changed
+- [ ] All documentation updates are in the **same commit/PR** as the milestone work
+
 ### Coverage Thresholds
 Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
 - Statements: 77% (baseline: 82.87%)
@@ -165,33 +176,42 @@ Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
 
 See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 
-### Current Test Stats (as of M5 Complete)
-- **3494 tests** across **59 test files** — all passing
+### Current Test Stats (as of M26 Complete)
+- **3695 tests** across **67 test files** — all passing
 - **18 story files** with **~93+ stories** including `play()` interaction tests
 - **0 TypeScript errors**, **0 ESLint errors**
 
 ## Documentation Maintenance
 
-### Policy: Keep Docs Updated After Every Milestone
-When completing a milestone or significant task, agents **must** update the relevant documentation before finishing:
+### Policy: Documentation Updates Are MANDATORY — Not Optional
 
-1. **Milestone doc** (`docs/milestones/<N> - <name>/milestone<N>.md`) — Add or update a `## Status: ✅ Complete` section at the top with:
+Documentation updates are **part of the definition of done** for every milestone. A milestone is NOT complete until all documentation is updated. These updates must be in the **same commit/PR** as the milestone work — never deferred to a follow-up.
+
+#### Required Documentation Updates Per Milestone
+
+1. **Milestone doc** (`docs/milestones/<N> - <name>/milestoneN.md`) — **MUST** have a `## Status: ✅ Complete` section at the top with:
    - Completion date
    - Brief summary of what was implemented
    - Key evidence (files changed, features added)
 
-2. **Progress tracker** ([`docs/progress.md`](docs/progress.md)) — Update the milestone table:
-   - Change status from `📋 Planned` or `🔄 In Progress` to `✅ Complete`
-   - Add a link to the milestone doc in the Details column
-   - Update the "Verification" section test counts if they changed
-   - If the task is medium to large or complex, create a progress.md in the milestone folder to go into further details without bloating the [`docs/progress.md`](docs/progress.md).
+2. **Root progress tracker** ([`docs/progress.md`](docs/progress.md)) — **MUST** be updated:
+   - Add or update the milestone row in the table (status → `✅ Complete`, add details link)
+   - Update the "Verification" section with current test counts, file counts, and coverage stats
+   - Update the "Last updated" date
 
-3. **AGENTS.md stats** — If test counts, file counts, or coverage thresholds changed, update the relevant numbers in:
-   - **Tech Stack** table (test count)
-   - **Current Test Stats** section
+3. **AGENTS.md stats** — **MUST** be updated if test counts, file counts, or coverage thresholds changed:
+   - **Tech Stack** table (test count and file count)
+   - **Current Test Stats** section (counts and "as of" label)
    - **Coverage Thresholds** section (if thresholds were adjusted)
 
-**Do not defer documentation updates.** They must be part of the same task or PR that completes the milestone work.
+4. **Milestone-level progress.md** — Every milestone MUST have either:
+   - A `progress.md` in its milestone folder (`docs/milestones/<N> - <name>/progress.md`), OR
+   - A `## Status: ✅ Complete` section in its `milestoneN.md` (minimum)
+   - For milestones with a separate `progress.md`, the `milestoneN.md` should still have the `## Status:` header
+
+#### Enforcement
+
+Agents **MUST NOT** mark a task complete or create a PR without completing all documentation updates. The documentation checklist below is part of the Development Checklist and must be verified alongside code quality checks.
 
 ## Related Documentation
 
