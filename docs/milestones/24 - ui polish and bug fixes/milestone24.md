@@ -1,5 +1,12 @@
 # Milestone 24 — UI Polish & Bug Fixes
 
+## Status: ✅ Complete
+
+**Completed:** 2026-03-09
+
+### Summary
+Addressed cross-cutting UI polish items and bug fixes from post-M23 feedback: fixed character selection header chips and 12-player distribution bug, added jinxes accordion to character detail modal, ensured reminder token visual consistency (type-colored chips with source icons) across all render locations, unified player list with shared action modal, fixed night history notes styling and editability, and added game deletion to session management.
+
 > **Goal:** Address cross-cutting UI polish items, visual consistency fixes, and bug fixes from post-M23 feedback across character selection, player list, character detail modal, reminder tokens, night history, and session management.
 
 Based on feedback from [`post23feedback.md`](../post23feedback.md).

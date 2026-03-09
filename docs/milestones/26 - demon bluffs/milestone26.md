@@ -1,5 +1,12 @@
 # Milestone 26 — Demon Bluffs
 
+## Status: ✅ Complete
+
+**Completed:** 2026-03-09
+
+### Summary
+Added demon bluff support: bluff selection step in pre-game setup (pick 3 not-in-play good characters), bluff display in the Demon's action modal with ability to change them, and bluff character display with icons on the first night `demoninfo` flashcard entry. Bluffs are persisted in game state via `SET_DEMON_BLUFFS` reducer action.
+
 > **Goal:** Add support for demon bluffs — the 3 not-in-play good characters the Demon is shown on the first night to use as fake claims. Includes bluff selection UI, management via the Demon's action modal, and display in night flashcards.
 
 Based on feedback from [`post23feedback.md`](../post23feedback.md).
