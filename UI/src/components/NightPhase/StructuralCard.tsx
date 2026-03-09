@@ -1,6 +1,9 @@
 import Box from '@mui/material/Box';
+import Avatar from '@mui/material/Avatar';
 import Typography from '@mui/material/Typography';
-import type { NightOrderEntry } from '@/types/index.ts';
+import type { CharacterDef, NightOrderEntry } from '@/types/index.ts';
+import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 
 export interface StructuralCardProps {
@@ -8,6 +11,8 @@ export interface StructuralCardProps {
   checkedStates: boolean[];
   onToggleSubAction: (index: number) => void;
   readOnly?: boolean;
+  /** Demon bluff character definitions (shown on the demoninfo card). */
+  bluffCharacters?: CharacterDef[];
 }
 
 /** Background colour per structural entry type. */
@@ -45,6 +50,7 @@ export function StructuralCard({
   checkedStates,
   onToggleSubAction,
   readOnly = false,
+  bluffCharacters,
 }: StructuralCardProps) {
   const bg = structuralBg[entry.id] ?? '#333';
   const icon = structuralIcon[entry.id] ?? '⚙️';
@@ -107,6 +113,70 @@ export function StructuralCard({
             onToggle={onToggleSubAction}
             readOnly={readOnly}
           />
+        </Box>
+      )}
+
+      {/* Demon Bluffs display (only on demoninfo card when bluffs are set) */}
+      {entry.id === 'demoninfo' && bluffCharacters && bluffCharacters.length > 0 && (
+        <Box
+          data-testid="demoninfo-bluffs"
+          sx={{
+            width: '100%',
+            mt: 2,
+            p: 1.5,
+            borderRadius: 2,
+            bgcolor: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.15)',
+          }}
+        >
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: '#ff8a80',
+              fontWeight: 700,
+              mb: 1,
+              textAlign: 'center',
+            }}
+          >
+            Show these bluffs to the Demon
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+            {bluffCharacters.map((ch) => (
+              <Box
+                key={ch.id}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 0.5,
+                }}
+                data-testid={`bluff-display-${ch.id}`}
+              >
+                <Avatar
+                  src={getCharacterIconPath(ch.id)}
+                  alt={ch.name}
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    border: `2px solid ${getCharacterTypeColor(ch.type)}`,
+                    bgcolor: 'rgba(0,0,0,0.3)',
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: getCharacterTypeColor(ch.type),
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    maxWidth: 80,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {ch.name}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
         </Box>
       )}
     </Box>
