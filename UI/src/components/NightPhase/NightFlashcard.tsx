@@ -1,9 +1,15 @@
-import { useMemo, useState, useCallback } from 'react';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import PersonIcon from '@mui/icons-material/Person';
@@ -17,6 +23,7 @@ import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { TokenChips } from '@/components/common/TokenChips.tsx';
 import { getAlignmentBorderColor, getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { parseReminderMarkers, hasReminderMarkers } from '@/utils/reminderUtils.ts';
+import { detectSignalType } from '@/utils/signalDetection.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
 
@@ -42,6 +49,12 @@ export interface NightFlashcardProps {
   previousSelection?: string | string[];
   /** Active jinxes for the current character. */
   activeJinxes?: ActiveJinx[];
+  /** Lookup function for character definitions (used for inline icons in dropdowns). */
+  characterLookup?: (id: string) => CharacterDef | undefined;
+  /** Previous night's notes for pre-population. */
+  previousNotes?: string;
+  /** Callback when a reminder token is clicked (navigates to Day view). */
+  onReminderTokenClick?: (tokenText: string) => void;
 }
 
 /**
@@ -66,6 +79,9 @@ export function NightFlashcard({
   onSelectionChange,
   previousSelection,
   activeJinxes = [],
+  characterLookup,
+  previousNotes,
+  onReminderTokenClick,
 }: NightFlashcardProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
@@ -157,6 +173,40 @@ export function NightFlashcard({
   const deadBgColor = 'rgba(40, 40, 45, 0.95)';
   const aliveBgColor = 'rgba(30, 30, 50, 0.95)';
 
+  // Phase 3: Detect signal-type sub-actions for inline controls
+  const signalInfos = useMemo(
+    () => entry.subActions.map((sa) => detectSignalType(sa.description)),
+    [entry.subActions],
+  );
+
+  // Phase 5: Pre-populate notes with previous night's notes (one-time)
+  const hasPrepopulated = useRef(false);
+  useEffect(() => {
+    if (!hasPrepopulated.current && !readOnly && previousNotes && !notes) {
+      hasPrepopulated.current = true;
+      onNotesChange(previousNotes);
+    }
+  }, [previousNotes, notes, readOnly, onNotesChange]);
+
+  // Phase 2: Build a map of placed reminder tokens → player info
+  const placedReminders = useMemo(() => {
+    if (!characterDef) return new Map<string, PlayerSeat>();
+    const map = new Map<string, PlayerSeat>();
+    for (const player of players) {
+      for (const reminderId of player.activeReminders) {
+        const token = characterDef.reminders.find((r) => r.id === reminderId);
+        if (token) map.set(token.id, player);
+      }
+    }
+    return map;
+  }, [characterDef, players]);
+
+  // Phase 4: Separate affecting tokens (from OTHER characters) from this character's tokens
+  const affectingTokens = useMemo(
+    () => (playerSeat ? playerSeat.tokens.filter((t) => t.sourceCharacterId !== entry.id) : []),
+    [playerSeat, entry.id],
+  );
+
   return (
     <Box
       sx={{
@@ -204,45 +254,8 @@ export function NightFlashcard({
         </Box>
       )}
 
-      {/* Character icon placeholder */}
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          mb: 2,
-          position: 'relative',
-          zIndex: 1,
-        }}
-      >
-        <CharacterIconImage
-          characterId={entry.id}
-          characterName={entry.name}
-          typeColor={typeColor}
-          size={80}
-          borderColor={getAlignmentBorderColor(
-            playerSeat?.actualAlignment ?? characterDef?.defaultAlignment,
-            typeColor,
-          )}
-          isDead={isDead}
-          onClick={characterDef ? () => setDetailOpen(true) : undefined}
-          sx={{ mb: 1.5, boxShadow: `0 0 20px ${typeColor}44` }}
-        />
-
-        {/* Character name */}
-        <Typography
-          variant="h5"
-          sx={{
-            fontWeight: 'bold',
-            color: '#fff',
-            textAlign: 'center',
-            mb: 0.5,
-          }}
-        >
-          {entry.name}
-        </Typography>
-
-        {/* Type chip */}
+      {/* Phase 4: Type chip → upper-left of content card */}
+      <Box sx={{ position: 'absolute', top: 12, left: 12, zIndex: 2 }}>
         <Chip
           label={typeName}
           size="small"
@@ -255,6 +268,58 @@ export function NightFlashcard({
             transition: 'background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease',
           }}
         />
+      </Box>
+
+      {/* Character icon + affecting tokens row */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          mb: 2,
+          position: 'relative',
+          zIndex: 1,
+        }}
+      >
+        {/* Phase 4: Character icon with affecting tokens to the right */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <CharacterIconImage
+            characterId={entry.id}
+            characterName={entry.name}
+            typeColor={typeColor}
+            size={80}
+            borderColor={getAlignmentBorderColor(
+              playerSeat?.actualAlignment ?? characterDef?.defaultAlignment,
+              typeColor,
+            )}
+            isDead={isDead}
+            onClick={characterDef ? () => setDetailOpen(true) : undefined}
+            sx={{ boxShadow: `0 0 20px ${typeColor}44` }}
+          />
+          {/* Phase 4: Active affecting tokens (from OTHER characters) → right of icon */}
+          {affectingTokens.length > 0 && (
+            <Box
+              data-testid="affecting-tokens"
+              sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}
+            >
+              <TokenChips tokens={affectingTokens} size="small" />
+            </Box>
+          )}
+        </Box>
+
+        {/* Character name */}
+        <Typography
+          variant="h5"
+          sx={{
+            fontWeight: 'bold',
+            color: '#fff',
+            textAlign: 'center',
+            mt: 1.5,
+            mb: 0.5,
+          }}
+        >
+          {entry.name}
+        </Typography>
 
         {/* Short ability description */}
         {characterDef?.abilityShort && (
@@ -264,7 +329,7 @@ export function NightFlashcard({
               color: 'rgba(255,255,255,0.85)',
               textAlign: 'center',
               fontWeight: 'bold',
-              mt: 1,
+              mt: 0.5,
               px: 1,
               fontSize: '1rem',
               lineHeight: 1.4,
@@ -272,13 +337,6 @@ export function NightFlashcard({
           >
             {characterDef.abilityShort}
           </Typography>
-        )}
-
-        {/* Active tokens indicator (F3-18) */}
-        {playerSeat && playerSeat.tokens.length > 0 && (
-          <Box sx={{ mt: 1, display: 'flex', justifyContent: 'center' }}>
-            <TokenChips tokens={playerSeat.tokens} size="medium" />
-          </Box>
         )}
 
         {/* Inline reminder tokens when :reminder: markers are present */}
@@ -333,48 +391,6 @@ export function NightFlashcard({
                 ),
               )}
             </Typography>
-          </Box>
-        )}
-
-        {/* Reminder tokens to place (when no :reminder: markers in text) */}
-        {!reminderSegments && characterDef && characterDef.reminders.length > 0 && (
-          <Box
-            data-testid="reminder-tokens"
-            sx={{
-              mt: 1.5,
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              gap: 0.5,
-            }}
-          >
-            <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', mr: 0.5 }}>
-              Reminders:
-            </Typography>
-            {characterDef.reminders.map((r) => (
-              <Tooltip key={r.id} title={r.text}>
-                <Chip
-                  label={r.text}
-                  size="small"
-                  avatar={
-                    r.sourceCharacterId ? (
-                      <Avatar
-                        src={getCharacterIconPath(r.sourceCharacterId)}
-                        alt={r.sourceCharacterId}
-                        sx={{ width: 20, height: 20 }}
-                      />
-                    ) : undefined
-                  }
-                  sx={{
-                    bgcolor: `${getReminderTokenColor(r.sourceCharacterId)}30`,
-                    color: getReminderTokenColor(r.sourceCharacterId),
-                    fontWeight: 600,
-                    fontSize: '0.65rem',
-                    border: `1px solid ${getReminderTokenColor(r.sourceCharacterId)}55`,
-                  }}
-                />
-              </Tooltip>
-            ))}
           </Box>
         )}
       </Box>
@@ -444,7 +460,97 @@ export function NightFlashcard({
         </Box>
       )}
 
-      {/* Sub-action checklist + choice selectors inline */}
+      {/* Phase 4: Available reminder tokens → below separator, above checklist */}
+      {!reminderSegments && characterDef && characterDef.reminders.length > 0 && (
+        <Box
+          data-testid="reminder-tokens"
+          sx={{
+            mb: 1,
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            gap: 0.5,
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', mr: 0.5 }}>
+            Reminders:
+          </Typography>
+          {characterDef.reminders.map((r) => {
+            const placedOn = placedReminders.get(r.id);
+            const placedCharDef =
+              placedOn?.characterId && characterLookup
+                ? characterLookup(placedOn.characterId)
+                : undefined;
+            return (
+              <Tooltip
+                key={r.id}
+                title={
+                  placedOn
+                    ? `Placed on ${placedOn.playerName}${placedCharDef ? ` (${placedCharDef.name})` : ''}`
+                    : r.text
+                }
+              >
+                <Chip
+                  label={
+                    <Box
+                      component="span"
+                      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                    >
+                      <span>{r.text}</span>
+                      {placedOn && (
+                        <Typography
+                          component="span"
+                          data-testid="placed-reminder-info"
+                          sx={{
+                            fontSize: '0.55rem',
+                            lineHeight: 1.1,
+                            color: 'rgba(255,255,255,0.5)',
+                          }}
+                        >
+                          {placedOn.playerName}
+                          {placedCharDef ? ` (${placedCharDef.name})` : ''}
+                        </Typography>
+                      )}
+                    </Box>
+                  }
+                  size="small"
+                  onClick={onReminderTokenClick ? () => onReminderTokenClick(r.text) : undefined}
+                  avatar={
+                    r.sourceCharacterId ? (
+                      <Avatar
+                        src={getCharacterIconPath(r.sourceCharacterId)}
+                        alt={r.sourceCharacterId}
+                        sx={{ width: 16, height: 16 }}
+                      />
+                    ) : undefined
+                  }
+                  sx={{
+                    bgcolor: placedOn
+                      ? 'rgba(128,128,128,0.15)'
+                      : `${getReminderTokenColor(r.sourceCharacterId)}30`,
+                    color: placedOn
+                      ? 'rgba(200,200,200,0.5)'
+                      : getReminderTokenColor(r.sourceCharacterId),
+                    fontWeight: 600,
+                    fontSize: '0.65rem',
+                    height: 'auto',
+                    py: 0.25,
+                    border: placedOn
+                      ? '1px solid rgba(128,128,128,0.3)'
+                      : `1px solid ${getReminderTokenColor(r.sourceCharacterId)}55`,
+                    cursor: onReminderTokenClick ? 'pointer' : 'default',
+                    opacity: placedOn ? 0.6 : 1,
+                  }}
+                />
+              </Tooltip>
+            );
+          })}
+        </Box>
+      )}
+
+      {/* Sub-action checklist + choice selectors + signal controls */}
       <Box sx={{ flex: 1, minHeight: 0, overflow: 'auto', position: 'relative', zIndex: 1 }}>
         <SubActionChecklist
           subActions={entry.subActions}
@@ -452,6 +558,97 @@ export function NightFlashcard({
           onToggle={onToggleSubAction}
           readOnly={readOnly}
         />
+
+        {/* Phase 3: Signal recording controls — inline after sub-actions */}
+        {signalInfos.some((s) => s !== 'none') && (
+          <Box data-testid="signal-controls" sx={{ mt: 1 }}>
+            {signalInfos.map((signalType, idx) => {
+              if (signalType === 'none') return null;
+              const signalKey = `${entry.id}__signal__${idx}`;
+              const currentSignal =
+                typeof selectionValue === 'object' && !Array.isArray(selectionValue) ? '' : '';
+              // Signal values are stored as selections with a special key prefix
+              const storedSignal = (() => {
+                // Look up signal from compound selection array or direct selection
+                if (typeof selectionValue === 'string' && selectionValue.startsWith('signal:')) {
+                  return selectionValue.replace('signal:', '');
+                }
+                return '';
+              })();
+
+              if (signalType === 'finger') {
+                return (
+                  <Box key={signalKey} sx={{ mt: 1 }}>
+                    <FormControl size="small" sx={{ minWidth: 140 }}>
+                      <InputLabel
+                        id={`signal-finger-${idx}`}
+                        sx={{ color: 'rgba(255,255,255,0.6)' }}
+                      >
+                        Finger signal
+                      </InputLabel>
+                      <Select
+                        labelId={`signal-finger-${idx}`}
+                        value={storedSignal || currentSignal}
+                        label="Finger signal"
+                        disabled={readOnly}
+                        onChange={(e) => {
+                          onSelectionChange?.(`signal:${e.target.value}`);
+                        }}
+                        sx={{
+                          color: 'rgba(255,255,255,0.9)',
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            borderColor: 'rgba(255,255,255,0.2)',
+                          },
+                        }}
+                      >
+                        <MenuItem value="">
+                          <em>None</em>
+                        </MenuItem>
+                        {[0, 1, 2, 3, 4, 5].map((n) => (
+                          <MenuItem key={n} value={String(n)}>
+                            {n === 5 ? '5+' : String(n)}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                );
+              }
+
+              if (signalType === 'thumbsUpDown') {
+                return (
+                  <Box key={signalKey} sx={{ mt: 1 }}>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'rgba(255,255,255,0.5)', mb: 0.5, display: 'block' }}
+                    >
+                      Signal
+                    </Typography>
+                    <ToggleButtonGroup
+                      value={storedSignal || currentSignal}
+                      exclusive
+                      onChange={(_, val) => {
+                        if (val !== null && !readOnly) {
+                          onSelectionChange?.(`signal:${val}`);
+                        }
+                      }}
+                      size="small"
+                    >
+                      <ToggleButton value="thumbsUp" sx={{ color: '#66bb6a' }}>
+                        👍 Yes
+                      </ToggleButton>
+                      <ToggleButton value="thumbsDown" sx={{ color: '#ef5350' }}>
+                        👎 No
+                      </ToggleButton>
+                    </ToggleButtonGroup>
+                  </Box>
+                );
+              }
+
+              return null;
+            })}
+          </Box>
+        )}
 
         {/* Night choice selector(s) — directly below instruction steps */}
         {parsedChoices.length > 0 && onSelectionChange && (
@@ -469,6 +666,7 @@ export function NightFlashcard({
                 previousValue={getCompoundPrev(idx)}
                 label={choice.label}
                 readOnly={readOnly}
+                characterLookup={characterLookup}
               />
             ))}
           </Box>
@@ -485,9 +683,20 @@ export function NightFlashcard({
         }}
       />
 
-      {/* Notes field */}
+      {/* Phase 5: Notes field — subtle background, vertical growth */}
       <Box
-        sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, position: 'relative', zIndex: 1 }}
+        data-testid="notes-section"
+        sx={{
+          display: 'flex',
+          alignItems: 'flex-start',
+          gap: 1,
+          position: 'relative',
+          zIndex: 1,
+          bgcolor: 'rgba(255,255,255,0.06)',
+          borderRadius: 1.5,
+          p: 1,
+          border: '1px solid rgba(255,255,255,0.08)',
+        }}
       >
         <Typography
           variant="body2"
@@ -496,18 +705,20 @@ export function NightFlashcard({
           📝
         </Typography>
         <TextField
-          placeholder="Notes…"
+          placeholder={previousNotes ? 'Notes (pre-filled from last night)…' : 'Notes…'}
           value={notes}
           onChange={(e) => onNotesChange(e.target.value)}
           disabled={readOnly}
           multiline
-          maxRows={2}
+          maxRows={6}
           size="small"
           fullWidth
           sx={{
             '& .MuiInputBase-root': {
               color: '#fff',
               fontSize: '0.85rem',
+              maxHeight: '15vh',
+              overflow: 'auto',
             },
             '& .MuiInputBase-root.Mui-disabled': {
               '-webkit-text-fill-color': '#fff',

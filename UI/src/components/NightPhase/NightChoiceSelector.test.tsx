@@ -73,6 +73,9 @@ const mockCharacters: CharacterDef[] = [
   },
 ];
 
+const mockCharacterLookup = (id: string): CharacterDef | undefined =>
+  mockCharacters.find((c) => c.id === id);
+
 // ──────────────────────────────────────────────
 // Tests
 // ──────────────────────────────────────────────
@@ -80,12 +83,7 @@ const mockCharacters: CharacterDef[] = [
 describe('NightChoiceSelector', () => {
   it('renders without crashing', () => {
     const { container } = render(
-      <NightChoiceSelector
-        type="player"
-        value=""
-        onChange={vi.fn()}
-        players={mockPlayers}
-      />,
+      <NightChoiceSelector type="player" value="" onChange={vi.fn()} players={mockPlayers} />,
     );
     expect(container.firstChild).toBeInTheDocument();
   });
@@ -116,7 +114,26 @@ describe('NightChoiceSelector', () => {
     expect(screen.getByLabelText('Select target')).toBeInTheDocument();
   });
 
-  it('handles player choice type — shows all player names in dropdown', () => {
+  // Phase 1: Player dropdown shows character context
+  it('shows player names with character context in dropdown', () => {
+    render(
+      <NightChoiceSelector
+        type="player"
+        value=""
+        onChange={vi.fn()}
+        players={mockPlayers}
+        characterLookup={mockCharacterLookup}
+        label="Choose"
+      />,
+    );
+    const combobox = screen.getByRole('combobox');
+    fireEvent.mouseDown(combobox);
+    const listbox = screen.getByRole('listbox');
+    expect(within(listbox).getByText('Alice (Noble)')).toBeInTheDocument();
+    expect(within(listbox).getByText('Bob (Imp)')).toBeInTheDocument();
+  });
+
+  it('falls back to seat number when no character lookup provided', () => {
     render(
       <NightChoiceSelector
         type="player"
@@ -126,14 +143,34 @@ describe('NightChoiceSelector', () => {
         label="Choose"
       />,
     );
-    // Open the dropdown by clicking the select
     const combobox = screen.getByRole('combobox');
     fireEvent.mouseDown(combobox);
-    // The listbox should now appear with player options
     const listbox = screen.getByRole('listbox');
     expect(within(listbox).getByText('Alice (Seat 1)')).toBeInTheDocument();
     expect(within(listbox).getByText('Bob (Seat 2)')).toBeInTheDocument();
-    expect(within(listbox).getByText('Charlie (Seat 3)')).toBeInTheDocument();
+  });
+
+  it('handles player with no character assigned', () => {
+    const unassignedPlayer: PlayerSeat = {
+      ...mockPlayers[0],
+      characterId: '',
+      seat: 4,
+      playerName: 'Dana',
+    };
+    render(
+      <NightChoiceSelector
+        type="player"
+        value=""
+        onChange={vi.fn()}
+        players={[...mockPlayers, unassignedPlayer]}
+        characterLookup={mockCharacterLookup}
+        label="Choose"
+      />,
+    );
+    const combobox = screen.getByRole('combobox');
+    fireEvent.mouseDown(combobox);
+    const listbox = screen.getByRole('listbox');
+    expect(within(listbox).getByText('Dana (Seat 4)')).toBeInTheDocument();
   });
 
   it('handles livingPlayer type — shows only alive players', () => {
@@ -143,15 +180,16 @@ describe('NightChoiceSelector', () => {
         value=""
         onChange={vi.fn()}
         players={mockPlayers}
+        characterLookup={mockCharacterLookup}
         label="Choose"
       />,
     );
     const combobox = screen.getByRole('combobox');
     fireEvent.mouseDown(combobox);
     const listbox = screen.getByRole('listbox');
-    expect(within(listbox).getByText('Alice (Seat 1)')).toBeInTheDocument();
-    expect(within(listbox).getByText('Bob (Seat 2)')).toBeInTheDocument();
-    expect(within(listbox).queryByText('Charlie (Seat 3)')).not.toBeInTheDocument();
+    expect(within(listbox).getByText('Alice (Noble)')).toBeInTheDocument();
+    expect(within(listbox).getByText('Bob (Imp)')).toBeInTheDocument();
+    expect(within(listbox).queryByText(/Charlie/)).not.toBeInTheDocument();
   });
 
   it('handles deadPlayer type — shows only dead players', () => {
@@ -167,26 +205,56 @@ describe('NightChoiceSelector', () => {
     const combobox = screen.getByRole('combobox');
     fireEvent.mouseDown(combobox);
     const listbox = screen.getByRole('listbox');
-    expect(within(listbox).queryByText('Alice (Seat 1)')).not.toBeInTheDocument();
+    expect(within(listbox).queryByText(/Alice/)).not.toBeInTheDocument();
     expect(within(listbox).getByText('Charlie (Seat 3)')).toBeInTheDocument();
   });
 
-  it('handles character choice type — shows character names', () => {
+  // Phase 1: Character dropdown shows player context
+  it('shows character names with player context in dropdown', () => {
     render(
       <NightChoiceSelector
         type="character"
         value=""
         onChange={vi.fn()}
-        players={[]}
+        players={mockPlayers}
         characters={mockCharacters}
+        characterLookup={mockCharacterLookup}
         label="Choose character"
       />,
     );
     const combobox = screen.getByRole('combobox');
     fireEvent.mouseDown(combobox);
     const listbox = screen.getByRole('listbox');
-    expect(within(listbox).getByText('Noble (Townsfolk)')).toBeInTheDocument();
-    expect(within(listbox).getByText('Imp (Demon)')).toBeInTheDocument();
+    expect(within(listbox).getByText('Noble (Alice)')).toBeInTheDocument();
+    expect(within(listbox).getByText('Imp (Bob)')).toBeInTheDocument();
+  });
+
+  it('falls back to type when character has no player', () => {
+    const unownedChar: CharacterDef = {
+      id: 'scarletwoman',
+      name: 'Scarlet Woman',
+      type: CharacterType.Minion,
+      defaultAlignment: Alignment.Evil,
+      abilityShort: 'Test',
+      firstNight: null,
+      otherNights: null,
+      reminders: [],
+    };
+    render(
+      <NightChoiceSelector
+        type="character"
+        value=""
+        onChange={vi.fn()}
+        players={mockPlayers}
+        characters={[...mockCharacters, unownedChar]}
+        characterLookup={mockCharacterLookup}
+        label="Choose"
+      />,
+    );
+    const combobox = screen.getByRole('combobox');
+    fireEvent.mouseDown(combobox);
+    const listbox = screen.getByRole('listbox');
+    expect(within(listbox).getByText('Scarlet Woman (Minion)')).toBeInTheDocument();
   });
 
   it('handles yesno choice type — shows toggle buttons', () => {
@@ -244,7 +312,7 @@ describe('NightChoiceSelector', () => {
         type="character"
         value=""
         onChange={onChange}
-        players={[]}
+        players={mockPlayers}
         characters={mockCharacters}
         label="Choose"
       />,
@@ -252,7 +320,8 @@ describe('NightChoiceSelector', () => {
     const combobox = screen.getByRole('combobox');
     fireEvent.mouseDown(combobox);
     const listbox = screen.getByRole('listbox');
-    fireEvent.click(within(listbox).getByText('Imp (Demon)'));
+    // Bob plays Imp, so it shows "Imp (Bob)" with player context
+    fireEvent.click(within(listbox).getByText('Imp (Bob)'));
     expect(onChange).toHaveBeenCalledWith('Imp');
   });
 
@@ -299,14 +368,25 @@ describe('NightChoiceSelector', () => {
   });
 
   it('uses default label "Choose" when no label is provided', () => {
+    render(<NightChoiceSelector type="player" value="" onChange={vi.fn()} players={mockPlayers} />);
+    expect(screen.getByLabelText('Choose')).toBeInTheDocument();
+  });
+
+  it('renders character icon avatars in player dropdown when characterLookup is provided', () => {
     render(
       <NightChoiceSelector
         type="player"
         value=""
         onChange={vi.fn()}
         players={mockPlayers}
+        characterLookup={mockCharacterLookup}
+        label="Choose"
       />,
     );
-    expect(screen.getByLabelText('Choose')).toBeInTheDocument();
+    const combobox = screen.getByRole('combobox');
+    fireEvent.mouseDown(combobox);
+    // Should have avatar images for characters
+    const avatars = screen.getAllByRole('img');
+    expect(avatars.length).toBeGreaterThanOrEqual(1);
   });
 });

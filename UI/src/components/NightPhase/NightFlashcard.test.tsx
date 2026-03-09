@@ -104,11 +104,11 @@ describe('NightFlashcard', () => {
     expect(screen.getByText('Wake the Fortune Teller')).toBeInTheDocument();
     expect(screen.getByText('they point to two players')).toBeInTheDocument();
     expect(screen.getByText('Give thumbs up or down')).toBeInTheDocument();
-    // Only actionable items get checkboxes (index 0 + index 1 conditional)
     const checkboxes = screen.getAllByRole('checkbox');
     expect(checkboxes.length).toBeGreaterThanOrEqual(1);
   });
 
+  // Phase 4: Type chip is now upper-left
   it('shows type chip with character type name', () => {
     render(<NightFlashcard {...defaultProps} />);
     expect(screen.getByText('Townsfolk')).toBeInTheDocument();
@@ -129,9 +129,16 @@ describe('NightFlashcard', () => {
     expect(screen.queryByText('👻')).not.toBeInTheDocument();
   });
 
+  // Phase 5: Notes section with subtle background
   it('shows notes field with placeholder', () => {
     render(<NightFlashcard {...defaultProps} />);
     expect(screen.getByPlaceholderText('Notes…')).toBeInTheDocument();
+  });
+
+  it('shows notes section with subtle background', () => {
+    render(<NightFlashcard {...defaultProps} />);
+    const notesSection = screen.getByTestId('notes-section');
+    expect(notesSection).toBeInTheDocument();
   });
 
   it('shows existing notes text', () => {
@@ -145,6 +152,39 @@ describe('NightFlashcard', () => {
     const notesInput = screen.getByPlaceholderText('Notes…');
     fireEvent.change(notesInput, { target: { value: 'New note' } });
     expect(onNotesChange).toHaveBeenCalledWith('New note');
+  });
+
+  // Phase 5: Pre-populate notes with previous night
+  it('pre-populates notes from previousNotes when notes is empty', () => {
+    const onNotesChange = vi.fn();
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        notes=""
+        onNotesChange={onNotesChange}
+        previousNotes="From last night"
+      />,
+    );
+    expect(onNotesChange).toHaveBeenCalledWith('From last night');
+  });
+
+  it('does not pre-populate when notes already has content', () => {
+    const onNotesChange = vi.fn();
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        notes="Existing note"
+        onNotesChange={onNotesChange}
+        previousNotes="From last night"
+      />,
+    );
+    expect(onNotesChange).not.toHaveBeenCalled();
+  });
+
+  it('shows custom placeholder when previousNotes is present', () => {
+    render(<NightFlashcard {...defaultProps} previousNotes="From last night" />);
+    // After pre-population, the placeholder becomes special
+    expect(screen.getByPlaceholderText('Notes (pre-filled from last night)…')).toBeInTheDocument();
   });
 
   it('calls onToggleSubAction when a sub-action checkbox is toggled', () => {
@@ -161,7 +201,6 @@ describe('NightFlashcard', () => {
 
   it('shows character icon image', () => {
     render(<NightFlashcard {...defaultProps} />);
-    // The icon is now rendered as an <img> with alt text
     const img = screen.getByAltText('Fortune Teller');
     expect(img).toBeInTheDocument();
     expect(img.tagName).toBe('IMG');
@@ -194,7 +233,6 @@ describe('NightFlashcard', () => {
         players={[mockPlayerSeat]}
       />,
     );
-    // The choice selector label renders in both <label> and notch <span>
     const matches = screen.getAllByText('Choose 2 players');
     expect(matches.length).toBeGreaterThanOrEqual(1);
   });
@@ -205,9 +243,128 @@ describe('NightFlashcard', () => {
       'Each night, choose 2 players: you learn if either is a Demon.',
     );
     expect(abilityEl).toBeInTheDocument();
-    // Verify the element does NOT have italic font style
     const style = window.getComputedStyle(abilityEl);
     expect(style.fontStyle).not.toBe('italic');
+  });
+
+  // Phase 2: Reminder token placement status
+  it('shows placed reminder status when token is placed on a player', () => {
+    const charWithReminders: CharacterDef = {
+      ...mockCharacterDef,
+      reminders: [
+        { id: 'ft-red-herring', text: 'Red Herring', sourceCharacterId: 'fortuneteller' },
+      ],
+    };
+    const playerWithReminder: PlayerSeat = {
+      ...mockPlayerSeat,
+      seat: 1,
+      playerName: 'Alice',
+      characterId: 'noble',
+      activeReminders: ['ft-red-herring'],
+    };
+    const charLookup = (id: string) =>
+      id === 'noble'
+        ? {
+            id: 'noble',
+            name: 'Noble',
+            type: CharacterType.Townsfolk as const,
+            defaultAlignment: Alignment.Good,
+            abilityShort: '',
+            firstNight: null,
+            otherNights: null,
+            reminders: [],
+          }
+        : undefined;
+
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        characterDef={charWithReminders}
+        players={[playerWithReminder]}
+        characterLookup={charLookup}
+      />,
+    );
+    expect(screen.getByTestId('placed-reminder-info')).toBeInTheDocument();
+    expect(screen.getByText(/Alice/)).toBeInTheDocument();
+  });
+
+  it('calls onReminderTokenClick when a reminder token is clicked', () => {
+    const onTokenClick = vi.fn();
+    const charWithReminders: CharacterDef = {
+      ...mockCharacterDef,
+      reminders: [
+        { id: 'ft-red-herring', text: 'Red Herring', sourceCharacterId: 'fortuneteller' },
+      ],
+    };
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        characterDef={charWithReminders}
+        onReminderTokenClick={onTokenClick}
+      />,
+    );
+    const chip = screen.getByText('Red Herring');
+    fireEvent.click(chip);
+    expect(onTokenClick).toHaveBeenCalledWith('Red Herring');
+  });
+
+  // Phase 4: Affecting tokens displayed next to icon
+  it('shows affecting tokens (from other characters) next to the icon', () => {
+    const playerWithTokens: PlayerSeat = {
+      ...mockPlayerSeat,
+      tokens: [{ id: 'drunk-1', type: 'drunk', label: 'Drunk', sourceCharacterId: 'poisoner' }],
+    };
+    render(<NightFlashcard {...defaultProps} playerSeat={playerWithTokens} />);
+    expect(screen.getByTestId('affecting-tokens')).toBeInTheDocument();
+  });
+
+  it('does not show affecting tokens when token is from same character', () => {
+    const playerWithSelfToken: PlayerSeat = {
+      ...mockPlayerSeat,
+      tokens: [
+        { id: 'ft-own', type: 'custom', label: 'Own Token', sourceCharacterId: 'fortuneteller' },
+      ],
+    };
+    render(<NightFlashcard {...defaultProps} playerSeat={playerWithSelfToken} />);
+    expect(screen.queryByTestId('affecting-tokens')).not.toBeInTheDocument();
+  });
+
+  // Phase 3: Signal detection
+  it('shows signal controls for thumbs up/down sub-actions', () => {
+    const signalEntry: NightOrderEntry = {
+      ...mockEntry,
+      subActions: [
+        { id: 'sig-1', description: 'Give a Thumbs Up or Thumbs Down', isConditional: false },
+      ],
+    };
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        entry={signalEntry}
+        checkedStates={[false]}
+        onSelectionChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('signal-controls')).toBeInTheDocument();
+    expect(screen.getByText(/👍/)).toBeInTheDocument();
+    expect(screen.getByText(/👎/)).toBeInTheDocument();
+  });
+
+  it('shows finger signal dropdown for finger signal sub-actions', () => {
+    const signalEntry: NightOrderEntry = {
+      ...mockEntry,
+      subActions: [{ id: 'sig-1', description: 'Give a finger signal', isConditional: false }],
+    };
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        entry={signalEntry}
+        checkedStates={[false]}
+        onSelectionChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('signal-controls')).toBeInTheDocument();
+    expect(screen.getByLabelText('Finger signal')).toBeInTheDocument();
   });
 
   // ── M5: Jinx reminder tests ──

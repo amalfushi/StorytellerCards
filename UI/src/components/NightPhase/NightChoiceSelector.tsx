@@ -1,9 +1,12 @@
 import { useMemo } from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
+import ListItemIcon from '@mui/material/ListItemIcon';
+import ListItemText from '@mui/material/ListItemText';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
@@ -11,6 +14,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import type { PlayerSeat, CharacterDef, NightChoiceType } from '@/types/index.ts';
+import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 
 // ──────────────────────────────────────────────
 // Types
@@ -27,6 +31,8 @@ export interface NightChoiceSelectorProps {
   previousValue?: string | string[];
   label?: string;
   readOnly?: boolean;
+  /** Lookup function to resolve character definitions by ID (for inline icons). */
+  characterLookup?: (id: string) => CharacterDef | undefined;
 }
 
 // ──────────────────────────────────────────────
@@ -52,6 +58,7 @@ export function NightChoiceSelector({
   previousValue,
   label = 'Choose',
   readOnly = false,
+  characterLookup,
 }: NightChoiceSelectorProps) {
   // Build player options filtered by type
   const playerOptions = useMemo(() => {
@@ -68,6 +75,15 @@ export function NightChoiceSelector({
   }, [players, type]);
 
   const isPlayerType = type === 'player' || type === 'livingPlayer' || type === 'deadPlayer';
+
+  // Build a quick lookup: characterId → player for character dropdowns
+  const playersByCharId = useMemo(() => {
+    const map = new Map<string, PlayerSeat>();
+    for (const p of players) {
+      if (p.characterId) map.set(p.characterId, p);
+    }
+    return map;
+  }, [players]);
 
   // Previous value display
   const prevDisplay = previousValue
@@ -104,6 +120,15 @@ export function NightChoiceSelector({
             value={typeof value === 'string' ? value : ''}
             label={label}
             onChange={(e) => onChange(e.target.value)}
+            renderValue={(selected) => {
+              const p = playerOptions.find((pl) => pl.playerName === selected);
+              if (!p) return selected;
+              const charDef =
+                p.characterId && characterLookup ? characterLookup(p.characterId) : undefined;
+              return charDef
+                ? `${p.playerName} (${charDef.name})`
+                : `${p.playerName} (Seat ${p.seat})`;
+            }}
             sx={{
               color: 'rgba(255,255,255,0.9)',
               '& .MuiOutlinedInput-notchedOutline': {
@@ -117,11 +142,30 @@ export function NightChoiceSelector({
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
-            {playerOptions.map((p) => (
-              <MenuItem key={p.seat} value={p.playerName}>
-                {p.playerName} (Seat {p.seat})
-              </MenuItem>
-            ))}
+            {playerOptions.map((p) => {
+              const charDef =
+                p.characterId && characterLookup ? characterLookup(p.characterId) : undefined;
+              return (
+                <MenuItem key={p.seat} value={p.playerName}>
+                  {charDef && (
+                    <ListItemIcon sx={{ minWidth: 28 }}>
+                      <Avatar
+                        src={getCharacterIconPath(charDef.id)}
+                        alt={charDef.name}
+                        sx={{ width: 20, height: 20 }}
+                      />
+                    </ListItemIcon>
+                  )}
+                  <ListItemText
+                    primary={
+                      charDef
+                        ? `${p.playerName} (${charDef.name})`
+                        : `${p.playerName} (Seat ${p.seat})`
+                    }
+                  />
+                </MenuItem>
+              );
+            })}
           </Select>
         </FormControl>
       )}
@@ -136,6 +180,32 @@ export function NightChoiceSelector({
           onChange={(_, newValue) => {
             if (maxSelections && newValue.length > maxSelections) return;
             onChange(newValue);
+          }}
+          getOptionLabel={(option) => {
+            const p = playerOptions.find((pl) => pl.playerName === option);
+            if (!p) return option;
+            const charDef =
+              p.characterId && characterLookup ? characterLookup(p.characterId) : undefined;
+            return charDef
+              ? `${p.playerName} (${charDef.name})`
+              : `${p.playerName} (Seat ${p.seat})`;
+          }}
+          renderOption={(props, option) => {
+            const p = playerOptions.find((pl) => pl.playerName === option);
+            const charDef =
+              p?.characterId && characterLookup ? characterLookup(p.characterId) : undefined;
+            return (
+              <li {...props} key={p?.seat ?? option}>
+                {charDef && (
+                  <Avatar
+                    src={getCharacterIconPath(charDef.id)}
+                    alt={charDef.name}
+                    sx={{ width: 20, height: 20, mr: 1 }}
+                  />
+                )}
+                {charDef ? `${option} (${charDef.name})` : `${option} (Seat ${p?.seat ?? '?'})`}
+              </li>
+            );
           }}
           renderInput={(params) => (
             <TextField
@@ -179,6 +249,12 @@ export function NightChoiceSelector({
             value={typeof value === 'string' ? value : ''}
             label={label}
             onChange={(e) => onChange(e.target.value)}
+            renderValue={(selected) => {
+              const c = characters.find((ch) => ch.name === selected);
+              if (!c) return selected;
+              const p = playersByCharId.get(c.id);
+              return p ? `${c.name} (${p.playerName})` : `${c.name} (${c.type})`;
+            }}
             sx={{
               color: 'rgba(255,255,255,0.9)',
               '& .MuiOutlinedInput-notchedOutline': {
@@ -189,11 +265,23 @@ export function NightChoiceSelector({
             <MenuItem value="">
               <em>None</em>
             </MenuItem>
-            {characters.map((c) => (
-              <MenuItem key={c.id} value={c.name}>
-                {c.name} ({c.type})
-              </MenuItem>
-            ))}
+            {characters.map((c) => {
+              const p = playersByCharId.get(c.id);
+              return (
+                <MenuItem key={c.id} value={c.name}>
+                  <ListItemIcon sx={{ minWidth: 28 }}>
+                    <Avatar
+                      src={getCharacterIconPath(c.id)}
+                      alt={c.name}
+                      sx={{ width: 20, height: 20 }}
+                    />
+                  </ListItemIcon>
+                  <ListItemText
+                    primary={p ? `${c.name} (${p.playerName})` : `${c.name} (${c.type})`}
+                  />
+                </MenuItem>
+              );
+            })}
           </Select>
         </FormControl>
       )}

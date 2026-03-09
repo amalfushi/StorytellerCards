@@ -34,6 +34,8 @@ export interface FlashcardCarouselProps {
   onDotClick?: (index: number) => void;
   /** Callback fired whenever the current card index changes */
   onCardChange?: (index: number) => void;
+  /** Callback when a reminder token is clicked (navigates to Day view). */
+  onReminderTokenClick?: (tokenText: string) => void;
   /** Demon bluff character definitions (passed to demoninfo StructuralCard). */
   bluffCharacters?: CharacterDef[];
 }
@@ -58,6 +60,7 @@ export function FlashcardCarousel({
   previousNightHistory,
   onDotClick,
   onCardChange,
+  onReminderTokenClick,
   bluffCharacters,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
@@ -181,6 +184,7 @@ export function FlashcardCarousel({
     const note = nightProgress.notes[entry.id] ?? '';
     const selectionValue = nightProgress.selections?.[entry.id];
     const prevSelection = previousNightHistory?.selections?.[entry.id];
+    const prevNote = previousNightHistory?.notes?.[entry.id];
 
     if (entry.type === 'structural') {
       return (
@@ -214,6 +218,9 @@ export function FlashcardCarousel({
         selectionValue={selectionValue}
         onSelectionChange={(v) => handleSelection(entry.id, v)}
         previousSelection={prevSelection}
+        characterLookup={characterLookup}
+        previousNotes={prevNote}
+        onReminderTokenClick={onReminderTokenClick}
       />
     );
   };
