@@ -236,13 +236,30 @@ export function CharacterAssignmentDialog({
     return [...deduped].sort(sortByTypeAndName);
   }, [inPlayCharacterIds, availableCharacters, scriptCharacters]);
 
+  // Compute distribution from in-play character type counts when available
+  const inPlayDistribution = useMemo((): Distribution | null => {
+    if (!inPlayCharacterIds || inPlayCharacterIds.length === 0) return null;
+    const counts = { townsfolk: 0, outsiders: 0, minions: 0, demons: 0 };
+    for (const id of inPlayCharacterIds) {
+      const ch = scriptCharacters.find((c) => c.id === id);
+      if (!ch) continue;
+      if (ch.type === 'Townsfolk') counts.townsfolk++;
+      else if (ch.type === 'Outsider') counts.outsiders++;
+      else if (ch.type === 'Minion') counts.minions++;
+      else if (ch.type === 'Demon') counts.demons++;
+    }
+    return counts;
+  }, [inPlayCharacterIds, scriptCharacters]);
+
   // Reset state when dialog opens
   const handleEnter = useCallback(() => {
-    setDistribution(getDistribution(players.filter((p) => !p.isTraveller).length));
+    setDistribution(
+      inPlayDistribution ?? getDistribution(players.filter((p) => !p.isTraveller).length),
+    );
     setLocalPlayers([...players]);
     setError(null);
     setSelectedChipId(null);
-  }, [players]);
+  }, [players, inPlayDistribution]);
 
   // Simplified randomize: assign all unassigned characters to all empty seats
   const handleRandomize = () => {

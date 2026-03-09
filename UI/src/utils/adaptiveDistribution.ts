@@ -362,18 +362,19 @@ export function calculateAdaptiveTargets(
     warnings.push('Outsider count may vary — Storyteller decides');
   }
 
-  // ── Village Idiot: extra copies replace Townsfolk ──
+  // ── Village Idiot: extra copies fill Townsfolk slots ──
   const extraVI = options.extraVillageIdiots ?? 0;
   if (idSet.has('villageidiot') && extraVI > 0) {
-    townsfolk = Math.max(0, townsfolk - extraVI);
+    // Village Idiot copies ARE Townsfolk — they count toward the Townsfolk
+    // target, not against it. No reduction needed.
     modifiers.push({
       characterId: 'villageidiot',
       characterName: charName('villageidiot'),
-      description: `+${extraVI} extra cop${extraVI === 1 ? 'y' : 'ies'} (replacing Townsfolk)`,
+      description: `+${extraVI} extra cop${extraVI === 1 ? 'y' : 'ies'} (filling Townsfolk slot${extraVI === 1 ? '' : 's'})`,
     });
   }
 
-  const total = townsfolk + outsiders + minions + demons + extraVI;
+  const total = townsfolk + outsiders + minions + demons;
 
   if (total !== playerCount) {
     warnings.push(`Distribution total (${total}) ≠ player count (${playerCount})`);

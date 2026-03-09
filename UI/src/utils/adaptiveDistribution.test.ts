@@ -337,16 +337,16 @@ describe('calculateAdaptiveTargets', () => {
       expect(dist(result)).toEqual({ townsfolk: 5, outsiders: 1, minions: 1, demons: 1 });
     });
 
-    it('replaces 1 townsfolk with 1 extra copy', () => {
+    it('keeps townsfolk count unchanged with 1 extra copy', () => {
       const result = calculateAdaptiveTargets(8, ['villageidiot'], { extraVillageIdiots: 1 });
-      expect(result.townsfolk).toBe(4);
+      expect(result.townsfolk).toBe(5);
       expect(modifierIds(result)).toContain('villageidiot');
-      expect(result.total).toBe(8); // 4 + 1 + 1 + 1 + 1 extra
+      expect(result.total).toBe(8); // 5 + 1 + 1 + 1 (VI copies fill townsfolk slots)
     });
 
-    it('replaces 2 townsfolk with 2 extra copies', () => {
+    it('keeps townsfolk count unchanged with 2 extra copies', () => {
       const result = calculateAdaptiveTargets(8, ['villageidiot'], { extraVillageIdiots: 2 });
-      expect(result.townsfolk).toBe(3);
+      expect(result.townsfolk).toBe(5);
       expect(result.total).toBe(8);
     });
 
@@ -398,10 +398,25 @@ describe('calculateAdaptiveTargets', () => {
         extraVillageIdiots: 1,
       });
       // Baron: +2 outsiders → outsiders=3, townsfolk=3
-      // Village Idiot: -1 townsfolk → townsfolk=2
+      // Village Idiot: copies fill townsfolk slots, townsfolk stays 3
       expect(result.outsiders).toBe(3);
-      expect(result.townsfolk).toBe(2);
-      expect(result.total).toBe(8); // 2 + 3 + 1 + 1 + 1 extra VI
+      expect(result.townsfolk).toBe(3);
+      expect(result.total).toBe(8); // 3 + 3 + 1 + 1
+    });
+
+    it('12-player game with 3× Village Idiot + Kazali', () => {
+      // 12p base: 7 TF, 2 OS, 2 MI, 1 DE
+      // Kazali with +1 outsider: 6 TF, 3 OS, 2 MI, 1 DE
+      // 3× Village Idiot (2 extra): townsfolk stays 6 (3 are VI + 3 others)
+      const result = calculateAdaptiveTargets(12, ['villageidiot', 'kazali'], {
+        extraVillageIdiots: 2,
+        variableModifierValues: { kazali: 1 },
+      });
+      expect(result.townsfolk).toBe(6);
+      expect(result.outsiders).toBe(3);
+      expect(result.minions).toBe(2);
+      expect(result.demons).toBe(1);
+      expect(result.total).toBe(12);
     });
   });
 

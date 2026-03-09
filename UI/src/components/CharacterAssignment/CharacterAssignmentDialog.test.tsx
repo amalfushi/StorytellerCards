@@ -354,6 +354,84 @@ describe('CharacterAssignmentDialog', () => {
   });
 
   // ──────────────────────────────────────────
+  // M27: Multi-instance character dropdown
+  // ──────────────────────────────────────────
+
+  describe('multi-instance dropdown', () => {
+    const villageidiotChar = makeChar({
+      id: 'villageidiot',
+      name: 'Village Idiot',
+      type: CharacterType.Townsfolk,
+    });
+
+    const multiInstanceScript = [
+      villageidiotChar,
+      makeChar({ id: 'fortuneteller', name: 'Fortune Teller', type: CharacterType.Townsfolk }),
+      makeChar({ id: 'slayer', name: 'Slayer', type: CharacterType.Townsfolk }),
+      makeChar({ id: 'drunk', name: 'Drunk', type: CharacterType.Outsider }),
+      makeChar({
+        id: 'poisoner',
+        name: 'Poisoner',
+        type: CharacterType.Minion,
+        defaultAlignment: Alignment.Evil,
+      }),
+      makeChar({
+        id: 'imp',
+        name: 'Imp',
+        type: CharacterType.Demon,
+        defaultAlignment: Alignment.Evil,
+      }),
+    ];
+
+    it('shows multiple unassigned chips for duplicate characters', () => {
+      render(
+        <CharacterAssignmentDialog
+          open={true}
+          onClose={onClose}
+          players={makePlayers(6)}
+          scriptCharacters={multiInstanceScript}
+          onConfirm={onConfirm}
+          inPlayCharacterIds={[
+            'villageidiot',
+            'villageidiot',
+            'villageidiot',
+            'fortuneteller',
+            'poisoner',
+            'imp',
+          ]}
+        />,
+      );
+      // Should have 3 Village Idiot chips in the pool
+      const chips = screen.getAllByTestId('pool-chip-villageidiot');
+      expect(chips.length).toBe(3);
+    });
+
+    it('computes distribution from inPlayCharacterIds type counts', () => {
+      render(
+        <CharacterAssignmentDialog
+          open={true}
+          onClose={onClose}
+          players={makePlayers(6)}
+          scriptCharacters={multiInstanceScript}
+          onConfirm={onConfirm}
+          inPlayCharacterIds={[
+            'villageidiot',
+            'villageidiot',
+            'villageidiot',
+            'fortuneteller',
+            'poisoner',
+            'imp',
+          ]}
+        />,
+      );
+      // 4 Townsfolk (3 VI + 1 FT), 0 Outsider, 1 Minion, 1 Demon
+      expect(screen.getByText('Townsfolk: 4')).toBeInTheDocument();
+      expect(screen.getByText('Minion: 1')).toBeInTheDocument();
+      expect(screen.getByText('Demon: 1')).toBeInTheDocument();
+    });
+  });
+
+  // ──────────────────────────────────────────
   // M27: Identity concealment prompts
   // ──────────────────────────────────────────
 
