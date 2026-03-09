@@ -15,17 +15,11 @@ describe('PLAYER_COUNT_DISTRIBUTION', () => {
     }
   });
 
-  it('each distribution sums to the correct player count (excluding 12 which has a known +1 outsider)', () => {
+  it('each distribution sums to the correct player count', () => {
     for (let count = 5; count <= 15; count++) {
       const dist = PLAYER_COUNT_DISTRIBUTION[count];
       const sum = dist.townsfolk + dist.outsiders + dist.minions + dist.demons;
-      // 12-player distribution sums to 13 (7+3+2+1) — the extra outsider
-      // is part of the official BotC rules (one outsider replaces a townsfolk slot)
-      if (count === 12) {
-        expect(sum).toBe(13);
-      } else {
-        expect(sum).toBe(count);
-      }
+      expect(sum).toBe(count);
     }
   });
 

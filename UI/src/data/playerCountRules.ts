@@ -20,7 +20,7 @@ export const PLAYER_COUNT_DISTRIBUTION: Record<number, Distribution> = {
   9: { townsfolk: 5, outsiders: 2, minions: 1, demons: 1 },
   10: { townsfolk: 7, outsiders: 0, minions: 2, demons: 1 },
   11: { townsfolk: 7, outsiders: 1, minions: 2, demons: 1 },
-  12: { townsfolk: 7, outsiders: 3, minions: 2, demons: 1 },
+  12: { townsfolk: 7, outsiders: 2, minions: 2, demons: 1 },
   13: { townsfolk: 9, outsiders: 0, minions: 3, demons: 1 },
   14: { townsfolk: 9, outsiders: 1, minions: 3, demons: 1 },
   15: { townsfolk: 9, outsiders: 2, minions: 3, demons: 1 },
@@ -69,7 +69,7 @@ export function getDistributionSuggestions(
   if (idSet.has('atheist')) {
     suggestions.push({
       suggested: { demons: 0, minions: 0 },
-      reason: 'Atheist: No evil characters in the game. Consider setting Demons and Minions to 0.',
+      reason: 'Atheist: No evil characters in the game.',
     });
   }
 

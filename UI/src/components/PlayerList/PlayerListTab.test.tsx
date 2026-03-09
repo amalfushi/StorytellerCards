@@ -78,6 +78,10 @@ vi.mock('@/context/GameContext.tsx', () => ({
       nightProgress: null,
     },
     updatePlayer: mockUpdatePlayer,
+    swapPlayerSeats: vi.fn(),
+    removeTraveller: vi.fn(),
+    addToken: vi.fn(),
+    removeToken: vi.fn(),
   }),
 }));
 
@@ -193,10 +197,21 @@ vi.mock('@/components/PlayerList/PlayerRow.tsx', () => ({
   ),
 }));
 
-// Mock PlayerEditDialog
-vi.mock('@/components/PlayerList/PlayerEditDialog.tsx', () => ({
-  PlayerEditDialog: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="player-edit-dialog">Edit Dialog</div> : null,
+// Mock PlayerActionsModal
+vi.mock('@/components/TownSquare/PlayerActionsModal.tsx', () => ({
+  PlayerActionsModal: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="player-actions-modal">Actions Modal</div> : null,
+}));
+
+// Mock TokenManager
+vi.mock('@/components/TownSquare/TokenManager.tsx', () => ({
+  TokenManager: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="token-manager">Token Manager</div> : null,
+}));
+
+// Mock buildAvailableTokens
+vi.mock('@/utils/buildAvailableTokens.ts', () => ({
+  buildAvailableTokens: () => [],
 }));
 
 // ──────────────────────────────────────────────
@@ -239,10 +254,12 @@ describe('PlayerListTab', () => {
     expect(screen.getByText('Icon')).toBeInTheDocument();
     expect(screen.getByText('Character')).toBeInTheDocument();
     expect(screen.getByText('Ability')).toBeInTheDocument();
-    expect(screen.getByText('Tokens')).toBeInTheDocument();
-    expect(screen.getByText('Align')).toBeInTheDocument();
+    expect(screen.getByText('Reminders')).toBeInTheDocument();
     expect(screen.getByText('Alive')).toBeInTheDocument();
     expect(screen.getByText('Vote')).toBeInTheDocument();
+    expect(screen.getByText('Edit')).toBeInTheDocument();
+    // Alignment column is hidden by default
+    expect(screen.queryByText('Align')).not.toBeInTheDocument();
   });
 
   it('hides character columns when showCharacters is false (Day mode)', () => {
@@ -258,8 +275,9 @@ describe('PlayerListTab', () => {
     expect(screen.queryByText('Icon')).not.toBeInTheDocument();
     expect(screen.queryByText('Character')).not.toBeInTheDocument();
     expect(screen.queryByText('Ability')).not.toBeInTheDocument();
-    expect(screen.queryByText('Tokens')).not.toBeInTheDocument();
+    expect(screen.queryByText('Reminders')).not.toBeInTheDocument();
     expect(screen.queryByText('Align')).not.toBeInTheDocument();
+    expect(screen.queryByText('Edit')).not.toBeInTheDocument();
   });
 
   it('shows "No players in this game" when players list is empty', () => {

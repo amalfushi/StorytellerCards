@@ -6,8 +6,8 @@ import IconButton from '@mui/material/IconButton';
 import Box from '@mui/material/Box';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
+import EditIcon from '@mui/icons-material/Edit';
 import HowToVoteIcon from '@mui/icons-material/HowToVote';
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { characterColors } from '@/theme/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
@@ -19,12 +19,14 @@ import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 interface PlayerRowProps {
   player: PlayerSeat;
   showCharacters: boolean;
+  /** Whether the alignment column is visible. */
+  showAlignment?: boolean;
   character?: CharacterDef;
   onToggleAlive: (seat: number) => void;
   onToggleGhostVote: (seat: number) => void;
   onRowClick: (seat: number) => void;
-  /** Optional swap handler — shows a swap icon button in the row. */
-  onSwap?: (seat: number) => void;
+  /** Edit handler — shows an edit icon button in the row. */
+  onEdit?: (seat: number) => void;
   /** Whether this row is the active swap source. */
   isSwapSource?: boolean;
   /** Apparent (believed) character definition for concealed players. */
@@ -44,11 +46,12 @@ interface PlayerRowProps {
 export function PlayerRow({
   player,
   showCharacters,
+  showAlignment = false,
   character,
   onToggleAlive,
   onToggleGhostVote,
   onRowClick,
-  onSwap,
+  onEdit,
   isSwapSource,
   apparentCharacter,
 }: PlayerRowProps) {
@@ -196,30 +199,31 @@ export function PlayerRow({
           </TableCell>
         )}
 
-        {/* Active tokens (night view only, F3-17) */}
+        {/* Active tokens / reminders (night view only) */}
         {showCharacters && (
           <TableCell sx={{ px: 1 }}>
-            {player.tokens.length > 0 ? <TokenChips tokens={player.tokens} /> : '—'}
+            {player.tokens.length > 0 ? <TokenChips tokens={player.tokens} /> : null}
           </TableCell>
         )}
 
-        {/* Alignment indicator (night view only) */}
-        {showCharacters && (
-          <TableCell align="center" sx={{ width: 32, px: 0.5 }}>
+        {/* Alignment text (night view only, when showAlignment is on) */}
+        {showCharacters && showAlignment && (
+          <TableCell align="center" sx={{ width: 60, px: 0.5 }}>
             <Box
+              component="span"
               sx={{
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                mx: 'auto',
-                bgcolor:
+                fontWeight: 600,
+                fontSize: '0.75rem',
+                color:
                   player.actualAlignment === 'Good'
                     ? characterColors.townsfolk
                     : player.actualAlignment === 'Evil'
                       ? characterColors.demon
                       : '#9e9e9e',
               }}
-            />
+            >
+              {player.actualAlignment}
+            </Box>
           </TableCell>
         )}
 
@@ -260,19 +264,19 @@ export function PlayerRow({
           )}
         </TableCell>
 
-        {/* Swap button (visible mode only, when onSwap provided) */}
-        {showCharacters && onSwap && (
+        {/* Edit button (visible mode only, when onEdit provided) */}
+        {showCharacters && onEdit && (
           <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
             <IconButton
               size="small"
               onClick={(e) => {
                 e.stopPropagation();
-                onSwap(player.seat);
+                onEdit(player.seat);
               }}
-              aria-label={`swap seat ${player.seat}`}
-              data-testid={`swap-btn-${player.seat}`}
+              aria-label={`edit seat ${player.seat}`}
+              data-testid={`edit-btn-${player.seat}`}
             >
-              <SwapHorizIcon fontSize="small" />
+              <EditIcon fontSize="small" />
             </IconButton>
           </TableCell>
         )}
