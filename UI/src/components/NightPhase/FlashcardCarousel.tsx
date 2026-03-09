@@ -36,6 +36,8 @@ export interface FlashcardCarouselProps {
   onCardChange?: (index: number) => void;
   /** Callback when a reminder token is clicked (navigates to Day view). */
   onReminderTokenClick?: (tokenText: string) => void;
+  /** Demon bluff character definitions (passed to demoninfo StructuralCard). */
+  bluffCharacters?: CharacterDef[];
 }
 
 /**
@@ -59,6 +61,7 @@ export function FlashcardCarousel({
   onDotClick,
   onCardChange,
   onReminderTokenClick,
+  bluffCharacters,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
   const [slideDir, setSlideDir] = useState<'none' | 'left' | 'right'>('none');
@@ -190,6 +193,7 @@ export function FlashcardCarousel({
           checkedStates={checked}
           onToggleSubAction={(i) => handleToggle(entry.id, i)}
           readOnly={readOnly}
+          bluffCharacters={entry.id === 'demoninfo' ? bluffCharacters : undefined}
         />
       );
     }

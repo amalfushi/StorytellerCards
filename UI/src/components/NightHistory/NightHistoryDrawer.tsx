@@ -169,8 +169,10 @@ export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
                                   pl: 0.5,
                                 }}
                               >
-                                {line.characterName}
-                                {line.playerName ? ` (${line.playerName})` : ''} {line.action}
+                                {line.playerName
+                                  ? `${line.playerName} (${line.characterName})`
+                                  : line.characterName}{' '}
+                                {line.action}
                               </Typography>
                             ))}
                           </Box>

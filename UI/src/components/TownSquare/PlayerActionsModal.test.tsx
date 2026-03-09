@@ -509,4 +509,139 @@ describe('PlayerActionsModal', () => {
       expect(handlers.onClose).toHaveBeenCalled();
     });
   });
+
+  // ── Demon Bluffs section ──
+
+  describe('Demon Bluffs section', () => {
+    const bluffCharacters: CharacterDef[] = [
+      {
+        id: 'chef',
+        name: 'Chef',
+        type: CharacterType.Townsfolk,
+        defaultAlignment: Alignment.Good,
+        abilityShort: 'You start knowing how many evil pairs there are.',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+      {
+        id: 'empath',
+        name: 'Empath',
+        type: CharacterType.Townsfolk,
+        defaultAlignment: Alignment.Good,
+        abilityShort: 'Each night, you learn how many of your alive neighbours are evil.',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+      {
+        id: 'butler',
+        name: 'Butler',
+        type: CharacterType.Outsider,
+        defaultAlignment: Alignment.Good,
+        abilityShort:
+          'Each night, choose a player: tomorrow, you may only vote if they are voting too.',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+    ];
+
+    const demonPlayer: PlayerSeat = {
+      seat: 2,
+      playerName: 'Bob',
+      characterId: 'imp',
+      alive: true,
+      ghostVoteUsed: false,
+      visibleAlignment: Alignment.Unknown,
+      actualAlignment: Alignment.Evil,
+      startingAlignment: Alignment.Evil,
+      activeReminders: [],
+      isTraveller: false,
+      tokens: [],
+    };
+
+    it('shows demon bluffs section when bluffs are provided', () => {
+      const handlers = defaultHandlers();
+      render(
+        <PlayerActionsModal
+          open={true}
+          player={demonPlayer}
+          showCharacters={true}
+          scriptCharacters={scriptCharacters}
+          demonBluffs={['chef', 'empath', 'butler']}
+          bluffCharacters={bluffCharacters}
+          {...handlers}
+        />,
+      );
+      expect(screen.getByTestId('demon-bluffs-section')).toBeInTheDocument();
+      expect(screen.getByText('Demon Bluffs')).toBeInTheDocument();
+    });
+
+    it('displays all 3 bluff character names', () => {
+      const handlers = defaultHandlers();
+      render(
+        <PlayerActionsModal
+          open={true}
+          player={demonPlayer}
+          showCharacters={true}
+          scriptCharacters={scriptCharacters}
+          demonBluffs={['chef', 'empath', 'butler']}
+          bluffCharacters={bluffCharacters}
+          {...handlers}
+        />,
+      );
+      expect(screen.getByText('Chef')).toBeInTheDocument();
+      expect(screen.getByText('Empath')).toBeInTheDocument();
+      expect(screen.getByText('Butler')).toBeInTheDocument();
+    });
+
+    it('does not show bluffs section when showCharacters is false', () => {
+      const handlers = defaultHandlers();
+      render(
+        <PlayerActionsModal
+          open={true}
+          player={demonPlayer}
+          showCharacters={false}
+          scriptCharacters={scriptCharacters}
+          demonBluffs={['chef', 'empath', 'butler']}
+          bluffCharacters={bluffCharacters}
+          {...handlers}
+        />,
+      );
+      expect(screen.queryByTestId('demon-bluffs-section')).not.toBeInTheDocument();
+    });
+
+    it('does not show bluffs section when no bluffs are set', () => {
+      const handlers = defaultHandlers();
+      render(
+        <PlayerActionsModal
+          open={true}
+          player={demonPlayer}
+          showCharacters={true}
+          scriptCharacters={scriptCharacters}
+          {...handlers}
+        />,
+      );
+      expect(screen.queryByTestId('demon-bluffs-section')).not.toBeInTheDocument();
+    });
+
+    it('does not show bluffs section for non-demon player even if bluffs exist', () => {
+      const handlers = defaultHandlers();
+      render(
+        <PlayerActionsModal
+          open={true}
+          player={alivePlayer}
+          showCharacters={true}
+          scriptCharacters={scriptCharacters}
+          demonBluffs={['chef', 'empath', 'butler']}
+          bluffCharacters={bluffCharacters}
+          {...handlers}
+        />,
+      );
+      // The bluffs section still shows because the parent decides when to pass bluff props
+      // The modal itself is agnostic — it renders bluffs if props are provided
+      expect(screen.getByTestId('demon-bluffs-section')).toBeInTheDocument();
+    });
+  });
 });

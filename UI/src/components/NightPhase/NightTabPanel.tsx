@@ -46,6 +46,12 @@ export function NightTabPanel({
     return game.nightHistory[game.nightHistory.length - 1];
   }, [game]);
 
+  // Demon bluff characters for the demoninfo structural card
+  const bluffCharacters = useMemo(() => {
+    if (!game?.demonBluffs?.length) return undefined;
+    return getCharactersByIds(game.demonBluffs);
+  }, [game, getCharactersByIds]);
+
   // Auto-start night if nightProgress is null
   useEffect(() => {
     if (!nightProgress && entries.length > 0) {
@@ -125,6 +131,7 @@ export function NightTabPanel({
         scriptCharacters={scriptCharacters}
         previousNightHistory={previousNightHistory}
         onReminderTokenClick={onReminderTokenClick}
+        bluffCharacters={bluffCharacters}
       />
     </Box>
   );

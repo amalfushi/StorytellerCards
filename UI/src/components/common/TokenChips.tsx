@@ -1,7 +1,9 @@
+import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import type { PlayerToken } from '@/types/index.ts';
 import { getReminderTokenColor } from '@/components/common/characterTypeColor.ts';
+import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 
 // ──────────────────────────────────────────────
 // Token display colours (F3-17 / F3-18)
@@ -39,11 +41,13 @@ function resolveTokenColor(token: PlayerToken): string {
  * Renders a row of small coloured MUI Chips representing a player's
  * active status tokens (Drunk, Poisoned, custom).
  *
- * Used by PlayerRow (F3-17) and NightFlashcard (F3-18) to show
- * token status inline.
+ * Each chip shows the source character's icon (when available) and
+ * is coloured by the source character's type colour.
  */
 export function TokenChips({ tokens, size = 'small' }: TokenChipsProps) {
   if (!tokens || tokens.length === 0) return null;
+
+  const iconSize = size === 'small' ? 20 : 22;
 
   return (
     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
@@ -52,6 +56,15 @@ export function TokenChips({ tokens, size = 'small' }: TokenChipsProps) {
           key={token.id}
           label={token.label}
           size={size}
+          avatar={
+            token.sourceCharacterId ? (
+              <Avatar
+                src={getCharacterIconPath(token.sourceCharacterId)}
+                alt={token.sourceCharacterId}
+                sx={{ width: iconSize, height: iconSize }}
+              />
+            ) : undefined
+          }
           sx={{
             bgcolor: resolveTokenColor(token),
             color: '#fff',

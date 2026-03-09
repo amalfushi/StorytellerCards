@@ -35,6 +35,7 @@ import { NightTabPanel } from '@/components/NightPhase/NightTabPanel.tsx';
 import { NightHistoryDrawer } from '@/components/NightHistory/NightHistoryDrawer.tsx';
 import { CharacterAssignmentDialog } from '@/components/CharacterAssignment/CharacterAssignmentDialog.tsx';
 import { CharacterSelection } from '@/components/Setup/CharacterSelection.tsx';
+import { DemonBluffSelection } from '@/components/Setup/DemonBluffSelection.tsx';
 import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
@@ -60,6 +61,7 @@ export function GameViewPage() {
     saveGame,
     setPhase,
     setInPlayCharacters,
+    setDemonBluffs,
   } = useGame();
   const { allCharacters, getCharactersByIds } = useCharacterLookup();
 
@@ -67,6 +69,7 @@ export function GameViewPage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [charSelectionOpen, setCharSelectionOpen] = useState(false);
+  const [bluffSelectionOpen, setBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
 
@@ -185,11 +188,22 @@ export function GameViewPage() {
     (characterIds: string[]) => {
       setInPlayCharacters(characterIds);
       saveGame();
-      // Proceed to assignment dialog after selection
+      // Proceed to demon bluff selection after character selection
       setCharSelectionOpen(false);
-      setAssignDialogOpen(true);
+      setBluffSelectionOpen(true);
     },
     [setInPlayCharacters, saveGame],
+  );
+
+  // Handle confirming demon bluff selection
+  const handleConfirmDemonBluffs = useCallback(
+    (bluffIds: string[]) => {
+      setDemonBluffs(bluffIds);
+      saveGame();
+      setBluffSelectionOpen(false);
+      setAssignDialogOpen(true);
+    },
+    [setDemonBluffs, saveGame],
   );
 
   // Use in-play characters for assignment if available, else all script characters
@@ -512,6 +526,21 @@ export function GameViewPage() {
           playerCount={game.players.filter((p) => !p.isTraveller).length}
           initialSelected={game.inPlayCharacterIds}
           onConfirm={handleConfirmInPlayCharacters}
+        />
+      )}
+
+      {/* Demon Bluff Selection Dialog */}
+      {game && game.inPlayCharacterIds && (
+        <DemonBluffSelection
+          open={bluffSelectionOpen}
+          onClose={() => {
+            setBluffSelectionOpen(false);
+            setAssignDialogOpen(true);
+          }}
+          scriptCharacters={scriptCharacterDefs}
+          inPlayCharacterIds={game.inPlayCharacterIds}
+          initialSelected={game.demonBluffs}
+          onConfirm={handleConfirmDemonBluffs}
         />
       )}
     </Box>
