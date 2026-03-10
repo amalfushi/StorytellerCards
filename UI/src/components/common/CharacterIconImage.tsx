@@ -80,6 +80,7 @@ export function CharacterIconImage({
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'visible',
           flexShrink: 0,
           filter: deadFilter,
           transition: 'filter 0.3s ease',
@@ -122,8 +123,8 @@ export function CharacterIconImage({
           onError={handleError}
           style={{
             display: 'block',
-            width: innerSize,
-            height: innerSize,
+            width: 58,
+            height: 58,
             objectFit: 'cover',
             borderRadius: '50%',
           }}
