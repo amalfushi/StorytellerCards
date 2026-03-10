@@ -11,19 +11,23 @@ describe('CharacterIconImage', () => {
     borderColor: '#1976d2',
   };
 
-  it('renders an img with correct src and alt', () => {
+  it('renders an img with correct src and alt (Townsfolk defaults to _g)', () => {
     render(<CharacterIconImage {...defaultProps} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
     expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.webp');
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon_g.webp');
     expect(img).toHaveAttribute('alt', 'Fortune Teller');
   });
 
   it('shows fallback letter when image fails to load', () => {
     render(<CharacterIconImage {...defaultProps} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
+    // Townsfolk default is _g — first error falls back to unsuffixed base
     fireEvent.error(img);
-    // After error, the img should be gone and replaced by the letter
+    const imgBase = screen.getByRole('img', { name: 'Fortune Teller' });
+    expect(imgBase).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.webp');
+    // Second error — base also missing → letter fallback
+    fireEvent.error(imgBase);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.getByText('F')).toBeInTheDocument();
   });
@@ -112,7 +116,12 @@ describe('CharacterIconImage', () => {
 
   it('uses Evil alignment variant (_e) when alignment is Evil', () => {
     render(
-      <CharacterIconImage {...defaultProps} characterId="imp" characterName="Imp" alignment="Evil" />,
+      <CharacterIconImage
+        {...defaultProps}
+        characterId="imp"
+        characterName="Imp"
+        alignment="Evil"
+      />,
     );
     const img = screen.getByRole('img', { name: 'Imp' });
     expect(img).toHaveAttribute('src', '/icons/characters/impIcon_e.webp');
@@ -121,13 +130,15 @@ describe('CharacterIconImage', () => {
   it('uses base icon when alignment is Unknown', () => {
     render(<CharacterIconImage {...defaultProps} alignment="Unknown" />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
-    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.webp');
+    // Unknown alignment → resolved via type lookup (Townsfolk → _g)
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon_g.webp');
   });
 
-  it('uses base icon when alignment is undefined', () => {
+  it('uses type-default icon when alignment is undefined', () => {
     render(<CharacterIconImage {...defaultProps} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
-    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.webp');
+    // No alignment → resolved via type lookup (Townsfolk → _g)
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon_g.webp');
   });
 
   // ──────────────────────────────────────────────
@@ -173,11 +184,17 @@ describe('CharacterIconImage', () => {
     expect(screen.getByText('A')).toBeInTheDocument();
   });
 
-  it('shows letter fallback directly when base icon (no alignment) fails', () => {
+  it('shows letter fallback when type-default icon fails (fallback to base, then letter)', () => {
     render(<CharacterIconImage {...defaultProps} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
-    // No alignment suffix → goes directly to letter fallback on error
+    // Townsfolk default is _g — if that fails, falls back to unsuffixed base
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon_g.webp');
     fireEvent.error(img);
+    // Now tries unsuffixed base path
+    const imgBase = screen.getByRole('img', { name: 'Fortune Teller' });
+    expect(imgBase).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.webp');
+    // Base also fails (no unsuffixed file for standard types) → letter fallback
+    fireEvent.error(imgBase);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.getByText('F')).toBeInTheDocument();
   });

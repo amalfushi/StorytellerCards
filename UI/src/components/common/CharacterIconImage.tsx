@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { SxProps, Theme } from '@mui/material/styles';
-import { getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { getCharacterIconPath, getBaseCharacterIconPath } from '@/utils/characterIcon.ts';
 
 export interface CharacterIconImageProps {
   /** Character ID used to resolve the icon path (e.g. `"fortuneteller"`). */
@@ -65,8 +65,8 @@ export function CharacterIconImage({
   const [triedFallback, setTriedFallback] = useState(false);
 
   const iconPath = getCharacterIconPath(characterId, alignment);
-  const basePath = getCharacterIconPath(characterId);
-  const hasAlignmentSuffix = alignment === 'Good' || alignment === 'Evil';
+  const basePath = getBaseCharacterIconPath(characterId);
+  const hasAlignmentSuffix = iconPath !== basePath;
 
   const handleError = useCallback(() => {
     if (hasAlignmentSuffix && !triedFallback) {

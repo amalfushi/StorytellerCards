@@ -5,7 +5,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import type { PlayerToken } from '@/types/index.ts';
 import { resolveTokenColor } from '@/components/common/characterTypeColor.ts';
-import { getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { getDefaultCharacterIconPath } from '@/utils/characterIcon.ts';
+import { getCharacter } from '@/data/characters/index.ts';
 
 export interface ReminderTokenChipProps {
   /** The player token to render. */
@@ -43,9 +44,17 @@ export function ReminderTokenChip({
 }: ReminderTokenChipProps) {
   const iconSize = size === 'small' ? 30 : 40;
 
+  const sourceCharacter = token.sourceCharacterId
+    ? getCharacter(token.sourceCharacterId)
+    : undefined;
+  const avatarSrc =
+    token.sourceCharacterId && sourceCharacter
+      ? getDefaultCharacterIconPath(token.sourceCharacterId, sourceCharacter.type)
+      : undefined;
+
   const avatarElement = token.sourceCharacterId ? (
     <Avatar
-      src={getCharacterIconPath(token.sourceCharacterId)}
+      src={avatarSrc}
       alt={sourceName ?? token.sourceCharacterId}
       sx={{
         width: iconSize,
