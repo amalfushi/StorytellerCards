@@ -52,6 +52,8 @@ export function ReminderTokenChip({
       avatarElement
     );
 
+  const chipMinHeight = iconSize + 4;
+
   return (
     <Chip
       label={token.label}
@@ -63,14 +65,15 @@ export function ReminderTokenChip({
         color: '#fff',
         fontWeight: 600,
         fontSize: size === 'small' ? '0.65rem' : '0.75rem',
-        height: 'auto',
+        minHeight: chipMinHeight,
         maxWidth: 'none',
         whiteSpace: 'normal',
         wordWrap: 'break-word',
+        pl: `${iconSize / 2 + 4}px`,
         '& .MuiChip-avatar': {
           width: iconSize,
           height: iconSize,
-          ml: '-4px',
+          ml: '2px',
         },
         '& .MuiChip-label': {
           whiteSpace: 'normal',
