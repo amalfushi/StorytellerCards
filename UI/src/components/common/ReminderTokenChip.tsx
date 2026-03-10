@@ -30,13 +30,18 @@ export function ReminderTokenChip({
   onRemove,
   sourceName,
 }: ReminderTokenChipProps) {
-  const iconSize = size === 'small' ? 20 : 22;
+  const iconSize = size === 'small' ? 30 : 40;
 
   const avatarElement = token.sourceCharacterId ? (
     <Avatar
       src={getCharacterIconPath(token.sourceCharacterId)}
       alt={sourceName ?? token.sourceCharacterId}
-      sx={{ width: iconSize, height: iconSize }}
+      sx={{
+        width: iconSize,
+        height: iconSize,
+        bgcolor: '#fff',
+        border: '2px solid #fff',
+      }}
     />
   ) : undefined;
 
