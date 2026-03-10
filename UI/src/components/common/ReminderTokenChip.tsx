@@ -52,6 +52,13 @@ export function ReminderTokenChip({
         height: iconSize,
         bgcolor: '#fff',
         border: '2px solid #fff',
+        overflow: 'visible',
+        '& img': {
+          width: 34,
+          height: 34,
+          objectFit: 'contain',
+          position: 'relative',
+        },
       }}
     />
   ) : undefined;
