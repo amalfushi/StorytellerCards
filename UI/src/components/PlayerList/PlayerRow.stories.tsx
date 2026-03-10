@@ -1,4 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import { PlayerRow } from './PlayerRow';
@@ -195,5 +196,35 @@ export const TabletViewport: Story = {
   ...NightView,
   parameters: {
     viewport: { defaultViewport: 'tablet' },
+  },
+};
+
+// ────────────────────────────────────────────────────────
+// Edit icon stories (M27)
+// ────────────────────────────────────────────────────────
+
+/**
+ * Night view with edit icon — shows the pencil edit button when
+ * `onEdit` is provided and `showCharacters` is true.
+ */
+export const WithEditButton: Story = {
+  args: {
+    player: alicePlayer,
+    showCharacters: true,
+    character: noble,
+    onEdit: fn(),
+  },
+};
+
+/**
+ * Day view with onEdit provided — edit button should NOT appear
+ * because showCharacters is false.
+ */
+export const DayViewNoEditButton: Story = {
+  args: {
+    player: alicePlayer,
+    showCharacters: false,
+    character: undefined,
+    onEdit: fn(),
   },
 };
