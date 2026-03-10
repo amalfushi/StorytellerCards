@@ -161,6 +161,7 @@ These run automatically and will block your commit/push if they fail:
 Before marking any milestone complete, agents **MUST** verify all of the following:
 
 - [ ] `milestoneN.md` has `## Status: ✅ Complete` section at top
+- [ ] All `- [ ]` checkboxes in `milestoneN.md` Task List/Testing/Acceptance Criteria marked `- [x]`
 - [ ] `docs/progress.md` milestone table row updated to `✅ Complete`
 - [ ] `docs/progress.md` Verification section test counts updated
 - [ ] `docs/progress.md` "Last updated" date updated
@@ -193,6 +194,7 @@ Documentation updates are **part of the definition of done** for every milestone
    - Completion date
    - Brief summary of what was implemented
    - Key evidence (files changed, features added)
+   - **Check ALL task list checkboxes** — mark every `- [ ]` as `- [x]` in the Task List, Testing Requirements, and Acceptance Criteria sections
 
 2. **Root progress tracker** ([`docs/progress.md`](docs/progress.md)) — **MUST** be updated:
    - Add or update the milestone row in the table (status → `✅ Complete`, add details link)
@@ -208,6 +210,8 @@ Documentation updates are **part of the definition of done** for every milestone
    - A `progress.md` in its milestone folder (`docs/milestones/<N> - <name>/progress.md`), OR
    - A `## Status: ✅ Complete` section in its `milestoneN.md` (minimum)
    - For milestones with a separate `progress.md`, the `milestoneN.md` should still have the `## Status:` header
+
+> **⚠️ Common Agent Failure:** Agents consistently add the `## Status: ✅ Complete` header but forget to mark task checkboxes (`- [ ]` → `- [x]`) and forget to create/update `progress.md`. The checklist above exists because of this pattern — treat EVERY item as mandatory.
 
 #### Enforcement
 

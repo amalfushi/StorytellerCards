@@ -216,37 +216,37 @@ After assignment, the existing setup checklist handles:
 ## 5. Task List
 
 ### Phase 1: Adaptive Distribution Engine
-- [ ] Create `UI/src/utils/adaptiveDistribution.ts` — replaces the current static target calculation
-- [ ] Takes: player count + selected character IDs → returns: adaptive targets per type, modifier explanations, warnings
-- [ ] Handles ALL modifier interactions: Baron+Vigormortis stacking, Xaan override, Legion reversal, Atheist zeroing, Lil' Monsta +1 Minion
-- [ ] Unit tests for every edge case combination
+- [x] Create `UI/src/utils/adaptiveDistribution.ts` — replaces the current static target calculation
+- [x] Takes: player count + selected character IDs → returns: adaptive targets per type, modifier explanations, warnings
+- [x] Handles ALL modifier interactions: Baron+Vigormortis stacking, Xaan override, Legion reversal, Atheist zeroing, Lil' Monsta +1 Minion
+- [x] Unit tests for every edge case combination
 
 ### Phase 2: Redesign CharacterSelection Component
-- [ ] Replace static targets with adaptive targets from Phase 1
-- [ ] Add modifier chips below type headers showing active modifiers
-- [ ] Add Xaan "Choose X" number input when Xaan is selected
-- [ ] Support duplicate character selection (Village Idiot ×N, Legion ×N) with count stepper
-- [ ] Real-time target updates as characters are toggled
-- [ ] Total count with soft warnings (not blocking)
+- [x] Replace static targets with adaptive targets from Phase 1
+- [x] Add modifier chips below type headers showing active modifiers
+- [x] Add Xaan "Choose X" number input when Xaan is selected
+- [x] Support duplicate character selection (Village Idiot ×N, Legion ×N) with count stepper
+- [x] Real-time target updates as characters are toggled
+- [x] Total count with soft warnings (not blocking)
 
 ### Phase 3: Redesign CharacterAssignment
-- [ ] Character pool UI: show unassigned characters as chips at top
-- [ ] Tap-to-assign: tap chip then tap seat (mobile-first)
-- [ ] Seating constraint warnings: Marionette adjacency, Lord of Typhon line
-- [ ] Identity concealment prompts on assignment (Marionette, Drunk)
-- [ ] Randomize with constraint awareness (best-effort)
+- [x] Character pool UI: show unassigned characters as chips at top
+- [x] Tap-to-assign: tap chip then tap seat (mobile-first)
+- [x] Seating constraint warnings: Marionette adjacency, Lord of Typhon line
+- [x] Identity concealment prompts on assignment (Marionette, Drunk)
+- [x] Randomize with constraint awareness (best-effort)
 
 ### Phase 4: Seating Constraint Visualization
-- [ ] When Marionette is in play, highlight seats adjacent to Demon as "valid" placements
-- [ ] When Lord of Typhon is in play, visualize the required evil line on TownSquare
-- [ ] Post-assignment: show warning banner if constraints not met
-- [ ] These are advisory only — never block assignment
+- [x] When Marionette is in play, highlight seats adjacent to Demon as "valid" placements
+- [x] When Lord of Typhon is in play, visualize the required evil line on TownSquare
+- [x] Post-assignment: show warning banner if constraints not met
+- [x] These are advisory only — never block assignment
 
 ### Phase 5: Tests & Documentation
-- [ ] Adaptive distribution engine: comprehensive edge case tests
-- [ ] Character selection: modifier interaction tests, duplicate selection
-- [ ] Assignment: constraint warning tests, identity concealment prompts
-- [ ] Integration: full Legion/Atheist/Lil' Monsta game setup scenarios
+- [x] Adaptive distribution engine: comprehensive edge case tests
+- [x] Character selection: modifier interaction tests, duplicate selection
+- [x] Assignment: constraint warning tests, identity concealment prompts
+- [x] Integration: full Legion/Atheist/Lil' Monsta game setup scenarios
 
 ---
 
@@ -279,15 +279,15 @@ After assignment, the existing setup checklist handles:
 
 ## 8. Acceptance Criteria
 
-- [ ] Standard games (no setup-affecting chars) feel effortless: pick characters, assign, done
-- [ ] Legion game: reversed distribution, multiple Legion chips assignable to seats
-- [ ] Atheist game: zero evil targets, all good characters
-- [ ] Xaan game: Outsider count set via X input, overrides other modifiers
-- [ ] Lil' Monsta game: no demon player, +1 minion
-- [ ] Marionette: adjacency warning during assignment, identity prompt
-- [ ] Lord of Typhon: evil-line warning during assignment
-- [ ] Village Idiot: 1-3 copies selectable
-- [ ] Distribution targets update in real-time as characters are toggled
-- [ ] Modifier chips clearly explain what's changing and why
-- [ ] All warnings are soft — never block the Storyteller
-- [ ] All tests pass, 0 TS/ESLint errors
+- [x] Standard games (no setup-affecting chars) feel effortless: pick characters, assign, done
+- [x] Legion game: reversed distribution, multiple Legion chips assignable to seats
+- [x] Atheist game: zero evil targets, all good characters
+- [x] Xaan game: Outsider count set via X input, overrides other modifiers
+- [x] Lil' Monsta game: no demon player, +1 minion
+- [x] Marionette: adjacency warning during assignment, identity prompt
+- [x] Lord of Typhon: evil-line warning during assignment
+- [x] Village Idiot: 1-3 copies selectable
+- [x] Distribution targets update in real-time as characters are toggled
+- [x] Modifier chips clearly explain what's changing and why
+- [x] All warnings are soft — never block the Storyteller
+- [x] All tests pass, 0 TS/ESLint errors
