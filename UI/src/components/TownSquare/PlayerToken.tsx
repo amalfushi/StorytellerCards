@@ -102,6 +102,13 @@ export const PlayerToken = memo(function PlayerToken({
   const s = SIZE_MAP[size];
   const isDead = !player.alive;
 
+  // In hidden mode use apparent alignment; in visible mode use actual
+  const displayAlignment = showCharacters
+    ? player.actualAlignment
+    : apparentCharacterDef
+      ? apparentCharacterDef.defaultAlignment
+      : player.visibleAlignment;
+
   // F3-6c: Determine alignment tint — use actualAlignment in night view,
   // visibleAlignment in day view (though day view typically won't show it).
   // When concealed, use apparent alignment for hidden mode.
@@ -170,12 +177,6 @@ export const PlayerToken = memo(function PlayerToken({
   const displayTypeColor = displayCharacterDef
     ? getCharacterTypeColor(displayCharacterDef.type)
     : '#9e9e9e';
-  // In hidden mode use apparent alignment; in visible mode use actual
-  const displayAlignment = showCharacters
-    ? player.actualAlignment
-    : apparentCharacterDef
-      ? apparentCharacterDef.defaultAlignment
-      : player.visibleAlignment;
 
   const tokenContent = (
     <>

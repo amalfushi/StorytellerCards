@@ -1,5 +1,4 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
-import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
@@ -10,18 +9,15 @@ import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef, ActiveJinx } from '@/types/index.ts';
-import {
-  getCharacterTypeColor,
-  getReminderTokenColor,
-} from '@/components/common/characterTypeColor.ts';
+import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { ReminderTokenChips } from '@/components/common/ReminderTokenChips.tsx';
-import { getAlignmentBorderColor, getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { ReminderTokenChip } from '@/components/common/ReminderTokenChip.tsx';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 import { parseReminderMarkers, hasReminderMarkers } from '@/utils/reminderUtils.ts';
 import { detectSignalType } from '@/utils/signalDetection.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
@@ -367,26 +363,14 @@ export function NightFlashcard({
                 seg.type === 'text' ? (
                   <span key={i}>{seg.value}</span>
                 ) : (
-                  <Chip
+                  <ReminderTokenChip
                     key={`reminder-${seg.index}`}
-                    label={seg.token.text}
-                    size="small"
-                    avatar={
-                      seg.token.sourceCharacterId ? (
-                        <Avatar
-                          src={getCharacterIconPath(seg.token.sourceCharacterId)}
-                          alt={seg.token.sourceCharacterId}
-                          sx={{ width: 20, height: 20 }}
-                        />
-                      ) : undefined
-                    }
-                    sx={{
-                      bgcolor: `${getReminderTokenColor(seg.token.sourceCharacterId)}33`,
-                      color: getReminderTokenColor(seg.token.sourceCharacterId),
-                      fontWeight: 600,
-                      fontSize: '0.7rem',
-                      border: `1px solid ${getReminderTokenColor(seg.token.sourceCharacterId)}66`,
+                    token={{
+                      id: seg.token.id,
+                      label: seg.token.text,
+                      sourceCharacterId: seg.token.sourceCharacterId,
                     }}
+                    size="small"
                   />
                 ),
               )}
@@ -483,68 +467,19 @@ export function NightFlashcard({
               placedOn?.characterId && characterLookup
                 ? characterLookup(placedOn.characterId)
                 : undefined;
+            const placedText = placedOn
+              ? `${placedOn.playerName}${placedCharDef ? ` (${placedCharDef.name})` : ''}`
+              : undefined;
             return (
-              <Tooltip
+              <ReminderTokenChip
                 key={r.id}
-                title={
-                  placedOn
-                    ? `Placed on ${placedOn.playerName}${placedCharDef ? ` (${placedCharDef.name})` : ''}`
-                    : r.text
-                }
-              >
-                <Chip
-                  label={
-                    <Box
-                      component="span"
-                      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
-                    >
-                      <span>{r.text}</span>
-                      {placedOn && (
-                        <Typography
-                          component="span"
-                          data-testid="placed-reminder-info"
-                          sx={{
-                            fontSize: '0.55rem',
-                            lineHeight: 1.1,
-                            color: 'rgba(255,255,255,0.5)',
-                          }}
-                        >
-                          {placedOn.playerName}
-                          {placedCharDef ? ` (${placedCharDef.name})` : ''}
-                        </Typography>
-                      )}
-                    </Box>
-                  }
-                  size="small"
-                  onClick={onReminderTokenClick ? () => onReminderTokenClick(r.text) : undefined}
-                  avatar={
-                    r.sourceCharacterId ? (
-                      <Avatar
-                        src={getCharacterIconPath(r.sourceCharacterId)}
-                        alt={r.sourceCharacterId}
-                        sx={{ width: 16, height: 16 }}
-                      />
-                    ) : undefined
-                  }
-                  sx={{
-                    bgcolor: placedOn
-                      ? 'rgba(128,128,128,0.15)'
-                      : `${getReminderTokenColor(r.sourceCharacterId)}30`,
-                    color: placedOn
-                      ? 'rgba(200,200,200,0.5)'
-                      : getReminderTokenColor(r.sourceCharacterId),
-                    fontWeight: 600,
-                    fontSize: '0.65rem',
-                    height: 'auto',
-                    py: 0.25,
-                    border: placedOn
-                      ? '1px solid rgba(128,128,128,0.3)'
-                      : `1px solid ${getReminderTokenColor(r.sourceCharacterId)}55`,
-                    cursor: onReminderTokenClick ? 'pointer' : 'default',
-                    opacity: placedOn ? 0.6 : 1,
-                  }}
-                />
-              </Tooltip>
+                token={{ id: r.id, label: r.text, sourceCharacterId: r.sourceCharacterId }}
+                size="small"
+                placed={!!placedOn}
+                placedInfo={placedText}
+                sourceName={placedText ?? r.text}
+                onClick={onReminderTokenClick ? () => onReminderTokenClick(r.text) : undefined}
+              />
             );
           })}
         </Box>
