@@ -553,6 +553,7 @@ export function CharacterSelection({
                           typeColor={typeColor}
                           size={32}
                           borderColor={getAlignmentBorderColor(ch.defaultAlignment, typeColor)}
+                          alignment={ch.defaultAlignment}
                         />
                         <ListItemText
                           primary={ch.name}

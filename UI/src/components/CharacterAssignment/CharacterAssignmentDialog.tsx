@@ -29,7 +29,7 @@ import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts
 import { getSetupModifiers, getNetAdjustment } from '@/utils/setupModifiers.ts';
 import { getRequiredCharacters, getSetupPrompts } from '@/utils/requiredCharacters.ts';
 import { getSeatingWarnings, getMarionetteValidSeats } from '@/utils/seatingConstraints.ts';
-import { getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { getDefaultCharacterIconPath } from '@/utils/characterIcon.ts';
 
 /** Characters that trigger identity concealment prompts on assignment. */
 const CONCEALMENT_CHARACTERS = new Set(['marionette', 'drunk']);
@@ -511,7 +511,7 @@ export function CharacterAssignmentDialog({
                   size="small"
                   avatar={
                     <Avatar
-                      src={getCharacterIconPath(ch.id)}
+                      src={getDefaultCharacterIconPath(ch.id, ch.type)}
                       alt={ch.name}
                       sx={{ width: 24, height: 24 }}
                     />

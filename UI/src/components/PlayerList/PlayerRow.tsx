@@ -147,6 +147,7 @@ export function PlayerRow({
                   typeColor={typeColor}
                   size={48}
                   borderColor={getAlignmentBorderColor(player.actualAlignment, typeColor)}
+                  alignment={player.actualAlignment}
                   onClick={(e) => {
                     e.stopPropagation();
                     setDetailOpen(true);

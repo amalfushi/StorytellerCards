@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   getCharacterIconPath,
+  getDefaultCharacterIconPath,
   FALLBACK_ICON_PATH,
   getAlignmentBorderColor,
 } from '@/utils/characterIcon.ts';
@@ -24,6 +25,70 @@ describe('getCharacterIconPath', () => {
 
   it('handles unknown character ID (still returns a formed path)', () => {
     expect(getCharacterIconPath('nonexistent')).toBe('/icons/characters/nonexistentIcon.webp');
+  });
+
+  it('returns _g suffix for Good alignment', () => {
+    expect(getCharacterIconPath('washerwoman', 'Good')).toBe(
+      '/icons/characters/washerwomanIcon_g.webp',
+    );
+  });
+
+  it('returns _e suffix for Evil alignment', () => {
+    expect(getCharacterIconPath('imp', 'Evil')).toBe('/icons/characters/impIcon_e.webp');
+  });
+
+  it('returns no suffix for Unknown alignment', () => {
+    expect(getCharacterIconPath('spiritofivory', 'Unknown')).toBe(
+      '/icons/characters/spiritofivoryIcon.webp',
+    );
+  });
+
+  it('returns no suffix when alignment is undefined', () => {
+    expect(getCharacterIconPath('noble')).toBe('/icons/characters/nobleIcon.webp');
+  });
+
+  it('returns no suffix for unrecognised alignment string', () => {
+    expect(getCharacterIconPath('noble', 'Neutral')).toBe('/icons/characters/nobleIcon.webp');
+  });
+});
+
+describe('getDefaultCharacterIconPath', () => {
+  it('returns _g for Townsfolk', () => {
+    expect(getDefaultCharacterIconPath('washerwoman', 'Townsfolk')).toBe(
+      '/icons/characters/washerwomanIcon_g.webp',
+    );
+  });
+
+  it('returns _g for Outsider', () => {
+    expect(getDefaultCharacterIconPath('butler', 'Outsider')).toBe(
+      '/icons/characters/butlerIcon_g.webp',
+    );
+  });
+
+  it('returns _e for Minion', () => {
+    expect(getDefaultCharacterIconPath('poisoner', 'Minion')).toBe(
+      '/icons/characters/poisonerIcon_e.webp',
+    );
+  });
+
+  it('returns _e for Demon', () => {
+    expect(getDefaultCharacterIconPath('imp', 'Demon')).toBe('/icons/characters/impIcon_e.webp');
+  });
+
+  it('returns base path for Traveller', () => {
+    expect(getDefaultCharacterIconPath('spiritofivory', 'Traveller')).toBe(
+      '/icons/characters/spiritofivoryIcon.webp',
+    );
+  });
+
+  it('returns base path for Fabled', () => {
+    expect(getDefaultCharacterIconPath('angel', 'Fabled')).toBe(
+      '/icons/characters/angelIcon.webp',
+    );
+  });
+
+  it('returns base path for Loric', () => {
+    expect(getDefaultCharacterIconPath('xaan', 'Loric')).toBe('/icons/characters/xaanIcon.webp');
   });
 });
 

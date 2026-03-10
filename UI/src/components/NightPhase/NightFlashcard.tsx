@@ -288,6 +288,7 @@ export function NightFlashcard({
               playerSeat?.actualAlignment ?? characterDef?.defaultAlignment,
               typeColor,
             )}
+            alignment={playerSeat?.actualAlignment ?? characterDef?.defaultAlignment}
             isDead={isDead}
             onClick={characterDef ? () => setDetailOpen(true) : undefined}
             sx={{ boxShadow: `0 0 20px ${typeColor}44` }}

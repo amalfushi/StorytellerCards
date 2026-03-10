@@ -1,22 +1,53 @@
 /**
  * Utility for resolving character icon paths.
  *
- * All character icons live in `/icons/characters/{characterId}Icon.webp`.
+ * Character icons live in `/icons/characters/{characterId}Icon[_e|_g].webp`.
  * The `getCharacterIconPath()` helper constructs the correct path from a
- * character ID so callers never need to know the naming convention.
+ * character ID and optional alignment so callers never need to know the
+ * naming convention.
+ *
+ * Suffix rules:
+ * - `_g` → Good alignment variant
+ * - `_e` → Evil alignment variant
+ * - (none) → neutral / unaligned (Travellers with Unknown, Fabled, Loric)
  */
 
-import { Alignment } from '@/types/index.ts';
+import { Alignment, CharacterType } from '@/types/index.ts';
 
 /**
- * Get the icon path for a character by ID.
- * Returns the path to the character's WebP icon.
+ * Get the icon path for a character by ID, optionally for a specific alignment.
  *
  * @param characterId - lowercase, no-spaces character identifier
  *                      (e.g. `"fortuneteller"`, `"fanggu"`)
+ * @param alignment   - when `'Good'` appends `_g`, `'Evil'` appends `_e`,
+ *                      otherwise returns the base (neutral) path
  */
-export function getCharacterIconPath(characterId: string): string {
-  return `/icons/characters/${characterId}Icon.webp`;
+export function getCharacterIconPath(characterId: string, alignment?: string): string {
+  const suffix = alignment === Alignment.Good ? '_g' : alignment === Alignment.Evil ? '_e' : '';
+  return `/icons/characters/${characterId}Icon${suffix}.webp`;
+}
+
+/**
+ * Get the default icon path for a character based on its type.
+ *
+ * - Townsfolk / Outsider → `_g` (good variant)
+ * - Minion / Demon → `_e` (evil variant)
+ * - Traveller / Fabled / Loric → base (no suffix)
+ */
+export function getDefaultCharacterIconPath(
+  characterId: string,
+  characterType: string,
+): string {
+  switch (characterType) {
+    case CharacterType.Townsfolk:
+    case CharacterType.Outsider:
+      return getCharacterIconPath(characterId, Alignment.Good);
+    case CharacterType.Minion:
+    case CharacterType.Demon:
+      return getCharacterIconPath(characterId, Alignment.Evil);
+    default:
+      return getCharacterIconPath(characterId);
+  }
 }
 
 /** Fallback path used when a character icon fails to load. */

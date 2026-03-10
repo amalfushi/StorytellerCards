@@ -15,6 +15,8 @@ export interface CharacterIconImageProps {
   size: number;
   /** Colour of the thick circular border ring around the icon. */
   borderColor: string;
+  /** Alignment for selecting the correct icon variant (`_g`, `_e`, or base). */
+  alignment?: string;
   /** Optional click handler. Adds `cursor: pointer` when provided. */
   onClick?: (event: React.MouseEvent) => void;
   /** Extra MUI `sx` props merged onto the outer wrapper. */
@@ -50,6 +52,7 @@ export function CharacterIconImage({
   typeColor,
   size: rawSize,
   borderColor,
+  alignment,
   onClick,
   sx,
   isDead = false,
@@ -59,10 +62,22 @@ export function CharacterIconImage({
   const innerSize = size - borderWidth * 2;
 
   const [imgError, setImgError] = useState(false);
+  const [triedFallback, setTriedFallback] = useState(false);
+
+  const iconPath = getCharacterIconPath(characterId, alignment);
+  const basePath = getCharacterIconPath(characterId);
+  const hasAlignmentSuffix = alignment === 'Good' || alignment === 'Evil';
 
   const handleError = useCallback(() => {
-    setImgError(true);
-  }, []);
+    if (hasAlignmentSuffix && !triedFallback) {
+      // Alignment variant missing (e.g. Fabled/Loric) — retry with base path
+      setTriedFallback(true);
+    } else {
+      setImgError(true);
+    }
+  }, [hasAlignmentSuffix, triedFallback]);
+
+  const currentSrc = triedFallback ? basePath : iconPath;
 
   const deadFilter = isDead ? 'saturate(0.2) brightness(0.7)' : 'none';
   const cursor = onClick ? 'pointer' : 'default';
@@ -118,7 +133,7 @@ export function CharacterIconImage({
         </Box>
       ) : (
         <img
-          src={getCharacterIconPath(characterId)}
+          src={currentSrc}
           alt={characterName}
           onError={handleError}
           style={{

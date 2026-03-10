@@ -339,4 +339,50 @@ describe('PlayerToken', () => {
     expect(style.backgroundColor).not.toContain('rgba(25, 118, 210');
     expect(style.backgroundColor).not.toContain('rgba(211, 47, 47');
   });
+
+  // ──────────────────────────────────────────────
+  // M28: Alignment icon variant tests
+  // ──────────────────────────────────────────────
+
+  it('renders Good alignment icon variant when showCharacters is true', () => {
+    const goodPlayer: PlayerSeat = {
+      ...alivePlayer,
+      actualAlignment: Alignment.Good,
+    };
+    render(
+      <PlayerToken
+        player={goodPlayer}
+        characterDef={nobleCharacter}
+        {...defaultProps}
+        showCharacters={true}
+      />,
+    );
+    const img = screen.getByAltText('Noble');
+    expect(img).toHaveAttribute('src', '/icons/characters/nobleIcon_g.webp');
+  });
+
+  it('renders Evil alignment icon variant for evil player', () => {
+    const evilPlayer: PlayerSeat = {
+      ...alivePlayer,
+      characterId: 'imp',
+      actualAlignment: Alignment.Evil,
+    };
+    const impCharacter: CharacterDef = {
+      ...nobleCharacter,
+      id: 'imp',
+      name: 'Imp',
+      type: CharacterType.Demon,
+      defaultAlignment: Alignment.Evil,
+    };
+    render(
+      <PlayerToken
+        player={evilPlayer}
+        characterDef={impCharacter}
+        {...defaultProps}
+        showCharacters={true}
+      />,
+    );
+    const img = screen.getByAltText('Imp');
+    expect(img).toHaveAttribute('src', '/icons/characters/impIcon_e.webp');
+  });
 });

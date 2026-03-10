@@ -133,9 +133,10 @@ describe('ReminderTokenChip', () => {
     expect(screen.queryByTestId('CancelIcon')).not.toBeInTheDocument();
   });
 
-  it('renders source character avatar when sourceCharacterId is present', () => {
+  it('renders source character avatar using base icon path (no alignment suffix)', () => {
     render(<ReminderTokenChip token={customTokenWithSource} />);
     const avatar = screen.getByRole('img');
+    // Reminder tokens always use the default/neutral icon (no _e or _g suffix)
     expect(avatar).toHaveAttribute('src', '/icons/characters/nobleIcon.webp');
   });
 
