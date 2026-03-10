@@ -67,6 +67,11 @@ export function ReminderTokenChip({
         maxWidth: 'none',
         whiteSpace: 'normal',
         wordWrap: 'break-word',
+        '& .MuiChip-avatar': {
+          width: iconSize,
+          height: iconSize,
+          ml: '-4px',
+        },
         '& .MuiChip-label': {
           whiteSpace: 'normal',
           wordWrap: 'break-word',
