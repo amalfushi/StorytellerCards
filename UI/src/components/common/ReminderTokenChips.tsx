@@ -1,20 +1,6 @@
-import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import Tooltip from '@mui/material/Tooltip';
 import type { PlayerToken } from '@/types/index.ts';
-import { getReminderTokenColor } from '@/components/common/characterTypeColor.ts';
-import { getCharacterIconPath } from '@/utils/characterIcon.ts';
-
-// ──────────────────────────────────────────────
-// Token display colours (F3-17 / F3-18)
-// ──────────────────────────────────────────────
-
-const TOKEN_CHIP_COLORS = {
-  drunk: '#7b1fa2', // purple
-  poisoned: '#388e3c', // green
-  custom: '#757575', // grey fallback
-} as const;
+import { ReminderTokenChip } from '@/components/common/ReminderTokenChip.tsx';
 
 export interface ReminderTokenChipsProps {
   /** The player's active tokens. */
@@ -28,26 +14,13 @@ export interface ReminderTokenChipsProps {
 }
 
 /**
- * Resolve the background colour for a token chip.
- *
- * - Drunk → purple (`#7b1fa2`)
- * - Poisoned → green (`#388e3c`)
- * - Custom with source character → character type colour
- * - Custom → token's own colour if set, otherwise grey (`#757575`)
- */
-function resolveTokenColor(token: PlayerToken): string {
-  if (token.type === 'drunk') return TOKEN_CHIP_COLORS.drunk;
-  if (token.type === 'poisoned') return TOKEN_CHIP_COLORS.poisoned;
-  if (token.sourceCharacterId) return getReminderTokenColor(token.sourceCharacterId);
-  return token.color ?? TOKEN_CHIP_COLORS.custom;
-}
-
-/**
  * Renders a row of small coloured MUI Chips representing a player's
  * active status tokens (Drunk, Poisoned, custom).
  *
  * Each chip shows the source character's icon (when available) and
  * is coloured by the source character's type colour.
+ *
+ * Delegates individual chip rendering to {@link ReminderTokenChip}.
  *
  * Optionally supports removal via `onRemove` and source name tooltips
  * via `getSourceName` — used by the TokenManager dialog.
@@ -72,8 +45,6 @@ export function ReminderTokenChips({
     }
   }
 
-  const iconSize = size === 'small' ? 20 : 22;
-
   return (
     <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap' }}>
       {tokens.map((token) => {
@@ -81,41 +52,13 @@ export function ReminderTokenChips({
           token.sourceCharacterId && getSourceName
             ? getSourceName(token.sourceCharacterId)
             : undefined;
-        const avatarElement = token.sourceCharacterId ? (
-          <Avatar
-            src={getCharacterIconPath(token.sourceCharacterId)}
-            alt={sourceName ?? token.sourceCharacterId}
-            sx={{ width: iconSize, height: iconSize }}
-          />
-        ) : undefined;
-        const wrappedAvatar =
-          avatarElement && sourceName ? (
-            <Tooltip title={sourceName}>{avatarElement}</Tooltip>
-          ) : (
-            avatarElement
-          );
         return (
-          <Chip
+          <ReminderTokenChip
             key={token.id}
-            label={token.label}
+            token={token}
             size={size}
-            avatar={wrappedAvatar}
-            onDelete={onRemove ? () => onRemove(token.id) : undefined}
-            sx={{
-              bgcolor: resolveTokenColor(token),
-              color: '#fff',
-              fontWeight: 600,
-              fontSize: size === 'small' ? '0.65rem' : '0.75rem',
-              height: 'auto',
-              maxWidth: 'none',
-              whiteSpace: 'normal',
-              wordWrap: 'break-word',
-              '& .MuiChip-label': {
-                whiteSpace: 'normal',
-                wordWrap: 'break-word',
-                py: 0.5,
-              },
-            }}
+            onRemove={onRemove ? () => onRemove(token.id) : undefined}
+            sourceName={sourceName}
           />
         );
       })}

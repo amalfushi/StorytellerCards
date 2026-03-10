@@ -354,8 +354,17 @@ describe('TokenBadges', () => {
 
   it('renders badges for provided tokens', () => {
     render(<TokenBadges tokens={[drunkToken, customToken]} {...baseProps} />);
-    expect(screen.getByTitle('Drunk')).toBeInTheDocument();
-    expect(screen.getByTitle('Is the Drunk')).toBeInTheDocument();
+    expect(screen.getByText('Drunk')).toBeInTheDocument();
+    expect(screen.getByText('Is the Drunk')).toBeInTheDocument();
+  });
+
+  it('renders as MUI Chips with correct colours', () => {
+    render(<TokenBadges tokens={[drunkToken, poisonedToken]} {...baseProps} />);
+    const drunkChip = screen.getByText('Drunk').closest('.MuiChip-root');
+    const poisonedChip = screen.getByText('Poisoned').closest('.MuiChip-root');
+    // Same colours as ReminderTokenChips: drunk = purple, poisoned = green
+    expect(drunkChip).toHaveStyle({ backgroundColor: '#7b1fa2' });
+    expect(poisonedChip).toHaveStyle({ backgroundColor: '#388e3c' });
   });
 
   it('shows full label text without truncation', () => {
@@ -384,12 +393,12 @@ describe('TokenBadges', () => {
     render(
       <TokenBadges tokens={[drunkToken, poisonedToken]} {...baseProps} tokenLayout="linear" />,
     );
-    expect(screen.getByTitle('Drunk')).toBeInTheDocument();
-    expect(screen.getByTitle('Poisoned')).toBeInTheDocument();
+    expect(screen.getByText('Drunk')).toBeInTheDocument();
+    expect(screen.getByText('Poisoned')).toBeInTheDocument();
   });
 
   it('renders correctly with tokenLayout="radial"', () => {
     render(<TokenBadges tokens={[drunkToken]} {...baseProps} tokenLayout="radial" />);
-    expect(screen.getByTitle('Drunk')).toBeInTheDocument();
+    expect(screen.getByText('Drunk')).toBeInTheDocument();
   });
 });

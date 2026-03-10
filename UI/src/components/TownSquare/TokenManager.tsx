@@ -14,6 +14,7 @@ import { generateId } from '@/utils/idGenerator.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { getCharacter } from '@/data/characters/index.ts';
 import { getReminderTokenColor } from '@/components/common/characterTypeColor.ts';
+import { ReminderTokenChip } from '@/components/common/ReminderTokenChip.tsx';
 import { ReminderTokenChips } from '@/components/common/ReminderTokenChips.tsx';
 
 // ──────────────────────────────────────────────
@@ -193,42 +194,23 @@ export function TokenBadges({
             ? computeLinearPosition(i, tokens.length, tileX, tileY, centerX, centerY, halfW, halfH)
             : computeRadialPosition(i, tokens.length, angleToCenter, halfW, halfH);
 
-        const bgColor = token.color ?? TOKEN_COLORS[token.type] ?? TOKEN_COLORS.custom;
-
         return (
           <Box
             key={token.id}
-            title={token.label}
             sx={{
               position: 'absolute',
               left: dx,
               top: dy,
               transform: 'translate(-50%, -50%)',
-              minWidth: 24,
-              maxWidth: 60,
-              minHeight: 18,
-              height: 'auto',
-              borderRadius: '8px',
-              bgcolor: bgColor,
-              color: '#fff',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              px: 0.5,
-              py: 0.2,
-              fontSize: '0.6rem',
-              fontWeight: 700,
-              lineHeight: 1.15,
-              wordWrap: 'break-word',
-              textAlign: 'center',
               boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
               border: '1px solid rgba(255,255,255,0.4)',
+              borderRadius: '16px',
               pointerEvents: 'none',
               userSelect: 'none',
               zIndex: 5,
             }}
           >
-            {token.label}
+            <ReminderTokenChip token={token} size="small" />
           </Box>
         );
       })}
