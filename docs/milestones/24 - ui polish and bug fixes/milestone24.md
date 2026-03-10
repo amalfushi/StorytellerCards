@@ -66,48 +66,48 @@ Based on feedback from [`post23feedback.md`](../post23feedback.md).
 ## 2. Task List
 
 ### Phase 1: Select Characters Fixes
-- [ ] Remove total selected header chip; keep only per-type chips
-- [ ] Use full type names (not abbreviations) in header chips
-- [ ] Add character icon to each character checkbox row
-- [ ] Add searchbox/filter input
-- [ ] **Fix bug**: 12-player distribution shows wrong minion/total count
-- [ ] Omit Traveller characters from this screen
-- [ ] Rename dialog title to "Select Characters" (or "Game N: Select Characters")
+- [x] Remove total selected header chip; keep only per-type chips
+- [x] Use full type names (not abbreviations) in header chips
+- [x] Add character icon to each character checkbox row
+- [x] Add searchbox/filter input
+- [x] **Fix bug**: 12-player distribution shows wrong minion/total count
+- [x] Omit Traveller characters from this screen
+- [x] Rename dialog title to "Select Characters" (or "Game N: Select Characters")
 
 ### Phase 2: Character Detail Modal — Jinxes Accordion
-- [ ] Wrap jinxes section in a closed-by-default MUI Accordion
-- [ ] If any jinxes are "active" (both characters on current script/game), auto-expand and highlight them
-- [ ] Non-active jinxes remain collapsed
+- [x] Wrap jinxes section in a closed-by-default MUI Accordion
+- [x] If any jinxes are "active" (both characters on current script/game), auto-expand and highlight them
+- [x] Non-active jinxes remain collapsed
 
 ### Phase 3: Reminder Token Visual Consistency
-- [ ] Audit ALL places reminder tokens are rendered across the app
-- [ ] Ensure every location uses source character type color + source character icon
-- [ ] Increase icon size by ~10% and make consistent across all locations
-- [ ] Locations to check: CharacterDetailModal, TokenManager, NightFlashcard, PlayerList, NightHistoryReview, SetupChecklist, PlayerActionsModal
+- [x] Audit ALL places reminder tokens are rendered across the app
+- [x] Ensure every location uses source character type color + source character icon
+- [x] Increase icon size by ~10% and make consistent across all locations
+- [x] Locations to check: CharacterDetailModal, TokenManager, NightFlashcard, PlayerList, NightHistoryReview, SetupChecklist, PlayerActionsModal
 
 ### Phase 4: Player List Fixes
-- [ ] Use the same PlayerActionsModal as TownSquare (share the component)
-- [ ] Remove Swap column; add "edit" icon button per row to open the modal
-- [ ] Alignment column: change to text ("Evil"/"Good"/"Unknown"), add show/hide toggle (default off)
-- [ ] Remove dash placeholder in empty Reminders cells
-- [ ] Rename "Tokens" column header to "Reminders"
+- [x] Use the same PlayerActionsModal as TownSquare (share the component)
+- [x] Remove Swap column; add "edit" icon button per row to open the modal
+- [x] Alignment column: change to text ("Evil"/"Good"/"Unknown"), add show/hide toggle (default off)
+- [x] Remove dash placeholder in empty Reminders cells
+- [x] Rename "Tokens" column header to "Reminders"
 
 ### Phase 5: Night History Fixes
-- [ ] Notes text color → white
-- [ ] Verify edit mode allows note editing (fix if broken)
-- [ ] Summary drawer: show "Player N (CharacterName)" format everywhere, not just one
+- [x] Notes text color → white
+- [x] Verify edit mode allows note editing (fix if broken)
+- [x] Summary drawer: show "Player N (CharacterName)" format everywhere, not just one
 
 ### Phase 6: Session Management — Delete Games
-- [ ] Add delete game action to session view (with confirmation dialog)
-- [ ] Add `DELETE_GAME` reducer action to SessionContext (append at end)
-- [ ] Remove game from localStorage on delete
+- [x] Add delete game action to session view (with confirmation dialog)
+- [x] Add `DELETE_GAME` reducer action to SessionContext (append at end)
+- [x] Remove game from localStorage on delete
 
 ### Phase 7: Misc Fixes
-- [ ] Atheist pre-game reminder text → "Atheist: No evil characters in the game."
+- [x] Atheist pre-game reminder text → "Atheist: No evil characters in the game."
 
 ### Phase 8: Tests & Documentation
-- [ ] Update tests for all changed components
-- [ ] Milestone docs and progress tracking
+- [x] Update tests for all changed components
+- [x] Milestone docs and progress tracking
 
 ---
 
@@ -132,23 +132,23 @@ Based on feedback from [`post23feedback.md`](../post23feedback.md).
 
 ## 4. Testing Requirements
 
-- [ ] 12-player distribution returns correct counts (2 minions, total = 12)
-- [ ] Character selection: search filters correctly, travellers excluded, icons render
-- [ ] Jinxes accordion: collapsed by default, active jinxes highlighted
-- [ ] Reminder tokens: consistent color + icon across all render locations
-- [ ] Player list: edit icon opens shared modal, column renamed
-- [ ] Delete game: removes from session, confirmation dialog works
-- [ ] Night history: notes white, editable in edit mode, summary shows both names
+- [x] 12-player distribution returns correct counts (2 minions, total = 12)
+- [x] Character selection: search filters correctly, travellers excluded, icons render
+- [x] Jinxes accordion: collapsed by default, active jinxes highlighted
+- [x] Reminder tokens: consistent color + icon across all render locations
+- [x] Player list: edit icon opens shared modal, column renamed
+- [x] Delete game: removes from session, confirmation dialog works
+- [x] Night history: notes white, editable in edit mode, summary shows both names
 
 ---
 
 ## 5. Acceptance Criteria
 
-- [ ] Select Characters shows per-type counts (full names), character icons, searchbox, no travellers
-- [ ] 12-player distribution bug fixed
-- [ ] Jinxes in character modal are collapsed by default; active jinxes highlighted
-- [ ] Reminder tokens visually consistent everywhere (type color, source icon, ~10% larger icons)
-- [ ] Player list uses same action modal as TownSquare, "Reminders" column, no swap column, alignment toggle (default off)
-- [ ] Night history notes are white, editable, summary shows player + character
-- [ ] Games can be deleted from sessions
-- [ ] All tests pass, 0 TS/ESLint errors
+- [x] Select Characters shows per-type counts (full names), character icons, searchbox, no travellers
+- [x] 12-player distribution bug fixed
+- [x] Jinxes in character modal are collapsed by default; active jinxes highlighted
+- [x] Reminder tokens visually consistent everywhere (type color, source icon, ~10% larger icons)
+- [x] Player list uses same action modal as TownSquare, "Reminders" column, no swap column, alignment toggle (default off)
+- [x] Night history notes are white, editable, summary shows player + character
+- [x] Games can be deleted from sessions
+- [x] All tests pass, 0 TS/ESLint errors

@@ -195,46 +195,46 @@ The summary is derived from saved choice data:
 
 ### Phase 1: Edit Mode Toggle
 
-- [ ] Add edit/view mode toggle button to [`NightHistoryReview.tsx`](../../UI/src/components/NightHistory/NightHistoryReview.tsx)
-- [ ] Add local state for `isEditMode` (boolean)
-- [ ] Replace "Editable" text label with an interactive toggle button (📝 Edit / 👁 View)
-- [ ] In read-only mode: display notes and choices as static text/labels
-- [ ] In edit mode: render editable controls matching the live flashcard UI
+- [x] Add edit/view mode toggle button to [`NightHistoryReview.tsx`](../../UI/src/components/NightHistory/NightHistoryReview.tsx)
+- [x] Add local state for `isEditMode` (boolean)
+- [x] Replace "Editable" text label with an interactive toggle button (📝 Edit / 👁 View)
+- [x] In read-only mode: display notes and choices as static text/labels
+- [x] In edit mode: render editable controls matching the live flashcard UI
 
 ### Phase 2: Editable Notes
 
-- [ ] In edit mode: render notes as editable `TextField` (multiline)
-- [ ] Create reducer action `UPDATE_NIGHT_HISTORY_NOTE` in [`GameContext.tsx`](../../UI/src/context/GameContext.tsx)
-- [ ] On note change: dispatch update to the specific night's history entry
-- [ ] Ensure note changes persist to `localStorage` via game state persistence
+- [x] In edit mode: render notes as editable `TextField` (multiline)
+- [x] Create reducer action `UPDATE_NIGHT_HISTORY_NOTE` in [`GameContext.tsx`](../../UI/src/context/GameContext.tsx)
+- [x] On note change: dispatch update to the specific night's history entry
+- [x] Ensure note changes persist to `localStorage` via game state persistence
 
 ### Phase 3: Editable Choices
 
-- [ ] In edit mode: render [`NightChoiceSelector`](../../UI/src/components/NightPhase/NightChoiceSelector.tsx) components as interactive (not disabled)
-- [ ] Create reducer action `UPDATE_NIGHT_HISTORY_CHOICE` in [`GameContext.tsx`](../../UI/src/context/GameContext.tsx)
-- [ ] On choice change: dispatch update to the specific night's entry with the new choice value
-- [ ] Ensure choice edits don't affect the current active night's state
-- [ ] Ensure choice changes persist to `localStorage`
+- [x] In edit mode: render [`NightChoiceSelector`](../../UI/src/components/NightPhase/NightChoiceSelector.tsx) components as interactive (not disabled)
+- [x] Create reducer action `UPDATE_NIGHT_HISTORY_CHOICE` in [`GameContext.tsx`](../../UI/src/context/GameContext.tsx)
+- [x] On choice change: dispatch update to the specific night's entry with the new choice value
+- [x] Ensure choice edits don't affect the current active night's state
+- [x] Ensure choice changes persist to `localStorage`
 
 ### Phase 4: Actionable Summary
 
-- [ ] Create `generateNightSummary()` utility function in [`nightHistoryUtils.ts`](../../UI/src/utils/nightHistoryUtils.ts) or a new `nightSummary.ts`
-- [ ] Implement summary generation from saved choice data + player list + character definitions
-- [ ] Handle key patterns: Demon kills, information signals (yes/no, numbers), poisoning, player selections
-- [ ] Display summary lines in [`NightHistoryDrawer.tsx`](../../UI/src/components/NightHistory/NightHistoryDrawer.tsx) sidebar for each night
-- [ ] Make summary lines concise (one line per character action)
-- [ ] Skip non-actionable entries in the summary
+- [x] Create `generateNightSummary()` utility function in [`nightHistoryUtils.ts`](../../UI/src/utils/nightHistoryUtils.ts) or a new `nightSummary.ts`
+- [x] Implement summary generation from saved choice data + player list + character definitions
+- [x] Handle key patterns: Demon kills, information signals (yes/no, numbers), poisoning, player selections
+- [x] Display summary lines in [`NightHistoryDrawer.tsx`](../../UI/src/components/NightHistory/NightHistoryDrawer.tsx) sidebar for each night
+- [x] Make summary lines concise (one line per character action)
+- [x] Skip non-actionable entries in the summary
 
 ### Phase 5: Tests & Stories
 
-- [ ] Update [`NightHistoryReview.test.tsx`](../../UI/src/components/NightHistory/NightHistoryReview.test.tsx) for edit mode toggle
-- [ ] Add tests for note editing functionality
-- [ ] Add tests for choice editing functionality
-- [ ] Add tests for `generateNightSummary()` utility
-- [ ] Update [`NightHistoryDrawer.test.tsx`](../../UI/src/components/NightHistory/NightHistoryDrawer.test.tsx) for summary display
-- [ ] Update [`GameContext.test.tsx`](../../UI/src/context/GameContext.test.tsx) for new reducer actions
-- [ ] Update [`NightHistoryDrawer.stories.tsx`](../../UI/src/components/NightHistory/NightHistoryDrawer.stories.tsx) to show summary view
-- [ ] Add story for edit mode vs. read-only mode
+- [x] Update [`NightHistoryReview.test.tsx`](../../UI/src/components/NightHistory/NightHistoryReview.test.tsx) for edit mode toggle
+- [x] Add tests for note editing functionality
+- [x] Add tests for choice editing functionality
+- [x] Add tests for `generateNightSummary()` utility
+- [x] Update [`NightHistoryDrawer.test.tsx`](../../UI/src/components/NightHistory/NightHistoryDrawer.test.tsx) for summary display
+- [x] Update [`GameContext.test.tsx`](../../UI/src/context/GameContext.test.tsx) for new reducer actions
+- [x] Update [`NightHistoryDrawer.stories.tsx`](../../UI/src/components/NightHistory/NightHistoryDrawer.stories.tsx) to show summary view
+- [x] Add story for edit mode vs. read-only mode
 
 ---
 
@@ -293,37 +293,37 @@ Minor coordination needed with M15 and M18 on [`GameContext.tsx`](../../UI/src/c
 ### Unit Tests
 
 **Edit Mode Toggle:**
-- [ ] `NightHistoryReview.test.tsx`: Test toggle button switches between edit and view modes
-- [ ] `NightHistoryReview.test.tsx`: Test read-only mode shows static text for notes and choices
-- [ ] `NightHistoryReview.test.tsx`: Test edit mode shows editable TextField for notes
-- [ ] `NightHistoryReview.test.tsx`: Test edit mode shows interactive NightChoiceSelector for choices
+- [x] `NightHistoryReview.test.tsx`: Test toggle button switches between edit and view modes
+- [x] `NightHistoryReview.test.tsx`: Test read-only mode shows static text for notes and choices
+- [x] `NightHistoryReview.test.tsx`: Test edit mode shows editable TextField for notes
+- [x] `NightHistoryReview.test.tsx`: Test edit mode shows interactive NightChoiceSelector for choices
 
 **Note Editing:**
-- [ ] `NightHistoryReview.test.tsx`: Test editing a note dispatches `UPDATE_NIGHT_HISTORY_NOTE`
-- [ ] `NightHistoryReview.test.tsx`: Test note changes are reflected in the rendered text
-- [ ] `GameContext.test.tsx`: Test `UPDATE_NIGHT_HISTORY_NOTE` action updates the correct night entry
+- [x] `NightHistoryReview.test.tsx`: Test editing a note dispatches `UPDATE_NIGHT_HISTORY_NOTE`
+- [x] `NightHistoryReview.test.tsx`: Test note changes are reflected in the rendered text
+- [x] `GameContext.test.tsx`: Test `UPDATE_NIGHT_HISTORY_NOTE` action updates the correct night entry
 
 **Choice Editing:**
-- [ ] `NightHistoryReview.test.tsx`: Test editing a choice dispatches `UPDATE_NIGHT_HISTORY_CHOICE`
-- [ ] `NightHistoryReview.test.tsx`: Test choice changes don't affect current night state
-- [ ] `GameContext.test.tsx`: Test `UPDATE_NIGHT_HISTORY_CHOICE` action updates the correct entry
+- [x] `NightHistoryReview.test.tsx`: Test editing a choice dispatches `UPDATE_NIGHT_HISTORY_CHOICE`
+- [x] `NightHistoryReview.test.tsx`: Test choice changes don't affect current night state
+- [x] `GameContext.test.tsx`: Test `UPDATE_NIGHT_HISTORY_CHOICE` action updates the correct entry
 
 **Actionable Summary:**
-- [ ] `nightHistoryUtils.test.ts`: Test `generateNightSummary()` with Demon kill choice data
-- [ ] `nightHistoryUtils.test.ts`: Test summary with Fortune Teller (2 players + yes/no)
-- [ ] `nightHistoryUtils.test.ts`: Test summary with Poisoner (1 player choice)
-- [ ] `nightHistoryUtils.test.ts`: Test summary skips entries with no choices
-- [ ] `nightHistoryUtils.test.ts`: Test summary skips structural entries (Dusk, Dawn)
-- [ ] `nightHistoryUtils.test.ts`: Test summary with empty night history
-- [ ] `NightHistoryDrawer.test.tsx`: Test summary lines display in the sidebar
-- [ ] `NightHistoryDrawer.test.tsx`: Test summary updates when history is edited
+- [x] `nightHistoryUtils.test.ts`: Test `generateNightSummary()` with Demon kill choice data
+- [x] `nightHistoryUtils.test.ts`: Test summary with Fortune Teller (2 players + yes/no)
+- [x] `nightHistoryUtils.test.ts`: Test summary with Poisoner (1 player choice)
+- [x] `nightHistoryUtils.test.ts`: Test summary skips entries with no choices
+- [x] `nightHistoryUtils.test.ts`: Test summary skips structural entries (Dusk, Dawn)
+- [x] `nightHistoryUtils.test.ts`: Test summary with empty night history
+- [x] `NightHistoryDrawer.test.tsx`: Test summary lines display in the sidebar
+- [x] `NightHistoryDrawer.test.tsx`: Test summary updates when history is edited
 
 ### Storybook Stories
 
-- [ ] `NightHistoryDrawer.stories.tsx`: Story with summary view showing multiple nights
-- [ ] `NightHistoryDrawer.stories.tsx`: Story with expanded night showing read-only mode
-- [ ] `NightHistoryDrawer.stories.tsx`: Story with expanded night showing edit mode
-- [ ] Add `play()` interaction test: toggle edit mode, change a note, verify display update
+- [x] `NightHistoryDrawer.stories.tsx`: Story with summary view showing multiple nights
+- [x] `NightHistoryDrawer.stories.tsx`: Story with expanded night showing read-only mode
+- [x] `NightHistoryDrawer.stories.tsx`: Story with expanded night showing edit mode
+- [x] Add `play()` interaction test: toggle edit mode, change a note, verify display update
 
 ### Development Checklist
 
@@ -337,17 +337,17 @@ Before completing this milestone, run and pass all three:
 
 ## 8. Acceptance Criteria
 
-- [ ] Night history entries have a clear Edit/View toggle button (replaces "Editable" text)
-- [ ] In read-only mode: notes and choices display as static, non-interactive text
-- [ ] In edit mode: notes are editable via text fields
-- [ ] In edit mode: choice dropdowns are interactive and function like the live flashcard
-- [ ] Editing a history entry updates ONLY that entry (not the current active night)
-- [ ] All history edits persist to `localStorage` via game state
-- [ ] Night history sidebar shows a concise actionable summary for each night
-- [ ] Summary includes key actions: Demon kills, player selections, information signals
-- [ ] Summary skips non-actionable entries (structural cards, characters with no choices)
-- [ ] Summary updates in real-time if history entries are edited
-- [ ] All existing tests pass with updates
-- [ ] New tests cover edit toggle, note editing, choice editing, and summary generation
-- [ ] Storybook stories demonstrate both read-only and edit modes
-- [ ] TypeScript compilation, ESLint, and test suite all pass
+- [x] Night history entries have a clear Edit/View toggle button (replaces "Editable" text)
+- [x] In read-only mode: notes and choices display as static, non-interactive text
+- [x] In edit mode: notes are editable via text fields
+- [x] In edit mode: choice dropdowns are interactive and function like the live flashcard
+- [x] Editing a history entry updates ONLY that entry (not the current active night)
+- [x] All history edits persist to `localStorage` via game state
+- [x] Night history sidebar shows a concise actionable summary for each night
+- [x] Summary includes key actions: Demon kills, player selections, information signals
+- [x] Summary skips non-actionable entries (structural cards, characters with no choices)
+- [x] Summary updates in real-time if history entries are edited
+- [x] All existing tests pass with updates
+- [x] New tests cover edit toggle, note editing, choice editing, and summary generation
+- [x] Storybook stories demonstrate both read-only and edit modes
+- [x] TypeScript compilation, ESLint, and test suite all pass

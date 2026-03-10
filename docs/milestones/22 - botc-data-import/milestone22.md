@@ -89,71 +89,71 @@ roles.json  remindersGlobal  →  new ReminderToken.isGlobal or separate array
 
 This feeds directly into our planned M5 (Jinxes milestone).
 
-- [ ] Write an import script (`scripts/importJinxes.ts` or Node script) that:
+- [x] Write an import script (`scripts/importJinxes.ts` or Node script) that:
   1. Reads `botc-release/resources/data/jinxes.json`
   2. For each source character, adds `jinxes: Jinx[]` to the character's `.ts` file
   3. Maps `{ id, reason }` → `{ characterId, description }` (our existing `Jinx` interface)
   4. Mirrors jinxes bidirectionally — if Alchemist→Boffin exists, also add Boffin→Alchemist
-- [ ] Run the import script and verify all 131 pairs (262 total with mirroring) are added to 27+ character files
-- [ ] Validate imported jinxes via `characterData.test.ts` structural validation
-- [ ] Add a jinx count summary to the import output for verification
+- [x] Run the import script and verify all 131 pairs (262 total with mirroring) are added to 27+ character files
+- [x] Validate imported jinxes via `characterData.test.ts` structural validation
+- [x] Add a jinx count summary to the import output for verification
 
 ### Phase 2: Import Flavor Text (Priority 2)
 
-- [ ] Add `flavor?: string` to `CharacterDef` interface in `types/index.ts` (append at end)
-- [ ] Write import logic to read `roles.json` and add `flavor` to each character's `.ts` file
-- [ ] All 179 characters should have flavor text after import
-- [ ] Update character detail UI (`CharacterCard.tsx` or character modal) to display flavor text in italics below the ability text
+- [x] Add `flavor?: string` to `CharacterDef` interface in `types/index.ts` (append at end)
+- [x] Write import logic to read `roles.json` and add `flavor` to each character's `.ts` file
+- [x] All 179 characters should have flavor text after import
+- [x] Update character detail UI (`CharacterCard.tsx` or character modal) to display flavor text in italics below the ability text
 
 ### Phase 3: Import Edition Data (Priority 3)
 
-- [ ] Add `edition?: string` to `CharacterDef` interface in `types/index.ts` (append at end)
-- [ ] Define edition constants with human-readable labels:
+- [x] Add `edition?: string` to `CharacterDef` interface in `types/index.ts` (append at end)
+- [x] Define edition constants with human-readable labels:
   - `tb` = Trouble Brewing (base set)
   - `bmr` = Bad Moon Rising
   - `snv` = Sects & Violets
   - `carousel` = Experimental / unreleased
   - `fabled` = Fabled
   - `loric` = Loric
-- [ ] Write import logic to read `roles.json` and add `edition` to each character's `.ts` file
-- [ ] Update ScriptBuilder to support filtering by edition (e.g., "Show only Trouble Brewing characters")
-- [ ] Update character detail UI to show edition badge/tag
+- [x] Write import logic to read `roles.json` and add `edition` to each character's `.ts` file
+- [x] Update ScriptBuilder to support filtering by edition (e.g., "Show only Trouble Brewing characters")
+- [x] Update character detail UI to show edition badge/tag
 
 ### Phase 4: Migrate Icons to WebP (Priority 4)
 
-- [ ] Copy the 179 default (unaligned) WebP icons from `botc-release/resources/characters/` to our icon directory
-- [ ] Update `CharacterIcon` type and `characterIcon.ts` to reference `.webp` files instead of `.png`
-- [ ] Remove the old PNG icons (or keep as fallback during transition)
-- [ ] Update `CharacterIconImage` component if path logic changes
-- [ ] Verify all 179 icons render correctly in the app
-- [ ] Measure bundle/load size improvement
+- [x] Copy the 179 default (unaligned) WebP icons from `botc-release/resources/characters/` to our icon directory
+- [x] Update `CharacterIcon` type and `characterIcon.ts` to reference `.webp` files instead of `.png`
+- [x] Remove the old PNG icons (or keep as fallback during transition)
+- [x] Update `CharacterIconImage` component if path logic changes
+- [x] Verify all 179 icons render correctly in the app
+- [x] Measure bundle/load size improvement
 
 ### Phase 5: Night Order Validation (Priority 5)
 
-- [ ] Write a validation script/test that:
+- [x] Write a validation script/test that:
   1. Reads `botc-release/resources/data/nightsheet.json`
   2. Compares array positions against our characters' `firstNight.order` and `otherNights.order` values
   3. Reports any discrepancies (character present in one but not the other, different ordering)
-- [ ] Fix any ordering discrepancies found
-- [ ] Handle post-dawn entries (Leviathan, Vizier) — verify our system accounts for these
-- [ ] Add as a test in `characterData.test.ts` or a new `nightOrderValidation.test.ts`
+- [x] Fix any ordering discrepancies found
+- [x] Handle post-dawn entries (Leviathan, Vizier) — verify our system accounts for these
+- [x] Add as a test in `characterData.test.ts` or a new `nightOrderValidation.test.ts`
 
 ### Phase 6: Import Setup Flag & Global Reminders (Priority 7)
 
-- [ ] Add `setup?: boolean` to `CharacterDef` in `types/index.ts` (append at end)
-- [ ] Import `setup: true` for the 23 characters that modify game setup
-- [ ] Add `isGlobal?: boolean` to `ReminderToken` in `types/index.ts` OR add `remindersGlobal?: ReminderToken[]` to `CharacterDef`
-- [ ] Import global reminders for the 6 characters that have them (Philosopher, Alchemist, Drunk, Marionette, Lil' Monsta)
-- [ ] Update `characterData.test.ts` to validate new fields
+- [x] Add `setup?: boolean` to `CharacterDef` in `types/index.ts` (append at end)
+- [x] Import `setup: true` for the 23 characters that modify game setup
+- [x] Add `isGlobal?: boolean` to `ReminderToken` in `types/index.ts` OR add `remindersGlobal?: ReminderToken[]` to `CharacterDef`
+- [x] Import global reminders for the 6 characters that have them (Philosopher, Alchemist, Drunk, Marionette, Lil' Monsta)
+- [x] Update `characterData.test.ts` to validate new fields
 
 ### Phase 7: Tests & Documentation
 
-- [ ] Ensure `characterData.test.ts` structural validation covers new fields (flavor, edition, setup, jinxes)
-- [ ] Add tests for jinx bidirectional mirroring
-- [ ] Add tests for night order validation
-- [ ] Update AGENTS.md stats if test counts changed
-- [ ] Create `progress.md` in this milestone folder
-- [ ] Update root `docs/progress.md` with M22 status
+- [x] Ensure `characterData.test.ts` structural validation covers new fields (flavor, edition, setup, jinxes)
+- [x] Add tests for jinx bidirectional mirroring
+- [x] Add tests for night order validation
+- [x] Update AGENTS.md stats if test counts changed
+- [x] Create `progress.md` in this milestone folder
+- [x] Update root `docs/progress.md` with M22 status
 
 ---
 
@@ -200,39 +200,39 @@ All data imports are permitted under the [BotC Community Created Content Policy]
 
 ### Structural Validation (characterData.test.ts)
 
-- [ ] Validate all 179 characters have `flavor` string (non-empty)
-- [ ] Validate all 179 characters have `edition` string (one of: `tb` (Trouble Brewing), `bmr` (Bad Moon Rising), `snv` (Sects & Violets), `carousel` (Experimental), `fabled`, `loric`)
-- [ ] Validate 23 characters have `setup: true`
-- [ ] Validate 27+ characters have non-empty `jinxes[]` arrays
-- [ ] Validate total jinx pair count is 131 (or 262 if mirrored)
-- [ ] Validate 6 characters have global reminder tokens
+- [x] Validate all 179 characters have `flavor` string (non-empty)
+- [x] Validate all 179 characters have `edition` string (one of: `tb` (Trouble Brewing), `bmr` (Bad Moon Rising), `snv` (Sects & Violets), `carousel` (Experimental), `fabled`, `loric`)
+- [x] Validate 23 characters have `setup: true`
+- [x] Validate 27+ characters have non-empty `jinxes[]` arrays
+- [x] Validate total jinx pair count is 131 (or 262 if mirrored)
+- [x] Validate 6 characters have global reminder tokens
 
 ### Night Order Validation
 
-- [ ] Test that our first night order matches `nightsheet.json` positions
-- [ ] Test that our other night order matches `nightsheet.json` positions
-- [ ] Document any intentional deviations
+- [x] Test that our first night order matches `nightsheet.json` positions
+- [x] Test that our other night order matches `nightsheet.json` positions
+- [x] Document any intentional deviations
 
 ### Icon Migration
 
-- [ ] Verify 179 WebP files exist and are loadable
-- [ ] Verify `CharacterIconImage` renders all icons without errors
+- [x] Verify 179 WebP files exist and are loadable
+- [x] Verify `CharacterIconImage` renders all icons without errors
 
 ### ScriptBuilder
 
-- [ ] Test edition filter shows only characters from selected edition
-- [ ] Test edition filter works with existing character type filtering
+- [x] Test edition filter shows only characters from selected edition
+- [x] Test edition filter works with existing character type filtering
 
 ---
 
 ## 7. Acceptance Criteria
 
-- [ ] 131 jinx pairs imported with bidirectional mirroring (both characters reference each other)
-- [ ] All 179 characters have `flavor` text displayed in character detail views
-- [ ] All 179 characters have `edition` field; ScriptBuilder supports edition filtering
-- [ ] Icons migrated to WebP with measurable size reduction (target: >80% reduction)
-- [ ] Night order validated against canonical `nightsheet.json` — discrepancies documented or fixed
-- [ ] `setup` boolean and `remindersGlobal` imported for applicable characters
-- [ ] All existing tests pass + new validation tests
-- [ ] TypeScript compilation, ESLint, and test suite all pass
-- [ ] No WC25 scripts bundled (existing import handles those)
+- [x] 131 jinx pairs imported with bidirectional mirroring (both characters reference each other)
+- [x] All 179 characters have `flavor` text displayed in character detail views
+- [x] All 179 characters have `edition` field; ScriptBuilder supports edition filtering
+- [x] Icons migrated to WebP with measurable size reduction (target: >80% reduction)
+- [x] Night order validated against canonical `nightsheet.json` — discrepancies documented or fixed
+- [x] `setup` boolean and `remindersGlobal` imported for applicable characters
+- [x] All existing tests pass + new validation tests
+- [x] TypeScript compilation, ESLint, and test suite all pass
+- [x] No WC25 scripts bundled (existing import handles those)

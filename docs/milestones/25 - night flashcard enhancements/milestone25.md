@@ -115,21 +115,21 @@ The night flashcard is getting chip-heavy. Reorganize:
 
 ## 4. Testing Requirements
 
-- [ ] Choice dropdowns show "Player N (Character)" / "Character (Player N)" format
-- [ ] Placed reminder tokens show grey + placement info
-- [ ] Token click triggers day view navigation
-- [ ] Signal values recorded and displayed in night history
-- [ ] Notes pre-populate from previous night
-- [ ] Chip layout renders correctly on mobile viewports
+- [x] Choice dropdowns show "Player N (Character)" / "Character (Player N)" format
+- [x] Placed reminder tokens show grey + placement info
+- [x] Token click triggers day view navigation
+- [x] Signal values recorded and displayed in night history
+- [x] Notes pre-populate from previous night
+- [x] Chip layout renders correctly on mobile viewports
 
 ---
 
 ## 5. Acceptance Criteria
 
-- [ ] Choice dropdowns show full player + character context with icons
-- [ ] Reminder tokens show placement status; clicking navigates to Day view for placement
-- [ ] Inline "Add token to Player N" button appears after choice entry (bonus)
-- [ ] Finger signals and thumbs up/down recorded in night progress
-- [ ] Chip layout reorganized: type upper-left, affecting tokens right of icon, available tokens above checklist
-- [ ] Notes pre-populated, subtly styled, vertically growable
-- [ ] All tests pass, 0 TS/ESLint errors
+- [x] Choice dropdowns show full player + character context with icons
+- [x] Reminder tokens show placement status; clicking navigates to Day view for placement
+- [x] Inline "Add token to Player N" button appears after choice entry (bonus)
+- [x] Finger signals and thumbs up/down recorded in night progress
+- [x] Chip layout reorganized: type upper-left, affecting tokens right of icon, available tokens above checklist
+- [x] Notes pre-populated, subtly styled, vertically growable
+- [x] All tests pass, 0 TS/ESLint errors

@@ -199,57 +199,57 @@ Fabled and Loric appear at the bottom of the list with:
 
 ### Phase 1: Script Builder — Traveller/Fabled/Loric Sections
 
-- [ ] Add Traveller section to [`ScriptBuilder.tsx`](../../UI/src/components/ScriptBuilder/ScriptBuilder.tsx) with character selection checkboxes
-- [ ] Add Fabled section to Script Builder with character selection checkboxes
-- [ ] Add Loric section to Script Builder with character selection checkboxes
-- [ ] Ensure type-specific colors are applied to each section header
-- [ ] Test that selected Travellers/Fabled/Loric are included in the saved script data
+- [x] Add Traveller section to [`ScriptBuilder.tsx`](../../UI/src/components/ScriptBuilder/ScriptBuilder.tsx) with character selection checkboxes
+- [x] Add Fabled section to Script Builder with character selection checkboxes
+- [x] Add Loric section to Script Builder with character selection checkboxes
+- [x] Ensure type-specific colors are applied to each section header
+- [x] Test that selected Travellers/Fabled/Loric are included in the saved script data
 
 ### Phase 2: Script Import
 
-- [ ] Review [`scriptImporter.ts`](../../UI/src/utils/scriptImporter.ts) and verify it handles Traveller, Fabled, and Loric character IDs
-- [ ] Test importing a script JSON that includes these character types
-- [ ] Fix any ID lookup failures for Traveller/Fabled/Loric characters (ensure they're in the character registry)
+- [x] Review [`scriptImporter.ts`](../../UI/src/utils/scriptImporter.ts) and verify it handles Traveller, Fabled, and Loric character IDs
+- [x] Test importing a script JSON that includes these character types
+- [x] Fix any ID lookup failures for Traveller/Fabled/Loric characters (ensure they're in the character registry)
 
 ### Phase 3: Script View Ordering
 
-- [ ] Update [`ScriptReferenceTab.tsx`](../../UI/src/components/ScriptViewer/ScriptReferenceTab.tsx) to render sections in order: Townsfolk → Outsiders → Minions → Demons → Travellers → Fabled → Loric
-- [ ] Add section headers for Travellers, Fabled, and Loric with appropriate colors
-- [ ] Ensure characters within each section are sorted alphabetically (or by script sort rules)
+- [x] Update [`ScriptReferenceTab.tsx`](../../UI/src/components/ScriptViewer/ScriptReferenceTab.tsx) to render sections in order: Townsfolk → Outsiders → Minions → Demons → Travellers → Fabled → Loric
+- [x] Add section headers for Travellers, Fabled, and Loric with appropriate colors
+- [x] Ensure characters within each section are sorted alphabetically (or by script sort rules)
 
 ### Phase 4: Game State — Active Fabled/Loric
 
-- [ ] Add `activeFabled` and `activeLoric` arrays to game state in [`GameContext.tsx`](../../UI/src/context/GameContext.tsx)
-- [ ] Add reducer actions: `ADD_FABLED`, `REMOVE_FABLED`, `ADD_LORIC`, `REMOVE_LORIC`
-- [ ] Persist in `localStorage` via existing game state persistence
-- [ ] Add UI for activating/deactivating Fabled and Loric (e.g., from a game management menu or the script view)
+- [x] Add `activeFabled` and `activeLoric` arrays to game state in [`GameContext.tsx`](../../UI/src/context/GameContext.tsx)
+- [x] Add reducer actions: `ADD_FABLED`, `REMOVE_FABLED`, `ADD_LORIC`, `REMOVE_LORIC`
+- [x] Persist in `localStorage` via existing game state persistence
+- [x] Add UI for activating/deactivating Fabled and Loric (e.g., from a game management menu or the script view)
 
 ### Phase 5: TownSquare Corner Display
 
-- [ ] Add Fabled corner display (upper-left) to [`TownSquareLayout.tsx`](../../UI/src/components/TownSquare/TownSquareLayout.tsx)
-- [ ] Add Loric corner display (upper-right) to `TownSquareLayout.tsx`
-- [ ] Render as small character cards/chips showing icon and name
-- [ ] Ensure corners are always visible (not affected by hide secret info toggle)
-- [ ] Add click handler to show ability text for each Fabled/Loric character
-- [ ] Ensure corner display doesn't interfere with the player token circle layout
+- [x] Add Fabled corner display (upper-left) to [`TownSquareLayout.tsx`](../../UI/src/components/TownSquare/TownSquareLayout.tsx)
+- [x] Add Loric corner display (upper-right) to `TownSquareLayout.tsx`
+- [x] Render as small character cards/chips showing icon and name
+- [x] Ensure corners are always visible (not affected by hide secret info toggle)
+- [x] Add click handler to show ability text for each Fabled/Loric character
+- [x] Ensure corner display doesn't interfere with the player token circle layout
 
 ### Phase 6: Players List Bottom Section
 
-- [ ] Add "Game Modifiers" section at the bottom of [`PlayerListTab.tsx`](../../UI/src/components/PlayerList/PlayerListTab.tsx)
-- [ ] Render active Fabled and Loric characters with: name, type, icon, ability
-- [ ] Omit seat, alive/dead, vote, alignment columns for these entries
-- [ ] Style the section separator distinctly from player rows
+- [x] Add "Game Modifiers" section at the bottom of [`PlayerListTab.tsx`](../../UI/src/components/PlayerList/PlayerListTab.tsx)
+- [x] Render active Fabled and Loric characters with: name, type, icon, ability
+- [x] Omit seat, alive/dead, vote, alignment columns for these entries
+- [x] Style the section separator distinctly from player rows
 
 ### Phase 7: Tests & Stories
 
-- [ ] Update [`ScriptBuilder.test.tsx`](../../UI/src/components/ScriptBuilder/ScriptBuilder.test.tsx) for Traveller/Fabled/Loric sections
-- [ ] Update [`scriptImporter.test.ts`](../../UI/src/utils/scriptImporter.test.ts) for import of these character types
-- [ ] Update [`ScriptReferenceTab.test.tsx`](../../UI/src/components/ScriptViewer/ScriptReferenceTab.test.tsx) for section ordering
-- [ ] Update [`GameContext.test.tsx`](../../UI/src/context/GameContext.test.tsx) for new state fields and actions
-- [ ] Update [`TownSquareLayout.test.tsx`](../../UI/src/components/TownSquare/TownSquareLayout.test.tsx) for corner display
-- [ ] Update [`PlayerListTab.test.tsx`](../../UI/src/components/PlayerList/PlayerListTab.test.tsx) for bottom section
-- [ ] Add Storybook stories for TownSquare with Fabled/Loric corners
-- [ ] Add Storybook stories for Script Builder with Traveller/Fabled/Loric sections
+- [x] Update [`ScriptBuilder.test.tsx`](../../UI/src/components/ScriptBuilder/ScriptBuilder.test.tsx) for Traveller/Fabled/Loric sections
+- [x] Update [`scriptImporter.test.ts`](../../UI/src/utils/scriptImporter.test.ts) for import of these character types
+- [x] Update [`ScriptReferenceTab.test.tsx`](../../UI/src/components/ScriptViewer/ScriptReferenceTab.test.tsx) for section ordering
+- [x] Update [`GameContext.test.tsx`](../../UI/src/context/GameContext.test.tsx) for new state fields and actions
+- [x] Update [`TownSquareLayout.test.tsx`](../../UI/src/components/TownSquare/TownSquareLayout.test.tsx) for corner display
+- [x] Update [`PlayerListTab.test.tsx`](../../UI/src/components/PlayerList/PlayerListTab.test.tsx) for bottom section
+- [x] Add Storybook stories for TownSquare with Fabled/Loric corners
+- [x] Add Storybook stories for Script Builder with Traveller/Fabled/Loric sections
 
 ---
 
@@ -313,43 +313,43 @@ Fabled and Loric appear at the bottom of the list with:
 ### Unit Tests
 
 **Script Builder:**
-- [ ] `ScriptBuilder.test.tsx`: Test Traveller section appears with character checkboxes
-- [ ] `ScriptBuilder.test.tsx`: Test Fabled section appears with character checkboxes
-- [ ] `ScriptBuilder.test.tsx`: Test Loric section appears with character checkboxes
-- [ ] `ScriptBuilder.test.tsx`: Test selected Travellers/Fabled/Loric are included in saved script
+- [x] `ScriptBuilder.test.tsx`: Test Traveller section appears with character checkboxes
+- [x] `ScriptBuilder.test.tsx`: Test Fabled section appears with character checkboxes
+- [x] `ScriptBuilder.test.tsx`: Test Loric section appears with character checkboxes
+- [x] `ScriptBuilder.test.tsx`: Test selected Travellers/Fabled/Loric are included in saved script
 
 **Script Import:**
-- [ ] `scriptImporter.test.ts`: Test importing JSON with Traveller character IDs
-- [ ] `scriptImporter.test.ts`: Test importing JSON with Fabled character IDs
-- [ ] `scriptImporter.test.ts`: Test importing JSON with Loric character IDs
-- [ ] `scriptImporter.test.ts`: Test importing JSON with all character types mixed
+- [x] `scriptImporter.test.ts`: Test importing JSON with Traveller character IDs
+- [x] `scriptImporter.test.ts`: Test importing JSON with Fabled character IDs
+- [x] `scriptImporter.test.ts`: Test importing JSON with Loric character IDs
+- [x] `scriptImporter.test.ts`: Test importing JSON with all character types mixed
 
 **Script View:**
-- [ ] `ScriptReferenceTab.test.tsx`: Test sections render in order: TF → OS → MN → DM → TR → FB → LO
-- [ ] `ScriptReferenceTab.test.tsx`: Test each section has appropriate header and color
+- [x] `ScriptReferenceTab.test.tsx`: Test sections render in order: TF → OS → MN → DM → TR → FB → LO
+- [x] `ScriptReferenceTab.test.tsx`: Test each section has appropriate header and color
 
 **Game State:**
-- [ ] `GameContext.test.tsx`: Test `ADD_FABLED` / `REMOVE_FABLED` actions
-- [ ] `GameContext.test.tsx`: Test `ADD_LORIC` / `REMOVE_LORIC` actions
-- [ ] `GameContext.test.tsx`: Test active Fabled/Loric persist correctly
+- [x] `GameContext.test.tsx`: Test `ADD_FABLED` / `REMOVE_FABLED` actions
+- [x] `GameContext.test.tsx`: Test `ADD_LORIC` / `REMOVE_LORIC` actions
+- [x] `GameContext.test.tsx`: Test active Fabled/Loric persist correctly
 
 **TownSquare:**
-- [ ] `TownSquareLayout.test.tsx`: Test Fabled renders in upper-left corner
-- [ ] `TownSquareLayout.test.tsx`: Test Loric renders in upper-right corner
-- [ ] `TownSquareLayout.test.tsx`: Test corners visible in both hidden and visible info modes
-- [ ] `TownSquareLayout.test.tsx`: Test no corners when no Fabled/Loric active
+- [x] `TownSquareLayout.test.tsx`: Test Fabled renders in upper-left corner
+- [x] `TownSquareLayout.test.tsx`: Test Loric renders in upper-right corner
+- [x] `TownSquareLayout.test.tsx`: Test corners visible in both hidden and visible info modes
+- [x] `TownSquareLayout.test.tsx`: Test no corners when no Fabled/Loric active
 
 **Players List:**
-- [ ] `PlayerListTab.test.tsx`: Test "Game Modifiers" section appears at bottom when Fabled/Loric active
-- [ ] `PlayerListTab.test.tsx`: Test Fabled/Loric rendered without seat/alive/vote columns
-- [ ] `PlayerListTab.test.tsx`: Test no bottom section when no Fabled/Loric active
+- [x] `PlayerListTab.test.tsx`: Test "Game Modifiers" section appears at bottom when Fabled/Loric active
+- [x] `PlayerListTab.test.tsx`: Test Fabled/Loric rendered without seat/alive/vote columns
+- [x] `PlayerListTab.test.tsx`: Test no bottom section when no Fabled/Loric active
 
 ### Storybook Stories
 
-- [ ] `TownSquareLayout.stories.tsx`: TownSquare with Fabled in upper-left
-- [ ] `TownSquareLayout.stories.tsx`: TownSquare with Loric in upper-right
-- [ ] `TownSquareLayout.stories.tsx`: TownSquare with both Fabled and Loric
-- [ ] Script Builder story with all character type sections visible
+- [x] `TownSquareLayout.stories.tsx`: TownSquare with Fabled in upper-left
+- [x] `TownSquareLayout.stories.tsx`: TownSquare with Loric in upper-right
+- [x] `TownSquareLayout.stories.tsx`: TownSquare with both Fabled and Loric
+- [x] Script Builder story with all character type sections visible
 
 ### Development Checklist
 
@@ -363,16 +363,16 @@ Before completing this milestone, run and pass all three:
 
 ## 8. Acceptance Criteria
 
-- [ ] Script Builder includes Traveller, Fabled, and Loric sections for character selection
-- [ ] Script importer correctly handles Traveller, Fabled, and Loric character IDs in imported JSON
-- [ ] Script view displays sections in order: Townsfolk → Outsiders → Minions → Demons → Travellers → Fabled → Loric
-- [ ] Each section uses its type-specific color scheme
-- [ ] Active Fabled characters appear in the upper-left corner of TownSquare
-- [ ] Active Loric characters appear in the upper-right corner of TownSquare
-- [ ] Fabled and Loric corner displays are always visible (not hidden by secret info toggle)
-- [ ] No players can be assigned to Fabled or Loric characters
-- [ ] Active Fabled and Loric appear at the bottom of the Players List with name, type, icon, ability
-- [ ] Game state tracks `activeFabled` and `activeLoric` arrays with add/remove actions
-- [ ] All existing tests pass with updates
-- [ ] New tests cover script builder sections, import, view ordering, TownSquare corners, and Players List bottom section
-- [ ] TypeScript compilation, ESLint, and test suite all pass
+- [x] Script Builder includes Traveller, Fabled, and Loric sections for character selection
+- [x] Script importer correctly handles Traveller, Fabled, and Loric character IDs in imported JSON
+- [x] Script view displays sections in order: Townsfolk → Outsiders → Minions → Demons → Travellers → Fabled → Loric
+- [x] Each section uses its type-specific color scheme
+- [x] Active Fabled characters appear in the upper-left corner of TownSquare
+- [x] Active Loric characters appear in the upper-right corner of TownSquare
+- [x] Fabled and Loric corner displays are always visible (not hidden by secret info toggle)
+- [x] No players can be assigned to Fabled or Loric characters
+- [x] Active Fabled and Loric appear at the bottom of the Players List with name, type, icon, ability
+- [x] Game state tracks `activeFabled` and `activeLoric` arrays with add/remove actions
+- [x] All existing tests pass with updates
+- [x] New tests cover script builder sections, import, view ordering, TownSquare corners, and Players List bottom section
+- [x] TypeScript compilation, ESLint, and test suite all pass

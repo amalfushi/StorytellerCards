@@ -71,33 +71,33 @@ New Game → Select Characters → SELECT DEMON BLUFFS → Assign to Seats → S
 ## 3. Task List
 
 ### Phase 1: Game State
-- [ ] Add `demonBluffs?: string[]` to `Game` type in `types/index.ts` (append at end)
-- [ ] Add `SET_DEMON_BLUFFS` reducer action to `GameContext.tsx` (append at end)
-- [ ] Persist via existing localStorage mechanism
+- [x] Add `demonBluffs?: string[]` to `Game` type in `types/index.ts` (append at end)
+- [x] Add `SET_DEMON_BLUFFS` reducer action to `GameContext.tsx` (append at end)
+- [x] Persist via existing localStorage mechanism
 
 ### Phase 2: Bluff Selection UI
-- [ ] Create `UI/src/components/Setup/DemonBluffSelection.tsx`
-- [ ] Show unselected good characters (Townsfolk + Outsiders not in `inPlayCharacterIds`)
-- [ ] Allow selecting exactly 3
-- [ ] Show character icons + names
-- [ ] Integrate into game flow after character selection, before assignment
+- [x] Create `UI/src/components/Setup/DemonBluffSelection.tsx`
+- [x] Show unselected good characters (Townsfolk + Outsiders not in `inPlayCharacterIds`)
+- [x] Allow selecting exactly 3
+- [x] Show character icons + names
+- [x] Integrate into game flow after character selection, before assignment
 
 ### Phase 3: Demon Action Modal — Bluffs Section
-- [ ] Add "Demon Bluffs" section to `PlayerActionsModal.tsx` (visible only for demon players)
-- [ ] Show the 3 bluff characters with icons and names
-- [ ] Allow changing individual bluffs (swap with another available good character)
+- [x] Add "Demon Bluffs" section to `PlayerActionsModal.tsx` (visible only for demon players)
+- [x] Show the 3 bluff characters with icons and names
+- [x] Allow changing individual bluffs (swap with another available good character)
 
 ### Phase 4: Night Flashcard — Bluff Display
-- [ ] On the `demoninfo` first night entry, display the 3 bluff character icons + names
-- [ ] Label clearly: "Show these bluffs to the Demon"
-- [ ] Update `storytellerSetup` integration to use actual bluff data instead of generic "pick 3 bluffs" text
+- [x] On the `demoninfo` first night entry, display the 3 bluff character icons + names
+- [x] Label clearly: "Show these bluffs to the Demon"
+- [x] Update `storytellerSetup` integration to use actual bluff data instead of generic "pick 3 bluffs" text
 
 ### Phase 5: Tests & Documentation
-- [ ] `DemonBluffSelection.test.tsx`: renders unselected good chars, selects 3, validation
-- [ ] `GameContext.test.tsx`: SET_DEMON_BLUFFS action
-- [ ] `PlayerActionsModal.test.tsx`: bluffs section for demons
-- [ ] `NightFlashcard.test.tsx`: bluff display on demoninfo
-- [ ] Milestone docs
+- [x] `DemonBluffSelection.test.tsx`: renders unselected good chars, selects 3, validation
+- [x] `GameContext.test.tsx`: SET_DEMON_BLUFFS action
+- [x] `PlayerActionsModal.test.tsx`: bluffs section for demons
+- [x] `NightFlashcard.test.tsx`: bluff display on demoninfo
+- [x] Milestone docs
 
 ---
 
@@ -124,20 +124,20 @@ New Game → Select Characters → SELECT DEMON BLUFFS → Assign to Seats → S
 
 ## 5. Testing Requirements
 
-- [ ] Bluff selection shows only unselected good characters
-- [ ] Exactly 3 bluffs can be selected (validation)
-- [ ] Bluffs persist in game state
-- [ ] Demon player's action modal shows bluffs section
-- [ ] Bluffs can be changed from the action modal
-- [ ] First night demoninfo flashcard shows bluff characters with icons
-- [ ] Non-demon players don't see bluffs section
+- [x] Bluff selection shows only unselected good characters
+- [x] Exactly 3 bluffs can be selected (validation)
+- [x] Bluffs persist in game state
+- [x] Demon player's action modal shows bluffs section
+- [x] Bluffs can be changed from the action modal
+- [x] First night demoninfo flashcard shows bluff characters with icons
+- [x] Non-demon players don't see bluffs section
 
 ---
 
 ## 6. Acceptance Criteria
 
-- [ ] After selecting in-play characters, Storyteller selects 3 demon bluffs from remaining good characters
-- [ ] Bluffs stored in game state and persisted
-- [ ] Demon's action modal shows bluffs with ability to change them
-- [ ] First night flashcard shows bluff characters during demoninfo step
-- [ ] All tests pass, 0 TS/ESLint errors
+- [x] After selecting in-play characters, Storyteller selects 3 demon bluffs from remaining good characters
+- [x] Bluffs stored in game state and persisted
+- [x] Demon's action modal shows bluffs with ability to change them
+- [x] First night flashcard shows bluff characters during demoninfo step
+- [x] All tests pass, 0 TS/ESLint errors

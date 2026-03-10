@@ -223,67 +223,67 @@ Items are derived dynamically from:
 ## 3. Task List
 
 ### Phase 1: Import Reminder Tokens
-- [ ] Add `sourceCharacterId?: string` to `ReminderToken` in `types/index.ts`
-- [ ] Write import script to read `roles.json` reminders and populate each character's `reminders` array
-- [ ] Respect token counts (e.g., 2× "Safe" = two separate `ReminderToken` objects)
-- [ ] Add `count?: number` or duplicate entries per the source data
-- [ ] Validate all characters with reminders in `characterData.test.ts`
-- [ ] Ensure global reminders remain intact
+- [x] Add `sourceCharacterId?: string` to `ReminderToken` in `types/index.ts`
+- [x] Write import script to read `roles.json` reminders and populate each character's `reminders` array
+- [x] Respect token counts (e.g., 2× "Safe" = two separate `ReminderToken` objects)
+- [x] Add `count?: number` or duplicate entries per the source data
+- [x] Validate all characters with reminders in `characterData.test.ts`
+- [x] Ensure global reminders remain intact
 
 ### Phase 2: Character Selection from Script
-- [ ] Add "Character Selection" step to game creation flow (between game creation and assignment)
-- [ ] Display all script characters grouped by type with toggle selection
-- [ ] Show distribution targets and current counts as characters are toggled
-- [ ] Distribution modifier characters auto-adjust targets when selected
-- [ ] Selected character subset becomes the pool for Phase 3 assignment
+- [x] Add "Character Selection" step to game creation flow (between game creation and assignment)
+- [x] Display all script characters grouped by type with toggle selection
+- [x] Show distribution targets and current counts as characters are toggled
+- [x] Distribution modifier characters auto-adjust targets when selected
+- [x] Selected character subset becomes the pool for Phase 3 assignment
 
 ### Phase 3: Seat/Player Management & Swaps
-- [ ] Support seat setup before players arrive (seat numbers exist, names optional)
-- [ ] Add seat swap action: swap two players' positions (TownSquare context menu + Players List)
-- [ ] If characters assigned, character assignment moves with the player on swap
-- [ ] Player name editing available at all times
-- [ ] Swap accessible from TownSquare (tap player → "Swap with..." → select target) and Players List
+- [x] Support seat setup before players arrive (seat numbers exist, names optional)
+- [x] Add seat swap action: swap two players' positions (TownSquare context menu + Players List)
+- [x] If characters assigned, character assignment moves with the player on swap
+- [x] Player name editing available at all times
+- [x] Swap accessible from TownSquare (tap player → "Swap with..." → select target) and Players List
 
 ### Phase 4: Reminder Token UI
-- [ ] Add source character icon to reminder token chips in `TokenManager.tsx`
-- [ ] Use imported reminder data as the available token pool
-- [ ] Enforce count limits per token type
-- [ ] Allow placing any in-play character's reminders on any player
+- [x] Add source character icon to reminder token chips in `TokenManager.tsx`
+- [x] Use imported reminder data as the available token pool
+- [x] Enforce count limits per token type
+- [x] Allow placing any in-play character's reminders on any player
 
 ### Phase 5: Night `:reminder:` Integration
-- [ ] Parse `:reminder:` markers from night instruction text
-- [ ] Display corresponding reminder token chips in `NightFlashcard.tsx`
-- [ ] Match markers to reminder array by position
+- [x] Parse `:reminder:` markers from night instruction text
+- [x] Display corresponding reminder token chips in `NightFlashcard.tsx`
+- [x] Match markers to reminder array by position
 
 ### Phase 6: Distribution Modifiers
-- [ ] Create `getSetupModifiers()` utility
-- [ ] Auto-adjust distribution suggestions in `CharacterAssignmentDialog`
-- [ ] Show modifier indicators in the UI
-- [ ] Handle modifier conflicts (additive)
+- [x] Create `getSetupModifiers()` utility
+- [x] Auto-adjust distribution suggestions in `CharacterAssignmentDialog`
+- [x] Show modifier indicators in the UI
+- [x] Handle modifier conflicts (additive)
 
 ### Phase 7: Required Characters
-- [ ] Detect Choirboy without King, Huntsman without Damsel
-- [ ] Show warnings/auto-add in script builder and character assignment
-- [ ] Bounty Hunter evil-townsfolk designation prompt
+- [x] Detect Choirboy without King, Huntsman without Damsel
+- [x] Show warnings/auto-add in script builder and character assignment
+- [x] Bounty Hunter evil-townsfolk designation prompt
 
 ### Phase 8: Setup Checklist UI
-- [ ] Create `SetupChecklist` component
-- [ ] Dynamically generate items from script/game state
-- [ ] Integrate into game flow (between character assignment and Night 1)
-- [ ] Checkable items with state persistence
+- [x] Create `SetupChecklist` component
+- [x] Dynamically generate items from script/game state
+- [x] Integrate into game flow (between character assignment and Night 1)
+- [x] Checkable items with state persistence
 
 ### Phase 9: Identity Concealment
-- [ ] Add `apparentCharacterId` to player state
-- [ ] UI for selecting believed character (Drunk, Marionette)
-- [ ] Token swap on TownSquare (Drunk/Marionette show believed character icon)
-- [ ] Lunatic keeps own token (no swap)
-- [ ] Auto-prompt for believed character's setup requirements
-- [ ] Alignment display logic (apparent vs actual)
+- [x] Add `apparentCharacterId` to player state
+- [x] UI for selecting believed character (Drunk, Marionette)
+- [x] Token swap on TownSquare (Drunk/Marionette show believed character icon)
+- [x] Lunatic keeps own token (no swap)
+- [x] Auto-prompt for believed character's setup requirements
+- [x] Alignment display logic (apparent vs actual)
 
 ### Phase 10: Tests & Documentation
-- [ ] Tests for all new utilities, components, and state changes
-- [ ] Storybook stories
-- [ ] Milestone docs and progress tracking
+- [x] Tests for all new utilities, components, and state changes
+- [x] Storybook stories
+- [x] Milestone docs and progress tracking
 
 ---
 
@@ -335,64 +335,64 @@ Items are derived dynamically from:
 ## 6. Testing Requirements
 
 ### Reminder Import
-- [ ] All characters with reminders in `roles.json` have populated `reminders` arrays
-- [ ] Token counts match source data
-- [ ] Global reminders preserved
-- [ ] `sourceCharacterId` populated on all tokens
+- [x] All characters with reminders in `roles.json` have populated `reminders` arrays
+- [x] Token counts match source data
+- [x] Global reminders preserved
+- [x] `sourceCharacterId` populated on all tokens
 
 ### Character Selection
-- [ ] All script characters displayed grouped by type
-- [ ] Distribution targets shown and update as characters toggled
-- [ ] Selected subset correctly passed to character assignment
-- [ ] Distribution modifiers auto-adjust targets
+- [x] All script characters displayed grouped by type
+- [x] Distribution targets shown and update as characters toggled
+- [x] Selected subset correctly passed to character assignment
+- [x] Distribution modifiers auto-adjust targets
 
 ### Seat/Player Swaps
-- [ ] Swap two players without character assignments — names/seats swap
-- [ ] Swap two players with character assignments — characters move with players
-- [ ] Swap accessible from TownSquare and Players List
-- [ ] Player name editing works at all times
+- [x] Swap two players without character assignments — names/seats swap
+- [x] Swap two players with character assignments — characters move with players
+- [x] Swap accessible from TownSquare and Players List
+- [x] Player name editing works at all times
 
 ### Distribution Modifiers
-- [ ] Baron +2 Outsiders detected and applied
-- [ ] Fang Gu +1 Outsider detected
-- [ ] Multiple modifiers combine correctly
-- [ ] Lord of Typhon +1 Minion detected
+- [x] Baron +2 Outsiders detected and applied
+- [x] Fang Gu +1 Outsider detected
+- [x] Multiple modifiers combine correctly
+- [x] Lord of Typhon +1 Minion detected
 
 ### Required Characters
-- [ ] Choirboy without King shows warning
-- [ ] Huntsman without Damsel shows warning
-- [ ] Auto-add works correctly
+- [x] Choirboy without King shows warning
+- [x] Huntsman without Damsel shows warning
+- [x] Auto-add works correctly
 
 ### Setup Checklist
-- [ ] Generates correct items for scripts with setup characters
-- [ ] Items are checkable and persist
-- [ ] Empty checklist for scripts with no setup characters
+- [x] Generates correct items for scripts with setup characters
+- [x] Items are checkable and persist
+- [x] Empty checklist for scripts with no setup characters
 
 ### Identity Concealment
-- [ ] Marionette can be assigned an apparent character
-- [ ] TownSquare shows apparent character icon
-- [ ] Reminder tokens from both actual and apparent character are available
-- [ ] Drunk apparent character assignment works
-- [ ] Lunatic keeps own token, no swap
+- [x] Marionette can be assigned an apparent character
+- [x] TownSquare shows apparent character icon
+- [x] Reminder tokens from both actual and apparent character are available
+- [x] Drunk apparent character assignment works
+- [x] Lunatic keeps own token, no swap
 
 ### Night `:reminder:` Display
-- [ ] Reminder tokens shown in flashcards at `:reminder:` positions
-- [ ] Correct tokens mapped from character's reminder array
+- [x] Reminder tokens shown in flashcards at `:reminder:` positions
+- [x] Correct tokens mapped from character's reminder array
 
 ---
 
 ## 7. Acceptance Criteria
 
-- [ ] Game setup flow: New Game → Select Characters → Assign to Seats → Pre-Game Setup → Night 1
-- [ ] Character selection step allows picking which script characters are in the game
-- [ ] Seat/player swaps available at any time; character assignments move with players
-- [ ] All character `reminders` arrays populated from `roles.json` with correct counts
-- [ ] Reminder tokens show source character icon
-- [ ] Token placement enforces count limits from character data
-- [ ] Distribution modifiers detected and applied automatically with clear UI
-- [ ] Required character dependencies detected with warnings/auto-add
-- [ ] Pre-game setup checklist dynamically generated from script/game state
-- [ ] Identity concealment (Drunk, Marionette) swaps visible character and places correct reminders; Lunatic keeps own token
-- [ ] Night flashcards show reminder tokens at `:reminder:` positions
-- [ ] All existing tests pass + comprehensive new tests
-- [ ] TypeScript, ESLint, and test suite all pass
+- [x] Game setup flow: New Game → Select Characters → Assign to Seats → Pre-Game Setup → Night 1
+- [x] Character selection step allows picking which script characters are in the game
+- [x] Seat/player swaps available at any time; character assignments move with players
+- [x] All character `reminders` arrays populated from `roles.json` with correct counts
+- [x] Reminder tokens show source character icon
+- [x] Token placement enforces count limits from character data
+- [x] Distribution modifiers detected and applied automatically with clear UI
+- [x] Required character dependencies detected with warnings/auto-add
+- [x] Pre-game setup checklist dynamically generated from script/game state
+- [x] Identity concealment (Drunk, Marionette) swaps visible character and places correct reminders; Lunatic keeps own token
+- [x] Night flashcards show reminder tokens at `:reminder:` positions
+- [x] All existing tests pass + comprehensive new tests
+- [x] TypeScript, ESLint, and test suite all pass
