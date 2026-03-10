@@ -8,22 +8,17 @@
 Redesigned the character selection and assignment flow to gracefully handle all 23+ setup-affecting characters. Key deliverables:
 
 - **Adaptive Distribution Engine** (`adaptiveDistribution.ts`) — calculates real-time distribution targets responding to Baron, Fang Gu, Vigormortis, Balloonist, Hermit, Godfather, Xaan, Kazali, Lord of Typhon, Sentinel, Legion, Atheist, Lil' Monsta, and Village Idiot. Handles stacking, overrides (Xaan), reversals (Legion), and zeroing (Atheist).
+- **Variable modifier steppers** — +/- controls for Kazali, Balloonist, Hermit, Godfather, Sentinel (not just Village Idiot/Legion)
 - **CharacterSelection redesign** — adaptive targets replace static distribution, modifier chips show active modifiers below type headers, Xaan X input when Xaan is selected, duplicate character support (Village Idiot ×N, Legion ×N) with +/- steppers.
-- **CharacterAssignmentDialog redesign** — character pool chips at top showing unassigned characters, tap-to-assign (tap chip then tap seat), identity concealment prompts for Marionette/Drunk, seating constraint warnings.
-- **Seating Constraint Visualization** (`seatingConstraints.ts`) — advisory warnings for Marionette adjacency to Demon and Lord of Typhon evil-line requirements. Marionette valid seat highlighting during assignment.
-- **Comprehensive tests** — 101 new tests covering adaptive distribution (63), seating constraints (20), CharacterSelection (25+), CharacterAssignmentDialog (22+).
+- **CharacterAssignmentDialog redesign** — character pool chips with character icons, tap-to-assign, simplified randomize (no type validation), identity concealment prompts for Marionette/Drunk, seating constraint warnings. Removed redundant "Available Characters" section.
+- **Seating Constraint Visualization** (`seatingConstraints.ts`) — advisory warnings for Marionette adjacency to Demon and Lord of Typhon evil-line requirements.
+- **ReminderTokenChip** — extracted shared single-token visual component used by both ReminderTokenChips (list) and TokenBadges (TownSquare positioned). 30×30 small / 40×40 medium avatars with white circular background, 34×34 inner image. Source character type coloring everywhere.
+- **CharacterIconImage** — inner `<img>` increased to 58×58 for readability.
+- **Bug fixes** — seat ordering (Player 1 → Seat 1), PlayerList crash fix (abilityShort undefined guard), multi-instance dropdown fix (Village Idiot ×3 assignable), sorted chips/dropdowns by type then alphabetically.
 
-### Files Changed
-| File | Change |
-|------|--------|
-| `UI/src/utils/adaptiveDistribution.ts` | **New** — Adaptive distribution engine |
-| `UI/src/utils/adaptiveDistribution.test.ts` | **New** — 63 tests covering every modifier and combination |
-| `UI/src/utils/seatingConstraints.ts` | **New** — Seating constraint utilities |
-| `UI/src/utils/seatingConstraints.test.ts` | **New** — 20 tests for adjacency, line checks, warnings |
-| `UI/src/components/Setup/CharacterSelection.tsx` | Adaptive targets, modifier chips, Xaan input, duplicate steppers |
-| `UI/src/components/Setup/CharacterSelection.test.tsx` | Added 10 tests for new features |
-| `UI/src/components/CharacterAssignment/CharacterAssignmentDialog.tsx` | Character pool, tap-to-assign, constraint warnings, concealment prompts |
-| `UI/src/components/CharacterAssignment/CharacterAssignmentDialog.test.tsx` | Added 8 tests for new features |
+### Verification
+- 3828 tests passing across 70 files
+- 0 TypeScript errors, 0 ESLint errors
 
 ---
 
