@@ -1,7 +1,13 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { within, userEvent, expect } from 'storybook/test';
+import { fn, within, userEvent, expect } from 'storybook/test';
 import { PlayerActionsModal } from './PlayerActionsModal';
-import { alicePlayer, charliePlayer, travJackPlayer, mockCharacters } from '../../stories/mockData';
+import {
+  alicePlayer,
+  bobPlayer,
+  charliePlayer,
+  travJackPlayer,
+  mockCharacters,
+} from '../../stories/mockData';
 import type { PlayerSeat, CharacterDef } from '../../types';
 
 const noop = () => {};
@@ -10,6 +16,18 @@ const noop = () => {};
 const scriptCharacters: CharacterDef[] = mockCharacters.filter((c) =>
   ['noble', 'imp', 'fortuneteller', 'cerenovus', 'drunk', 'slayer'].includes(c.id),
 );
+
+/** Good-team characters for demon bluff options. */
+const goodCharacters: CharacterDef[] = mockCharacters.filter(
+  (c) => c.type === 'Townsfolk' || c.type === 'Outsider',
+);
+
+/** Demon bluff IDs. */
+const demonBluffIds = ['noble', 'fortuneteller', 'slayer'];
+/** Resolved bluff definitions. */
+const bluffCharacters: CharacterDef[] = demonBluffIds
+  .map((id) => mockCharacters.find((c) => c.id === id))
+  .filter((c): c is CharacterDef => c !== undefined);
 
 /** Dead player with ghost vote not used. */
 const deadPlayerNoGhostVote: PlayerSeat = {
@@ -113,7 +131,45 @@ export const VisibleModeWithScriptCharacters: Story = {
 };
 
 // ────────────────────────────────────────────────────────
-// Interaction test (Phase 7B)
+// Demon bluffs stories (M27)
+// ────────────────────────────────────────────────────────
+
+/**
+ * Visible mode — Demon player with bluffs section.
+ * Shows 3 demon bluffs with character avatars and swap autocomplete below
+ * the main actions when the player is a Demon.
+ */
+export const VisibleModeWithDemonBluffs: Story = {
+  args: {
+    player: bobPlayer,
+    showCharacters: true,
+    scriptCharacters,
+    demonBluffs: demonBluffIds,
+    bluffCharacters,
+    availableBluffCharacters: goodCharacters,
+    onChangeBluff: fn(),
+  },
+};
+
+/**
+ * Visible mode — Demon player with swap seat action.
+ * Shows both demon bluffs and the "Swap With" button.
+ */
+export const VisibleModeWithSwap: Story = {
+  args: {
+    player: bobPlayer,
+    showCharacters: true,
+    scriptCharacters,
+    demonBluffs: demonBluffIds,
+    bluffCharacters,
+    availableBluffCharacters: goodCharacters,
+    onChangeBluff: fn(),
+    onSwapWith: fn(),
+  },
+};
+
+// ────────────────────────────────────────────────────────
+// Interaction tests
 // ────────────────────────────────────────────────────────
 
 /**

@@ -201,3 +201,24 @@ describe('exports', () => {
     expect(MAD_TOKEN).toEqual({ id: 'basic-mad', text: 'Mad' });
   });
 });
+
+describe('null safety', () => {
+  it('handles characters with undefined abilityShort without crashing', () => {
+    const charWithNoAbility = {
+      ...makeChar({ id: 'unknown' }),
+      abilityShort: undefined as unknown as string,
+    };
+    expect(() => buildAvailableTokens([charWithNoAbility])).not.toThrow();
+    const result = buildAvailableTokens([charWithNoAbility]);
+    // Should still return basic tokens
+    expect(result.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('handles characters with undefined reminders without crashing', () => {
+    const charWithNoReminders = {
+      ...makeChar({ id: 'unknown' }),
+      reminders: undefined as unknown as CharacterDef['reminders'],
+    };
+    expect(() => buildAvailableTokens([charWithNoReminders])).not.toThrow();
+  });
+});

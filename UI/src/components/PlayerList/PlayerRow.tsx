@@ -13,7 +13,7 @@ import { characterColors } from '@/theme/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
-import { TokenChips } from '@/components/common/TokenChips.tsx';
+import { ReminderTokenChips } from '@/components/common/ReminderTokenChips.tsx';
 import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 interface PlayerRowProps {
@@ -202,7 +202,7 @@ export function PlayerRow({
         {/* Active tokens / reminders (night view only) */}
         {showCharacters && (
           <TableCell sx={{ px: 1 }}>
-            {player.tokens.length > 0 ? <TokenChips tokens={player.tokens} /> : null}
+            {player.tokens.length > 0 ? <ReminderTokenChips tokens={player.tokens} /> : null}
           </TableCell>
         )}
 

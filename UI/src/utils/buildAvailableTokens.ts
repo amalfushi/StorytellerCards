@@ -37,8 +37,8 @@ export function buildAvailableTokens(
   const tokens: ReminderToken[] = [...BASIC_TOKENS];
 
   // Add "Mad" conditionally — only when a character with a "mad" ability is in play
-  const hasMadCharacter = activeCharacters.some((c) =>
-    c.abilityShort.toLowerCase().includes('mad'),
+  const hasMadCharacter = activeCharacters.some(
+    (c) => c.abilityShort?.toLowerCase().includes('mad') ?? false,
   );
   if (hasMadCharacter) {
     tokens.push(MAD_TOKEN);
@@ -47,6 +47,7 @@ export function buildAvailableTokens(
   // Add character-specific reminder tokens (deduped by id)
   const seenIds = new Set(tokens.map((t) => t.id));
   for (const char of activeCharacters) {
+    if (!char.reminders) continue;
     for (const reminder of char.reminders) {
       if (!seenIds.has(reminder.id)) {
         seenIds.add(reminder.id);
@@ -67,6 +68,7 @@ export function buildAvailableTokens(
   // Include apparent character reminders (for Drunk/Marionette concealment)
   if (apparentCharacters) {
     for (const char of apparentCharacters) {
+      if (!char.reminders) continue;
       for (const reminder of char.reminders) {
         if (!seenIds.has(reminder.id)) {
           seenIds.add(reminder.id);

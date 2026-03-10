@@ -29,9 +29,9 @@ vi.mock('@/components/common/CharacterDetailModal.tsx', () => ({
     ) : null,
 }));
 
-// Mock TokenChips
-vi.mock('@/components/common/TokenChips.tsx', () => ({
-  TokenChips: ({ tokens }: { tokens: unknown[] }) => (
+// Mock ReminderTokenChips
+vi.mock('@/components/common/ReminderTokenChips.tsx', () => ({
+  ReminderTokenChips: ({ tokens }: { tokens: unknown[] }) => (
     <span data-testid="token-chips">{tokens.length} tokens</span>
   ),
 }));
