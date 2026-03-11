@@ -106,6 +106,7 @@ type GameAction =
   | { type: 'SET_APPARENT_CHARACTER'; payload: { seat: number; apparentCharacterId: string } }
   | { type: 'SET_DEMON_BLUFFS'; payload: { characterIds: string[] } }
   | { type: 'SET_LUNATIC_BLUFFS'; payload: { characterIds: string[] } }
+  | { type: 'SET_PLAYER_BLUFFS'; payload: { seat: number; bluffIds: string[] } }
   | { type: 'SET_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string; message: string } }
   | { type: 'CLEAR_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string } };
 
@@ -484,6 +485,21 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'SET_PLAYER_BLUFFS': {
+      if (!state.game) return state;
+      const { seat, bluffIds } = action.payload;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          playerBluffs: {
+            ...state.game.playerBluffs,
+            [String(seat)]: bluffIds,
+          },
+        },
+      };
+    }
+
     case 'SET_CUSTOM_PLAYER_MESSAGE': {
       if (!state.game) return state;
       const { characterId, message } = action.payload;
@@ -588,6 +604,7 @@ interface GameContextValue {
   setApparentCharacter: (seat: number, apparentCharacterId: string) => void;
   setDemonBluffs: (characterIds: string[]) => void;
   setLunaticBluffs: (characterIds: string[]) => void;
+  setPlayerBluffs: (seat: number, bluffIds: string[]) => void;
   setCustomPlayerMessage: (characterId: string, message: string) => void;
   clearCustomPlayerMessage: (characterId: string) => void;
 }
@@ -757,6 +774,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_LUNATIC_BLUFFS', payload: { characterIds } });
   }, []);
 
+  const setPlayerBluffs = useCallback((seat: number, bluffIds: string[]) => {
+    dispatch({ type: 'SET_PLAYER_BLUFFS', payload: { seat, bluffIds } });
+  }, []);
+
   const setCustomPlayerMessage = useCallback((characterId: string, message: string) => {
     dispatch({ type: 'SET_CUSTOM_PLAYER_MESSAGE', payload: { characterId, message } });
   }, []);
@@ -794,6 +815,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setApparentCharacter,
     setDemonBluffs,
     setLunaticBluffs,
+    setPlayerBluffs,
     setCustomPlayerMessage,
     clearCustomPlayerMessage,
   };

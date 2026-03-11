@@ -52,7 +52,7 @@
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 3894/3894 passing (72 test files)
+- Tests: 3898/3898 passing (72 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~93+ stories including `play()` interaction tests
 - Go build: success

@@ -1936,6 +1936,72 @@ describe('GameContext', () => {
     });
   });
 
+  // ── SET_PLAYER_BLUFFS (per-player) ──
+
+  describe('SET_PLAYER_BLUFFS', () => {
+    it('sets bluffs for a specific seat', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.setPlayerBluffs(1, ['washerwoman', 'librarian', 'empath']);
+      });
+
+      expect(result.current.state.game!.playerBluffs).toEqual({
+        '1': ['washerwoman', 'librarian', 'empath'],
+      });
+    });
+
+    it('supports distinct bluffs for different seats', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.setPlayerBluffs(1, ['washerwoman', 'librarian', 'empath']);
+      });
+      act(() => {
+        result.current.setPlayerBluffs(5, ['chef', 'butler', 'drunk']);
+      });
+
+      expect(result.current.state.game!.playerBluffs).toEqual({
+        '1': ['washerwoman', 'librarian', 'empath'],
+        '5': ['chef', 'butler', 'drunk'],
+      });
+    });
+
+    it('replaces bluffs for a specific seat without affecting others', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({ playerBluffs: { '1': ['washerwoman'], '5': ['chef'] } }),
+        );
+      });
+
+      act(() => {
+        result.current.setPlayerBluffs(1, ['butler', 'drunk', 'saint']);
+      });
+
+      expect(result.current.state.game!.playerBluffs).toEqual({
+        '1': ['butler', 'drunk', 'saint'],
+        '5': ['chef'],
+      });
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.setPlayerBluffs(1, ['washerwoman']);
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
+
   // ── SET_CUSTOM_PLAYER_MESSAGE / CLEAR_CUSTOM_PLAYER_MESSAGE ──
 
   describe('Custom player messages', () => {

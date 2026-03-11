@@ -297,6 +297,8 @@ export interface Game {
   demonBluffs?: string[];
   /** Character IDs of the 3 good characters shown to the Lunatic as fake bluffs. */
   lunaticBluffs?: string[];
+  /** Per-player bluffs keyed by seat number (as string). Supports multiple demons/lunatics with distinct bluffs. */
+  playerBluffs?: Record<string, string[]>;
   /** Custom messages the Storyteller can show to players fullscreen. Key = characterId. */
   customPlayerMessages?: Record<string, string>;
 }

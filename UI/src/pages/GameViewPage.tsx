@@ -63,8 +63,9 @@ export function GameViewPage() {
     setInPlayCharacters,
     setDemonBluffs,
     setLunaticBluffs,
+    setPlayerBluffs,
   } = useGame();
-  const { allCharacters, getCharactersByIds } = useCharacterLookup();
+  const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
 
   const [tabIndex, setTabIndex] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -238,6 +239,10 @@ export function GameViewPage() {
     return scriptCharacterDefs;
   }, [inPlayIds, getCharactersByIds, scriptCharacterDefs]);
 
+  // Template bluffs for distribution after assignment
+  const templateDemonBluffs = game?.demonBluffs;
+  const templateLunaticBluffs = game?.lunaticBluffs;
+
   // Handle confirming character assignments
   const handleConfirmAssignments = useCallback(
     (updatedPlayers: import('@/types/index.ts').PlayerSeat[]) => {
@@ -248,11 +253,26 @@ export function GameViewPage() {
             actualAlignment: p.actualAlignment,
             startingAlignment: p.startingAlignment,
           });
+
+          // Distribute template bluffs to the assigned seat
+          const charDef = getCharacter(p.characterId);
+          if (charDef?.type === 'Demon' && templateDemonBluffs?.length) {
+            setPlayerBluffs(p.seat, templateDemonBluffs);
+          } else if (p.characterId === 'lunatic' && templateLunaticBluffs?.length) {
+            setPlayerBluffs(p.seat, templateLunaticBluffs);
+          }
         }
       }
       saveGame();
     },
-    [updatePlayer, saveGame],
+    [
+      updatePlayer,
+      saveGame,
+      getCharacter,
+      templateDemonBluffs,
+      templateLunaticBluffs,
+      setPlayerBluffs,
+    ],
   );
 
   // PhaseBar callbacks

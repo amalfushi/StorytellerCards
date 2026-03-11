@@ -67,8 +67,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     addToken,
     removeToken,
     swapPlayerSeats,
-    setDemonBluffs,
-    setLunaticBluffs,
+    setPlayerBluffs,
   } = useGame();
   const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
 
@@ -163,12 +162,11 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     : undefined;
   const isActionsPlayerDemon = actionsPlayerCharDef?.type === 'Demon';
   const isActionsPlayerLunatic = actionsPlayer?.characterId === 'lunatic';
+  const showBluffsForPlayer = isActionsPlayerDemon || isActionsPlayerLunatic;
 
-  const bluffIds = isActionsPlayerDemon
-    ? state.game?.demonBluffs
-    : isActionsPlayerLunatic
-      ? state.game?.lunaticBluffs
-      : undefined;
+  const bluffIds = actionsPlayer
+    ? state.game?.playerBluffs?.[String(actionsPlayer.seat)]
+    : undefined;
 
   const modalBluffCharacters = useMemo(
     () => (bluffIds?.length ? getCharactersByIds(bluffIds) : undefined),
@@ -176,7 +174,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
   );
 
   const modalAvailableBluffCharacters = useMemo(() => {
-    if (!isActionsPlayerDemon && !isActionsPlayerLunatic) return undefined;
+    if (!showBluffsForPlayer) return undefined;
     const inPlay = new Set(state.game?.inPlayCharacterIds ?? []);
     return scriptCharacters.filter((ch) => {
       if (ch.type !== 'Townsfolk' && ch.type !== 'Outsider') return false;
@@ -184,7 +182,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
       return !inPlay.has(ch.id);
     });
   }, [
-    isActionsPlayerDemon,
+    showBluffsForPlayer,
     isActionsPlayerLunatic,
     scriptCharacters,
     state.game?.inPlayCharacterIds,
@@ -192,15 +190,12 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
 
   const handleChangeBluff = useCallback(
     (oldBluffId: string, newBluffId: string) => {
+      if (!actionsPlayer) return;
       const currentBluffs = bluffIds ?? [];
       const updated = currentBluffs.map((id) => (id === oldBluffId ? newBluffId : id));
-      if (isActionsPlayerDemon) {
-        setDemonBluffs(updated);
-      } else if (isActionsPlayerLunatic) {
-        setLunaticBluffs(updated);
-      }
+      setPlayerBluffs(actionsPlayer.seat, updated);
     },
-    [bluffIds, isActionsPlayerDemon, isActionsPlayerLunatic, setDemonBluffs, setLunaticBluffs],
+    [actionsPlayer, bluffIds, setPlayerBluffs],
   );
 
   const modalBluffLabel = isActionsPlayerLunatic ? 'Lunatic Bluffs' : 'Demon Bluffs';

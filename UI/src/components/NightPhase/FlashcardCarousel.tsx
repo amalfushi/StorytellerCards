@@ -38,8 +38,8 @@ export interface FlashcardCarouselProps {
   onReminderTokenClick?: (tokenText: string) => void;
   /** Demon bluff character definitions (passed to demoninfo StructuralCard). */
   bluffCharacters?: CharacterDef[];
-  /** Lunatic bluff character definitions (passed to Lunatic NightFlashcard on first night). */
-  lunaticBluffCharacters?: CharacterDef[];
+  /** Per-player bluffs keyed by seat number (as string). */
+  playerBluffs?: Record<string, string[]>;
   /** Custom player messages keyed by characterId. */
   customPlayerMessages?: Record<string, string>;
   /** Callback when a custom player message is saved. */
@@ -70,7 +70,7 @@ export function FlashcardCarousel({
   onCardChange,
   onReminderTokenClick,
   bluffCharacters,
-  lunaticBluffCharacters,
+  playerBluffs,
   customPlayerMessages,
   onCustomMessageChange,
   onClearCustomMessage,
@@ -216,6 +216,14 @@ export function FlashcardCarousel({
     const isDemon = charDef?.type === 'Demon';
     const isLunatic = entry.id === 'lunatic';
 
+    // Per-player bluffs: look up from the matched player's seat
+    const playerSeatBluffs = player && playerBluffs ? playerBluffs[String(player.seat)] : undefined;
+    const resolvedBluffChars = playerSeatBluffs?.length
+      ? playerSeatBluffs
+          .map((id) => characterLookup(id))
+          .filter((c): c is CharacterDef => c !== undefined)
+      : undefined;
+
     return (
       <NightFlashcard
         entry={entry}
@@ -235,8 +243,8 @@ export function FlashcardCarousel({
         characterLookup={characterLookup}
         previousNotes={prevNote}
         onReminderTokenClick={onReminderTokenClick}
-        lunaticBluffCharacters={isLunatic ? lunaticBluffCharacters : undefined}
-        demonBluffCharacters={isDemon ? bluffCharacters : undefined}
+        lunaticBluffCharacters={isLunatic ? resolvedBluffChars : undefined}
+        demonBluffCharacters={isDemon ? resolvedBluffChars : undefined}
         customPlayerMessage={customPlayerMessages?.[entry.id]}
         onCustomMessageChange={onCustomMessageChange}
         onClearCustomMessage={onClearCustomMessage}
