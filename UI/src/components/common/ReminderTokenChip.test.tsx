@@ -133,10 +133,11 @@ describe('ReminderTokenChip', () => {
     expect(screen.queryByTestId('CancelIcon')).not.toBeInTheDocument();
   });
 
-  it('renders source character avatar when sourceCharacterId is present', () => {
+  it('renders source character avatar using type-default icon path', () => {
     render(<ReminderTokenChip token={customTokenWithSource} />);
     const avatar = screen.getByRole('img');
-    expect(avatar).toHaveAttribute('src', '/icons/characters/nobleIcon.webp');
+    // Noble is a Townsfolk → uses _g suffix
+    expect(avatar).toHaveAttribute('src', '/icons/characters/nobleIcon_g.webp');
   });
 
   it('does not render avatar when sourceCharacterId is absent', () => {

@@ -34,6 +34,7 @@
 | M25 | Night Flashcard Enhancements | ✅ Complete | [details](milestones/25%20-%20night%20flashcard%20enhancements/milestone25.md) |
 | M26 | Demon Bluffs | ✅ Complete | [details](milestones/26%20-%20demon%20bluffs/milestone26.md) |
 | M27 | Character Selection & Assignment Redesign | ✅ Complete | [details](milestones/27%20-%20character%20selection%20redesign/milestone27.md) |
+| M28 | Alignment-Based Icon Variants | ✅ Complete | [details](milestones/28%20-%20alignment%20icon%20variants/milestone28.md) |
 
 ## Key Design Decisions
 
@@ -46,14 +47,14 @@
 - **Exile vs execution** — functionally same but both terms retained
 - **Adaptive distribution engine in M27** — replaces static distribution with real-time targets responding to setup-affecting characters (Baron, Legion, Atheist, Xaan, etc.)
 
-## Verification (as of M27 Complete)
+## Verification (as of M28 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 3828/3828 passing (70 test files)
+- Tests: 3849/3849 passing (70 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~93+ stories including `play()` interaction tests
 - Go build: success
 - Go tests: all passing
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)
-- Character icons: 179/179 WebP icons (85.9% size reduction from PNG)
+- Character icons: 179 base + 312 alignment variants (156 `_e` + 156 `_g`)

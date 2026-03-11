@@ -191,8 +191,9 @@ export const PlayerToken = memo(function PlayerToken({
             showCharacters ? player.actualAlignment : displayAlignment,
             displayTypeColor,
           )}
+          alignment={showCharacters ? player.actualAlignment : displayAlignment}
           onClick={handleIconClick}
-        />
+/>
       )}
 
       {/* ── Night view: abbreviated character name ── */}

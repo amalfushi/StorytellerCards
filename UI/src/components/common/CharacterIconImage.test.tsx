@@ -11,19 +11,23 @@ describe('CharacterIconImage', () => {
     borderColor: '#1976d2',
   };
 
-  it('renders an img with correct src and alt', () => {
+  it('renders an img with correct src and alt (Townsfolk defaults to _g)', () => {
     render(<CharacterIconImage {...defaultProps} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
     expect(img).toBeInTheDocument();
-    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.webp');
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon_g.webp');
     expect(img).toHaveAttribute('alt', 'Fortune Teller');
   });
 
   it('shows fallback letter when image fails to load', () => {
     render(<CharacterIconImage {...defaultProps} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
+    // Townsfolk default is _g — first error falls back to unsuffixed base
     fireEvent.error(img);
-    // After error, the img should be gone and replaced by the letter
+    const imgBase = screen.getByRole('img', { name: 'Fortune Teller' });
+    expect(imgBase).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.webp');
+    // Second error — base also missing → letter fallback
+    fireEvent.error(imgBase);
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.getByText('F')).toBeInTheDocument();
   });
@@ -98,5 +102,100 @@ describe('CharacterIconImage', () => {
     const wrapper = container.firstChild as HTMLElement;
     expect(wrapper).toBeTruthy();
     // White background is applied via MUI sx — verify the component renders
+  });
+
+  // ──────────────────────────────────────────────
+  // Alignment variant tests (M28)
+  // ──────────────────────────────────────────────
+
+  it('uses Good alignment variant (_g) when alignment is Good', () => {
+    render(<CharacterIconImage {...defaultProps} alignment="Good" />);
+    const img = screen.getByRole('img', { name: 'Fortune Teller' });
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon_g.webp');
+  });
+
+  it('uses Evil alignment variant (_e) when alignment is Evil', () => {
+    render(
+      <CharacterIconImage
+        {...defaultProps}
+        characterId="imp"
+        characterName="Imp"
+        alignment="Evil"
+      />,
+    );
+    const img = screen.getByRole('img', { name: 'Imp' });
+    expect(img).toHaveAttribute('src', '/icons/characters/impIcon_e.webp');
+  });
+
+  it('uses base icon when alignment is Unknown', () => {
+    render(<CharacterIconImage {...defaultProps} alignment="Unknown" />);
+    const img = screen.getByRole('img', { name: 'Fortune Teller' });
+    // Unknown alignment → resolved via type lookup (Townsfolk → _g)
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon_g.webp');
+  });
+
+  it('uses type-default icon when alignment is undefined', () => {
+    render(<CharacterIconImage {...defaultProps} />);
+    const img = screen.getByRole('img', { name: 'Fortune Teller' });
+    // No alignment → resolved via type lookup (Townsfolk → _g)
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon_g.webp');
+  });
+
+  // ──────────────────────────────────────────────
+  // Fallback chain tests (M28)
+  // ──────────────────────────────────────────────
+
+  it('falls back to base icon when alignment variant fails to load', () => {
+    render(
+      <CharacterIconImage
+        {...defaultProps}
+        characterId="angel"
+        characterName="Angel"
+        alignment="Good"
+      />,
+    );
+    const img = screen.getByRole('img', { name: 'Angel' });
+    // Initially shows alignment variant
+    expect(img).toHaveAttribute('src', '/icons/characters/angelIcon_g.webp');
+    // Simulate image load error (variant doesn't exist for Fabled)
+    fireEvent.error(img);
+    // Should now show base path
+    const imgAfter = screen.getByRole('img', { name: 'Angel' });
+    expect(imgAfter).toHaveAttribute('src', '/icons/characters/angelIcon.webp');
+  });
+
+  it('shows letter fallback when both alignment variant and base fail', () => {
+    render(
+      <CharacterIconImage
+        {...defaultProps}
+        characterId="angel"
+        characterName="Angel"
+        alignment="Good"
+      />,
+    );
+    const img = screen.getByRole('img', { name: 'Angel' });
+    // First error: falls back to base
+    fireEvent.error(img);
+    const imgBase = screen.getByRole('img', { name: 'Angel' });
+    expect(imgBase).toHaveAttribute('src', '/icons/characters/angelIcon.webp');
+    // Second error: falls back to letter circle
+    fireEvent.error(imgBase);
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.getByText('A')).toBeInTheDocument();
+  });
+
+  it('shows letter fallback when type-default icon fails (fallback to base, then letter)', () => {
+    render(<CharacterIconImage {...defaultProps} />);
+    const img = screen.getByRole('img', { name: 'Fortune Teller' });
+    // Townsfolk default is _g — if that fails, falls back to unsuffixed base
+    expect(img).toHaveAttribute('src', '/icons/characters/fortunetellerIcon_g.webp');
+    fireEvent.error(img);
+    // Now tries unsuffixed base path
+    const imgBase = screen.getByRole('img', { name: 'Fortune Teller' });
+    expect(imgBase).toHaveAttribute('src', '/icons/characters/fortunetellerIcon.webp');
+    // Base also fails (no unsuffixed file for standard types) → letter fallback
+    fireEvent.error(imgBase);
+    expect(screen.queryByRole('img')).not.toBeInTheDocument();
+    expect(screen.getByText('F')).toBeInTheDocument();
   });
 });
