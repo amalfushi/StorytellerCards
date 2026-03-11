@@ -27,6 +27,9 @@ const MAX_BLUFFS = 3;
 /** Type groups shown in the bluff selection (only good characters). */
 const BLUFF_TYPE_ORDER: CharacterType[] = ['Townsfolk', 'Outsider'];
 
+/** Variant controls filtering: 'demon' = not-in-play good chars, 'lunatic' = any good char on script. */
+export type BluffSelectionVariant = 'demon' | 'lunatic';
+
 export interface DemonBluffSelectionProps {
   open: boolean;
   onClose: () => void;
@@ -38,11 +41,15 @@ export interface DemonBluffSelectionProps {
   initialSelected?: string[];
   /** Called with the 3 selected bluff character IDs. */
   onConfirm: (bluffIds: string[]) => void;
+  /** Controls filtering behaviour. 'demon' = not-in-play good chars (default), 'lunatic' = any good char. */
+  variant?: BluffSelectionVariant;
 }
 
 /**
- * Dialog for selecting exactly 3 demon bluffs from the unselected good characters
- * on the script (Townsfolk + Outsiders not in play).
+ * Dialog for selecting exactly 3 bluffs from good characters on the script.
+ *
+ * - `variant='demon'` (default): only good characters NOT in play.
+ * - `variant='lunatic'`: any good character on the script (Lunatic gets potentially misleading info).
  */
 export function DemonBluffSelection({
   open,
@@ -51,6 +58,7 @@ export function DemonBluffSelection({
   inPlayCharacterIds,
   initialSelected,
   onConfirm,
+  variant = 'demon',
 }: DemonBluffSelectionProps) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set(initialSelected ?? []));
 
@@ -59,7 +67,8 @@ export function DemonBluffSelection({
     setSelectedIds(new Set(initialSelected ?? []));
   }, [initialSelected]);
 
-  // Available bluff candidates: good characters on the script that are NOT in play
+  // Available bluff candidates: good characters on the script
+  // Demon variant: only NOT in play. Lunatic variant: any good character.
   const availableByType = useMemo(() => {
     const inPlay = new Set(inPlayCharacterIds);
     const groups: Record<string, CharacterDef[]> = {};
@@ -67,12 +76,14 @@ export function DemonBluffSelection({
       groups[type] = [];
     }
     for (const ch of scriptCharacters) {
-      if ((ch.type === 'Townsfolk' || ch.type === 'Outsider') && !inPlay.has(ch.id)) {
-        groups[ch.type].push(ch);
+      if (ch.type === 'Townsfolk' || ch.type === 'Outsider') {
+        if (variant === 'lunatic' || !inPlay.has(ch.id)) {
+          groups[ch.type].push(ch);
+        }
       }
     }
     return groups;
-  }, [scriptCharacters, inPlayCharacterIds]);
+  }, [scriptCharacters, inPlayCharacterIds, variant]);
 
   const handleToggle = useCallback((characterId: string) => {
     setSelectedIds((prev) => {
@@ -93,6 +104,12 @@ export function DemonBluffSelection({
 
   const totalAvailable = Object.values(availableByType).reduce((sum, arr) => sum + arr.length, 0);
 
+  const titleText = variant === 'lunatic' ? 'Select Lunatic Bluffs' : 'Select Demon Bluffs';
+  const descriptionText =
+    variant === 'lunatic'
+      ? `Choose ${MAX_BLUFFS} good characters to show the Lunatic as bluffs.`
+      : `Choose ${MAX_BLUFFS} not-in-play good characters to show the Demon as bluffs.`;
+
   return (
     <Dialog
       open={open}
@@ -104,7 +121,7 @@ export function DemonBluffSelection({
       <DialogTitle sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography component="span" variant="h6" sx={{ flexGrow: 1 }}>
-            Select Demon Bluffs
+            {titleText}
           </Typography>
           <IconButton aria-label="close" onClick={onClose} size="small">
             <CloseIcon />
@@ -122,7 +139,7 @@ export function DemonBluffSelection({
 
       <DialogContent dividers>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Choose {MAX_BLUFFS} not-in-play good characters to show the Demon as bluffs.
+          {descriptionText}
           {totalAvailable === 0 && ' No unselected good characters available.'}
         </Typography>
 

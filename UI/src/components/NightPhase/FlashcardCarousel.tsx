@@ -38,6 +38,14 @@ export interface FlashcardCarouselProps {
   onReminderTokenClick?: (tokenText: string) => void;
   /** Demon bluff character definitions (passed to demoninfo StructuralCard). */
   bluffCharacters?: CharacterDef[];
+  /** Lunatic bluff character definitions (passed to Lunatic NightFlashcard on first night). */
+  lunaticBluffCharacters?: CharacterDef[];
+  /** Custom player messages keyed by characterId. */
+  customPlayerMessages?: Record<string, string>;
+  /** Callback when a custom player message is saved. */
+  onCustomMessageChange?: (characterId: string, message: string) => void;
+  /** Callback when a custom player message is cleared. */
+  onClearCustomMessage?: (characterId: string) => void;
 }
 
 /**
@@ -62,6 +70,10 @@ export function FlashcardCarousel({
   onCardChange,
   onReminderTokenClick,
   bluffCharacters,
+  lunaticBluffCharacters,
+  customPlayerMessages,
+  onCustomMessageChange,
+  onClearCustomMessage,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
   const [slideDir, setSlideDir] = useState<'none' | 'left' | 'right'>('none');
@@ -201,6 +213,8 @@ export function FlashcardCarousel({
     const player = players.find((p) => p.characterId === entry.id);
     const charDef = characterLookup(entry.id);
     const isDead = player ? !player.alive : false;
+    const isDemon = charDef?.type === 'Demon';
+    const isLunatic = entry.id === 'lunatic';
 
     return (
       <NightFlashcard
@@ -221,6 +235,11 @@ export function FlashcardCarousel({
         characterLookup={characterLookup}
         previousNotes={prevNote}
         onReminderTokenClick={onReminderTokenClick}
+        lunaticBluffCharacters={isLunatic ? lunaticBluffCharacters : undefined}
+        demonBluffCharacters={isDemon ? bluffCharacters : undefined}
+        customPlayerMessage={customPlayerMessages?.[entry.id]}
+        onCustomMessageChange={onCustomMessageChange}
+        onClearCustomMessage={onClearCustomMessage}
       />
     );
   };

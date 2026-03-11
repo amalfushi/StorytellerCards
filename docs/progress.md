@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-09
+> Last updated: 2026-03-11
 
 ## Milestone Overview
 
@@ -35,6 +35,7 @@
 | M26 | Demon Bluffs | ✅ Complete | [details](milestones/26%20-%20demon%20bluffs/milestone26.md) |
 | M27 | Character Selection & Assignment Redesign | ✅ Complete | [details](milestones/27%20-%20character%20selection%20redesign/milestone27.md) |
 | M28 | Alignment-Based Icon Variants | ✅ Complete | [details](milestones/28%20-%20alignment%20icon%20variants/milestone28.md) |
+| M29 | Bluff Improvements & Player Show Screen | ✅ Complete | [details](milestones/29%20-%20bluff%20and%20show%20screen/milestone29.md) |
 
 ## Key Design Decisions
 
@@ -47,11 +48,11 @@
 - **Exile vs execution** — functionally same but both terms retained
 - **Adaptive distribution engine in M27** — replaces static distribution with real-time targets responding to setup-affecting characters (Baron, Legion, Atheist, Xaan, etc.)
 
-## Verification (as of M28 Complete)
+## Verification (as of M29 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 3849/3849 passing (70 test files)
+- Tests: 3894/3894 passing (72 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 18 story files with ~93+ stories including `play()` interaction tests
 - Go build: success

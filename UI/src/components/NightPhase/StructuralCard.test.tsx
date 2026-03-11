@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { StructuralCard } from '@/components/NightPhase/StructuralCard.tsx';
 import type { NightOrderEntry, CharacterDef } from '@/types/index.ts';
 import { CharacterType, Alignment } from '@/types/index.ts';
@@ -321,6 +321,31 @@ describe('StructuralCard', () => {
         />,
       );
       expect(screen.queryByTestId('demoninfo-bluffs')).not.toBeInTheDocument();
+    });
+
+    it('shows fullscreen button when bluffs are displayed', () => {
+      render(
+        <StructuralCard
+          entry={demonInfoEntry}
+          checkedStates={[false, false, false]}
+          onToggleSubAction={vi.fn()}
+          bluffCharacters={bluffCharacters}
+        />,
+      );
+      expect(screen.getByTestId('demoninfo-bluffs-fullscreen-btn')).toBeInTheDocument();
+    });
+
+    it('opens fullscreen overlay when fullscreen button is clicked', () => {
+      render(
+        <StructuralCard
+          entry={demonInfoEntry}
+          checkedStates={[false, false, false]}
+          onToggleSubAction={vi.fn()}
+          bluffCharacters={bluffCharacters}
+        />,
+      );
+      fireEvent.click(screen.getByTestId('demoninfo-bluffs-fullscreen-btn'));
+      expect(screen.getByText('Your bluffs are:')).toBeInTheDocument();
     });
   });
 });

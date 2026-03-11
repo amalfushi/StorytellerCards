@@ -62,6 +62,7 @@ export function GameViewPage() {
     setPhase,
     setInPlayCharacters,
     setDemonBluffs,
+    setLunaticBluffs,
   } = useGame();
   const { allCharacters, getCharactersByIds } = useCharacterLookup();
 
@@ -70,6 +71,7 @@ export function GameViewPage() {
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [charSelectionOpen, setCharSelectionOpen] = useState(false);
   const [bluffSelectionOpen, setBluffSelectionOpen] = useState(false);
+  const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
 
@@ -195,15 +197,36 @@ export function GameViewPage() {
     [setInPlayCharacters, saveGame],
   );
 
+  // Check if the Lunatic is in play (for conditional bluff selection step)
+  const lunaticIsInPlay = useMemo(
+    () => game?.inPlayCharacterIds?.includes('lunatic') ?? false,
+    [game?.inPlayCharacterIds],
+  );
+
   // Handle confirming demon bluff selection
   const handleConfirmDemonBluffs = useCallback(
     (bluffIds: string[]) => {
       setDemonBluffs(bluffIds);
       saveGame();
       setBluffSelectionOpen(false);
+      if (lunaticIsInPlay) {
+        setLunaticBluffSelectionOpen(true);
+      } else {
+        setAssignDialogOpen(true);
+      }
+    },
+    [setDemonBluffs, saveGame, lunaticIsInPlay],
+  );
+
+  // Handle confirming lunatic bluff selection
+  const handleConfirmLunaticBluffs = useCallback(
+    (bluffIds: string[]) => {
+      setLunaticBluffs(bluffIds);
+      saveGame();
+      setLunaticBluffSelectionOpen(false);
       setAssignDialogOpen(true);
     },
-    [setDemonBluffs, saveGame],
+    [setLunaticBluffs, saveGame],
   );
 
   // Use in-play characters for assignment if available, else all script characters
@@ -535,12 +558,32 @@ export function GameViewPage() {
           open={bluffSelectionOpen}
           onClose={() => {
             setBluffSelectionOpen(false);
-            setAssignDialogOpen(true);
+            if (lunaticIsInPlay) {
+              setLunaticBluffSelectionOpen(true);
+            } else {
+              setAssignDialogOpen(true);
+            }
           }}
           scriptCharacters={scriptCharacterDefs}
           inPlayCharacterIds={game.inPlayCharacterIds}
           initialSelected={game.demonBluffs}
           onConfirm={handleConfirmDemonBluffs}
+        />
+      )}
+
+      {/* Lunatic Bluff Selection Dialog */}
+      {game && game.inPlayCharacterIds && lunaticIsInPlay && (
+        <DemonBluffSelection
+          open={lunaticBluffSelectionOpen}
+          onClose={() => {
+            setLunaticBluffSelectionOpen(false);
+            setAssignDialogOpen(true);
+          }}
+          scriptCharacters={scriptCharacterDefs}
+          inPlayCharacterIds={game.inPlayCharacterIds}
+          initialSelected={game.lunaticBluffs}
+          onConfirm={handleConfirmLunaticBluffs}
+          variant="lunatic"
         />
       )}
     </Box>

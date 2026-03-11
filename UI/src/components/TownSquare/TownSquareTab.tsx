@@ -67,6 +67,8 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
     addToken,
     removeToken,
     swapPlayerSeats,
+    setDemonBluffs,
+    setLunaticBluffs,
   } = useGame();
   const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
 
@@ -154,6 +156,54 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
   /** Derive the current player from live state so the modal always sees fresh data. */
   const actionsPlayer =
     actionsSeat !== null ? (players.find((p) => p.seat === actionsSeat) ?? null) : null;
+
+  // ── Bluff props for the actions modal ──
+  const actionsPlayerCharDef = actionsPlayer?.characterId
+    ? getCharacter(actionsPlayer.characterId)
+    : undefined;
+  const isActionsPlayerDemon = actionsPlayerCharDef?.type === 'Demon';
+  const isActionsPlayerLunatic = actionsPlayer?.characterId === 'lunatic';
+
+  const bluffIds = isActionsPlayerDemon
+    ? state.game?.demonBluffs
+    : isActionsPlayerLunatic
+      ? state.game?.lunaticBluffs
+      : undefined;
+
+  const modalBluffCharacters = useMemo(
+    () => (bluffIds?.length ? getCharactersByIds(bluffIds) : undefined),
+    [bluffIds, getCharactersByIds],
+  );
+
+  const modalAvailableBluffCharacters = useMemo(() => {
+    if (!isActionsPlayerDemon && !isActionsPlayerLunatic) return undefined;
+    const inPlay = new Set(state.game?.inPlayCharacterIds ?? []);
+    return scriptCharacters.filter((ch) => {
+      if (ch.type !== 'Townsfolk' && ch.type !== 'Outsider') return false;
+      if (isActionsPlayerLunatic) return true;
+      return !inPlay.has(ch.id);
+    });
+  }, [
+    isActionsPlayerDemon,
+    isActionsPlayerLunatic,
+    scriptCharacters,
+    state.game?.inPlayCharacterIds,
+  ]);
+
+  const handleChangeBluff = useCallback(
+    (oldBluffId: string, newBluffId: string) => {
+      const currentBluffs = bluffIds ?? [];
+      const updated = currentBluffs.map((id) => (id === oldBluffId ? newBluffId : id));
+      if (isActionsPlayerDemon) {
+        setDemonBluffs(updated);
+      } else if (isActionsPlayerLunatic) {
+        setLunaticBluffs(updated);
+      }
+    },
+    [bluffIds, isActionsPlayerDemon, isActionsPlayerLunatic, setDemonBluffs, setLunaticBluffs],
+  );
+
+  const modalBluffLabel = isActionsPlayerLunatic ? 'Lunatic Bluffs' : 'Demon Bluffs';
 
   // ── Add traveller dialog ──
   const [addTravellerOpen, setAddTravellerOpen] = useState(false);
@@ -360,6 +410,10 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         showCharacters={showCharacters}
         scriptCharacters={scriptCharacters}
         allCharacters={allCharacters}
+        demonBluffs={bluffIds}
+        bluffCharacters={modalBluffCharacters}
+        availableBluffCharacters={modalAvailableBluffCharacters}
+        bluffLabel={modalBluffLabel}
         onClose={handleActionsClose}
         onToggleAlive={handleToggleAlive}
         onToggleGhostVote={handleToggleGhostVote}
@@ -367,6 +421,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
         onSwapWith={handleSwapWith}
+        onChangeBluff={handleChangeBluff}
       />
 
       {/* ── Token layout toggle ── */}

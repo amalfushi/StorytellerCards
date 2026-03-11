@@ -1,10 +1,14 @@
+import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import type { CharacterDef, NightOrderEntry } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
+import { PlayerShowScreen } from './PlayerShowScreen.tsx';
 
 export interface StructuralCardProps {
   entry: NightOrderEntry;
@@ -52,6 +56,7 @@ export function StructuralCard({
   readOnly = false,
   bluffCharacters,
 }: StructuralCardProps) {
+  const [bluffFullscreenOpen, setBluffFullscreenOpen] = useState(false);
   const bg = structuralBg[entry.id] ?? '#333';
   const icon = structuralIcon[entry.id] ?? '⚙️';
   const hint = structuralHelpHint[entry.id] ?? entry.helpText;
@@ -129,17 +134,28 @@ export function StructuralCard({
             border: '1px solid rgba(255,255,255,0.15)',
           }}
         >
-          <Typography
-            variant="subtitle2"
-            sx={{
-              color: '#ff8a80',
-              fontWeight: 700,
-              mb: 1,
-              textAlign: 'center',
-            }}
-          >
-            Show these bluffs to the Demon
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                color: '#ff8a80',
+                fontWeight: 700,
+                textAlign: 'center',
+                flexGrow: 1,
+              }}
+            >
+              Show these bluffs to the Demon
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={() => setBluffFullscreenOpen(true)}
+              sx={{ color: 'rgba(255,255,255,0.6)', ml: 0.5 }}
+              aria-label="Show bluffs fullscreen"
+              data-testid="demoninfo-bluffs-fullscreen-btn"
+            >
+              <FullscreenIcon fontSize="small" />
+            </IconButton>
+          </Box>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
             {bluffCharacters.map((ch) => (
               <Box
@@ -178,6 +194,16 @@ export function StructuralCard({
             ))}
           </Box>
         </Box>
+      )}
+
+      {/* Bluff fullscreen overlay */}
+      {bluffCharacters && bluffCharacters.length > 0 && (
+        <PlayerShowScreen
+          open={bluffFullscreenOpen}
+          onClose={() => setBluffFullscreenOpen(false)}
+          variant="bluffs"
+          bluffCharacters={bluffCharacters}
+        />
       )}
     </Box>
   );

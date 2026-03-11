@@ -29,7 +29,15 @@ export function NightTabPanel({
   onComplete,
   onReminderTokenClick,
 }: NightTabPanelProps) {
-  const { state, startNight, updateNightProgress, completeNight, setNightCardIndex } = useGame();
+  const {
+    state,
+    startNight,
+    updateNightProgress,
+    completeNight,
+    setNightCardIndex,
+    setCustomPlayerMessage,
+    clearCustomPlayerMessage,
+  } = useGame();
   const { nightProgress } = state;
   const game = state.game;
   const { getCharacter, getCharactersByIds } = useCharacterLookup();
@@ -50,6 +58,12 @@ export function NightTabPanel({
   const bluffCharacters = useMemo(() => {
     if (!game?.demonBluffs?.length) return undefined;
     return getCharactersByIds(game.demonBluffs);
+  }, [game, getCharactersByIds]);
+
+  // Lunatic bluff characters for the lunatic first-night flashcard
+  const lunaticBluffCharacters = useMemo(() => {
+    if (!game?.lunaticBluffs?.length) return undefined;
+    return getCharactersByIds(game.lunaticBluffs);
   }, [game, getCharactersByIds]);
 
   // Auto-start night if nightProgress is null
@@ -132,6 +146,10 @@ export function NightTabPanel({
         previousNightHistory={previousNightHistory}
         onReminderTokenClick={onReminderTokenClick}
         bluffCharacters={bluffCharacters}
+        lunaticBluffCharacters={lunaticBluffCharacters}
+        customPlayerMessages={game?.customPlayerMessages}
+        onCustomMessageChange={setCustomPlayerMessage}
+        onClearCustomMessage={clearCustomPlayerMessage}
       />
     </Box>
   );

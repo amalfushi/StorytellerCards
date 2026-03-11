@@ -295,6 +295,10 @@ export interface Game {
   inPlayCharacterIds?: string[];
   /** Character IDs of the 3 not-in-play good characters shown to the Demon as bluffs. */
   demonBluffs?: string[];
+  /** Character IDs of the 3 good characters shown to the Lunatic as fake bluffs. */
+  lunaticBluffs?: string[];
+  /** Custom messages the Storyteller can show to players fullscreen. Key = characterId. */
+  customPlayerMessages?: Record<string, string>;
 }
 
 // ──────────────────────────────────────────────
