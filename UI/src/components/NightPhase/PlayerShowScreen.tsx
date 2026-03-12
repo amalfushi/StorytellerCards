@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
 import CloseIcon from '@mui/icons-material/Close';
 import type { CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
@@ -30,6 +31,8 @@ export interface PlayerShowScreenProps {
  *
  * - `variant='bluffs'`: "Your bluffs are:" + large character icons
  * - `variant='text'`: Large centered text message
+ *
+ * On larger viewports (≥600px), icons and text scale up ~50% for readability at a distance.
  */
 export function PlayerShowScreen({
   open,
@@ -41,6 +44,13 @@ export function PlayerShowScreen({
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
+
+  const isLargeViewport = useMediaQuery('(min-width:600px)');
+  const iconSize = isLargeViewport ? 168 : 112;
+  const nameVariant = isLargeViewport ? 'h5' : 'h6';
+  const nameMaxWidth = isLargeViewport ? 200 : 140;
+  const titleVariant = isLargeViewport ? 'h3' : 'h4';
+  const messageVariant = isLargeViewport ? 'h2' : 'h3';
 
   return (
     <Dialog
@@ -79,7 +89,7 @@ export function PlayerShowScreen({
       {variant === 'bluffs' && (
         <>
           <Typography
-            variant="h4"
+            variant={titleVariant}
             sx={{
               color: '#fff',
               fontWeight: 700,
@@ -95,7 +105,7 @@ export function PlayerShowScreen({
             sx={{
               display: 'flex',
               justifyContent: 'center',
-              gap: 4,
+              gap: isLargeViewport ? 6 : 4,
               flexWrap: 'wrap',
               px: 3,
             }}
@@ -115,19 +125,19 @@ export function PlayerShowScreen({
                   src={getCharacterIconPath(ch.id)}
                   alt={ch.name}
                   sx={{
-                    width: 112,
-                    height: 112,
+                    width: iconSize,
+                    height: iconSize,
                     border: `3px solid ${getCharacterTypeColor(ch.type)}`,
-                    bgcolor: 'rgba(0,0,0,0.3)',
+                    bgcolor: '#fff',
                   }}
                 />
                 <Typography
-                  variant="h6"
+                  variant={nameVariant}
                   sx={{
                     color: getCharacterTypeColor(ch.type),
                     fontWeight: 600,
                     textAlign: 'center',
-                    maxWidth: 140,
+                    maxWidth: nameMaxWidth,
                     lineHeight: 1.2,
                   }}
                 >
@@ -141,14 +151,14 @@ export function PlayerShowScreen({
 
       {variant === 'text' && message && (
         <Typography
-          variant="h3"
+          variant={messageVariant}
           data-testid="player-show-message"
           sx={{
             color: '#fff',
             fontWeight: 700,
             textAlign: 'center',
             px: 4,
-            maxWidth: 600,
+            maxWidth: isLargeViewport ? 800 : 600,
             lineHeight: 1.4,
             textShadow: '0 2px 12px rgba(0,0,0,0.5)',
           }}
