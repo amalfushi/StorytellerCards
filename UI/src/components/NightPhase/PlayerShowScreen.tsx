@@ -60,8 +60,8 @@ export function PlayerShowScreen({
 
   const isLargeViewport = useMediaQuery('(min-width:600px)');
   const iconSize = isLargeViewport ? 168 : 112;
-  const nameVariant = isLargeViewport ? 'h5' : 'h6';
-  const nameMaxWidth = isLargeViewport ? 200 : 140;
+  const nameVariant = isLargeViewport ? 'h4' : 'h5';
+  const nameMaxWidth = isLargeViewport ? 240 : 180;
   const titleVariant = isLargeViewport ? 'h3' : 'h4';
   const messageVariant = isLargeViewport ? 'h2' : 'h3';
 
