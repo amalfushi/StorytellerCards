@@ -108,7 +108,8 @@ type GameAction =
   | { type: 'SET_LUNATIC_BLUFFS'; payload: { characterIds: string[] } }
   | { type: 'SET_PLAYER_BLUFFS'; payload: { seat: number; bluffIds: string[] } }
   | { type: 'SET_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string; message: string } }
-  | { type: 'CLEAR_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string } };
+  | { type: 'CLEAR_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string } }
+  | { type: 'SYNC_GAME'; payload: { game: Game } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -528,6 +529,19 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'SYNC_GAME': {
+      const remote = action.payload.game;
+      // Only apply if we have the same game loaded and remote version is newer
+      if (!state.game || state.game.id !== remote.id) return state;
+      const localVersion = state.game.version ?? 0;
+      const remoteVersion = remote.version ?? 0;
+      if (remoteVersion <= localVersion) return state;
+      return {
+        ...state,
+        game: remote,
+      };
+    }
+
     default:
       return state;
   }
@@ -607,6 +621,7 @@ interface GameContextValue {
   setPlayerBluffs: (seat: number, bluffIds: string[]) => void;
   setCustomPlayerMessage: (characterId: string, message: string) => void;
   clearCustomPlayerMessage: (characterId: string) => void;
+  syncGame: (game: Game) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -786,6 +801,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLEAR_CUSTOM_PLAYER_MESSAGE', payload: { characterId } });
   }, []);
 
+  const syncGame = useCallback((game: Game) => {
+    dispatch({ type: 'SYNC_GAME', payload: { game } });
+  }, []);
+
   const value: GameContextValue = {
     state,
     dispatch,
@@ -818,6 +837,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPlayerBluffs,
     setCustomPlayerMessage,
     clearCustomPlayerMessage,
+    syncGame,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
