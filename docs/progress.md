@@ -36,6 +36,7 @@
 | M27 | Character Selection & Assignment Redesign | ✅ Complete | [details](milestones/27%20-%20character%20selection%20redesign/milestone27.md) |
 | M28 | Alignment-Based Icon Variants | ✅ Complete | [details](milestones/28%20-%20alignment%20icon%20variants/milestone28.md) |
 | M29 | Bluff Improvements & Player Show Screen | ✅ Complete | [details](milestones/29%20-%20bluff%20and%20show%20screen/milestone29.md) |
+| M30 | Cross-Device Sync — version-based polling, optimistic concurrency, SyncStatusIndicator | ✅ Complete | [details](milestones/30%20-%20cross-device%20sync/milestone30.md) |
 
 ## Key Design Decisions
 
@@ -48,13 +49,13 @@
 - **Exile vs execution** — functionally same but both terms retained
 - **Adaptive distribution engine in M27** — replaces static distribution with real-time targets responding to setup-affecting characters (Baron, Legion, Atheist, Xaan, etc.)
 
-## Verification (as of M29 Complete)
+## Verification (as of M30 Complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 3898/3898 passing (72 test files)
+- Tests: 3958/3958 passing (77 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
-- Storybook: 18 story files with ~93+ stories including `play()` interaction tests
+- Storybook: 19 story files with ~99+ stories including `play()` interaction tests
 - Go build: success
 - Go tests: all passing
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)

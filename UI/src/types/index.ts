@@ -301,6 +301,10 @@ export interface Game {
   playerBluffs?: Record<string, string[]>;
   /** Custom messages the Storyteller can show to players fullscreen. Key = characterId. */
   customPlayerMessages?: Record<string, string>;
+  /** Sync version — incremented on each server-side save. */
+  version?: number;
+  /** ISO 8601 timestamp of the last server-side update. */
+  updatedAt?: string;
 }
 
 // ──────────────────────────────────────────────
@@ -315,6 +319,10 @@ export interface Session {
   defaultScriptId: string;
   defaultPlayers: Array<{ seat: number; playerName: string }>;
   gameIds: string[];
+  /** Sync version — incremented on each server-side save. */
+  version?: number;
+  /** ISO 8601 timestamp of the last server-side update. */
+  updatedAt?: string;
 }
 
 // ──────────────────────────────────────────────
@@ -360,4 +368,23 @@ export interface NightProgress {
   /** characterId → selected value(s) from night choice dropdowns. */
   selections: Record<string, string | string[]>;
   totalCards: number;
+}
+
+// ──────────────────────────────────────────────
+// Sync (M30)
+// ──────────────────────────────────────────────
+
+/** Current sync connection status. */
+export const SyncStatus = {
+  Idle: 'idle',
+  Syncing: 'syncing',
+  Error: 'error',
+  Offline: 'offline',
+} as const;
+export type SyncStatus = (typeof SyncStatus)[keyof typeof SyncStatus];
+
+/** Lightweight version info returned by the /version endpoints. */
+export interface VersionInfo {
+  version: number;
+  updatedAt: string;
 }

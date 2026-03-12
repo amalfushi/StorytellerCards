@@ -41,7 +41,8 @@ type SessionAction =
     }
   | { type: 'ADD_GAME_TO_SESSION'; payload: { sessionId: string; game: Game } }
   | { type: 'HYDRATE'; payload: SessionState }
-  | { type: 'DELETE_GAME'; payload: { sessionId: string; gameId: string } };
+  | { type: 'DELETE_GAME'; payload: { sessionId: string; gameId: string } }
+  | { type: 'SYNC_SESSION'; payload: { session: Session } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -170,6 +171,20 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       };
     }
 
+    case 'SYNC_SESSION': {
+      const remote = action.payload.session;
+      const localSession = state.sessions.find((s) => s.id === remote.id);
+      const localVersion = localSession?.version ?? 0;
+      const remoteVersion = remote.version ?? 0;
+      if (remoteVersion <= localVersion) return state;
+      return {
+        ...state,
+        sessions: localSession
+          ? state.sessions.map((s) => (s.id === remote.id ? remote : s))
+          : [...state.sessions, remote],
+      };
+    }
+
     default:
       return state;
   }
@@ -198,6 +213,7 @@ interface SessionContextValue {
   deleteGame: (sessionId: string, gameId: string) => void;
   getActiveSession: () => Session | null;
   getActiveGame: () => Game | null;
+  syncSession: (session: Session) => void;
 }
 
 const SessionContext = createContext<SessionContextValue | null>(null);
@@ -335,6 +351,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   }, [state.activeGameId]);
 
+  const syncSession = useCallback((session: Session) => {
+    dispatch({ type: 'SYNC_SESSION', payload: { session } });
+  }, []);
+
   const value: SessionContextValue = {
     state,
     dispatch,
@@ -347,6 +367,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     deleteGame,
     getActiveSession,
     getActiveGame,
+    syncSession,
   };
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
