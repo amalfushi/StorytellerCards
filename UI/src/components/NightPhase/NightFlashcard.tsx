@@ -12,7 +12,6 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
-import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef, ActiveJinx } from '@/types/index.ts';
@@ -575,6 +574,16 @@ export function NightFlashcard({
           checkedStates={checkedStates}
           onToggle={onToggleSubAction}
           readOnly={readOnly}
+          choiceLabels={parsedChoices
+            .filter(
+              (c) =>
+                c.type === 'player' ||
+                c.type === 'livingPlayer' ||
+                c.type === 'deadPlayer' ||
+                c.type === 'character',
+            )
+            .map((c) => c.label)}
+          onShowChoiceFullscreen={(label) => setChoiceShowMessage(label)}
         />
 
         {/* Phase 3: Signal recording controls — inline after sub-actions */}
@@ -671,50 +680,22 @@ export function NightFlashcard({
         {/* Night choice selector(s) — directly below instruction steps */}
         {parsedChoices.length > 0 && onSelectionChange && (
           <Box>
-            {parsedChoices.map((choice, idx) => {
-              const isPlayerFacing =
-                choice.type === 'player' ||
-                choice.type === 'livingPlayer' ||
-                choice.type === 'deadPlayer' ||
-                choice.type === 'character';
-              return (
-                <Box
-                  key={`${entry.id}-choice-${idx}`}
-                  sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}
-                >
-                  <Box sx={{ flexGrow: 1 }}>
-                    <NightChoiceSelector
-                      type={choice.type}
-                      multiple={choice.multiple}
-                      maxSelections={choice.maxSelections}
-                      value={getCompoundValue(idx)}
-                      onChange={(v) => handleCompoundChange(idx, v)}
-                      players={players}
-                      characters={scriptCharacters}
-                      previousValue={getCompoundPrev(idx)}
-                      label={choice.label}
-                      readOnly={readOnly}
-                      characterLookup={characterLookup}
-                    />
-                  </Box>
-                  {isPlayerFacing && (
-                    <IconButton
-                      size="small"
-                      onClick={() => setChoiceShowMessage(choice.label)}
-                      sx={{
-                        mt: 2.5,
-                        color: 'rgba(255,255,255,0.5)',
-                        '&:hover': { color: 'rgba(255,255,255,0.8)' },
-                      }}
-                      aria-label={`Show "${choice.label}" fullscreen`}
-                      data-testid={`choice-fullscreen-${idx}`}
-                    >
-                      <FullscreenIcon fontSize="small" />
-                    </IconButton>
-                  )}
-                </Box>
-              );
-            })}
+            {parsedChoices.map((choice, idx) => (
+              <NightChoiceSelector
+                key={`${entry.id}-choice-${idx}`}
+                type={choice.type}
+                multiple={choice.multiple}
+                maxSelections={choice.maxSelections}
+                value={getCompoundValue(idx)}
+                onChange={(v) => handleCompoundChange(idx, v)}
+                players={players}
+                characters={scriptCharacters}
+                previousValue={getCompoundPrev(idx)}
+                label={choice.label}
+                readOnly={readOnly}
+                characterLookup={characterLookup}
+              />
+            ))}
           </Box>
         )}
       </Box>

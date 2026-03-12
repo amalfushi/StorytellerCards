@@ -1,11 +1,13 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import Checkbox from '@mui/material/Checkbox';
 import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import type { NightSubAction } from '@/types/index.ts';
 import { computeActionableIndices } from './subActionUtils.ts';
 
@@ -14,6 +16,10 @@ export interface SubActionChecklistProps {
   checkedStates: boolean[];
   onToggle: (index: number) => void;
   readOnly?: boolean;
+  /** Labels for player-facing choices, shown as fullscreen icons on actionable items. */
+  choiceLabels?: string[];
+  /** Called when a fullscreen icon is clicked, with the choice label. */
+  onShowChoiceFullscreen?: (label: string) => void;
 }
 
 /**
@@ -28,6 +34,8 @@ export function SubActionChecklist({
   checkedStates,
   onToggle,
   readOnly = false,
+  choiceLabels = [],
+  onShowChoiceFullscreen,
 }: SubActionChecklistProps) {
   const handleToggle = useCallback(
     (index: number) => () => {
@@ -40,11 +48,27 @@ export function SubActionChecklist({
 
   const actionableIndices = computeActionableIndices(subActions);
 
+  // Build a map from sub-action index to choice label index
+  // (actionable items consume choice labels in order)
+  const actionableToChoiceIdx = useMemo(() => {
+    const map = new Map<number, number>();
+    let choiceIdx = 0;
+    for (let i = 0; i < subActions.length; i++) {
+      if (actionableIndices.has(i) && choiceIdx < choiceLabels.length) {
+        map.set(i, choiceIdx);
+        choiceIdx++;
+      }
+    }
+    return map;
+  }, [subActions.length, actionableIndices, choiceLabels.length]);
+
   return (
     <List dense disablePadding>
       {subActions.map((sa, index) => {
         const isActionable = actionableIndices.has(index);
         const checked = checkedStates[index] ?? false;
+        const choiceIdx = actionableToChoiceIdx.get(index);
+        const choiceLabel = choiceIdx !== undefined ? choiceLabels[choiceIdx] : undefined;
 
         if (isActionable) {
           // ── Actionable item: rendered WITH checkbox ──
@@ -115,6 +139,25 @@ export function SubActionChecklist({
                   </Box>
                 }
               />
+              {choiceLabel && onShowChoiceFullscreen && (
+                <IconButton
+                  size="small"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onShowChoiceFullscreen(choiceLabel);
+                  }}
+                  sx={{
+                    color: 'rgba(255,255,255,0.4)',
+                    flexShrink: 0,
+                    ml: 0.5,
+                    '&:hover': { color: 'rgba(255,255,255,0.8)' },
+                  }}
+                  aria-label={`Show "${choiceLabel}" fullscreen`}
+                  data-testid={`choice-fullscreen-${index}`}
+                >
+                  <FullscreenIcon sx={{ fontSize: '1.1rem' }} />
+                </IconButton>
+              )}
             </ListItem>
           );
         }
