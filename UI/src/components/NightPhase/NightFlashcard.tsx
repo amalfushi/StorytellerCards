@@ -13,6 +13,7 @@ import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef, ActiveJinx } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
@@ -59,6 +60,8 @@ export interface NightFlashcardProps {
   lunaticBluffCharacters?: CharacterDef[];
   /** Demon bluff character definitions (shown for demon characters). */
   demonBluffCharacters?: CharacterDef[];
+  /** Callback to open the Show Player drawer (triggered by FAB moved to card). */
+  onOpenShowDrawer?: () => void;
 }
 
 /**
@@ -88,6 +91,7 @@ export function NightFlashcard({
   onReminderTokenClick,
   lunaticBluffCharacters,
   demonBluffCharacters: _demonBluffCharacters,
+  onOpenShowDrawer,
 }: NightFlashcardProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [choiceShowMessage, setChoiceShowMessage] = useState<string | null>(null);
@@ -714,6 +718,24 @@ export function NightFlashcard({
           </Box>
         )}
       </Box>
+
+      {/* Show Player icon — right-aligned above the notes divider */}
+      {!readOnly && onOpenShowDrawer && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', position: 'relative', zIndex: 1 }}>
+          <IconButton
+            size="small"
+            onClick={onOpenShowDrawer}
+            data-testid="show-player-btn"
+            sx={{
+              color: 'rgba(255,255,255,0.5)',
+              '&:hover': { color: 'rgba(255,255,255,0.8)', bgcolor: 'rgba(255,255,255,0.08)' },
+            }}
+            aria-label="Show player"
+          >
+            <VisibilityIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )}
 
       <Divider
         sx={{

@@ -1,11 +1,9 @@
 import { useState, useCallback, useMemo, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Fab from '@mui/material/Fab';
 import IconButton from '@mui/material/IconButton';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
-import VisibilityIcon from '@mui/icons-material/Visibility';
 import { useSwipeable } from 'react-swipeable';
 import type {
   NightOrderEntry,
@@ -249,6 +247,7 @@ export function FlashcardCarousel({
         onReminderTokenClick={onReminderTokenClick}
         lunaticBluffCharacters={isLunatic ? resolvedBluffChars : undefined}
         demonBluffCharacters={isDemon ? resolvedBluffChars : undefined}
+        onOpenShowDrawer={() => setShowDrawerOpen(true)}
       />
     );
   };
@@ -285,7 +284,6 @@ export function FlashcardCarousel({
       .filter((c): c is CharacterDef => c !== undefined);
   }, [currentBluffIds, characterLookup]);
   const currentBluffLabel = currentEntry?.id === 'lunatic' ? 'Lunatic Bluffs' : 'Demon Bluffs';
-  const showFab = !readOnly && currentEntry?.type === 'character';
 
   return (
     <Box
@@ -322,25 +320,25 @@ export function FlashcardCarousel({
           minHeight: 0,
         }}
       >
-        {/* Navigation arrows */}
+        {/* Navigation arrows — positioned inside the card boundary */}
         {currentIndex > 0 && (
           <IconButton
             onClick={() => goTo('prev')}
             sx={{
               position: 'absolute',
-              left: 2,
+              left: 26,
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 10,
               color: 'rgba(255,255,255,0.6)',
               backgroundColor: 'rgba(0,0,0,0.3)',
               '&:hover': { backgroundColor: 'rgba(0,0,0,0.5)' },
-              width: 44,
-              height: 44,
+              width: 36,
+              height: 36,
             }}
-            size="medium"
+            size="small"
           >
-            <ChevronLeftIcon sx={{ fontSize: '1.8rem' }} />
+            <ChevronLeftIcon sx={{ fontSize: '1.5rem' }} />
           </IconButton>
         )}
         {currentIndex < totalCards - 1 && (
@@ -348,19 +346,19 @@ export function FlashcardCarousel({
             onClick={() => goTo('next')}
             sx={{
               position: 'absolute',
-              right: 2,
+              right: 26,
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 10,
               color: 'rgba(255,255,255,0.6)',
               backgroundColor: 'rgba(0,0,0,0.3)',
               '&:hover': { backgroundColor: 'rgba(0,0,0,0.5)' },
-              width: 44,
-              height: 44,
+              width: 36,
+              height: 36,
             }}
-            size="medium"
+            size="small"
           >
-            <ChevronRightIcon sx={{ fontSize: '1.8rem' }} />
+            <ChevronRightIcon sx={{ fontSize: '1.5rem' }} />
           </IconButton>
         )}
 
@@ -379,27 +377,6 @@ export function FlashcardCarousel({
         >
           {renderCard(currentIndex)}
         </Box>
-
-        {/* Show Player FAB — floating bottom-right on character cards */}
-        {showFab && (
-          <Fab
-            size="small"
-            aria-label="show player"
-            onClick={() => setShowDrawerOpen(true)}
-            data-testid="show-player-fab"
-            sx={{
-              position: 'absolute',
-              bottom: 16,
-              right: 16,
-              zIndex: 10,
-              bgcolor: 'rgba(255,255,255,0.12)',
-              color: 'rgba(255,255,255,0.8)',
-              '&:hover': { bgcolor: 'rgba(255,255,255,0.2)' },
-            }}
-          >
-            <VisibilityIcon />
-          </Fab>
-        )}
       </Box>
 
       {/* Player show drawer (lifted from cards to carousel level) */}
