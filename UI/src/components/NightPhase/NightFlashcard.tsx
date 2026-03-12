@@ -1,6 +1,5 @@
 import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import FormControl from '@mui/material/FormControl';
@@ -12,6 +11,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef, ActiveJinx } from '@/types/index.ts';
@@ -25,7 +25,7 @@ import { parseReminderMarkers, hasReminderMarkers } from '@/utils/reminderUtils.
 import { detectSignalType } from '@/utils/signalDetection.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
-import { PlayerShowDrawer } from './PlayerShowDrawer.tsx';
+import { PlayerShowScreen } from './PlayerShowScreen.tsx';
 
 export interface NightFlashcardProps {
   entry: NightOrderEntry;
@@ -59,12 +59,6 @@ export interface NightFlashcardProps {
   lunaticBluffCharacters?: CharacterDef[];
   /** Demon bluff character definitions (shown for demon characters). */
   demonBluffCharacters?: CharacterDef[];
-  /** Persisted custom message for this character (for show drawer). */
-  customPlayerMessage?: string;
-  /** Called when a custom message is saved in the show drawer. */
-  onCustomMessageChange?: (characterId: string, message: string) => void;
-  /** Called when a custom message is cleared in the show drawer. */
-  onClearCustomMessage?: (characterId: string) => void;
 }
 
 /**
@@ -93,13 +87,10 @@ export function NightFlashcard({
   previousNotes,
   onReminderTokenClick,
   lunaticBluffCharacters,
-  demonBluffCharacters,
-  customPlayerMessage,
-  onCustomMessageChange,
-  onClearCustomMessage,
+  demonBluffCharacters: _demonBluffCharacters,
 }: NightFlashcardProps) {
   const [detailOpen, setDetailOpen] = useState(false);
-  const [showDrawerOpen, setShowDrawerOpen] = useState(false);
+  const [choiceShowMessage, setChoiceShowMessage] = useState<string | null>(null);
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
 
   const typeName = characterDef?.type ?? 'Unknown';
@@ -676,22 +667,50 @@ export function NightFlashcard({
         {/* Night choice selector(s) — directly below instruction steps */}
         {parsedChoices.length > 0 && onSelectionChange && (
           <Box>
-            {parsedChoices.map((choice, idx) => (
-              <NightChoiceSelector
-                key={`${entry.id}-choice-${idx}`}
-                type={choice.type}
-                multiple={choice.multiple}
-                maxSelections={choice.maxSelections}
-                value={getCompoundValue(idx)}
-                onChange={(v) => handleCompoundChange(idx, v)}
-                players={players}
-                characters={scriptCharacters}
-                previousValue={getCompoundPrev(idx)}
-                label={choice.label}
-                readOnly={readOnly}
-                characterLookup={characterLookup}
-              />
-            ))}
+            {parsedChoices.map((choice, idx) => {
+              const isPlayerFacing =
+                choice.type === 'player' ||
+                choice.type === 'livingPlayer' ||
+                choice.type === 'deadPlayer' ||
+                choice.type === 'character';
+              return (
+                <Box
+                  key={`${entry.id}-choice-${idx}`}
+                  sx={{ display: 'flex', alignItems: 'flex-start', gap: 0.5 }}
+                >
+                  <Box sx={{ flexGrow: 1 }}>
+                    <NightChoiceSelector
+                      type={choice.type}
+                      multiple={choice.multiple}
+                      maxSelections={choice.maxSelections}
+                      value={getCompoundValue(idx)}
+                      onChange={(v) => handleCompoundChange(idx, v)}
+                      players={players}
+                      characters={scriptCharacters}
+                      previousValue={getCompoundPrev(idx)}
+                      label={choice.label}
+                      readOnly={readOnly}
+                      characterLookup={characterLookup}
+                    />
+                  </Box>
+                  {isPlayerFacing && (
+                    <IconButton
+                      size="small"
+                      onClick={() => setChoiceShowMessage(choice.label)}
+                      sx={{
+                        mt: 2.5,
+                        color: 'rgba(255,255,255,0.5)',
+                        '&:hover': { color: 'rgba(255,255,255,0.8)' },
+                      }}
+                      aria-label={`Show "${choice.label}" fullscreen`}
+                      data-testid={`choice-fullscreen-${idx}`}
+                    >
+                      <FullscreenIcon fontSize="small" />
+                    </IconButton>
+                  )}
+                </Box>
+              );
+            })}
           </Box>
         )}
       </Box>
@@ -759,42 +778,12 @@ export function NightFlashcard({
         />
       </Box>
 
-      {/* Show Player button + drawer */}
-      {!readOnly && (
-        <Box sx={{ mt: 1.5, position: 'relative', zIndex: 1 }}>
-          <Button
-            variant="outlined"
-            size="small"
-            startIcon={<FullscreenIcon />}
-            onClick={() => setShowDrawerOpen(true)}
-            data-testid="show-player-btn"
-            sx={{
-              color: 'rgba(255,255,255,0.7)',
-              borderColor: 'rgba(255,255,255,0.2)',
-              textTransform: 'none',
-              '&:hover': {
-                borderColor: 'rgba(255,255,255,0.4)',
-                bgcolor: 'rgba(255,255,255,0.05)',
-              },
-            }}
-          >
-            📱 Show Player
-          </Button>
-        </Box>
-      )}
-
-      <PlayerShowDrawer
-        open={showDrawerOpen}
-        onClose={() => setShowDrawerOpen(false)}
-        bluffCharacters={lunaticBluffCharacters ?? demonBluffCharacters}
-        bluffLabel={lunaticBluffCharacters ? 'Lunatic Bluffs' : 'Demon Bluffs'}
-        customMessage={customPlayerMessage}
-        onCustomMessageChange={
-          onCustomMessageChange ? (msg) => onCustomMessageChange(entry.id, msg) : undefined
-        }
-        onClearCustomMessage={
-          onClearCustomMessage ? () => onClearCustomMessage(entry.id) : undefined
-        }
+      {/* Choice fullscreen overlay */}
+      <PlayerShowScreen
+        open={choiceShowMessage !== null}
+        onClose={() => setChoiceShowMessage(null)}
+        variant="text"
+        message={choiceShowMessage ?? ''}
       />
 
       {/* Character Detail Modal */}
