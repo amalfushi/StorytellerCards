@@ -9,6 +9,7 @@ import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { PlayerShowScreen } from './PlayerShowScreen.tsx';
+import { getTokenDisplayText } from '@/utils/infoTokenUtils.ts';
 
 export interface StructuralCardProps {
   entry: NightOrderEntry;
@@ -57,6 +58,7 @@ export function StructuralCard({
   bluffCharacters,
 }: StructuralCardProps) {
   const [bluffFullscreenOpen, setBluffFullscreenOpen] = useState(false);
+  const [tokenShowPhrase, setTokenShowPhrase] = useState<string | null>(null);
   const bg = structuralBg[entry.id] ?? '#333';
   const icon = structuralIcon[entry.id] ?? '⚙️';
   const hint = structuralHelpHint[entry.id] ?? entry.helpText;
@@ -117,6 +119,7 @@ export function StructuralCard({
             checkedStates={checkedStates}
             onToggle={onToggleSubAction}
             readOnly={readOnly}
+            onShowTokenFullscreen={(phrase) => setTokenShowPhrase(phrase)}
           />
         </Box>
       )}
@@ -205,6 +208,14 @@ export function StructuralCard({
           bluffCharacters={bluffCharacters}
         />
       )}
+
+      {/* Token fullscreen overlay */}
+      <PlayerShowScreen
+        open={tokenShowPhrase !== null}
+        onClose={() => setTokenShowPhrase(null)}
+        variant="token"
+        tokenText={tokenShowPhrase ? getTokenDisplayText(tokenShowPhrase) : ''}
+      />
     </Box>
   );
 }
