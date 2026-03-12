@@ -1,4 +1,4 @@
-# Milestone 29 — Cross-Device Sync
+# Milestone 30 — Cross-Device Sync
 
 ## Status: ⏳ Planning
 
@@ -215,7 +215,7 @@ Since this is a single-user app (one Storyteller, two devices), true conflicts a
 - [ ] First-device setup flow: first device creates session → API; second device opens app → discovers session from API
 - [ ] Offline grace: show status indicator, never block gameplay, queue changes for retry on reconnect
 - [ ] Configurable sync interval via settings (default 3s)
-- [ ] Update milestone29.md with `## Status: ✅ Complete`
+- [ ] Update milestone30.md with `## Status: ✅ Complete`
 - [ ] Update `docs/progress.md`
 - [ ] Update `AGENTS.md` test stats
 
@@ -259,7 +259,7 @@ Since this is a single-user app (one Storyteller, two devices), true conflicts a
 
 ## 6. Dependencies
 
-- **M28** (Alignment Icon Variants) ✅ — latest completed milestone
+- **M29** ✅ — previous milestone
 - **Existing `useApiSync` hook** — foundation to build on (needs revamp, not rewrite)
 - **Existing Go API** — all CRUD endpoints already implemented
 - No external dependencies required (zero new npm/Go packages)
