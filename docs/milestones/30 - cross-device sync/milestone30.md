@@ -1,6 +1,19 @@
 # Milestone 30 — Cross-Device Sync
 
-## Status: ⏳ Planning
+## Status: ✅ Complete
+
+**Completion date:** 2026-03-11
+
+**Summary:** Implemented version-based polling sync between localStorage and Go API, enabling multi-device gameplay. Every Session and Game now has a `version` (int) and `updatedAt` (ISO timestamp). Local changes increment version and push to API. Other devices poll lightweight `/version` endpoints every 3 seconds and fetch full state when newer. Optimistic concurrency with `X-Expected-Version` header prevents stale overwrites (409 Conflict). localStorage always works — API failures never block gameplay.
+
+**Key evidence:**
+- Go: Version/UpdatedAt fields on Session and Game models, version endpoints, 409 conflict handling
+- UI: Revamped `useApiSync` with version-aware push/pull, `useSyncPolling` with backoff/recovery, `useRetry` exponential backoff utility
+- Contexts: SYNC_GAME and SYNC_SESSION actions for applying remote state
+- UI Component: `SyncStatusIndicator` (idle/syncing/error/offline) with manual refresh
+- Go integration tests: multi-client scenarios, stale write detection, E2E lifecycle
+- UI integration tests: version check → fetch workflow, 409 handling, offline behavior
+- 45 new tests (Go + UI), 3958 total UI tests passing, 6 new Storybook stories
 
 > **Goal:** Enable the Storyteller to use multiple devices concurrently (e.g., laptop + phone) during a game, with all devices staying in sync within a few seconds via version-based polling against the Go API.
 
@@ -145,27 +158,27 @@ Since this is a single-user app (one Storyteller, two devices), true conflicts a
 
 ### Phase 1: API Versioning & Concurrency (Go)
 
-- [ ] Add `Version int` and `UpdatedAt string` fields to `Session` and `Game` structs in `models.go`
-- [ ] Update all PUT handlers to auto-increment `Version` and set `UpdatedAt` to current UTC time
-- [ ] Update all POST (create) handlers to initialize `Version = 1`
-- [ ] Add `X-Expected-Version` header check to PUT handlers — return 409 Conflict if stale
-- [ ] Add `GET /api/sessions/{id}/version` endpoint returning `{version, updatedAt}` only
-- [ ] Add `GET /api/sessions/{id}/games/{gameId}/version` endpoint (same pattern)
-- [ ] Register new version-check routes in `main.go`
-- [ ] Handle backward compatibility: files without `version` field default to `version = 0`
-- [ ] Write Go tests: version increment, 409 on stale write, version endpoint accuracy, backward compat, concurrent writes
+- [x] Add `Version int` and `UpdatedAt string` fields to `Session` and `Game` structs in `models.go`
+- [x] Update all PUT handlers to auto-increment `Version` and set `UpdatedAt` to current UTC time
+- [x] Update all POST (create) handlers to initialize `Version = 1`
+- [x] Add `X-Expected-Version` header check to PUT handlers — return 409 Conflict if stale
+- [x] Add `GET /api/sessions/{id}/version` endpoint returning `{version, updatedAt}` only
+- [x] Add `GET /api/sessions/{id}/games/{gameId}/version` endpoint (same pattern)
+- [x] Register new version-check routes in `main.go`
+- [x] Handle backward compatibility: files without `version` field default to `version = 0`
+- [x] Write Go tests: version increment, 409 on stale write, version endpoint accuracy, backward compat, concurrent writes
 
 ### Phase 2: UI Types & Retry Utility (TypeScript)
 
-- [ ] Add `version: number` and `updatedAt: string` to `Session` and `Game` types in `types/index.ts`
-- [ ] Add `SyncStatus` type: `'idle' | 'syncing' | 'error' | 'offline'`
-- [ ] Add `VersionInfo` type: `{ version: number; updatedAt: string }`
-- [ ] Create `useRetry` hook — exponential backoff utility (configurable maxRetries, baseDelay, maxDelay, onGiveUp callback)
-- [ ] Write tests for `useRetry` hook
+- [x] Add `version: number` and `updatedAt: string` to `Session` and `Game` types in `types/index.ts`
+- [x] Add `SyncStatus` type: `'idle' | 'syncing' | 'error' | 'offline'`
+- [x] Add `VersionInfo` type: `{ version: number; updatedAt: string }`
+- [x] Create `useRetry` hook — exponential backoff utility (configurable maxRetries, baseDelay, maxDelay, onGiveUp callback)
+- [x] Write tests for `useRetry` hook
 
 ### Phase 3: API Sync Integration (TypeScript)
 
-- [ ] Revamp `useApiSync` hook to be version-aware:
+- [x] Revamp `useApiSync` hook to be version-aware:
   - `pushGame(game)` → PUT with `X-Expected-Version` header
   - `pushSession(session)` → PUT with `X-Expected-Version` header
   - `pullGameVersion(sessionId, gameId)` → lightweight version check
@@ -174,50 +187,50 @@ Since this is a single-user app (one Storyteller, two devices), true conflicts a
   - `pullSession(sessionId)` → full session fetch
   - Connection status tracking (online/offline)
   - 409 conflict handling (fetch latest, reconcile)
-- [ ] Create `useSyncPolling` hook — polling loop with:
+- [x] Create `useSyncPolling` hook — polling loop with:
   - Configurable interval (default 3s)
   - Version comparison → full fetch on mismatch
   - Pause when `document.hidden` (tab not visible)
   - Backoff on consecutive failures (3s → 10s → 30s)
   - Recovery detection and reset
   - Cleanup on unmount
-- [ ] Integrate sync into `GameContext`:
+- [x] Integrate sync into `GameContext`:
   - Track `version` in `GameViewState`
   - Increment version on local change
   - Add `SYNC_GAME` action for applying remote state
   - Push to API on state change (debounced)
   - Accept incoming state from polling (if server version > local)
-- [ ] Integrate sync into `SessionContext`:
+- [x] Integrate sync into `SessionContext`:
   - Same version tracking pattern
   - Sync on session load, push on session change
   - Add `SYNC_SESSION` action
-- [ ] Write tests for revamped `useApiSync`, `useSyncPolling`, and context sync actions
+- [x] Write tests for revamped `useApiSync`, `useSyncPolling`, and context sync actions
 
 ### Phase 4: UI Components
 
-- [ ] Create `SyncStatusIndicator` component — small icon in AppBar showing sync state (✓/↻/○/⚠)
-- [ ] Add manual "Refresh" button to AppBar — forces immediate version check + full fetch
-- [ ] Write tests for `SyncStatusIndicator`
-- [ ] Create Storybook stories for `SyncStatusIndicator` (idle, syncing, offline, error states)
+- [x] Create `SyncStatusIndicator` component — small icon in AppBar showing sync state (✓/↻/○/⚠)
+- [x] Add manual "Refresh" button to AppBar — forces immediate version check + full fetch
+- [x] Write tests for `SyncStatusIndicator`
+- [x] Create Storybook stories for `SyncStatusIndicator` (idle, syncing, offline, error states)
 
 ### Phase 5: Integration Testing
 
-- [ ] **Go multi-client tests**: Two simulated clients making sequential writes → version increments correctly
-- [ ] **Go concurrency tests**: Stale write detection (client A writes, client B tries stale overwrite → 409)
-- [ ] **Go end-to-end scenario**: Create session → create game → update from client A → poll from client B → verify convergence
-- [ ] **UI sync scenario tests**: Poll detects version change → triggers full fetch → state updates
-- [ ] **UI offline tests**: API unreachable → localStorage continues working → sync resumes on recovery
-- [ ] **UI 409 handling tests**: Stale push → fetch latest → reconcile → re-push
+- [x] **Go multi-client tests**: Two simulated clients making sequential writes → version increments correctly
+- [x] **Go concurrency tests**: Stale write detection (client A writes, client B tries stale overwrite → 409)
+- [x] **Go end-to-end scenario**: Create session → create game → update from client A → poll from client B → verify convergence
+- [x] **UI sync scenario tests**: Poll detects version change → triggers full fetch → state updates
+- [x] **UI offline tests**: API unreachable → localStorage continues working → sync resumes on recovery
+- [x] **UI 409 handling tests**: Stale push → fetch latest → reconcile → re-push
 
 ### Phase 6: Polish & Edge Cases
 
-- [ ] Initial sync on app load: fetch all sessions from API, merge with localStorage (prefer higher version)
-- [ ] First-device setup flow: first device creates session → API; second device opens app → discovers session from API
-- [ ] Offline grace: show status indicator, never block gameplay, queue changes for retry on reconnect
-- [ ] Configurable sync interval via settings (default 3s)
-- [ ] Update milestone30.md with `## Status: ✅ Complete`
-- [ ] Update `docs/progress.md`
-- [ ] Update `AGENTS.md` test stats
+- [x] Initial sync on app load: fetch all sessions from API, merge with localStorage (prefer higher version)
+- [x] First-device setup flow: first device creates session → API; second device opens app → discovers session from API
+- [x] Offline grace: show status indicator, never block gameplay, queue changes for retry on reconnect
+- [x] Configurable sync interval via settings (default 3s)
+- [x] Update milestone30.md with `## Status: ✅ Complete`
+- [x] Update `docs/progress.md`
+- [x] Update `AGENTS.md` test stats
 
 ---
 
@@ -282,16 +295,16 @@ Estimated effort: ~100 lines of Go + ~50 lines of TypeScript.
 
 ## 8. Acceptance Criteria
 
-- [ ] Multiple devices can view the same game state via the Go API
-- [ ] Changes on one device appear on the other within ~5 seconds
-- [ ] Manual "Refresh" button triggers immediate sync
-- [ ] Sync status indicator shows current state (idle/syncing/offline/error)
-- [ ] API failures never block gameplay — localStorage continues working
-- [ ] Stale writes are detected (409) and handled gracefully
-- [ ] Failed pushes retry with exponential backoff
-- [ ] Polling pauses when tab is not visible (saves resources)
-- [ ] Polling backs off on consecutive failures, recovers automatically
-- [ ] App loads state from API on startup if available (merge with localStorage)
-- [ ] All existing tests continue to pass
-- [ ] New tests cover sync behavior, retries, offline handling, and multi-client scenarios
-- [ ] 0 TypeScript errors, 0 ESLint errors
+- [x] Multiple devices can view the same game state via the Go API
+- [x] Changes on one device appear on the other within ~5 seconds
+- [x] Manual "Refresh" button triggers immediate sync
+- [x] Sync status indicator shows current state (idle/syncing/offline/error)
+- [x] API failures never block gameplay — localStorage continues working
+- [x] Stale writes are detected (409) and handled gracefully
+- [x] Failed pushes retry with exponential backoff
+- [x] Polling pauses when tab is not visible (saves resources)
+- [x] Polling backs off on consecutive failures, recovers automatically
+- [x] App loads state from API on startup if available (merge with localStorage)
+- [x] All existing tests continue to pass
+- [x] New tests cover sync behavior, retries, offline handling, and multi-client scenarios
+- [x] 0 TypeScript errors, 0 ESLint errors
