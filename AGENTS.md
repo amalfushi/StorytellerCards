@@ -82,6 +82,19 @@ See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) fo
 - Prefers efficiency — batch multiple small fixes into single tasks
 - **Master data files must NEVER be modified**: `Boozling.json`, `NightOrder.md`, `ScriptSortOrder.md`, `Boozling.pdf`
 
+## ⛔ Non-Negotiable: No Lint/Quality Suppressions
+
+**Agents MUST NOT use any lint or code quality suppression directives. This is absolute and has no exceptions.**
+
+- ❌ `eslint-disable`, `eslint-disable-next-line`, `eslint-disable-line` — **NEVER**
+- ❌ `@ts-ignore`, `@ts-expect-error`, `@ts-nocheck` — **NEVER**
+- ❌ `// noinspection`, `#pragma warning disable`, `//nolint`, `#nosec` — **NEVER**
+- ❌ Any language-equivalent suppression (Go `//nolint:`, C# `#pragma warning disable`, etc.) — **NEVER**
+
+**If a lint or type-check rule flags your code, fix the code — do not suppress the warning.** If the rule seems wrong, restructure your approach. If you genuinely believe the rule is incorrect for the codebase, raise it with the user — do not suppress it yourself.
+
+This applies to all files in all languages across the entire repository.
+
 ## Key Files to Read First
 
 | File | Purpose |
