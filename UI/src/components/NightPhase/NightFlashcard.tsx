@@ -26,6 +26,7 @@ import { detectSignalType } from '@/utils/signalDetection.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
 import { PlayerShowScreen } from './PlayerShowScreen.tsx';
+import { getTokenDisplayText, isCharacterIdentityToken } from '@/utils/infoTokenUtils.ts';
 
 export interface NightFlashcardProps {
   entry: NightOrderEntry;
@@ -94,6 +95,7 @@ export function NightFlashcard({
 }: NightFlashcardProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [choiceShowMessage, setChoiceShowMessage] = useState<string | null>(null);
+  const [tokenShowPhrase, setTokenShowPhrase] = useState<string | null>(null);
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
 
   const typeName = characterDef?.type ?? 'Unknown';
@@ -584,6 +586,7 @@ export function NightFlashcard({
             )
             .map((c) => c.label)}
           onShowChoiceFullscreen={(label) => setChoiceShowMessage(label)}
+          onShowTokenFullscreen={(phrase) => setTokenShowPhrase(phrase)}
         />
 
         {/* Phase 3: Signal recording controls — inline after sub-actions */}
@@ -787,6 +790,16 @@ export function NightFlashcard({
         onClose={() => setChoiceShowMessage(null)}
         variant="text"
         message={choiceShowMessage ?? ''}
+      />
+
+      {/* Token fullscreen overlay */}
+      <PlayerShowScreen
+        open={tokenShowPhrase !== null}
+        onClose={() => setTokenShowPhrase(null)}
+        variant="token"
+        tokenText={tokenShowPhrase ? getTokenDisplayText(tokenShowPhrase) : ''}
+        showCharacterPicker={tokenShowPhrase ? isCharacterIdentityToken(tokenShowPhrase) : false}
+        scriptCharacters={scriptCharacters}
       />
 
       {/* Character Detail Modal */}

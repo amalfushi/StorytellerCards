@@ -10,6 +10,7 @@ import Typography from '@mui/material/Typography';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import type { NightSubAction } from '@/types/index.ts';
 import { computeActionableIndices } from './subActionUtils.ts';
+import { extractInfoTokens } from '@/utils/infoTokenUtils.ts';
 
 export interface SubActionChecklistProps {
   subActions: NightSubAction[];
@@ -18,8 +19,10 @@ export interface SubActionChecklistProps {
   readOnly?: boolean;
   /** Labels for player-facing choices, shown as fullscreen icons on actionable items. */
   choiceLabels?: string[];
-  /** Called when a fullscreen icon is clicked, with the choice label. */
+  /** Called when a choice fullscreen icon is clicked. */
   onShowChoiceFullscreen?: (label: string) => void;
+  /** Called when an info token fullscreen icon is clicked, with the ALL CAPS token phrase. */
+  onShowTokenFullscreen?: (tokenPhrase: string) => void;
 }
 
 /**
@@ -36,6 +39,7 @@ export function SubActionChecklist({
   readOnly = false,
   choiceLabels = [],
   onShowChoiceFullscreen,
+  onShowTokenFullscreen,
 }: SubActionChecklistProps) {
   const handleToggle = useCallback(
     (index: number) => () => {
@@ -69,6 +73,10 @@ export function SubActionChecklist({
         const checked = checkedStates[index] ?? false;
         const choiceIdx = actionableToChoiceIdx.get(index);
         const choiceLabel = choiceIdx !== undefined ? choiceLabels[choiceIdx] : undefined;
+        const infoTokens = extractInfoTokens(sa.description);
+        const hasTokenIcon = infoTokens.length > 0 && onShowTokenFullscreen;
+        // Show choice fullscreen OR token fullscreen (choice takes priority)
+        const showFullscreenIcon = (choiceLabel && onShowChoiceFullscreen) || hasTokenIcon;
 
         if (isActionable) {
           // ── Actionable item: rendered WITH checkbox ──
@@ -156,18 +164,24 @@ export function SubActionChecklist({
               </Box>
 
               {/* Fullscreen icon — separate click target, outside toggle zone */}
-              {choiceLabel && onShowChoiceFullscreen && (
+              {showFullscreenIcon && (
                 <IconButton
                   size="small"
-                  onClick={() => onShowChoiceFullscreen(choiceLabel)}
+                  onClick={() => {
+                    if (choiceLabel && onShowChoiceFullscreen) {
+                      onShowChoiceFullscreen(choiceLabel);
+                    } else if (hasTokenIcon) {
+                      onShowTokenFullscreen!(infoTokens[0]);
+                    }
+                  }}
                   sx={{
                     color: 'rgba(255,255,255,0.4)',
                     flexShrink: 0,
                     ml: 1.5,
                     '&:hover': { color: 'rgba(255,255,255,0.8)' },
                   }}
-                  aria-label={`Show "${choiceLabel}" fullscreen`}
-                  data-testid={`choice-fullscreen-${index}`}
+                  aria-label={`Show "${choiceLabel ?? infoTokens[0]}" fullscreen`}
+                  data-testid={`action-fullscreen-${index}`}
                 >
                   <FullscreenIcon sx={{ fontSize: '1.1rem' }} />
                 </IconButton>
@@ -185,6 +199,8 @@ export function SubActionChecklist({
             sx={{
               pl: 5,
               cursor: 'default',
+              display: 'flex',
+              alignItems: 'center',
             }}
           >
             <ListItemText
@@ -201,6 +217,22 @@ export function SubActionChecklist({
                 </Typography>
               }
             />
+            {hasTokenIcon && (
+              <IconButton
+                size="small"
+                onClick={() => onShowTokenFullscreen!(infoTokens[0])}
+                sx={{
+                  color: 'rgba(255,255,255,0.35)',
+                  flexShrink: 0,
+                  ml: 1.5,
+                  '&:hover': { color: 'rgba(255,255,255,0.7)' },
+                }}
+                aria-label={`Show "${infoTokens[0]}" fullscreen`}
+                data-testid={`token-fullscreen-${index}`}
+              >
+                <FullscreenIcon sx={{ fontSize: '1rem' }} />
+              </IconButton>
+            )}
           </ListItem>
         );
       })}
