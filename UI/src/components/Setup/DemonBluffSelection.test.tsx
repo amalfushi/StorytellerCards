@@ -182,4 +182,48 @@ describe('DemonBluffSelection', () => {
       screen.getByText(/Choose 3 not-in-play good characters to show the Demon as bluffs/),
     ).toBeInTheDocument();
   });
+
+  // ── Lunatic variant ──
+
+  describe('lunatic variant', () => {
+    it('shows Lunatic title', () => {
+      render(<DemonBluffSelection {...defaultProps} variant="lunatic" />);
+      expect(screen.getByText('Select Lunatic Bluffs')).toBeInTheDocument();
+    });
+
+    it('shows lunatic instruction text', () => {
+      render(<DemonBluffSelection {...defaultProps} variant="lunatic" />);
+      expect(
+        screen.getByText(/Choose 3 good characters to show the Lunatic as bluffs/),
+      ).toBeInTheDocument();
+    });
+
+    it('shows in-play good characters for lunatic variant', () => {
+      render(<DemonBluffSelection {...defaultProps} variant="lunatic" />);
+      // Washerwoman is in-play but should show for lunatic
+      expect(screen.getByText('Washerwoman')).toBeInTheDocument();
+    });
+
+    it('shows not-in-play good characters for lunatic variant', () => {
+      render(<DemonBluffSelection {...defaultProps} variant="lunatic" />);
+      // Fortune Teller is not in play and should show
+      expect(screen.getByText('Fortune Teller')).toBeInTheDocument();
+    });
+
+    it('still excludes evil characters for lunatic variant', () => {
+      render(<DemonBluffSelection {...defaultProps} variant="lunatic" />);
+      expect(screen.queryByTestId('bluff-toggle-imp')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('bluff-toggle-poisoner')).not.toBeInTheDocument();
+    });
+
+    it('allows selecting 3 bluffs in lunatic variant', () => {
+      render(<DemonBluffSelection {...defaultProps} variant="lunatic" />);
+      // Select from in-play characters (which are now available)
+      fireEvent.click(screen.getByTestId('bluff-toggle-washerwoman'));
+      fireEvent.click(screen.getByTestId('bluff-toggle-librarian'));
+      fireEvent.click(screen.getByTestId('bluff-toggle-fortuneteller'));
+      expect(screen.getByTestId('bluff-count-chip')).toHaveTextContent('3/3');
+      expect(screen.getByTestId('confirm-bluffs')).not.toBeDisabled();
+    });
+  });
 });

@@ -10,6 +10,9 @@ import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
+import Avatar from '@mui/material/Avatar';
+import IconButton from '@mui/material/IconButton';
+import VisibilityIcon from '@mui/icons-material/Visibility';
 import PersonIcon from '@mui/icons-material/Person';
 import type { NightOrderEntry, PlayerSeat, CharacterDef, ActiveJinx } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
@@ -17,11 +20,13 @@ import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.t
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { ReminderTokenChips } from '@/components/common/ReminderTokenChips.tsx';
 import { ReminderTokenChip } from '@/components/common/ReminderTokenChip.tsx';
-import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
+import { getAlignmentBorderColor, getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { parseReminderMarkers, hasReminderMarkers } from '@/utils/reminderUtils.ts';
 import { detectSignalType } from '@/utils/signalDetection.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
+import { PlayerShowScreen } from './PlayerShowScreen.tsx';
+import { getTokenDisplayText, isCharacterIdentityToken } from '@/utils/infoTokenUtils.ts';
 
 export interface NightFlashcardProps {
   entry: NightOrderEntry;
@@ -51,6 +56,12 @@ export interface NightFlashcardProps {
   previousNotes?: string;
   /** Callback when a reminder token is clicked (navigates to Day view). */
   onReminderTokenClick?: (tokenText: string) => void;
+  /** Lunatic bluff character definitions (shown on Lunatic's first-night card). */
+  lunaticBluffCharacters?: CharacterDef[];
+  /** Demon bluff character definitions (shown for demon characters). */
+  demonBluffCharacters?: CharacterDef[];
+  /** Callback to open the Show Player drawer (triggered by FAB moved to card). */
+  onOpenShowDrawer?: () => void;
 }
 
 /**
@@ -78,8 +89,13 @@ export function NightFlashcard({
   characterLookup,
   previousNotes,
   onReminderTokenClick,
+  lunaticBluffCharacters,
+  demonBluffCharacters: _demonBluffCharacters,
+  onOpenShowDrawer,
 }: NightFlashcardProps) {
   const [detailOpen, setDetailOpen] = useState(false);
+  const [choiceShowMessage, setChoiceShowMessage] = useState<string | null>(null);
+  const [tokenShowPhrase, setTokenShowPhrase] = useState<string | null>(null);
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
 
   const typeName = characterDef?.type ?? 'Unknown';
@@ -404,6 +420,73 @@ export function NightFlashcard({
         )}
       </Box>
 
+      {/* Lunatic bluff display (only on lunatic first-night card when bluffs are set) */}
+      {lunaticBluffCharacters && lunaticBluffCharacters.length > 0 && (
+        <Box
+          data-testid="lunatic-bluffs"
+          sx={{
+            width: '100%',
+            mt: 1,
+            mb: 1.5,
+            p: 1.5,
+            borderRadius: 2,
+            bgcolor: 'rgba(255,255,255,0.08)',
+            border: '1px solid rgba(255,255,255,0.15)',
+            position: 'relative',
+            zIndex: 1,
+          }}
+        >
+          <Typography
+            variant="subtitle2"
+            sx={{
+              color: '#42a5f5',
+              fontWeight: 700,
+              mb: 1,
+              textAlign: 'center',
+            }}
+          >
+            Show these bluffs to the Lunatic
+          </Typography>
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
+            {lunaticBluffCharacters.map((ch) => (
+              <Box
+                key={ch.id}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 0.5,
+                }}
+                data-testid={`bluff-display-${ch.id}`}
+              >
+                <Avatar
+                  src={getCharacterIconPath(ch.id)}
+                  alt={ch.name}
+                  sx={{
+                    width: 48,
+                    height: 48,
+                    border: `2px solid ${getCharacterTypeColor(ch.type)}`,
+                    bgcolor: 'rgba(0,0,0,0.3)',
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: getCharacterTypeColor(ch.type),
+                    fontWeight: 600,
+                    textAlign: 'center',
+                    maxWidth: 80,
+                    lineHeight: 1.2,
+                  }}
+                >
+                  {ch.name}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        </Box>
+      )}
+
       <Divider
         sx={{ borderColor: 'rgba(255,255,255,0.12)', mb: 1, position: 'relative', zIndex: 1 }}
       />
@@ -493,6 +576,17 @@ export function NightFlashcard({
           checkedStates={checkedStates}
           onToggle={onToggleSubAction}
           readOnly={readOnly}
+          choiceLabels={parsedChoices
+            .filter(
+              (c) =>
+                c.type === 'player' ||
+                c.type === 'livingPlayer' ||
+                c.type === 'deadPlayer' ||
+                c.type === 'character',
+            )
+            .map((c) => c.label)}
+          onShowChoiceFullscreen={(label) => setChoiceShowMessage(label)}
+          onShowTokenFullscreen={(phrase) => setTokenShowPhrase(phrase)}
         />
 
         {/* Phase 3: Signal recording controls — inline after sub-actions */}
@@ -609,6 +703,24 @@ export function NightFlashcard({
         )}
       </Box>
 
+      {/* Show Player icon — right-aligned above the notes divider */}
+      {!readOnly && onOpenShowDrawer && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', position: 'relative', zIndex: 1 }}>
+          <IconButton
+            size="small"
+            onClick={onOpenShowDrawer}
+            data-testid="show-player-btn"
+            sx={{
+              color: 'rgba(255,255,255,0.5)',
+              '&:hover': { color: 'rgba(255,255,255,0.8)', bgcolor: 'rgba(255,255,255,0.08)' },
+            }}
+            aria-label="Show player"
+          >
+            <VisibilityIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )}
+
       <Divider
         sx={{
           borderColor: 'rgba(255,255,255,0.12)',
@@ -671,6 +783,25 @@ export function NightFlashcard({
           }}
         />
       </Box>
+
+      {/* Choice fullscreen overlay */}
+      <PlayerShowScreen
+        open={choiceShowMessage !== null}
+        onClose={() => setChoiceShowMessage(null)}
+        variant="text"
+        message={choiceShowMessage ?? ''}
+      />
+
+      {/* Token fullscreen overlay */}
+      <PlayerShowScreen
+        open={tokenShowPhrase !== null}
+        onClose={() => setTokenShowPhrase(null)}
+        variant="token"
+        tokenText={tokenShowPhrase ? getTokenDisplayText(tokenShowPhrase) : ''}
+        showCharacterPicker={tokenShowPhrase ? isCharacterIdentityToken(tokenShowPhrase) : false}
+        scriptCharacters={scriptCharacters}
+      />
+
       {/* Character Detail Modal */}
       <CharacterDetailModal
         open={detailOpen}

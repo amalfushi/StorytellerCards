@@ -1889,4 +1889,209 @@ describe('GameContext', () => {
       expect(result.current.state.game).toBeNull();
     });
   });
+
+  // ── SET_LUNATIC_BLUFFS ──
+
+  describe('SET_LUNATIC_BLUFFS', () => {
+    it('sets lunaticBluffs on the game', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.setLunaticBluffs(['washerwoman', 'librarian', 'empath']);
+      });
+
+      expect(result.current.state.game!.lunaticBluffs).toEqual([
+        'washerwoman',
+        'librarian',
+        'empath',
+      ]);
+    });
+
+    it('replaces existing lunaticBluffs', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({ lunaticBluffs: ['washerwoman', 'librarian', 'empath'] }),
+        );
+      });
+
+      act(() => {
+        result.current.setLunaticBluffs(['chef', 'butler', 'drunk']);
+      });
+
+      expect(result.current.state.game!.lunaticBluffs).toEqual(['chef', 'butler', 'drunk']);
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.setLunaticBluffs(['washerwoman', 'librarian', 'empath']);
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
+
+  // ── SET_PLAYER_BLUFFS (per-player) ──
+
+  describe('SET_PLAYER_BLUFFS', () => {
+    it('sets bluffs for a specific seat', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.setPlayerBluffs(1, ['washerwoman', 'librarian', 'empath']);
+      });
+
+      expect(result.current.state.game!.playerBluffs).toEqual({
+        '1': ['washerwoman', 'librarian', 'empath'],
+      });
+    });
+
+    it('supports distinct bluffs for different seats', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.setPlayerBluffs(1, ['washerwoman', 'librarian', 'empath']);
+      });
+      act(() => {
+        result.current.setPlayerBluffs(5, ['chef', 'butler', 'drunk']);
+      });
+
+      expect(result.current.state.game!.playerBluffs).toEqual({
+        '1': ['washerwoman', 'librarian', 'empath'],
+        '5': ['chef', 'butler', 'drunk'],
+      });
+    });
+
+    it('replaces bluffs for a specific seat without affecting others', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({ playerBluffs: { '1': ['washerwoman'], '5': ['chef'] } }),
+        );
+      });
+
+      act(() => {
+        result.current.setPlayerBluffs(1, ['butler', 'drunk', 'saint']);
+      });
+
+      expect(result.current.state.game!.playerBluffs).toEqual({
+        '1': ['butler', 'drunk', 'saint'],
+        '5': ['chef'],
+      });
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.setPlayerBluffs(1, ['washerwoman']);
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
+
+  // ── SET_CUSTOM_PLAYER_MESSAGE / CLEAR_CUSTOM_PLAYER_MESSAGE ──
+
+  describe('Custom player messages', () => {
+    it('sets a custom player message', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.setCustomPlayerMessage('imp', 'You were chosen');
+      });
+
+      expect(result.current.state.game!.customPlayerMessages).toEqual({
+        imp: 'You were chosen',
+      });
+    });
+
+    it('sets multiple custom player messages', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.setCustomPlayerMessage('imp', 'You were chosen');
+      });
+      act(() => {
+        result.current.setCustomPlayerMessage('empath', 'Pick a player');
+      });
+
+      expect(result.current.state.game!.customPlayerMessages).toEqual({
+        imp: 'You were chosen',
+        empath: 'Pick a player',
+      });
+    });
+
+    it('overwrites an existing message', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ customPlayerMessages: { imp: 'Old message' } }));
+      });
+
+      act(() => {
+        result.current.setCustomPlayerMessage('imp', 'New message');
+      });
+
+      expect(result.current.state.game!.customPlayerMessages).toEqual({
+        imp: 'New message',
+      });
+    });
+
+    it('clears a custom player message', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({ customPlayerMessages: { imp: 'Hello', empath: 'World' } }),
+        );
+      });
+
+      act(() => {
+        result.current.clearCustomPlayerMessage('imp');
+      });
+
+      expect(result.current.state.game!.customPlayerMessages).toEqual({
+        empath: 'World',
+      });
+    });
+
+    it('sets customPlayerMessages to undefined when last message is cleared', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame({ customPlayerMessages: { imp: 'Hello' } }));
+      });
+
+      act(() => {
+        result.current.clearCustomPlayerMessage('imp');
+      });
+
+      expect(result.current.state.game!.customPlayerMessages).toBeUndefined();
+    });
+
+    it('does nothing when no game is loaded', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.setCustomPlayerMessage('imp', 'Hello');
+      });
+
+      expect(result.current.state.game).toBeNull();
+    });
+  });
 });

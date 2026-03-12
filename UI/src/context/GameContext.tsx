@@ -104,7 +104,11 @@ type GameAction =
   | { type: 'SET_IN_PLAY_CHARACTERS'; payload: { characterIds: string[] } }
   | { type: 'SWAP_PLAYER_SEATS'; payload: { seatA: number; seatB: number } }
   | { type: 'SET_APPARENT_CHARACTER'; payload: { seat: number; apparentCharacterId: string } }
-  | { type: 'SET_DEMON_BLUFFS'; payload: { characterIds: string[] } };
+  | { type: 'SET_DEMON_BLUFFS'; payload: { characterIds: string[] } }
+  | { type: 'SET_LUNATIC_BLUFFS'; payload: { characterIds: string[] } }
+  | { type: 'SET_PLAYER_BLUFFS'; payload: { seat: number; bluffIds: string[] } }
+  | { type: 'SET_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string; message: string } }
+  | { type: 'CLEAR_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -473,6 +477,57 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'SET_LUNATIC_BLUFFS': {
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: { ...state.game, lunaticBluffs: action.payload.characterIds },
+      };
+    }
+
+    case 'SET_PLAYER_BLUFFS': {
+      if (!state.game) return state;
+      const { seat, bluffIds } = action.payload;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          playerBluffs: {
+            ...state.game.playerBluffs,
+            [String(seat)]: bluffIds,
+          },
+        },
+      };
+    }
+
+    case 'SET_CUSTOM_PLAYER_MESSAGE': {
+      if (!state.game) return state;
+      const { characterId, message } = action.payload;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          customPlayerMessages: {
+            ...state.game.customPlayerMessages,
+            [characterId]: message,
+          },
+        },
+      };
+    }
+
+    case 'CLEAR_CUSTOM_PLAYER_MESSAGE': {
+      if (!state.game) return state;
+      const existing = { ...state.game.customPlayerMessages };
+      delete existing[action.payload.characterId];
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          customPlayerMessages: Object.keys(existing).length > 0 ? existing : undefined,
+        },
+      };
+    }
+
     default:
       return state;
   }
@@ -548,6 +603,10 @@ interface GameContextValue {
   swapPlayerSeats: (seatA: number, seatB: number) => void;
   setApparentCharacter: (seat: number, apparentCharacterId: string) => void;
   setDemonBluffs: (characterIds: string[]) => void;
+  setLunaticBluffs: (characterIds: string[]) => void;
+  setPlayerBluffs: (seat: number, bluffIds: string[]) => void;
+  setCustomPlayerMessage: (characterId: string, message: string) => void;
+  clearCustomPlayerMessage: (characterId: string) => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -711,6 +770,22 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_DEMON_BLUFFS', payload: { characterIds } });
   }, []);
 
+  const setLunaticBluffs = useCallback((characterIds: string[]) => {
+    dispatch({ type: 'SET_LUNATIC_BLUFFS', payload: { characterIds } });
+  }, []);
+
+  const setPlayerBluffs = useCallback((seat: number, bluffIds: string[]) => {
+    dispatch({ type: 'SET_PLAYER_BLUFFS', payload: { seat, bluffIds } });
+  }, []);
+
+  const setCustomPlayerMessage = useCallback((characterId: string, message: string) => {
+    dispatch({ type: 'SET_CUSTOM_PLAYER_MESSAGE', payload: { characterId, message } });
+  }, []);
+
+  const clearCustomPlayerMessage = useCallback((characterId: string) => {
+    dispatch({ type: 'CLEAR_CUSTOM_PLAYER_MESSAGE', payload: { characterId } });
+  }, []);
+
   const value: GameContextValue = {
     state,
     dispatch,
@@ -739,6 +814,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     swapPlayerSeats,
     setApparentCharacter,
     setDemonBluffs,
+    setLunaticBluffs,
+    setPlayerBluffs,
+    setCustomPlayerMessage,
+    clearCustomPlayerMessage,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;

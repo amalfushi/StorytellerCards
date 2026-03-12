@@ -29,7 +29,15 @@ export function NightTabPanel({
   onComplete,
   onReminderTokenClick,
 }: NightTabPanelProps) {
-  const { state, startNight, updateNightProgress, completeNight, setNightCardIndex } = useGame();
+  const {
+    state,
+    startNight,
+    updateNightProgress,
+    completeNight,
+    setNightCardIndex,
+    setCustomPlayerMessage,
+    clearCustomPlayerMessage,
+  } = useGame();
   const { nightProgress } = state;
   const game = state.game;
   const { getCharacter, getCharactersByIds } = useCharacterLookup();
@@ -132,6 +140,10 @@ export function NightTabPanel({
         previousNightHistory={previousNightHistory}
         onReminderTokenClick={onReminderTokenClick}
         bluffCharacters={bluffCharacters}
+        playerBluffs={game?.playerBluffs}
+        customPlayerMessages={game?.customPlayerMessages}
+        onCustomMessageChange={setCustomPlayerMessage}
+        onClearCustomMessage={clearCustomPlayerMessage}
       />
     </Box>
   );

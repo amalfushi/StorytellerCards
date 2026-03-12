@@ -15,6 +15,7 @@ import type {
 import { NightFlashcard } from './NightFlashcard.tsx';
 import { StructuralCard } from './StructuralCard.tsx';
 import { NightProgressBar } from './NightProgressBar.tsx';
+import { PlayerShowDrawer } from './PlayerShowDrawer.tsx';
 
 export interface FlashcardCarouselProps {
   entries: NightOrderEntry[];
@@ -38,6 +39,14 @@ export interface FlashcardCarouselProps {
   onReminderTokenClick?: (tokenText: string) => void;
   /** Demon bluff character definitions (passed to demoninfo StructuralCard). */
   bluffCharacters?: CharacterDef[];
+  /** Per-player bluffs keyed by seat number (as string). */
+  playerBluffs?: Record<string, string[]>;
+  /** Custom player messages keyed by characterId. */
+  customPlayerMessages?: Record<string, string>;
+  /** Callback when a custom player message is saved. */
+  onCustomMessageChange?: (characterId: string, message: string) => void;
+  /** Callback when a custom player message is cleared. */
+  onClearCustomMessage?: (characterId: string) => void;
 }
 
 /**
@@ -62,9 +71,14 @@ export function FlashcardCarousel({
   onCardChange,
   onReminderTokenClick,
   bluffCharacters,
+  playerBluffs,
+  customPlayerMessages,
+  onCustomMessageChange,
+  onClearCustomMessage,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
   const [slideDir, setSlideDir] = useState<'none' | 'left' | 'right'>('none');
+  const [showDrawerOpen, setShowDrawerOpen] = useState(false);
   const isAnimating = useRef(false);
 
   const totalCards = entries.length;
@@ -201,6 +215,16 @@ export function FlashcardCarousel({
     const player = players.find((p) => p.characterId === entry.id);
     const charDef = characterLookup(entry.id);
     const isDead = player ? !player.alive : false;
+    const isDemon = charDef?.type === 'Demon';
+    const isLunatic = entry.id === 'lunatic';
+
+    // Per-player bluffs: look up from the matched player's seat
+    const playerSeatBluffs = player && playerBluffs ? playerBluffs[String(player.seat)] : undefined;
+    const resolvedBluffChars = playerSeatBluffs?.length
+      ? playerSeatBluffs
+          .map((id) => characterLookup(id))
+          .filter((c): c is CharacterDef => c !== undefined)
+      : undefined;
 
     return (
       <NightFlashcard
@@ -221,6 +245,9 @@ export function FlashcardCarousel({
         characterLookup={characterLookup}
         previousNotes={prevNote}
         onReminderTokenClick={onReminderTokenClick}
+        lunaticBluffCharacters={isLunatic ? resolvedBluffChars : undefined}
+        demonBluffCharacters={isDemon ? resolvedBluffChars : undefined}
+        onOpenShowDrawer={() => setShowDrawerOpen(true)}
       />
     );
   };
@@ -241,6 +268,22 @@ export function FlashcardCarousel({
       goTo('next');
     }
   };
+
+  // Compute bluff characters for the current card's show drawer
+  const currentEntry = entries[currentIndex];
+  const currentPlayer =
+    currentEntry?.type === 'character'
+      ? players.find((p) => p.characterId === currentEntry.id)
+      : undefined;
+  const currentBluffIds =
+    currentPlayer && playerBluffs ? playerBluffs[String(currentPlayer.seat)] : undefined;
+  const currentBluffChars = useMemo(() => {
+    if (!currentBluffIds?.length) return undefined;
+    return currentBluffIds
+      .map((id) => characterLookup(id))
+      .filter((c): c is CharacterDef => c !== undefined);
+  }, [currentBluffIds, characterLookup]);
+  const currentBluffLabel = currentEntry?.id === 'lunatic' ? 'Lunatic Bluffs' : 'Demon Bluffs';
 
   return (
     <Box
@@ -277,25 +320,25 @@ export function FlashcardCarousel({
           minHeight: 0,
         }}
       >
-        {/* Navigation arrows */}
+        {/* Navigation arrows — positioned inside the card boundary */}
         {currentIndex > 0 && (
           <IconButton
             onClick={() => goTo('prev')}
             sx={{
               position: 'absolute',
-              left: 2,
+              left: 26,
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 10,
               color: 'rgba(255,255,255,0.6)',
               backgroundColor: 'rgba(0,0,0,0.3)',
               '&:hover': { backgroundColor: 'rgba(0,0,0,0.5)' },
-              width: 44,
-              height: 44,
+              width: 36,
+              height: 36,
             }}
-            size="medium"
+            size="small"
           >
-            <ChevronLeftIcon sx={{ fontSize: '1.8rem' }} />
+            <ChevronLeftIcon sx={{ fontSize: '1.5rem' }} />
           </IconButton>
         )}
         {currentIndex < totalCards - 1 && (
@@ -303,19 +346,19 @@ export function FlashcardCarousel({
             onClick={() => goTo('next')}
             sx={{
               position: 'absolute',
-              right: 2,
+              right: 26,
               top: '50%',
               transform: 'translateY(-50%)',
               zIndex: 10,
               color: 'rgba(255,255,255,0.6)',
               backgroundColor: 'rgba(0,0,0,0.3)',
               '&:hover': { backgroundColor: 'rgba(0,0,0,0.5)' },
-              width: 44,
-              height: 44,
+              width: 36,
+              height: 36,
             }}
-            size="medium"
+            size="small"
           >
-            <ChevronRightIcon sx={{ fontSize: '1.8rem' }} />
+            <ChevronRightIcon sx={{ fontSize: '1.5rem' }} />
           </IconButton>
         )}
 
@@ -335,6 +378,25 @@ export function FlashcardCarousel({
           {renderCard(currentIndex)}
         </Box>
       </Box>
+
+      {/* Player show drawer (lifted from cards to carousel level) */}
+      <PlayerShowDrawer
+        open={showDrawerOpen}
+        onClose={() => setShowDrawerOpen(false)}
+        bluffCharacters={currentBluffChars}
+        bluffLabel={currentBluffLabel}
+        customMessage={customPlayerMessages?.[currentEntry?.id ?? '']}
+        onCustomMessageChange={
+          onCustomMessageChange && currentEntry
+            ? (msg) => onCustomMessageChange(currentEntry.id, msg)
+            : undefined
+        }
+        onClearCustomMessage={
+          onClearCustomMessage && currentEntry
+            ? () => onClearCustomMessage(currentEntry.id)
+            : undefined
+        }
+      />
 
       {/* Complete Night button — shown on last card */}
       {isLastCard && !readOnly && (

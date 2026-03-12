@@ -31,8 +31,15 @@ interface PlayerListTabProps {
  * Night view adds character name, type, alignment, reminders, and an edit icon.
  */
 export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
-  const { state, updatePlayer, swapPlayerSeats, removeTraveller, addToken, removeToken } =
-    useGame();
+  const {
+    state,
+    updatePlayer,
+    swapPlayerSeats,
+    removeTraveller,
+    addToken,
+    removeToken,
+    setPlayerBluffs,
+  } = useGame();
   const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
   const [editSeat, setEditSeat] = useState<number | null>(null);
   const [swapSourceSeat, setSwapSourceSeat] = useState<number | null>(null);
@@ -61,6 +68,45 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
 
   const editingPlayer =
     editSeat !== null ? (players.find((p) => p.seat === editSeat) ?? null) : null;
+
+  // ── Bluff props for the actions modal ──
+  const editingPlayerCharDef = editingPlayer?.characterId
+    ? getCharacter(editingPlayer.characterId)
+    : undefined;
+  const isEditPlayerDemon = editingPlayerCharDef?.type === 'Demon';
+  const isEditPlayerLunatic = editingPlayer?.characterId === 'lunatic';
+  const showBluffsForPlayer = isEditPlayerDemon || isEditPlayerLunatic;
+
+  const bluffIds = editingPlayer
+    ? state.game?.playerBluffs?.[String(editingPlayer.seat)]
+    : undefined;
+
+  const modalBluffCharacters = useMemo(
+    () => (bluffIds?.length ? getCharactersByIds(bluffIds) : undefined),
+    [bluffIds, getCharactersByIds],
+  );
+
+  const modalAvailableBluffCharacters = useMemo(() => {
+    if (!showBluffsForPlayer) return undefined;
+    const inPlay = new Set(state.game?.inPlayCharacterIds ?? []);
+    return scriptCharacters.filter((ch) => {
+      if (ch.type !== 'Townsfolk' && ch.type !== 'Outsider') return false;
+      if (isEditPlayerLunatic) return true;
+      return !inPlay.has(ch.id);
+    });
+  }, [showBluffsForPlayer, isEditPlayerLunatic, scriptCharacters, state.game?.inPlayCharacterIds]);
+
+  const handleChangeBluff = useCallback(
+    (oldBluffId: string, newBluffId: string) => {
+      if (!editingPlayer) return;
+      const currentBluffs = bluffIds ?? [];
+      const updated = currentBluffs.map((id) => (id === oldBluffId ? newBluffId : id));
+      setPlayerBluffs(editingPlayer.seat, updated);
+    },
+    [editingPlayer, bluffIds, setPlayerBluffs],
+  );
+
+  const modalBluffLabel = isEditPlayerLunatic ? 'Lunatic Bluffs' : 'Demon Bluffs';
 
   // Token manager player (derive from live state for fresh tokens)
   const tokenPlayer =
@@ -264,6 +310,10 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         showCharacters={showCharacters}
         scriptCharacters={scriptCharacters}
         allCharacters={allCharacters}
+        demonBluffs={bluffIds}
+        bluffCharacters={modalBluffCharacters}
+        availableBluffCharacters={modalAvailableBluffCharacters}
+        bluffLabel={modalBluffLabel}
         onClose={() => setEditSeat(null)}
         onToggleAlive={handleToggleAlive}
         onToggleGhostVote={handleToggleGhostVote}
@@ -271,6 +321,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
         onSwapWith={handleSwapWith}
+        onChangeBluff={handleChangeBluff}
       />
 
       {/* Token Manager Dialog */}

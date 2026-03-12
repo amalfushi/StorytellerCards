@@ -62,14 +62,17 @@ export function GameViewPage() {
     setPhase,
     setInPlayCharacters,
     setDemonBluffs,
+    setLunaticBluffs,
+    setPlayerBluffs,
   } = useGame();
-  const { allCharacters, getCharactersByIds } = useCharacterLookup();
+  const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
 
   const [tabIndex, setTabIndex] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
   const [charSelectionOpen, setCharSelectionOpen] = useState(false);
   const [bluffSelectionOpen, setBluffSelectionOpen] = useState(false);
+  const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
 
@@ -110,18 +113,6 @@ export function GameViewPage() {
   useEffect(() => {
     if (initialGame) loadGame(initialGame);
   }, [initialGame, loadGame]);
-
-  // On page refresh: if nightProgress is active, auto-resume night view.
-  // This effect runs once when nightProgress transitions from null to non-null
-  // after game is loaded from localStorage.
-  const hasAutoResumed = useRef(false);
-  useEffect(() => {
-    if (!hasAutoResumed.current && gameState.nightProgress) {
-      hasAutoResumed.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from loaded state
-      setViewMode('night');
-    }
-  }, [gameState.nightProgress]);
 
   // Derive loading: we found a game in localStorage but context hasn't received it yet
   const loading = !!initialGame && !gameState.game;
@@ -195,15 +186,36 @@ export function GameViewPage() {
     [setInPlayCharacters, saveGame],
   );
 
+  // Check if the Lunatic is in play (for conditional bluff selection step)
+  const lunaticIsInPlay = useMemo(
+    () => game?.inPlayCharacterIds?.includes('lunatic') ?? false,
+    [game?.inPlayCharacterIds],
+  );
+
   // Handle confirming demon bluff selection
   const handleConfirmDemonBluffs = useCallback(
     (bluffIds: string[]) => {
       setDemonBluffs(bluffIds);
       saveGame();
       setBluffSelectionOpen(false);
+      if (lunaticIsInPlay) {
+        setLunaticBluffSelectionOpen(true);
+      } else {
+        setAssignDialogOpen(true);
+      }
+    },
+    [setDemonBluffs, saveGame, lunaticIsInPlay],
+  );
+
+  // Handle confirming lunatic bluff selection
+  const handleConfirmLunaticBluffs = useCallback(
+    (bluffIds: string[]) => {
+      setLunaticBluffs(bluffIds);
+      saveGame();
+      setLunaticBluffSelectionOpen(false);
       setAssignDialogOpen(true);
     },
-    [setDemonBluffs, saveGame],
+    [setLunaticBluffs, saveGame],
   );
 
   // Use in-play characters for assignment if available, else all script characters
@@ -215,6 +227,10 @@ export function GameViewPage() {
     return scriptCharacterDefs;
   }, [inPlayIds, getCharactersByIds, scriptCharacterDefs]);
 
+  // Template bluffs for distribution after assignment
+  const templateDemonBluffs = game?.demonBluffs;
+  const templateLunaticBluffs = game?.lunaticBluffs;
+
   // Handle confirming character assignments
   const handleConfirmAssignments = useCallback(
     (updatedPlayers: import('@/types/index.ts').PlayerSeat[]) => {
@@ -225,11 +241,26 @@ export function GameViewPage() {
             actualAlignment: p.actualAlignment,
             startingAlignment: p.startingAlignment,
           });
+
+          // Distribute template bluffs to the assigned seat
+          const charDef = getCharacter(p.characterId);
+          if (charDef?.type === 'Demon' && templateDemonBluffs?.length) {
+            setPlayerBluffs(p.seat, templateDemonBluffs);
+          } else if (p.characterId === 'lunatic' && templateLunaticBluffs?.length) {
+            setPlayerBluffs(p.seat, templateLunaticBluffs);
+          }
         }
       }
       saveGame();
     },
-    [updatePlayer, saveGame],
+    [
+      updatePlayer,
+      saveGame,
+      getCharacter,
+      templateDemonBluffs,
+      templateLunaticBluffs,
+      setPlayerBluffs,
+    ],
   );
 
   // PhaseBar callbacks
@@ -535,12 +566,32 @@ export function GameViewPage() {
           open={bluffSelectionOpen}
           onClose={() => {
             setBluffSelectionOpen(false);
-            setAssignDialogOpen(true);
+            if (lunaticIsInPlay) {
+              setLunaticBluffSelectionOpen(true);
+            } else {
+              setAssignDialogOpen(true);
+            }
           }}
           scriptCharacters={scriptCharacterDefs}
           inPlayCharacterIds={game.inPlayCharacterIds}
           initialSelected={game.demonBluffs}
           onConfirm={handleConfirmDemonBluffs}
+        />
+      )}
+
+      {/* Lunatic Bluff Selection Dialog */}
+      {game && game.inPlayCharacterIds && lunaticIsInPlay && (
+        <DemonBluffSelection
+          open={lunaticBluffSelectionOpen}
+          onClose={() => {
+            setLunaticBluffSelectionOpen(false);
+            setAssignDialogOpen(true);
+          }}
+          scriptCharacters={scriptCharacterDefs}
+          inPlayCharacterIds={game.inPlayCharacterIds}
+          initialSelected={game.lunaticBluffs}
+          onConfirm={handleConfirmLunaticBluffs}
+          variant="lunatic"
         />
       )}
     </Box>

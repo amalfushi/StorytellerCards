@@ -48,6 +48,8 @@ export interface PlayerActionsModalProps {
   bluffCharacters?: CharacterDef[];
   /** Available good characters not in play (for swapping bluffs). */
   availableBluffCharacters?: CharacterDef[];
+  /** Label for the bluff section header (default: "Demon Bluffs"). */
+  bluffLabel?: string;
   onClose: () => void;
   onToggleAlive: (seat: number) => void;
   onToggleGhostVote: (seat: number) => void;
@@ -79,6 +81,7 @@ export function PlayerActionsModal({
   demonBluffs,
   bluffCharacters,
   availableBluffCharacters,
+  bluffLabel,
   onClose,
   onToggleAlive,
   onToggleGhostVote,
@@ -100,6 +103,7 @@ export function PlayerActionsModal({
       demonBluffs={demonBluffs}
       bluffCharacters={bluffCharacters}
       availableBluffCharacters={availableBluffCharacters}
+      bluffLabel={bluffLabel}
       onClose={onClose}
       onToggleAlive={onToggleAlive}
       onToggleGhostVote={onToggleGhostVote}
@@ -121,6 +125,7 @@ function PlayerActionsModalInner({
   demonBluffs,
   bluffCharacters,
   availableBluffCharacters,
+  bluffLabel,
   onClose,
   onToggleAlive,
   onToggleGhostVote,
@@ -286,7 +291,7 @@ function PlayerActionsModalInner({
               <Divider />
               <Box data-testid="demon-bluffs-section">
                 <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#b71c1c', mb: 0.5 }}>
-                  Demon Bluffs
+                  {bluffLabel ?? 'Demon Bluffs'}
                 </Typography>
                 {bluffCharacters.map((ch) => (
                   <Box
