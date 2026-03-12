@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -34,6 +36,22 @@ func (h *Games) Get(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, g)
 }
 
+// GetVersion returns only the version info for a game. GET /api/sessions/{sessionId}/games/{gameId}/version
+func (h *Games) GetVersion(w http.ResponseWriter, r *http.Request) {
+	sid := chi.URLParam(r, "sessionId")
+	gid := chi.URLParam(r, "gameId")
+	g, err := h.store.GetGame(sid, gid)
+	if err != nil {
+		log.Printf("WARN get game version %s/%s: %v", sid, gid, err)
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	writeJSON(w, http.StatusOK, models.VersionInfo{
+		Version:   g.Version,
+		UpdatedAt: g.UpdatedAt,
+	})
+}
+
 // Create stores a new game. POST /api/sessions/{sessionId}/games
 func (h *Games) Create(w http.ResponseWriter, r *http.Request) {
 	sid := chi.URLParam(r, "sessionId")
@@ -47,6 +65,8 @@ func (h *Games) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	g.SessionID = sid
+	g.Version = 1
+	g.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 	if err := h.store.SaveGame(g); err != nil {
 		log.Printf("ERROR save game: %v", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -66,6 +86,34 @@ func (h *Games) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	g.ID = gid
 	g.SessionID = sid
+
+	// Optimistic concurrency: check X-Expected-Version header
+	if evHeader := r.Header.Get("X-Expected-Version"); evHeader != "" {
+		expectedVersion, err := strconv.Atoi(evHeader)
+		if err != nil {
+			http.Error(w, "bad X-Expected-Version header", http.StatusBadRequest)
+			return
+		}
+		existing, err := h.store.GetGame(sid, gid)
+		if err != nil {
+			log.Printf("WARN update game %s/%s (version check): %v", sid, gid, err)
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		if existing.Version != expectedVersion {
+			writeJSON(w, http.StatusConflict, map[string]any{
+				"error":           "version conflict",
+				"serverVersion":   existing.Version,
+				"expectedVersion": expectedVersion,
+			})
+			return
+		}
+	}
+
+	// Auto-increment version and set timestamp
+	g.Version = g.Version + 1
+	g.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+
 	if err := h.store.SaveGame(g); err != nil {
 		log.Printf("ERROR update game %s/%s: %v", sid, gid, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)

@@ -47,7 +47,7 @@ func main() {
 	r.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:4173"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type"},
+		AllowedHeaders:   []string{"Content-Type", "X-Expected-Version"},
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
@@ -60,11 +60,13 @@ func main() {
 		r.Get("/sessions/{id}", sessions.Get)
 		r.Put("/sessions/{id}", sessions.Update)
 		r.Delete("/sessions/{id}", sessions.Delete)
+		r.Get("/sessions/{id}/version", sessions.GetVersion)
 
 		// Games (nested under session)
 		r.Post("/sessions/{sessionId}/games", games.Create)
 		r.Get("/sessions/{sessionId}/games/{gameId}", games.Get)
 		r.Put("/sessions/{sessionId}/games/{gameId}", games.Update)
+		r.Get("/sessions/{sessionId}/games/{gameId}/version", games.GetVersion)
 
 		// Scripts
 		r.Post("/scripts/import", scripts.Import)

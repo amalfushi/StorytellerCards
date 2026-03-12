@@ -129,6 +129,8 @@ type Game struct {
 	IsFirstNight bool                `json:"isFirstNight"`
 	Players      []PlayerSeat        `json:"players"`
 	NightHistory []NightHistoryEntry `json:"nightHistory"`
+	Version      int                 `json:"version"`
+	UpdatedAt    string              `json:"updatedAt,omitempty"`
 }
 
 // ──────────────────────────────────────────────
@@ -141,10 +143,22 @@ type PlayerTemplate struct {
 }
 
 type Session struct {
-	ID             string           `json:"id"`
-	Name           string           `json:"name"`
-	CreatedAt      string           `json:"createdAt"`
-	DefaultScriptID string          `json:"defaultScriptId"`
-	DefaultPlayers []PlayerTemplate `json:"defaultPlayers"`
-	GameIDs        []string         `json:"gameIds"`
+	ID              string           `json:"id"`
+	Name            string           `json:"name"`
+	CreatedAt       string           `json:"createdAt"`
+	DefaultScriptID string           `json:"defaultScriptId"`
+	DefaultPlayers  []PlayerTemplate `json:"defaultPlayers"`
+	GameIDs         []string         `json:"gameIds"`
+	Version         int              `json:"version"`
+	UpdatedAt       string           `json:"updatedAt,omitempty"`
+}
+
+// ──────────────────────────────────────────────
+// Sync
+// ──────────────────────────────────────────────
+
+// VersionInfo is the lightweight response for version-check endpoints.
+type VersionInfo struct {
+	Version   int    `json:"version"`
+	UpdatedAt string `json:"updatedAt"`
 }

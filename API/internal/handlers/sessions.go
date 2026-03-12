@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -44,6 +46,21 @@ func (h *Sessions) Get(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, s)
 }
 
+// GetVersion returns only the version info for a session. GET /api/sessions/{id}/version
+func (h *Sessions) GetVersion(w http.ResponseWriter, r *http.Request) {
+	id := chi.URLParam(r, "id")
+	s, err := h.store.GetSession(id)
+	if err != nil {
+		log.Printf("WARN get session version %s: %v", id, err)
+		http.Error(w, "not found", http.StatusNotFound)
+		return
+	}
+	writeJSON(w, http.StatusOK, models.VersionInfo{
+		Version:   s.Version,
+		UpdatedAt: s.UpdatedAt,
+	})
+}
+
 // Create stores a new session. POST /api/sessions
 func (h *Sessions) Create(w http.ResponseWriter, r *http.Request) {
 	var s models.Session
@@ -55,6 +72,8 @@ func (h *Sessions) Create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "missing id", http.StatusBadRequest)
 		return
 	}
+	s.Version = 1
+	s.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
 	if err := h.store.SaveSession(s); err != nil {
 		log.Printf("ERROR save session: %v", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
@@ -72,6 +91,34 @@ func (h *Sessions) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.ID = id
+
+	// Optimistic concurrency: check X-Expected-Version header
+	if evHeader := r.Header.Get("X-Expected-Version"); evHeader != "" {
+		expectedVersion, err := strconv.Atoi(evHeader)
+		if err != nil {
+			http.Error(w, "bad X-Expected-Version header", http.StatusBadRequest)
+			return
+		}
+		existing, err := h.store.GetSession(id)
+		if err != nil {
+			log.Printf("WARN update session %s (version check): %v", id, err)
+			http.Error(w, "not found", http.StatusNotFound)
+			return
+		}
+		if existing.Version != expectedVersion {
+			writeJSON(w, http.StatusConflict, map[string]any{
+				"error":          "version conflict",
+				"serverVersion":  existing.Version,
+				"expectedVersion": expectedVersion,
+			})
+			return
+		}
+	}
+
+	// Auto-increment version and set timestamp
+	s.Version = s.Version + 1
+	s.UpdatedAt = time.Now().UTC().Format(time.RFC3339)
+
 	if err := h.store.SaveSession(s); err != nil {
 		log.Printf("ERROR update session %s: %v", id, err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
