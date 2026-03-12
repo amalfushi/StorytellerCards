@@ -77,79 +77,93 @@ export function SubActionChecklist({
               key={sa.id}
               disableGutters
               disablePadding
-              onClick={handleToggle(index)}
               sx={{
-                cursor: readOnly ? 'default' : 'pointer',
-                transition: 'opacity 0.25s ease, background-color 0.15s ease',
+                transition: 'opacity 0.25s ease',
                 opacity: checked ? 0.45 : 1,
                 borderRadius: 1,
-                '&:active': readOnly
-                  ? {}
-                  : {
-                      backgroundColor: 'rgba(255,255,255,0.08)',
-                      transform: 'scale(0.98)',
-                    },
+                display: 'flex',
+                alignItems: 'center',
               }}
             >
-              <ListItemIcon sx={{ minWidth: 36 }}>
-                <Checkbox
-                  edge="start"
-                  checked={checked}
-                  disabled={readOnly}
-                  disableRipple={readOnly}
-                  tabIndex={-1}
-                  size="small"
-                  aria-label={`${sa.isConditional ? 'Conditional: ' : ''}${sa.description}`}
-                  onClick={(e) => e.stopPropagation()}
-                  onChange={handleToggle(index)}
-                  sx={{
-                    color: 'rgba(255,255,255,0.5)',
-                    '&.Mui-checked': { color: '#66bb6a' },
-                    transition: 'transform 0.15s ease',
-                    transform: checked ? 'scale(1.15)' : 'scale(1)',
-                  }}
-                />
-              </ListItemIcon>
-              <ListItemText
-                primary={
-                  <Box
-                    component="span"
+              {/* Checkbox + text — clickable toggle zone */}
+              <Box
+                onClick={handleToggle(index)}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  flex: 1,
+                  minWidth: 0,
+                  cursor: readOnly ? 'default' : 'pointer',
+                  borderRadius: 1,
+                  '&:active': readOnly
+                    ? {}
+                    : {
+                        backgroundColor: 'rgba(255,255,255,0.08)',
+                        transform: 'scale(0.98)',
+                      },
+                }}
+              >
+                <ListItemIcon sx={{ minWidth: 36 }}>
+                  <Checkbox
+                    edge="start"
+                    checked={checked}
+                    disabled={readOnly}
+                    disableRipple={readOnly}
+                    tabIndex={-1}
+                    size="small"
+                    aria-label={`${sa.isConditional ? 'Conditional: ' : ''}${sa.description}`}
+                    onClick={(e) => e.stopPropagation()}
+                    onChange={handleToggle(index)}
                     sx={{
-                      textDecoration: checked ? 'line-through' : 'none',
-                      fontStyle: sa.isConditional ? 'italic' : 'normal',
-                      fontSize: '0.9rem',
-                      lineHeight: 1.4,
-                      color: sa.isConditional ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.95)',
-                      transition: 'text-decoration 0.2s ease, opacity 0.25s ease',
+                      color: 'rgba(255,255,255,0.5)',
+                      '&.Mui-checked': { color: '#66bb6a' },
+                      transition: 'transform 0.15s ease',
+                      transform: checked ? 'scale(1.15)' : 'scale(1)',
                     }}
-                  >
-                    {sa.isConditional && (
-                      <Box
-                        component="span"
-                        sx={{
-                          color: '#ffb74d',
-                          fontWeight: 600,
-                          fontStyle: 'normal',
-                        }}
-                      >
-                        {'If… '}
-                      </Box>
-                    )}
-                    {sa.description}
-                  </Box>
-                }
-              />
+                  />
+                </ListItemIcon>
+                <ListItemText
+                  primary={
+                    <Box
+                      component="span"
+                      sx={{
+                        textDecoration: checked ? 'line-through' : 'none',
+                        fontStyle: sa.isConditional ? 'italic' : 'normal',
+                        fontSize: '0.9rem',
+                        lineHeight: 1.4,
+                        color: sa.isConditional
+                          ? 'rgba(255,255,255,0.7)'
+                          : 'rgba(255,255,255,0.95)',
+                        transition: 'text-decoration 0.2s ease, opacity 0.25s ease',
+                      }}
+                    >
+                      {sa.isConditional && (
+                        <Box
+                          component="span"
+                          sx={{
+                            color: '#ffb74d',
+                            fontWeight: 600,
+                            fontStyle: 'normal',
+                          }}
+                        >
+                          {'If… '}
+                        </Box>
+                      )}
+                      {sa.description}
+                    </Box>
+                  }
+                />
+              </Box>
+
+              {/* Fullscreen icon — separate click target, outside toggle zone */}
               {choiceLabel && onShowChoiceFullscreen && (
                 <IconButton
                   size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShowChoiceFullscreen(choiceLabel);
-                  }}
+                  onClick={() => onShowChoiceFullscreen(choiceLabel)}
                   sx={{
                     color: 'rgba(255,255,255,0.4)',
                     flexShrink: 0,
-                    ml: 0.5,
+                    ml: 1.5,
                     '&:hover': { color: 'rgba(255,255,255,0.8)' },
                   }}
                   aria-label={`Show "${choiceLabel}" fullscreen`}
