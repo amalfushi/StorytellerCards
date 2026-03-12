@@ -1,9 +1,10 @@
-import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Session, Game, PlayerSeat } from '@/types/index.ts';
 import { Phase, Alignment } from '@/types/index.ts';
 import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
 import { generateId } from '@/utils/idGenerator.ts';
+import { useApiSync } from '@/hooks/useApiSync.ts';
 
 // ──────────────────────────────────────────────
 // State
@@ -190,6 +191,31 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
   }
 }
 
+/**
+ * Wraps the base reducer to auto-increment `version` on any
+ * session that was modified, except for HYDRATE and SYNC_SESSION.
+ */
+function sessionReducerWithVersion(state: SessionState, action: SessionAction): SessionState {
+  const newState = sessionReducer(state, action);
+  if (
+    action.type === 'HYDRATE' ||
+    action.type === 'SYNC_SESSION' ||
+    newState.sessions === state.sessions
+  ) {
+    return newState;
+  }
+  return {
+    ...newState,
+    sessions: newState.sessions.map((newSession) => {
+      const oldSession = state.sessions.find((s) => s.id === newSession.id);
+      if (!oldSession || oldSession !== newSession) {
+        return { ...newSession, version: (newSession.version ?? 0) + 1 };
+      }
+      return newSession;
+    }),
+  };
+}
+
 // ──────────────────────────────────────────────
 // Context value shape
 // ──────────────────────────────────────────────
@@ -227,12 +253,27 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     'storyteller-sessions',
     INITIAL_STATE,
   );
-  const [state, dispatch] = useReducer(sessionReducer, persisted);
+  const [state, dispatch] = useReducer(sessionReducerWithVersion, persisted);
+  const isSyncingRef = useRef(false);
+
+  const { syncSession: apiPushSession } = useApiSync();
 
   // Sync reducer state → localStorage whenever it changes
   useEffect(() => {
     setPersisted(state);
   }, [state, setPersisted]);
+
+  // Push active session to API when sessions change
+  useEffect(() => {
+    if (isSyncingRef.current) {
+      isSyncingRef.current = false;
+      return;
+    }
+    const activeSession = state.sessions.find((s) => s.id === state.activeSessionId);
+    if (activeSession) {
+      apiPushSession(activeSession);
+    }
+  }, [state.sessions, state.activeSessionId, apiPushSession]);
 
   // ── Helper functions ──
 
@@ -352,6 +393,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [state.activeGameId]);
 
   const syncSession = useCallback((session: Session) => {
+    isSyncingRef.current = true;
     dispatch({ type: 'SYNC_SESSION', payload: { session } });
   }, []);
 
