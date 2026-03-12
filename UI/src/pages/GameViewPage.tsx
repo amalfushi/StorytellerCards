@@ -76,20 +76,6 @@ export function GameViewPage() {
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
 
-  // Ref for auto-resuming night view on page refresh
-  const hasAutoResumed = useRef(false);
-
-  // Reset view mode when switching between games (component reuse by React Router)
-  const prevGameIdRef = useRef(gameId);
-  useEffect(() => {
-    if (gameId !== prevGameIdRef.current) {
-      prevGameIdRef.current = gameId;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync viewMode on game change
-      setViewMode('day');
-      hasAutoResumed.current = false;
-    }
-  }, [gameId]);
-
   // ── Day timer (lifted here so state survives tab switches) ──
   const dayTimer = useTimer();
   const prevPhaseRef = useRef<Phase | undefined>(undefined);
@@ -127,17 +113,6 @@ export function GameViewPage() {
   useEffect(() => {
     if (initialGame) loadGame(initialGame);
   }, [initialGame, loadGame]);
-
-  // On page refresh: if nightProgress is active, auto-resume night view.
-  // This effect runs once when nightProgress transitions from null to non-null
-  // after game is loaded from localStorage.
-  useEffect(() => {
-    if (!hasAutoResumed.current && gameState.nightProgress) {
-      hasAutoResumed.current = true;
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time sync from loaded state
-      setViewMode('night');
-    }
-  }, [gameState.nightProgress]);
 
   // Derive loading: we found a game in localStorage but context hasn't received it yet
   const loading = !!initialGame && !gameState.game;

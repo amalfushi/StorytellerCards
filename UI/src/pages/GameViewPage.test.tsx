@@ -454,19 +454,6 @@ describe('GameViewPage', () => {
     expect(capturedPhaseBarProps?.nightInProgress).toBe(true);
   });
 
-  it('auto-shows night view on page refresh when nightProgress exists', () => {
-    mockNightProgress = {
-      currentCardIndex: 2,
-      subActionStates: {},
-      notes: {},
-      selections: {},
-      totalCards: 5,
-    };
-    render(<GameViewPage />);
-    // Should auto-resume night view
-    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
-  });
-
   it('defaults to Day view for a brand new game (isFirstNight, no nightProgress)', () => {
     mockGame = {
       ...baseGame,
