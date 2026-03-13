@@ -316,4 +316,37 @@ describe('TownSquareLayout', () => {
     fireEvent.click(screen.getByTestId('loric-chip-bigwig'));
     expect(screen.getByText('Gives defence lawyer.')).toBeInTheDocument();
   });
+
+  // ── Token layout mode tests ──
+
+  it('positions tokens closer to centre in linear layout mode', () => {
+    const radialPositions: TokenPosition[] = [];
+    const linearPositions: TokenPosition[] = [];
+
+    const captureRadial = vi.fn((_: PlayerSeat, pos: TokenPosition) => {
+      radialPositions.push(pos);
+      return <div />;
+    });
+    const captureLinear = vi.fn((_: PlayerSeat, pos: TokenPosition) => {
+      linearPositions.push(pos);
+      return <div />;
+    });
+
+    const players = makePlayers(4);
+    const props = { players, shape: 'circle' as const, containerWidth: 400, containerHeight: 400 };
+
+    const { unmount } = render(
+      <TownSquareLayout {...props} renderToken={captureRadial} tokenLayout="radial" />,
+    );
+    unmount();
+
+    render(<TownSquareLayout {...props} renderToken={captureLinear} tokenLayout="linear" />);
+
+    const cx = 200;
+    const cy = 200;
+    const radialDist = Math.hypot(radialPositions[0].x - cx, radialPositions[0].y - cy);
+    const linearDist = Math.hypot(linearPositions[0].x - cx, linearPositions[0].y - cy);
+
+    expect(linearDist).toBeLessThan(radialDist);
+  });
 });
