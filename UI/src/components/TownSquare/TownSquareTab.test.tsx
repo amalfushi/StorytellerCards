@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import { TownSquareTab } from '@/components/TownSquare/TownSquareTab.tsx';
 import { GameProvider } from '@/context/GameContext.tsx';
 import type { Game, PlayerSeat } from '@/types/index.ts';
@@ -62,19 +62,10 @@ vi.mock('@/components/TownSquare/PlayerActionsModal.tsx', () => ({
     open && player ? <div data-testid="player-actions-modal">{player.playerName}</div> : null,
 }));
 
-vi.mock('@/components/TownSquare/AddTravellerDialog.tsx', () => ({
-  AddTravellerDialog: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="add-traveller-dialog">Add Traveller Dialog</div> : null,
-}));
-
 vi.mock('@/components/TownSquare/TokenManager.tsx', () => ({
   TokenManager: ({ open }: { open: boolean }) =>
     open ? <div data-testid="token-manager">Token Manager</div> : null,
   TokenBadges: () => null,
-}));
-
-vi.mock('@/components/Timer/DayTimerFab.tsx', () => ({
-  DayTimerFab: () => <div data-testid="day-timer-fab">Timer FAB</div>,
 }));
 
 vi.mock('@/utils/audioAlarm.ts', () => ({
@@ -220,17 +211,6 @@ describe('TownSquareTab', () => {
       <TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
     );
     expect(container).toBeTruthy();
-  });
-
-  it('has "add traveller" FAB button', () => {
-    renderWithGameContext(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
-    expect(screen.getByLabelText('add traveller')).toBeInTheDocument();
-  });
-
-  it('clicking add traveller button opens AddTravellerDialog', () => {
-    renderWithGameContext(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
-    fireEvent.click(screen.getByLabelText('add traveller'));
-    expect(screen.getByTestId('add-traveller-dialog')).toBeInTheDocument();
   });
 
   it('renders with no players when game is null', () => {

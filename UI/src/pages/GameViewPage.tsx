@@ -7,10 +7,12 @@ import Box from '@mui/material/Box';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import Button from '@mui/material/Button';
+import Fab from '@mui/material/Fab';
 import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import ChecklistIcon from '@mui/icons-material/Checklist';
@@ -42,6 +44,8 @@ import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
 import { Phase as PhaseEnum } from '@/types/index.ts';
+import { AddTravellerDialog } from '@/components/TownSquare/AddTravellerDialog.tsx';
+import { DayTimerFab } from '@/components/Timer/DayTimerFab.tsx';
 
 /**
  * Main Game View page — the primary gameplay screen.
@@ -60,6 +64,7 @@ export function GameViewPage() {
     state: gameState,
     loadGame,
     updatePlayer,
+    addTraveller,
     saveGame,
     setPhase,
     setInPlayCharacters,
@@ -79,6 +84,7 @@ export function GameViewPage() {
   const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
+  const [addTravellerOpen, setAddTravellerOpen] = useState(false);
 
   // ── Day timer (lifted here so state survives tab switches) ──
   const dayTimer = useTimer();
@@ -94,6 +100,15 @@ export function GameViewPage() {
       dayTimer.pause();
     }
   }, [gameState.game?.currentPhase, dayTimer]);
+
+  const isDayPhase = gameState.game?.currentPhase === PhaseEnum.Day;
+
+  const handleAddTraveller = useCallback(
+    (seat: number, playerName: string, characterId: string, alignment: 'Good' | 'Evil') => {
+      addTraveller(seat, playerName, characterId, alignment);
+    },
+    [addTraveller],
+  );
 
   // Find the session for the display name
   const session = useMemo(
@@ -504,15 +519,51 @@ export function GameViewPage() {
         />
       ) : (
         <>
-          <Box sx={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+          <Box
+            sx={{
+              flex: 1,
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              position: 'relative',
+            }}
+          >
             <Box sx={{ flex: 1, overflow: 'auto' }}>
-              {tabIndex === 0 && (
-                <TownSquareTab scriptCharacterIds={scriptCharacterIds} dayTimer={dayTimer} />
-              )}
+              {tabIndex === 0 && <TownSquareTab scriptCharacterIds={scriptCharacterIds} />}
               {tabIndex === 1 && <PlayerListTab scriptCharacterIds={scriptCharacterIds} />}
               {tabIndex === 2 && <ScriptReferenceTab scriptCharacterIds={scriptCharacterIds} />}
               {tabIndex === 3 && <NightOrderTab scriptCharacterIds={scriptCharacterIds} />}
             </Box>
+
+            {/* ── Shared FABs for Town Square & Players tabs ── */}
+            {(tabIndex === 0 || tabIndex === 1) && (
+              <>
+                <Fab
+                  color="primary"
+                  size="small"
+                  aria-label="add traveller"
+                  onClick={() => setAddTravellerOpen(true)}
+                  sx={{
+                    position: 'absolute',
+                    bottom: 16,
+                    right: 16,
+                    zIndex: 10,
+                  }}
+                >
+                  <AddIcon />
+                </Fab>
+                {isDayPhase && <DayTimerFab timer={dayTimer} />}
+              </>
+            )}
+
+            {/* ── Add Traveller Dialog ── */}
+            <AddTravellerDialog
+              key={String(addTravellerOpen)}
+              open={addTravellerOpen}
+              existingPlayers={players}
+              onClose={() => setAddTravellerOpen(false)}
+              onAdd={handleAddTraveller}
+            />
           </Box>
 
           {/* ── Bottom Navigation ── */}
