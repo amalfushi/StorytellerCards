@@ -11,6 +11,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import type { CharacterDef } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { rewriteShowPlayerMessage } from '@/utils/rewriteShowPlayerMessage.ts';
 
 /** Variant determines the display layout. */
 export type PlayerShowScreenVariant = 'bluffs' | 'text' | 'token';
@@ -176,7 +177,7 @@ export function PlayerShowScreen({
             textShadow: '0 2px 12px rgba(0,0,0,0.5)',
           }}
         >
-          {message}
+          {rewriteShowPlayerMessage(message)}
         </Typography>
       )}
 
