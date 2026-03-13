@@ -395,6 +395,7 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
           containerWidth={dims.width}
           containerHeight={dims.height}
           tokenRadius={TOKEN_HALF[tokenSize]}
+          tokenLayout={effectiveLayout}
         />
       )}
 
