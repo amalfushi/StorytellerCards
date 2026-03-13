@@ -31,6 +31,15 @@
       "presentation": { "reveal": "always", "panel": "dedicated" }
     },
     {
+      "label": "Dev: UI Local Only",
+      "type": "shell",
+      "command": "npm run dev:ui:localonly",
+      "options": { "cwd": "${workspaceFolder}" },
+      "isBackground": true,
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated", "group": "dev" }
+    },
+    {
       "label": "Storybook",
       "type": "shell",
       "command": "npm run storybook",
