@@ -12,7 +12,12 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Launch Storybook (Chrome)",
+      "name": "Launch UI Local Only (Chrome)",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/UI/src",
+      "preLaunchTask": "Dev: UI Local Only"
+    },
+    {
       "url": "http://localhost:6006",
       "webRoot": "${workspaceFolder}/UI",
       "preLaunchTask": "Storybook"
