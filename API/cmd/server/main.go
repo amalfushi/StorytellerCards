@@ -95,8 +95,13 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	host := os.Getenv("HOST")
+	if host == "" {
+		host = "0.0.0.0"
+	}
+
 	srv := &http.Server{
-		Addr:    ":" + port,
+		Addr:    host + ":" + port,
 		Handler: r,
 	}
 
@@ -105,7 +110,8 @@ func main() {
 	signal.Notify(done, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		log.Printf("API server starting on :%s", port)
+		log.Printf("API server listening on %s:%s", host, port)
+		logLANAddresses(port)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("FATAL listen: %v", err)
 		}
@@ -146,4 +152,36 @@ func isPrivateOrigin(_ *http.Request, origin string) bool {
 	}
 	ip := net.ParseIP(host)
 	return ip != nil && ip.IsPrivate()
+}
+
+// logLANAddresses prints the machine's LAN IPs so users know what URL to use from other devices.
+func logLANAddresses(port string) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return
+	}
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 || iface.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			continue
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() || ip.To4() == nil {
+				continue
+			}
+			if ip.IsPrivate() {
+				log.Printf("  LAN: http://%s:%s", ip.String(), port)
+			}
+		}
+	}
 }
