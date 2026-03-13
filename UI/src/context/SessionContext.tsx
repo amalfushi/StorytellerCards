@@ -43,7 +43,8 @@ type SessionAction =
   | { type: 'ADD_GAME_TO_SESSION'; payload: { sessionId: string; game: Game } }
   | { type: 'HYDRATE'; payload: SessionState }
   | { type: 'DELETE_GAME'; payload: { sessionId: string; gameId: string } }
-  | { type: 'SYNC_SESSION'; payload: { session: Session } };
+  | { type: 'SYNC_SESSION'; payload: { session: Session } }
+  | { type: 'MERGE_REMOTE_SESSIONS'; payload: { sessions: Session[] } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -186,6 +187,30 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       };
     }
 
+    case 'MERGE_REMOTE_SESSIONS': {
+      const remoteSessions = action.payload.sessions;
+      let merged = [...state.sessions];
+      for (const remote of remoteSessions) {
+        const localIdx = merged.findIndex((s) => s.id === remote.id);
+        if (localIdx >= 0) {
+          const localVersion = merged[localIdx].version ?? 0;
+          const remoteVersion = remote.version ?? 0;
+          if (remoteVersion > localVersion) {
+            merged[localIdx] = remote;
+          }
+        } else {
+          merged = [...merged, remote];
+        }
+      }
+      if (
+        merged.length === state.sessions.length &&
+        merged.every((s, i) => s === state.sessions[i])
+      ) {
+        return state;
+      }
+      return { ...state, sessions: merged };
+    }
+
     default:
       return state;
   }
@@ -200,6 +225,7 @@ function sessionReducerWithVersion(state: SessionState, action: SessionAction): 
   if (
     action.type === 'HYDRATE' ||
     action.type === 'SYNC_SESSION' ||
+    action.type === 'MERGE_REMOTE_SESSIONS' ||
     newState.sessions === state.sessions
   ) {
     return newState;
@@ -256,12 +282,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(sessionReducerWithVersion, persisted);
   const isSyncingRef = useRef(false);
 
-  const { syncSession: apiPushSession } = useApiSync();
+  const { syncSession: apiPushSession, fetchSessions: apiFetchSessions } = useApiSync();
 
   // Sync reducer state → localStorage whenever it changes
   useEffect(() => {
     setPersisted(state);
   }, [state, setPersisted]);
+
+  // Fetch sessions from API on startup and merge with local state
+  useEffect(() => {
+    let cancelled = false;
+    apiFetchSessions().then((remoteSessions) => {
+      if (cancelled || remoteSessions.length === 0) return;
+      isSyncingRef.current = true;
+      dispatch({ type: 'MERGE_REMOTE_SESSIONS', payload: { sessions: remoteSessions } });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [apiFetchSessions]);
 
   // Push active session to API when sessions change
   useEffect(() => {

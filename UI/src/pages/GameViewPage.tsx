@@ -25,6 +25,7 @@ import { useSession } from '@/context/SessionContext.tsx';
 import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { useNightOrder } from '@/hooks/useNightOrder.ts';
+import { useApiSync } from '@/hooks/useApiSync.ts';
 import { ShowCharactersToggle } from '@/components/common/ShowCharactersToggle.tsx';
 import { SyncStatusIndicator } from '@/components/common/SyncStatusIndicator.tsx';
 import { PhaseBar } from '@/components/PhaseBar/PhaseBar.tsx';
@@ -100,8 +101,10 @@ export function GameViewPage() {
     [sessionState.sessions, sessionId],
   );
 
+  const { fetchGame: apiFetchGame } = useApiSync();
+
   // Read game from localStorage synchronously on first render (lazy initializer)
-  const [initialGame] = useState<Game | null>(() => {
+  const [initialGame, setInitialGame] = useState<Game | null>(() => {
     if (!gameId) return null;
     try {
       const raw = localStorage.getItem(`storyteller-game-${gameId}`);
@@ -111,6 +114,25 @@ export function GameViewPage() {
     }
     return null;
   });
+
+  // If game wasn't in localStorage, try fetching from API
+  useEffect(() => {
+    if (initialGame || !sessionId || !gameId) return;
+    let cancelled = false;
+    apiFetchGame(sessionId, gameId).then((remoteGame) => {
+      if (cancelled || !remoteGame) return;
+      // Persist to localStorage so subsequent loads are instant
+      try {
+        localStorage.setItem(`storyteller-game-${gameId}`, JSON.stringify(remoteGame));
+      } catch {
+        // Silently ignore storage errors
+      }
+      setInitialGame(remoteGame);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [initialGame, sessionId, gameId, apiFetchGame]);
 
   // Push game into context on mount
   useEffect(() => {

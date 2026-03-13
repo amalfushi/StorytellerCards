@@ -72,6 +72,8 @@ export interface ApiSyncHook {
   syncGame: (game: Game) => void;
   /** Fetch a full session from the API. */
   fetchSession: (id: string) => Promise<Session | null>;
+  /** Fetch all sessions from the API. */
+  fetchSessions: () => Promise<Session[]>;
   /** Fetch a full game from the API. */
   fetchGame: (sessionId: string, gameId: string) => Promise<Game | null>;
   /** Push a session with version-awareness. Returns push result with conflict info. */
@@ -128,6 +130,11 @@ export function useApiSync(): ApiSyncHook {
 
   const fetchSession = useCallback((id: string) => request<Session>(`/api/sessions/${id}`), []);
 
+  const fetchSessions = useCallback(async (): Promise<Session[]> => {
+    const result = await request<Session[]>('/api/sessions');
+    return result ?? [];
+  }, []);
+
   const fetchGame = useCallback(
     (sessionId: string, gameId: string) =>
       request<Game>(`/api/sessions/${sessionId}/games/${gameId}`),
@@ -149,6 +156,7 @@ export function useApiSync(): ApiSyncHook {
     syncSession,
     syncGame,
     fetchSession,
+    fetchSessions,
     fetchGame,
     pushSession: pushSessionDirect,
     pushGame: pushGameDirect,

@@ -18,17 +18,18 @@ describe('generateId', () => {
     expect(id1).not.toBe(id2);
   });
 
-  it('returns strings of consistent format (alphanumeric with possible dots)', () => {
+  it('returns 8-character uppercase alphanumeric strings', () => {
     const id = generateId();
-    // base-36 timestamp + base-36 random → alphanumeric characters
-    expect(id).toMatch(/^[a-z0-9]+$/);
+    expect(id).toMatch(/^[23456789A-HJ-NP-Z]{8}$/);
+    expect(id.length).toBe(8);
   });
 
-  it('returns strings of reasonable length', () => {
-    const id = generateId();
-    // Timestamp part ~8-9 chars, random part ~10-11 chars ≈ 18-20 total
-    expect(id.length).toBeGreaterThanOrEqual(10);
-    expect(id.length).toBeLessThanOrEqual(30);
+  it('excludes ambiguous characters (0, O, 1, I)', () => {
+    // Generate many IDs and verify none contain ambiguous chars
+    for (let i = 0; i < 200; i++) {
+      const id = generateId();
+      expect(id).not.toMatch(/[01OI]/);
+    }
   });
 
   it('produces no collisions in a batch of 1000 IDs', () => {
@@ -44,13 +45,11 @@ describe('generateId', () => {
     for (let i = 0; i < 100; i++) {
       ids.push(generateId());
     }
-    // All should be unique even when called rapidly
     const unique = new Set(ids);
     expect(unique.size).toBe(100);
-    // All should be valid strings
     ids.forEach((id) => {
       expect(typeof id).toBe('string');
-      expect(id.length).toBeGreaterThan(0);
+      expect(id.length).toBe(8);
     });
   });
 });
