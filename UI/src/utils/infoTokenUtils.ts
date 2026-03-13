@@ -21,7 +21,7 @@ export function extractInfoTokens(description: string): string[] {
 const TOKEN_DISPLAY_TEXT: Record<string, string> = {
   'YOU ARE': 'You are:',
   'YOU ARE THE': 'You are the:',
-  'THIS CHARACTER SELECTED YOU': 'This character selected you',
+  'THIS CHARACTER SELECTED YOU': 'This character has selected you:',
   'THESE ARE YOUR MINIONS': 'These are your Minions',
   'THESE CHARACTERS ARE NOT IN PLAY': 'These characters are not in play:',
   'THIS IS THE DEMON': 'This is the Demon',
@@ -34,6 +34,14 @@ const TOKEN_DISPLAY_TEXT: Record<string, string> = {
  */
 export function isCharacterIdentityToken(tokenPhrase: string): boolean {
   return tokenPhrase === 'YOU ARE' || tokenPhrase === 'YOU ARE THE';
+}
+
+/**
+ * Whether a token phrase is a `selected you'' token that should show
+ * the source character's icon in the fullscreen display.
+ */
+export function isSelectedYouToken(tokenPhrase: string): boolean {
+  return tokenPhrase === 'THIS CHARACTER SELECTED YOU';
 }
 
 /**

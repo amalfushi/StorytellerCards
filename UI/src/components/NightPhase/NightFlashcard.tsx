@@ -26,7 +26,11 @@ import { detectSignalType } from '@/utils/signalDetection.ts';
 import { SubActionChecklist } from './SubActionChecklist.tsx';
 import { NightChoiceSelector } from './NightChoiceSelector.tsx';
 import { PlayerShowScreen } from './PlayerShowScreen.tsx';
-import { getTokenDisplayText, isCharacterIdentityToken } from '@/utils/infoTokenUtils.ts';
+import {
+  getTokenDisplayText,
+  isCharacterIdentityToken,
+  isSelectedYouToken,
+} from '@/utils/infoTokenUtils.ts';
 
 export interface NightFlashcardProps {
   entry: NightOrderEntry;
@@ -219,6 +223,66 @@ export function NightFlashcard({
       playerSeat ? (playerSeat.tokens ?? []).filter((t) => t.sourceCharacterId !== entry.id) : [],
     [playerSeat, entry.id],
   );
+
+  // Enhanced token fullscreen: source character, madness character, and messaging
+  const tokenSourceCharacter = useMemo(() => {
+    if (!tokenShowPhrase || !characterDef) return undefined;
+    if (isSelectedYouToken(tokenShowPhrase)) return characterDef;
+    if (tokenShowPhrase === 'MAD' && characterDef.id === 'pixie') return characterDef;
+    return undefined;
+  }, [tokenShowPhrase, characterDef]);
+
+  const tokenMadnessCharacter = useMemo(() => {
+    if (!tokenShowPhrase || !characterDef) return undefined;
+    if (isSelectedYouToken(tokenShowPhrase) && characterDef.id === 'cerenovus') {
+      if (isCompound && Array.isArray(selectionValue) && selectionValue[1]) {
+        const charId = selectionValue[1];
+        if (typeof charId === 'string') {
+          return characterLookup?.(charId);
+        }
+      }
+    }
+    return undefined;
+  }, [tokenShowPhrase, characterDef, isCompound, selectionValue, characterLookup]);
+
+  const tokenAdditionalLabel = useMemo(() => {
+    if (!tokenShowPhrase || !characterDef) return undefined;
+    if (isSelectedYouToken(tokenShowPhrase) && characterDef.id === 'cerenovus') {
+      return 'You are now MAD that you are:';
+    }
+    return undefined;
+  }, [tokenShowPhrase, characterDef]);
+
+  const tokenInstructionText = useMemo(() => {
+    if (!tokenShowPhrase || !characterDef) return undefined;
+    if (isSelectedYouToken(tokenShowPhrase)) {
+      if (characterDef.id === 'cerenovus') {
+        return 'Something bad may happen if you do not pretend to be the character you are mad about.';
+      }
+      if (characterDef.id === 'harpy') {
+        return 'You must be MAD that the player being pointed to is evil, or one or both of you might die.';
+      }
+    }
+    if (tokenShowPhrase === 'MAD' && characterDef.id === 'pixie') {
+      return 'If you are MAD that you are this character, you may gain their ability when they die.';
+    }
+    return undefined;
+  }, [tokenShowPhrase, characterDef]);
+
+  const effectiveShowCharacterPicker = useMemo(() => {
+    if (!tokenShowPhrase) return false;
+    if (isCharacterIdentityToken(tokenShowPhrase)) return true;
+    if (tokenShowPhrase === 'MAD' && characterDef?.id === 'pixie') return true;
+    return false;
+  }, [tokenShowPhrase, characterDef]);
+
+  const effectiveTokenText = useMemo(() => {
+    if (!tokenShowPhrase) return '';
+    if (tokenShowPhrase === 'MAD' && characterDef?.id === 'pixie') {
+      return 'You must be MAD that you are:';
+    }
+    return getTokenDisplayText(tokenShowPhrase);
+  }, [tokenShowPhrase, characterDef]);
 
   return (
     <Box
@@ -798,9 +862,13 @@ export function NightFlashcard({
         open={tokenShowPhrase !== null}
         onClose={() => setTokenShowPhrase(null)}
         variant="token"
-        tokenText={tokenShowPhrase ? getTokenDisplayText(tokenShowPhrase) : ''}
-        showCharacterPicker={tokenShowPhrase ? isCharacterIdentityToken(tokenShowPhrase) : false}
+        tokenText={effectiveTokenText}
+        showCharacterPicker={effectiveShowCharacterPicker}
         scriptCharacters={scriptCharacters}
+        sourceCharacter={tokenSourceCharacter}
+        additionalCharacter={tokenMadnessCharacter}
+        additionalLabel={tokenAdditionalLabel}
+        instructionText={tokenInstructionText}
       />
 
       {/* Character Detail Modal */}
