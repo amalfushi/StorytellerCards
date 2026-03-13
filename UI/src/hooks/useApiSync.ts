@@ -7,7 +7,13 @@
 import { useCallback, useRef } from 'react';
 import type { Session, Game, VersionInfo } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+function resolveApiBase(): string {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL as string;
+  // Use the same hostname the page was loaded from so LAN devices reach the API
+  return `http://${window.location.hostname}:3001`;
+}
+
+const API_BASE = resolveApiBase();
 const DEBOUNCE_MS = 1000;
 
 /** Result of a push operation — includes conflict info if applicable. */

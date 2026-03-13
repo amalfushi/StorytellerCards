@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -40,12 +41,19 @@ func main() {
 	games := handlers.NewGames(store)
 	scripts := handlers.NewScripts(store)
 
+	// Resolve allowed origins — override via CORS_ORIGINS env var (comma-separated).
+	// Defaults to "*" (allow all) since this is a personal LAN app.
+	allowedOrigins := []string{"*"}
+	if envOrigins := os.Getenv("CORS_ORIGINS"); envOrigins != "" {
+		allowedOrigins = splitAndTrim(envOrigins)
+	}
+
 	// Router
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:4173"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Content-Type", "X-Expected-Version"},
 		AllowCredentials: false,
@@ -106,4 +114,15 @@ func main() {
 		log.Printf("ERROR shutdown: %v", err)
 	}
 	log.Println("server stopped")
+}
+
+func splitAndTrim(s string) []string {
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if t := strings.TrimSpace(p); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
 }
