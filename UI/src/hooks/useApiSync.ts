@@ -9,8 +9,9 @@ import type { Session, Game, VersionInfo } from '../types';
 
 function resolveApiBase(): string {
   if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL as string;
-  // Use the same hostname the page was loaded from so LAN devices reach the API
-  return `http://${window.location.hostname}:3001`;
+  const base = `http://${window.location.hostname}:3001`;
+  console.info(`[API] Resolved API base: ${base}`);
+  return base;
 }
 
 const API_BASE = resolveApiBase();
@@ -25,14 +26,19 @@ export interface PushResult<T> {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T | null> {
+  const url = `${API_BASE}${path}`;
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
+    const res = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
       ...options,
     });
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.warn(`[API] ${options?.method ?? 'GET'} ${url} → ${res.status}`);
+      return null;
+    }
     return (await res.json()) as T;
-  } catch {
+  } catch (err) {
+    console.warn(`[API] ${options?.method ?? 'GET'} ${url} → network error:`, err);
     return null;
   }
 }

@@ -292,7 +292,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   // Fetch sessions from API on startup and merge with local state
   useEffect(() => {
     let cancelled = false;
+    console.info('[SessionContext] Fetching sessions from API on startup...');
     apiFetchSessions().then((remoteSessions) => {
+      console.info(`[SessionContext] API returned ${remoteSessions.length} sessions`);
       if (cancelled || remoteSessions.length === 0) return;
       isSyncingRef.current = true;
       dispatch({ type: 'MERGE_REMOTE_SESSIONS', payload: { sessions: remoteSessions } });
