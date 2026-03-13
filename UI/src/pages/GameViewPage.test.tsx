@@ -143,6 +143,7 @@ vi.mock('@/context/GameContext.tsx', () => ({
     },
     loadGame: mockLoadGame,
     updatePlayer: mockUpdatePlayer,
+    addTraveller: vi.fn(),
     saveGame: mockSaveGame,
     setPhase: mockSetPhase,
   }),
@@ -268,6 +269,15 @@ vi.mock('@/components/common/LoadingState.tsx', () => ({
   LoadingState: ({ message }: { message: string }) => (
     <div data-testid="loading-state">{message}</div>
   ),
+}));
+
+vi.mock('@/components/TownSquare/AddTravellerDialog.tsx', () => ({
+  AddTravellerDialog: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="add-traveller-dialog">Add Traveller Dialog</div> : null,
+}));
+
+vi.mock('@/components/Timer/DayTimerFab.tsx', () => ({
+  DayTimerFab: () => <div data-testid="day-timer-fab">Timer FAB</div>,
 }));
 
 // ──────────────────────────────────────────────
@@ -478,5 +488,60 @@ describe('GameViewPage', () => {
     // Should stay in day view
     expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
     expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
+  });
+
+  // ── Shared FABs (Add Traveller + Day Timer) ──
+
+  it('shows add traveller FAB on Town Square tab', () => {
+    render(<GameViewPage />);
+    expect(screen.getByLabelText('add traveller')).toBeInTheDocument();
+  });
+
+  it('shows add traveller FAB on Players tab', () => {
+    render(<GameViewPage />);
+    fireEvent.click(screen.getByRole('button', { name: /players tab/i }));
+    expect(screen.getByLabelText('add traveller')).toBeInTheDocument();
+  });
+
+  it('does not show add traveller FAB on Script tab', () => {
+    render(<GameViewPage />);
+    fireEvent.click(screen.getByRole('button', { name: /script reference tab/i }));
+    expect(screen.queryByLabelText('add traveller')).not.toBeInTheDocument();
+  });
+
+  it('does not show add traveller FAB on Night Order tab', () => {
+    render(<GameViewPage />);
+    fireEvent.click(screen.getByRole('button', { name: /night order tab/i }));
+    expect(screen.queryByLabelText('add traveller')).not.toBeInTheDocument();
+  });
+
+  it('clicking add traveller FAB opens AddTravellerDialog', () => {
+    render(<GameViewPage />);
+    fireEvent.click(screen.getByLabelText('add traveller'));
+    expect(screen.getByTestId('add-traveller-dialog')).toBeInTheDocument();
+  });
+
+  it('shows day timer FAB on Town Square tab when in Day phase', () => {
+    render(<GameViewPage />);
+    expect(screen.getByTestId('day-timer-fab')).toBeInTheDocument();
+  });
+
+  it('shows day timer FAB on Players tab when in Day phase', () => {
+    render(<GameViewPage />);
+    fireEvent.click(screen.getByRole('button', { name: /players tab/i }));
+    expect(screen.getByTestId('day-timer-fab')).toBeInTheDocument();
+  });
+
+  it('does not show day timer FAB on Script tab', () => {
+    render(<GameViewPage />);
+    fireEvent.click(screen.getByRole('button', { name: /script reference tab/i }));
+    expect(screen.queryByTestId('day-timer-fab')).not.toBeInTheDocument();
+  });
+
+  it('does not show day timer FAB when not in Day phase', () => {
+    mockGame = { ...baseGame, currentPhase: Phase.Night };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+    expect(screen.queryByTestId('day-timer-fab')).not.toBeInTheDocument();
   });
 });

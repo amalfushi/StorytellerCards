@@ -1,11 +1,9 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
-import Fab from '@mui/material/Fab';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import useMediaQuery from '@mui/material/useMediaQuery';
-import AddIcon from '@mui/icons-material/Add';
 import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
@@ -15,7 +13,6 @@ import type {
   PlayerSeat,
   PlayerToken as PlayerTokenType,
 } from '@/types/index.ts';
-import { Phase } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
@@ -24,10 +21,7 @@ import type { TokenSize } from '@/components/TownSquare/PlayerToken.tsx';
 import { TownSquareLayout } from '@/components/TownSquare/TownSquareLayout.tsx';
 import type { TokenPosition } from '@/components/TownSquare/TownSquareLayout.tsx';
 import { PlayerActionsModal } from '@/components/TownSquare/PlayerActionsModal.tsx';
-import { AddTravellerDialog } from '@/components/TownSquare/AddTravellerDialog.tsx';
 import { TokenManager, TokenBadges } from '@/components/TownSquare/TokenManager.tsx';
-import type { UseTimerReturn } from '@/hooks/useTimer.ts';
-import { DayTimerFab } from '@/components/Timer/DayTimerFab.tsx';
 import { buildAvailableTokens } from '@/utils/buildAvailableTokens.ts';
 
 /** Persisted layout preference — `'auto'` defers to viewport size. */
@@ -35,8 +29,6 @@ type TokenLayoutPref = 'radial' | 'linear' | 'auto';
 
 interface TownSquareTabProps {
   scriptCharacterIds: string[];
-  /** Day timer state, lifted from GameViewPage so it persists across tab switches. */
-  dayTimer?: UseTimerReturn;
 }
 
 /** Derive token size from player count. */
@@ -58,11 +50,10 @@ const TOKEN_HALF = { large: 75, medium: 70, small: 65 } as const;
  * - **Night view:** tokens additionally show character icon & name with alignment
  *   border; tap opens `PlayerEditDialog`.
  */
-export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabProps) {
+export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
   const {
     state,
     updatePlayer,
-    addTraveller,
     removeTraveller,
     addToken,
     removeToken,
@@ -90,7 +81,6 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
 
   const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
   const showCharacters = state.showCharacters;
-  const isDayPhase = state.game?.currentPhase === Phase.Day;
 
   const sorted = useMemo(() => [...players].sort((a, b) => a.seat - b.seat), [players]);
 
@@ -200,9 +190,6 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
 
   const modalBluffLabel = isActionsPlayerLunatic ? 'Lunatic Bluffs' : 'Demon Bluffs';
 
-  // ── Add traveller dialog ──
-  const [addTravellerOpen, setAddTravellerOpen] = useState(false);
-
   // ── Token manager dialog ──
   const [tokenSeat, setTokenSeat] = useState<number | null>(null);
   /** Derive the current player from live state so the dialog always sees fresh tokens. */
@@ -292,13 +279,6 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
       removeToken(seat, tokenId);
     },
     [removeToken],
-  );
-
-  const handleAddTraveller = useCallback(
-    (seat: number, playerName: string, characterId: string, alignment: 'Good' | 'Evil') => {
-      addTraveller(seat, playerName, characterId, alignment);
-    },
-    [addTraveller],
   );
 
   // ── Render token callback (memoised) ──
@@ -448,31 +428,6 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         </IconButton>
       </Tooltip>
 
-      {/* ── Add Traveller FAB ── */}
-      <Fab
-        color="primary"
-        size="small"
-        aria-label="add traveller"
-        onClick={() => setAddTravellerOpen(true)}
-        sx={{
-          position: 'absolute',
-          bottom: 16,
-          right: 16,
-          zIndex: 10,
-        }}
-      >
-        <AddIcon />
-      </Fab>
-
-      {/* ── Add Traveller Dialog ── */}
-      <AddTravellerDialog
-        key={String(addTravellerOpen)}
-        open={addTravellerOpen}
-        existingPlayers={players}
-        onClose={() => setAddTravellerOpen(false)}
-        onAdd={handleAddTraveller}
-      />
-
       {/* ── Token Manager Dialog ── */}
       <TokenManager
         open={tokenPlayer !== null}
@@ -484,9 +439,6 @@ export function TownSquareTab({ scriptCharacterIds, dayTimer }: TownSquareTabPro
         availableTokens={availableTokens}
         allPlayers={players}
       />
-
-      {/* ── Day Timer FAB (visible during Day phase) ── */}
-      {isDayPhase && dayTimer && <DayTimerFab timer={dayTimer} />}
     </Box>
   );
 }
