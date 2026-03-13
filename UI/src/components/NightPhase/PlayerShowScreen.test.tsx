@@ -100,6 +100,64 @@ describe('PlayerShowScreen', () => {
     });
   });
 
+  describe('text variant rewrites might/may as questions', () => {
+    it('rewrites "might" phrases as player-facing questions', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="text"
+          message="The Philosopher might choose a character"
+        />,
+      );
+      expect(screen.getByTestId('player-show-message')).toHaveTextContent(
+        'Would you like to choose a character?',
+      );
+    });
+
+    it('rewrites "may" phrases as player-facing questions', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="text"
+          message="The Acrobat may choose any player"
+        />,
+      );
+      expect(screen.getByTestId('player-show-message')).toHaveTextContent(
+        'Would you like to choose any player?',
+      );
+    });
+
+    it('does not rewrite "might not" phrases', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="text"
+          message="The Mayor might not die tonight"
+        />,
+      );
+      expect(screen.getByTestId('player-show-message')).toHaveTextContent(
+        'The Mayor might not die tonight',
+      );
+    });
+
+    it('passes through messages without might/may unchanged', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="text"
+          message="This character chose you"
+        />,
+      );
+      expect(screen.getByTestId('player-show-message')).toHaveTextContent(
+        'This character chose you',
+      );
+    });
+  });
+
   describe('close behavior', () => {
     it('calls onClose when close button is clicked', () => {
       const onClose = vi.fn();
