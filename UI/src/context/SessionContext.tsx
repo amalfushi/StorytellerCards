@@ -217,29 +217,11 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
 }
 
 /**
- * Wraps the base reducer to auto-increment `version` on any
- * session that was modified, except for HYDRATE and SYNC_SESSION.
+ * Wraps the base reducer. Version is managed by the server — the client
+ * does not increment version locally.
  */
 function sessionReducerWithVersion(state: SessionState, action: SessionAction): SessionState {
-  const newState = sessionReducer(state, action);
-  if (
-    action.type === 'HYDRATE' ||
-    action.type === 'SYNC_SESSION' ||
-    action.type === 'MERGE_REMOTE_SESSIONS' ||
-    newState.sessions === state.sessions
-  ) {
-    return newState;
-  }
-  return {
-    ...newState,
-    sessions: newState.sessions.map((newSession) => {
-      const oldSession = state.sessions.find((s) => s.id === newSession.id);
-      if (!oldSession || oldSession !== newSession) {
-        return { ...newSession, version: (newSession.version ?? 0) + 1 };
-      }
-      return newSession;
-    }),
-  };
+  return sessionReducer(state, action);
 }
 
 // ──────────────────────────────────────────────
