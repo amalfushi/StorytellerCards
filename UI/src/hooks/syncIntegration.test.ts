@@ -244,4 +244,60 @@ describe('Sync Integration Scenarios', () => {
       expect(session).toEqual(updatedSession);
     });
   });
+
+  describe('version-aware push with explicit expectedVersion', () => {
+    it('push with explicit expectedVersion uses it for version check instead of game.version', async () => {
+      // Push succeeds with explicit expectedVersion
+      const serverGame = makeGame({ version: 4, currentDay: 2 });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(serverGame),
+      });
+
+      const { result } = renderHook(() => useApiSync());
+      const game = makeGame({ version: 1 }); // game.version is 1
+
+      let pushResult = null;
+      await act(async () => {
+        pushResult = await result.current.pushGame(game, 3); // explicit expectedVersion is 3
+      });
+
+      expect(pushResult).toMatchObject({ ok: true, status: 200 });
+
+      // Verify X-Expected-Version header uses explicit value, not game.version
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/sessions/session-1/games/game-1'),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-Expected-Version': '3',
+          }),
+        }),
+      );
+    });
+
+    it('push without explicit expectedVersion falls back to game.version', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(makeGame({ version: 2 })),
+      });
+
+      const { result } = renderHook(() => useApiSync());
+      const game = makeGame({ version: 1 });
+
+      await act(async () => {
+        await result.current.pushGame(game);
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/sessions/session-1/games/game-1'),
+        expect.objectContaining({
+          headers: expect.objectContaining({
+            'X-Expected-Version': '1',
+          }),
+        }),
+      );
+    });
+  });
 });

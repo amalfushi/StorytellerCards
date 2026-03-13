@@ -418,6 +418,31 @@ describe('useApiSync', () => {
       );
     });
 
+    it('uses explicit expectedVersion over game.version for X-Expected-Version header', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve({ version: 4 }),
+      });
+
+      const { result } = renderHook(() => useApiSync());
+      const game = makeGame({ version: 1 });
+
+      await act(async () => {
+        await result.current.pushGame(game, 3);
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/sessions/session-1/games/game-1'),
+        expect.objectContaining({
+          method: 'PUT',
+          headers: expect.objectContaining({
+            'X-Expected-Version': '3',
+          }),
+        }),
+      );
+    });
+
     it('returns conflict info on 409', async () => {
       mockFetch.mockResolvedValueOnce({
         ok: false,

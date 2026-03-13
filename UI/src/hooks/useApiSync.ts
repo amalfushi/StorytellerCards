@@ -104,8 +104,9 @@ export interface ApiSyncHook {
   fetchGame: (sessionId: string, gameId: string) => Promise<Game | null>;
   /** Push a session with version-awareness. Returns push result with conflict info. */
   pushSession: (session: Session) => Promise<PushResult<Session>>;
-  /** Push a game with version-awareness. Returns push result with conflict info. */
-  pushGame: (game: Game) => Promise<PushResult<Game>>;
+  /** Push a game with version-awareness. Returns push result with conflict info.
+   *  An explicit expectedVersion overrides game.version for the X-Expected-Version header. */
+  pushGame: (game: Game, expectedVersion?: number) => Promise<PushResult<Game>>;
   /** Lightweight version check for a session. */
   pullSessionVersion: (sessionId: string) => Promise<VersionInfo | null>;
   /** Lightweight version check for a game. */
@@ -157,17 +158,21 @@ export function useApiSync(): ApiSyncHook {
     });
   }, []);
 
-  const pushGameDirect = useCallback(async (game: Game): Promise<PushResult<Game>> => {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (game.version !== undefined) {
-      headers['X-Expected-Version'] = String(game.version);
-    }
-    return pushRequest<Game>(`/api/sessions/${game.sessionId}/games/${game.id}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(game),
-    });
-  }, []);
+  const pushGameDirect = useCallback(
+    async (game: Game, expectedVersion?: number): Promise<PushResult<Game>> => {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      const version = expectedVersion ?? game.version;
+      if (version !== undefined) {
+        headers['X-Expected-Version'] = String(version);
+      }
+      return pushRequest<Game>(`/api/sessions/${game.sessionId}/games/${game.id}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify(game),
+      });
+    },
+    [],
+  );
 
   const syncSessionImmediate = useCallback(async (session: Session) => {
     // Fire-and-forget push — no version header, server assigns version
@@ -215,6 +220,10 @@ export function useApiSync(): ApiSyncHook {
       request<VersionInfo>(`/api/sessions/${sessionId}/games/${gameId}/version`),
     [],
   );
+
+  if (isSyncDisabled) {
+    return SYNC_DISABLED_HOOK;
+  }
 
   return {
     syncSession,
