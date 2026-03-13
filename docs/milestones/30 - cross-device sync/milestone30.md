@@ -1,8 +1,8 @@
 # Milestone 30 — Cross-Device Sync
 
-## Status: ✅ Complete
+## Status: ✅ Complete (with post-merge fixes)
 
-**Completion date:** 2026-03-11
+**Completion date:** 2026-03-11 (initial), 2026-03-12 (post-merge fixes)
 
 **Summary:** Implemented version-based polling sync between localStorage and Go API, enabling multi-device gameplay. Every Session and Game now has a `version` (int) and `updatedAt` (ISO timestamp). Local changes increment version and push to API. Other devices poll lightweight `/version` endpoints every 3 seconds and fetch full state when newer. Optimistic concurrency with `X-Expected-Version` header prevents stale overwrites (409 Conflict). localStorage always works — API failures never block gameplay.
 
@@ -14,6 +14,21 @@
 - Go integration tests: multi-client scenarios, stale write detection, E2E lifecycle
 - UI integration tests: version check → fetch workflow, 409 handling, offline behavior
 - 45 new tests (Go + UI), 3958 total UI tests passing, 6 new Storybook stories
+
+### Post-Merge Fixes (PRs #45–#50)
+
+Several issues were discovered during real-world cross-device testing after the initial M30 merge:
+
+| PR | Issue | Root Cause | Fix |
+|----|-------|-----------|-----|
+| #45 | IDs too long to type on phone | `generateId()` produced ~20-char base-36 strings | Changed to 8-char uppercase alphanumeric (`7K3X4MBN`) using unambiguous charset (no 0/O/1/I) |
+| #45 | "Session not found" on second device | No startup fetch from API | `SessionContext` now fetches all sessions from API on mount via `MERGE_REMOTE_SESSIONS` action; `GameViewPage` falls back to API fetch for games |
+| #45 | `TypeError: tokens is undefined` in NightFlashcard | `playerSeat.tokens` undefined for older game data | Added `?? []` nullish coalescing guard |
+| #46 | Silent API failures made debugging impossible | `request()` and `pushRequest()` swallowed all errors | Added `console.warn` logging for all API failures with URL, status, and error details |
+| #47 | API unreachable from LAN devices | Go server binding + no LAN IP visibility | Explicit `0.0.0.0` binding, log LAN addresses on startup |
+| #48/#49 | Phone/remote UI calling `localhost:3001` instead of LAN IP | `VITE_API_URL` env var in `.env` file overriding `window.location.hostname` | Removed `VITE_API_URL` check entirely; always derive API URL from `window.location.hostname:3001` |
+| #49 | CORS blocking LAN requests | Hardcoded `localhost` origins | Dynamic `isPrivateOrigin()` — allows localhost + RFC 1918 private IPs, rejects public internet |
+| #50 | Game state never synced to API (JSON on disk stuck at initial creation) | Games created in localStorage only, never POSTed to API; PUT returned 404 on version check | PUT handlers now upsert (create if not exists); version check only applies when resource already exists |
 
 > **Goal:** Enable the Storyteller to use multiple devices concurrently (e.g., laptop + phone) during a game, with all devices staying in sync within a few seconds via version-based polling against the Go API.
 
@@ -255,18 +270,22 @@ Since this is a single-user app (one Storyteller, two devices), true conflicts a
 | File | Change |
 |------|--------|
 | `API/internal/models/models.go` | Add `Version`, `UpdatedAt` to Session and Game |
-| `API/internal/handlers/sessions.go` | Version increment, `X-Expected-Version` check, version endpoint |
-| `API/internal/handlers/games.go` | Same as sessions |
+| `API/internal/handlers/sessions.go` | Version increment, `X-Expected-Version` check, version endpoint, **upsert on PUT** |
+| `API/internal/handlers/games.go` | Same as sessions, **upsert on PUT** |
 | `API/internal/handlers/sessions_test.go` | Version + concurrency tests |
 | `API/internal/handlers/games_test.go` | Same |
-| `API/cmd/server/main.go` | Register version-check routes |
+| `API/cmd/server/main.go` | Register version-check routes, **`0.0.0.0` bind, `isPrivateOrigin()` CORS, LAN IP logging** |
 | `UI/src/types/index.ts` | Add `version`, `updatedAt`, `SyncStatus`, `VersionInfo` |
-| `UI/src/hooks/useApiSync.ts` | Major revamp: version-aware push/pull, connection tracking |
+| `UI/src/hooks/useApiSync.ts` | Major revamp: version-aware push/pull, connection tracking, **dynamic API URL from `window.location.hostname`, push logging** |
 | `UI/src/hooks/useApiSync.test.ts` | Updated tests for new behavior |
 | `UI/src/context/GameContext.tsx` | Version tracking, `SYNC_GAME` action, API push on change |
 | `UI/src/context/GameContext.test.tsx` | Sync-related tests |
-| `UI/src/context/SessionContext.tsx` | Version tracking, sync on load/change, `SYNC_SESSION` action |
+| `UI/src/context/SessionContext.tsx` | Version tracking, sync on load/change, `SYNC_SESSION` action, **`MERGE_REMOTE_SESSIONS` for startup fetch** |
 | `UI/src/context/SessionContext.test.tsx` | Sync-related tests |
+| `UI/src/utils/idGenerator.ts` | **Changed to 8-char uppercase alphanumeric IDs** |
+| `UI/src/utils/idGenerator.test.ts` | **Updated tests for new ID format** |
+| `UI/src/pages/GameViewPage.tsx` | **API fallback fetch when game not in localStorage** |
+| `UI/src/components/NightPhase/NightFlashcard.tsx` | **`tokens ?? []` guard for older game data** |
 
 ---
 
