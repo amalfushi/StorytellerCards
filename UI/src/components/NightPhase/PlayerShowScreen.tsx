@@ -30,6 +30,14 @@ export interface PlayerShowScreenProps {
   showCharacterPicker?: boolean;
   /** Script characters for the picker dropdown (variant='token'). */
   scriptCharacters?: CharacterDef[];
+  /** Source character that triggered the display (e.g. Cerenovus for "SELECTED YOU"). */
+  sourceCharacter?: CharacterDef;
+  /** Additional character to display (e.g. the madness character for Cerenovus). */
+  additionalCharacter?: CharacterDef;
+  /** Label shown above the additional character (e.g. "You are now MAD that you are:"). */
+  additionalLabel?: string;
+  /** Instruction text shown at the bottom in italics. */
+  instructionText?: string;
 }
 
 /**
@@ -52,6 +60,10 @@ export function PlayerShowScreen({
   tokenText,
   showCharacterPicker = false,
   scriptCharacters = [],
+  sourceCharacter,
+  additionalCharacter,
+  additionalLabel,
+  instructionText,
 }: PlayerShowScreenProps) {
   const handleClose = useCallback(() => {
     onClose();
@@ -205,7 +217,86 @@ export function PlayerShowScreen({
             {tokenText}
           </Typography>
 
-          {/* Selected character display (large icon) */}
+          {/* Source character icon (e.g. the Cerenovus/Harpy token) */}
+          {sourceCharacter && (
+            <Box
+              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}
+              data-testid={`source-character-${sourceCharacter.id}`}
+            >
+              <Avatar
+                src={getCharacterIconPath(sourceCharacter.id)}
+                alt={sourceCharacter.name}
+                sx={{
+                  width: iconSize,
+                  height: iconSize,
+                  border: `3px solid ${getCharacterTypeColor(sourceCharacter.type)}`,
+                  bgcolor: '#fff',
+                }}
+              />
+              <Typography
+                variant={nameVariant}
+                sx={{
+                  color: getCharacterTypeColor(sourceCharacter.type),
+                  fontWeight: 600,
+                  textAlign: 'center',
+                  maxWidth: nameMaxWidth,
+                  lineHeight: 1.2,
+                }}
+              >
+                {sourceCharacter.name}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Additional label (e.g. "You are now MAD that you are:") */}
+          {additionalLabel && (
+            <Typography
+              variant={titleVariant}
+              sx={{
+                color: '#fff',
+                fontWeight: 700,
+                textAlign: 'center',
+                textShadow: '0 2px 12px rgba(0,0,0,0.5)',
+                mt: 1,
+              }}
+              data-testid="token-additional-label"
+            >
+              {additionalLabel}
+            </Typography>
+          )}
+
+          {/* Additional character icon (e.g. the madness character for Cerenovus) */}
+          {additionalCharacter && (
+            <Box
+              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}
+              data-testid={`additional-character-${additionalCharacter.id}`}
+            >
+              <Avatar
+                src={getCharacterIconPath(additionalCharacter.id)}
+                alt={additionalCharacter.name}
+                sx={{
+                  width: iconSize,
+                  height: iconSize,
+                  border: `3px solid ${getCharacterTypeColor(additionalCharacter.type)}`,
+                  bgcolor: '#fff',
+                }}
+              />
+              <Typography
+                variant={nameVariant}
+                sx={{
+                  color: getCharacterTypeColor(additionalCharacter.type),
+                  fontWeight: 600,
+                  textAlign: 'center',
+                  maxWidth: nameMaxWidth,
+                  lineHeight: 1.2,
+                }}
+              >
+                {additionalCharacter.name}
+              </Typography>
+            </Box>
+          )}
+
+          {/* Selected character display from picker (large icon) */}
           {selectedCharacter && (
             <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
               <Avatar
@@ -290,6 +381,25 @@ export function PlayerShowScreen({
               sx={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', mt: 1 }}
             >
               Select a character above to display
+            </Typography>
+          )}
+
+          {/* Instruction text (e.g. madness consequences) */}
+          {instructionText && (
+            <Typography
+              variant="body1"
+              data-testid="token-instruction-text"
+              sx={{
+                color: 'rgba(255,255,255,0.7)',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                px: 2,
+                mt: 1,
+                maxWidth: isLargeViewport ? 600 : 400,
+                lineHeight: 1.5,
+              }}
+            >
+              {instructionText}
             </Typography>
           )}
         </Box>

@@ -3,6 +3,7 @@ import {
   extractInfoTokens,
   getTokenDisplayText,
   isCharacterIdentityToken,
+  isSelectedYouToken,
 } from '@/utils/infoTokenUtils.ts';
 
 describe('infoTokenUtils', () => {
@@ -66,6 +67,12 @@ describe('infoTokenUtils', () => {
       expect(getTokenDisplayText('THESE ARE YOUR MINIONS')).toBe('These are your Minions');
     });
 
+    it('returns updated display text for THIS CHARACTER SELECTED YOU', () => {
+      expect(getTokenDisplayText('THIS CHARACTER SELECTED YOU')).toBe(
+        'This character has selected you:',
+      );
+    });
+
     it('falls back to title-case for unknown tokens', () => {
       expect(getTokenDisplayText('SOME UNKNOWN TOKEN')).toBe('Some unknown token');
     });
@@ -86,6 +93,24 @@ describe('infoTokenUtils', () => {
 
     it('returns false for THIS CHARACTER SELECTED YOU', () => {
       expect(isCharacterIdentityToken('THIS CHARACTER SELECTED YOU')).toBe(false);
+    });
+  });
+
+  describe('isSelectedYouToken', () => {
+    it('returns true for THIS CHARACTER SELECTED YOU', () => {
+      expect(isSelectedYouToken('THIS CHARACTER SELECTED YOU')).toBe(true);
+    });
+
+    it('returns false for YOU ARE', () => {
+      expect(isSelectedYouToken('YOU ARE')).toBe(false);
+    });
+
+    it('returns false for THESE ARE YOUR MINIONS', () => {
+      expect(isSelectedYouToken('THESE ARE YOUR MINIONS')).toBe(false);
+    });
+
+    it('returns false for MAD', () => {
+      expect(isSelectedYouToken('MAD')).toBe(false);
     });
   });
 });

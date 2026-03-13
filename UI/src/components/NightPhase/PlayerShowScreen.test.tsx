@@ -171,4 +171,152 @@ describe('PlayerShowScreen', () => {
       expect(screen.queryByTestId('player-show-screen')).not.toBeInTheDocument();
     });
   });
+
+  describe('token variant with source character', () => {
+    const cerenovus = makeChar({
+      id: 'cerenovus',
+      name: 'Cerenovus',
+      type: 'Minion',
+      defaultAlignment: 'Evil',
+    });
+    const harpy = makeChar({
+      id: 'harpy',
+      name: 'Harpy',
+      type: 'Minion',
+      defaultAlignment: 'Evil',
+    });
+    const pixie = makeChar({
+      id: 'pixie',
+      name: 'Pixie',
+      type: 'Townsfolk',
+      defaultAlignment: 'Good',
+    });
+    const fortune = makeChar({
+      id: 'fortuneteller',
+      name: 'Fortune Teller',
+      type: 'Townsfolk',
+      defaultAlignment: 'Good',
+    });
+
+    it('renders source character icon when sourceCharacter is provided', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="token"
+          tokenText="This character has selected you:"
+          sourceCharacter={cerenovus}
+        />,
+      );
+      expect(screen.getByTestId('source-character-cerenovus')).toBeInTheDocument();
+      expect(screen.getByText('Cerenovus')).toBeInTheDocument();
+    });
+
+    it('renders additional label when provided', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="token"
+          tokenText="This character has selected you:"
+          sourceCharacter={cerenovus}
+          additionalLabel="You are now MAD that you are:"
+        />,
+      );
+      expect(screen.getByTestId('token-additional-label')).toHaveTextContent(
+        'You are now MAD that you are:',
+      );
+    });
+
+    it('renders additional character icon when additionalCharacter is provided', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="token"
+          tokenText="This character has selected you:"
+          sourceCharacter={cerenovus}
+          additionalLabel="You are now MAD that you are:"
+          additionalCharacter={fortune}
+        />,
+      );
+      expect(screen.getByTestId('additional-character-fortuneteller')).toBeInTheDocument();
+      expect(screen.getByText('Fortune Teller')).toBeInTheDocument();
+    });
+
+    it('renders instruction text when provided', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="token"
+          tokenText="This character has selected you:"
+          sourceCharacter={harpy}
+          instructionText="You must be MAD that the player being pointed to is evil, or one or both of you might die."
+        />,
+      );
+      expect(screen.getByTestId('token-instruction-text')).toHaveTextContent(
+        'You must be MAD that the player being pointed to is evil',
+      );
+    });
+
+    it('renders Cerenovus fullscreen with all elements', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="token"
+          tokenText="This character has selected you:"
+          sourceCharacter={cerenovus}
+          additionalLabel="You are now MAD that you are:"
+          additionalCharacter={fortune}
+          instructionText="Something bad may happen if you do not pretend to be the character you are mad about."
+        />,
+      );
+      expect(screen.getByText('This character has selected you:')).toBeInTheDocument();
+      expect(screen.getByTestId('source-character-cerenovus')).toBeInTheDocument();
+      expect(screen.getByTestId('token-additional-label')).toBeInTheDocument();
+      expect(screen.getByTestId('additional-character-fortuneteller')).toBeInTheDocument();
+      expect(screen.getByTestId('token-instruction-text')).toBeInTheDocument();
+    });
+
+    it('renders Pixie fullscreen with character picker and instruction', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="token"
+          tokenText="You must be MAD that you are:"
+          sourceCharacter={pixie}
+          showCharacterPicker={true}
+          scriptCharacters={[fortune]}
+          instructionText="If you are MAD that you are this character, you may gain their ability when they die."
+        />,
+      );
+      expect(screen.getByText('You must be MAD that you are:')).toBeInTheDocument();
+      expect(screen.getByTestId('source-character-pixie')).toBeInTheDocument();
+      expect(screen.getByTestId('token-character-picker')).toBeInTheDocument();
+      expect(screen.getByTestId('token-instruction-text')).toBeInTheDocument();
+    });
+
+    it('does not render source character when not provided', () => {
+      render(
+        <PlayerShowScreen open={true} onClose={vi.fn()} variant="token" tokenText="You are:" />,
+      );
+      expect(screen.queryByTestId(/source-character-/)).not.toBeInTheDocument();
+    });
+
+    it('does not render instruction text when not provided', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="token"
+          tokenText="This character has selected you:"
+          sourceCharacter={cerenovus}
+        />,
+      );
+      expect(screen.queryByTestId('token-instruction-text')).not.toBeInTheDocument();
+    });
+  });
 });
