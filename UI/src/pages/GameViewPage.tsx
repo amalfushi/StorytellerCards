@@ -243,15 +243,6 @@ export function GameViewPage() {
     [setLunaticBluffs, saveGame],
   );
 
-  // Use in-play characters for assignment if available, else all script characters
-  const inPlayIds = game?.inPlayCharacterIds;
-  const assignmentCharacterDefs = useMemo(() => {
-    if (inPlayIds?.length) {
-      return getCharactersByIds(inPlayIds);
-    }
-    return scriptCharacterDefs;
-  }, [inPlayIds, getCharactersByIds, scriptCharacterDefs]);
-
   // Template bluffs for distribution after assignment
   const templateDemonBluffs = game?.demonBluffs;
   const templateLunaticBluffs = game?.lunaticBluffs;
@@ -570,7 +561,8 @@ export function GameViewPage() {
           open={assignDialogOpen}
           onClose={() => setAssignDialogOpen(false)}
           players={game.players}
-          scriptCharacters={assignmentCharacterDefs}
+          scriptCharacters={scriptCharacterDefs}
+          inPlayCharacterIds={game.inPlayCharacterIds}
           onConfirm={handleConfirmAssignments}
         />
       )}
