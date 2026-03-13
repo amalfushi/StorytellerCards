@@ -656,6 +656,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const isSyncingRef = useRef(false);
   const gameRef = useRef(state.game);
   const lastPushedGameRef = useRef<string | null>(null);
+  const [lastServerVersion, setLastServerVersion] = useState(0);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
 
   const {
@@ -692,8 +693,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (!g) return;
 
     // Don't overwrite local state if we have unpushed changes.
-    // Compare current state against what was last pushed — if different,
-    // a debounced push is still pending and would be lost.
     const currentJson = JSON.stringify(g);
     if (lastPushedGameRef.current !== null && currentJson !== lastPushedGameRef.current) {
       return;
@@ -701,6 +700,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const remoteGame = await apiFetchGame(g.sessionId, g.id);
     if (remoteGame) {
+      setLastServerVersion(remoteGame.version ?? 0);
       isSyncingRef.current = true;
       lastPushedGameRef.current = JSON.stringify(remoteGame);
       dispatch({ type: 'SYNC_GAME', payload: { game: remoteGame } });
@@ -716,15 +716,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const { forceSync } = useSyncPolling({
     enabled: !!state.game,
+    interval: 10000,
     fetchVersion,
     onNewVersion: handleNewVersion,
     onStatusChange: setSyncStatus,
-    localVersion: state.game?.version ?? 0,
+    localVersion: lastServerVersion,
   });
 
   // ── Helper functions ──
 
   const loadGame = useCallback((game: Game) => {
+    setLastServerVersion(game.version ?? 0);
+    lastPushedGameRef.current = null;
     dispatch({ type: 'LOAD_GAME', payload: { game } });
   }, []);
 
