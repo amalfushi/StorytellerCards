@@ -7,17 +7,17 @@
 import { useCallback, useRef } from 'react';
 import type { Session, Game, VersionInfo } from '../types';
 
-let _apiBase: string | null = null;
+const VITE_API_URL: string | undefined = import.meta.env.VITE_API_URL;
 
 function getApiBase(): string {
-  if (_apiBase) return _apiBase;
-  if (import.meta.env.VITE_API_URL) {
-    _apiBase = import.meta.env.VITE_API_URL as string;
-  } else {
-    _apiBase = `http://${window.location.hostname}:3001`;
+  if (VITE_API_URL && VITE_API_URL !== 'undefined') {
+    console.info(`[API] Using VITE_API_URL: ${VITE_API_URL}`);
+    return VITE_API_URL;
   }
-  console.info(`[API] Resolved API base: ${_apiBase}`);
-  return _apiBase;
+  const hostname = window.location.hostname;
+  const base = `http://${hostname}:3001`;
+  console.info(`[API] Using window.location.hostname="${hostname}" → ${base}`);
+  return base;
 }
 
 const DEBOUNCE_MS = 1000;
