@@ -28,6 +28,12 @@ export interface TownSquareLayoutProps {
   containerHeight: number;
   /** Half-width of the largest token (px) — used as inset padding so tokens don't clip edges. */
   tokenRadius?: number;
+  /**
+   * Token badge layout mode. When `'linear'`, the player circle is shrunk
+   * inward so reminder tokens along card edges have more room and aren't
+   * clipped by the container boundary.
+   */
+  tokenLayout?: 'radial' | 'linear';
   /** Active Fabled characters shown in upper-left corner. */
   activeFabled?: CornerCharacter[];
   /** Active Loric characters shown in upper-right corner. */
@@ -45,6 +51,14 @@ export interface TownSquareLayoutProps {
  * All tokens use `position: absolute` with `transform: translate(-50%, -50%)`
  * so the calculated (x, y) centre lands exactly on the ellipse.
  */
+/**
+ * Scale factor applied to the player-token ellipse radii when using the
+ * linear reminder-token layout.  Pulling the ring inward by 12 % gives
+ * reminder tokens along card edges enough room so they aren't clipped by
+ * the container boundary.
+ */
+const LINEAR_RADIUS_SCALE = 0.88;
+
 export function TownSquareLayout({
   players,
   renderToken,
@@ -52,6 +66,7 @@ export function TownSquareLayout({
   containerWidth,
   containerHeight,
   tokenRadius = 36,
+  tokenLayout = 'radial',
   activeFabled = [],
   activeLoric = [],
 }: TownSquareLayoutProps) {
@@ -87,6 +102,12 @@ export function TownSquareLayout({
       }
     }
 
+    // In linear mode, shrink radii so edge-placed reminder tokens aren't clipped
+    if (tokenLayout === 'linear') {
+      rx *= LINEAR_RADIUS_SCALE;
+      ry *= LINEAR_RADIUS_SCALE;
+    }
+
     // Clamp radii to minimum so the layout stays usable
     rx = Math.max(rx, 30);
     ry = Math.max(ry, 30);
@@ -98,7 +119,7 @@ export function TownSquareLayout({
       const y = cy + ry * Math.sin(angle);
       return { x, y, angle };
     });
-  }, [sorted, containerWidth, containerHeight, shape, tokenRadius]);
+  }, [sorted, containerWidth, containerHeight, shape, tokenRadius, tokenLayout]);
 
   if (containerWidth === 0 || containerHeight === 0) return null;
 
