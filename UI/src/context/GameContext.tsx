@@ -542,11 +542,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'SYNC_GAME': {
       const remote = action.payload.game;
-      // Only apply if we have the same game loaded and remote version is newer
       if (!state.game || state.game.id !== remote.id) return state;
-      const localVersion = state.game.version ?? 0;
-      const remoteVersion = remote.version ?? 0;
-      if (remoteVersion <= localVersion) return state;
       return {
         ...state,
         game: remote,
@@ -659,6 +655,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducerWithVersion, INITIAL_STATE);
   const isSyncingRef = useRef(false);
   const gameRef = useRef(state.game);
+  const lastPushedGameRef = useRef<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
 
   const {
@@ -682,6 +679,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   // Push game to API when it changes (skip if change came from SYNC_GAME)
   useEffect(() => {
     if (state.game && !isSyncingRef.current) {
+      // Track what we're pushing so polling knows not to overwrite
+      lastPushedGameRef.current = JSON.stringify(state.game);
       apiPushGame(state.game);
     }
     isSyncingRef.current = false;
@@ -691,9 +690,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const handleNewVersion = useCallback(async () => {
     const g = gameRef.current;
     if (!g) return;
+
+    // Don't overwrite local state if we have unpushed changes.
+    // Compare current state against what was last pushed — if different,
+    // a debounced push is still pending and would be lost.
+    const currentJson = JSON.stringify(g);
+    if (lastPushedGameRef.current !== null && currentJson !== lastPushedGameRef.current) {
+      return;
+    }
+
     const remoteGame = await apiFetchGame(g.sessionId, g.id);
     if (remoteGame) {
       isSyncingRef.current = true;
+      lastPushedGameRef.current = JSON.stringify(remoteGame);
       dispatch({ type: 'SYNC_GAME', payload: { game: remoteGame } });
     }
   }, [apiFetchGame]);
