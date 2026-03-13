@@ -26,6 +26,7 @@ import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { useNightOrder } from '@/hooks/useNightOrder.ts';
 import { ShowCharactersToggle } from '@/components/common/ShowCharactersToggle.tsx';
+import { SyncStatusIndicator } from '@/components/common/SyncStatusIndicator.tsx';
 import { PhaseBar } from '@/components/PhaseBar/PhaseBar.tsx';
 import { TownSquareTab } from '@/components/TownSquare/TownSquareTab.tsx';
 import { PlayerListTab } from '@/components/PlayerList/PlayerListTab.tsx';
@@ -64,6 +65,8 @@ export function GameViewPage() {
     setDemonBluffs,
     setLunaticBluffs,
     setPlayerBluffs,
+    syncStatus,
+    forceSync,
   } = useGame();
   const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
 
@@ -368,6 +371,8 @@ export function GameViewPage() {
               </IconButton>
             </Tooltip>
           )}
+
+          {syncStatus && <SyncStatusIndicator status={syncStatus} onRefresh={forceSync} />}
 
           <ShowCharactersToggle />
         </Toolbar>

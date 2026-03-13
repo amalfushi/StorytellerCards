@@ -1,4 +1,12 @@
-import { createContext, useContext, useReducer, useCallback, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useReducer,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import type { ReactNode } from 'react';
 import type {
   Game,
@@ -6,9 +14,12 @@ import type {
   PlayerToken,
   NightProgress,
   NightHistoryEntry,
+  SyncStatus,
 } from '@/types/index.ts';
 import { Phase, Alignment, CharacterType } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
+import { useApiSync } from '@/hooks/useApiSync.ts';
+import { useSyncPolling } from '@/hooks/useSyncPolling.ts';
 
 // ──────────────────────────────────────────────
 // State
@@ -547,6 +558,26 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
   }
 }
 
+/**
+ * Wraps the base reducer to auto-increment `game.version` on every
+ * game-modifying action, except SYNC_GAME (remote) and LOAD_GAME (initial).
+ */
+function gameReducerWithVersion(state: GameViewState, action: GameAction): GameViewState {
+  const newState = gameReducer(state, action);
+  if (
+    newState.game &&
+    newState.game !== state.game &&
+    action.type !== 'SYNC_GAME' &&
+    action.type !== 'LOAD_GAME'
+  ) {
+    return {
+      ...newState,
+      game: { ...newState.game, version: (newState.game.version ?? 0) + 1 },
+    };
+  }
+  return newState;
+}
+
 /** Write a game object to localStorage. */
 function persistGame(game: Game): void {
   try {
@@ -622,6 +653,8 @@ interface GameContextValue {
   setCustomPlayerMessage: (characterId: string, message: string) => void;
   clearCustomPlayerMessage: (characterId: string) => void;
   syncGame: (game: Game) => void;
+  syncStatus: SyncStatus;
+  forceSync: () => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -631,7 +664,21 @@ const GameContext = createContext<GameContextValue | null>(null);
 // ──────────────────────────────────────────────
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE);
+  const [state, dispatch] = useReducer(gameReducerWithVersion, INITIAL_STATE);
+  const isSyncingRef = useRef(false);
+  const gameRef = useRef(state.game);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
+
+  const {
+    syncGame: apiPushGame,
+    fetchGame: apiFetchGame,
+    pullGameVersion: apiPullGameVersion,
+  } = useApiSync();
+
+  // Keep gameRef in sync
+  useEffect(() => {
+    gameRef.current = state.game;
+  }, [state.game]);
 
   // Auto-save game to localStorage whenever it changes
   useEffect(() => {
@@ -639,6 +686,40 @@ export function GameProvider({ children }: { children: ReactNode }) {
       persistGame(state.game);
     }
   }, [state.game]);
+
+  // Push game to API when it changes (skip if change came from SYNC_GAME)
+  useEffect(() => {
+    if (state.game && !isSyncingRef.current) {
+      apiPushGame(state.game);
+    }
+    isSyncingRef.current = false;
+  }, [state.game, apiPushGame]);
+
+  // Handle new version detected by polling
+  const handleNewVersion = useCallback(async () => {
+    const g = gameRef.current;
+    if (!g) return;
+    const remoteGame = await apiFetchGame(g.sessionId, g.id);
+    if (remoteGame) {
+      isSyncingRef.current = true;
+      dispatch({ type: 'SYNC_GAME', payload: { game: remoteGame } });
+    }
+  }, [apiFetchGame]);
+
+  // Stable fetchVersion callback using ref
+  const fetchVersion = useCallback(() => {
+    const g = gameRef.current;
+    if (!g) return Promise.resolve(null);
+    return apiPullGameVersion(g.sessionId, g.id);
+  }, [apiPullGameVersion]);
+
+  const { forceSync } = useSyncPolling({
+    enabled: !!state.game,
+    fetchVersion,
+    onNewVersion: handleNewVersion,
+    onStatusChange: setSyncStatus,
+    localVersion: state.game?.version ?? 0,
+  });
 
   // ── Helper functions ──
 
@@ -838,6 +919,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCustomPlayerMessage,
     clearCustomPlayerMessage,
     syncGame,
+    syncStatus,
+    forceSync,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
