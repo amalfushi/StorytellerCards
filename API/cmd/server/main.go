@@ -3,9 +3,12 @@ package main
 import (
 	"context"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 	"time"
 
@@ -40,17 +43,28 @@ func main() {
 	games := handlers.NewGames(store)
 	scripts := handlers.NewScripts(store)
 
+	// CORS: allow localhost and any private-network IP (RFC 1918).
+	// Override via CORS_ORIGINS env var (comma-separated) for explicit control.
+	var corsOpts cors.Options
+	if envOrigins := os.Getenv("CORS_ORIGINS"); envOrigins != "" {
+		corsOpts = cors.Options{
+			AllowedOrigins: splitAndTrim(envOrigins),
+		}
+	} else {
+		corsOpts = cors.Options{
+			AllowOriginFunc: isPrivateOrigin,
+		}
+	}
+	corsOpts.AllowedMethods = []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"}
+	corsOpts.AllowedHeaders = []string{"Content-Type", "X-Expected-Version"}
+	corsOpts.AllowCredentials = false
+	corsOpts.MaxAge = 300
+
 	// Router
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
-	r.Use(cors.Handler(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:4173"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "X-Expected-Version"},
-		AllowCredentials: false,
-		MaxAge:           300,
-	}))
+	r.Use(cors.Handler(corsOpts))
 
 	// Routes
 	r.Route("/api", func(r chi.Router) {
@@ -106,4 +120,30 @@ func main() {
 		log.Printf("ERROR shutdown: %v", err)
 	}
 	log.Println("server stopped")
+}
+
+func splitAndTrim(s string) []string {
+	parts := strings.Split(s, ",")
+	out := make([]string, 0, len(parts))
+	for _, p := range parts {
+		if t := strings.TrimSpace(p); t != "" {
+			out = append(out, t)
+		}
+	}
+	return out
+}
+
+// isPrivateOrigin returns true if the origin is localhost or a private (RFC 1918) IP.
+// This allows any device on the local network while rejecting public internet origins.
+func isPrivateOrigin(_ *http.Request, origin string) bool {
+	u, err := url.Parse(origin)
+	if err != nil {
+		return false
+	}
+	host := u.Hostname()
+	if host == "localhost" || host == "127.0.0.1" || host == "::1" {
+		return true
+	}
+	ip := net.ParseIP(host)
+	return ip != nil && ip.IsPrivate()
 }

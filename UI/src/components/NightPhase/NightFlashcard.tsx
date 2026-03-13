@@ -215,7 +215,8 @@ export function NightFlashcard({
 
   // Phase 4: Separate affecting tokens (from OTHER characters) from this character's tokens
   const affectingTokens = useMemo(
-    () => (playerSeat ? playerSeat.tokens.filter((t) => t.sourceCharacterId !== entry.id) : []),
+    () =>
+      playerSeat ? (playerSeat.tokens ?? []).filter((t) => t.sourceCharacterId !== entry.id) : [],
     [playerSeat, entry.id],
   );
 

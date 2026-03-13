@@ -7,7 +7,13 @@
 import { useCallback, useRef } from 'react';
 import type { Session, Game, VersionInfo } from '../types';
 
-const API_BASE = import.meta.env.VITE_API_URL ?? 'http://localhost:3001';
+function resolveApiBase(): string {
+  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL as string;
+  // Use the same hostname the page was loaded from so LAN devices reach the API
+  return `http://${window.location.hostname}:3001`;
+}
+
+const API_BASE = resolveApiBase();
 const DEBOUNCE_MS = 1000;
 
 /** Result of a push operation — includes conflict info if applicable. */
@@ -72,6 +78,8 @@ export interface ApiSyncHook {
   syncGame: (game: Game) => void;
   /** Fetch a full session from the API. */
   fetchSession: (id: string) => Promise<Session | null>;
+  /** Fetch all sessions from the API. */
+  fetchSessions: () => Promise<Session[]>;
   /** Fetch a full game from the API. */
   fetchGame: (sessionId: string, gameId: string) => Promise<Game | null>;
   /** Push a session with version-awareness. Returns push result with conflict info. */
@@ -128,6 +136,11 @@ export function useApiSync(): ApiSyncHook {
 
   const fetchSession = useCallback((id: string) => request<Session>(`/api/sessions/${id}`), []);
 
+  const fetchSessions = useCallback(async (): Promise<Session[]> => {
+    const result = await request<Session[]>('/api/sessions');
+    return result ?? [];
+  }, []);
+
   const fetchGame = useCallback(
     (sessionId: string, gameId: string) =>
       request<Game>(`/api/sessions/${sessionId}/games/${gameId}`),
@@ -149,6 +162,7 @@ export function useApiSync(): ApiSyncHook {
     syncSession,
     syncGame,
     fetchSession,
+    fetchSessions,
     fetchGame,
     pushSession: pushSessionDirect,
     pushGame: pushGameDirect,
