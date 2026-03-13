@@ -49,24 +49,28 @@ async function request<T>(path: string, options?: RequestInit): Promise<T | null
 }
 
 async function pushRequest<T>(path: string, options: RequestInit): Promise<PushResult<T>> {
+  const url = `${getApiBase()}${path}`;
   try {
-    const res = await fetch(`${getApiBase()}${path}`, {
+    const res = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
       ...options,
     });
 
     if (res.status === 409) {
       const body = (await res.json()) as { serverVersion: number; expectedVersion: number };
+      console.warn(`[API] ${options.method} ${url} → 409 conflict`, body);
       return { ok: false, status: 409, data: null, conflict: body };
     }
 
     if (!res.ok) {
+      console.warn(`[API] ${options.method} ${url} → ${res.status}`);
       return { ok: false, status: res.status, data: null };
     }
 
     const data = (await res.json()) as T;
     return { ok: true, status: res.status, data };
-  } catch {
+  } catch (err) {
+    console.warn(`[API] ${options.method} ${url} → network error:`, err);
     return { ok: false, status: 0, data: null };
   }
 }

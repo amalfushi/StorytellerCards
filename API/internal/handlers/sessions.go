@@ -82,7 +82,8 @@ func (h *Sessions) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, s)
 }
 
-// Update replaces an existing session. PUT /api/sessions/{id}
+// Update replaces an existing session (or creates it if it doesn't exist).
+// PUT /api/sessions/{id}
 func (h *Sessions) Update(w http.ResponseWriter, r *http.Request) {
 	id := chi.URLParam(r, "id")
 	var s models.Session
@@ -92,17 +93,14 @@ func (h *Sessions) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	s.ID = id
 
-	// Optimistic concurrency: check X-Expected-Version header
-	if evHeader := r.Header.Get("X-Expected-Version"); evHeader != "" {
+	// Check if the session already exists
+	existing, existErr := h.store.GetSession(id)
+
+	// Optimistic concurrency: check X-Expected-Version header (only if session exists)
+	if evHeader := r.Header.Get("X-Expected-Version"); evHeader != "" && existErr == nil {
 		expectedVersion, err := strconv.Atoi(evHeader)
 		if err != nil {
 			http.Error(w, "bad X-Expected-Version header", http.StatusBadRequest)
-			return
-		}
-		existing, err := h.store.GetSession(id)
-		if err != nil {
-			log.Printf("WARN update session %s (version check): %v", id, err)
-			http.Error(w, "not found", http.StatusNotFound)
 			return
 		}
 		if existing.Version != expectedVersion {
@@ -124,7 +122,13 @@ func (h *Sessions) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, http.StatusOK, s)
+
+	status := http.StatusOK
+	if existErr != nil {
+		status = http.StatusCreated
+		log.Printf("INFO created session %s via PUT (upsert)", id)
+	}
+	writeJSON(w, status, s)
 }
 
 // Delete removes a session and its games. DELETE /api/sessions/{id}

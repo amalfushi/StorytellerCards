@@ -75,7 +75,8 @@ func (h *Games) Create(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusCreated, g)
 }
 
-// Update replaces an existing game. PUT /api/sessions/{sessionId}/games/{gameId}
+// Update replaces an existing game (or creates it if it doesn't exist).
+// PUT /api/sessions/{sessionId}/games/{gameId}
 func (h *Games) Update(w http.ResponseWriter, r *http.Request) {
 	sid := chi.URLParam(r, "sessionId")
 	gid := chi.URLParam(r, "gameId")
@@ -87,17 +88,14 @@ func (h *Games) Update(w http.ResponseWriter, r *http.Request) {
 	g.ID = gid
 	g.SessionID = sid
 
-	// Optimistic concurrency: check X-Expected-Version header
-	if evHeader := r.Header.Get("X-Expected-Version"); evHeader != "" {
+	// Check if the game already exists
+	existing, existErr := h.store.GetGame(sid, gid)
+
+	// Optimistic concurrency: check X-Expected-Version header (only if game exists)
+	if evHeader := r.Header.Get("X-Expected-Version"); evHeader != "" && existErr == nil {
 		expectedVersion, err := strconv.Atoi(evHeader)
 		if err != nil {
 			http.Error(w, "bad X-Expected-Version header", http.StatusBadRequest)
-			return
-		}
-		existing, err := h.store.GetGame(sid, gid)
-		if err != nil {
-			log.Printf("WARN update game %s/%s (version check): %v", sid, gid, err)
-			http.Error(w, "not found", http.StatusNotFound)
 			return
 		}
 		if existing.Version != expectedVersion {
@@ -119,5 +117,11 @@ func (h *Games) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
-	writeJSON(w, http.StatusOK, g)
+
+	status := http.StatusOK
+	if existErr != nil {
+		status = http.StatusCreated
+		log.Printf("INFO created game %s/%s via PUT (upsert)", sid, gid)
+	}
+	writeJSON(w, status, g)
 }
