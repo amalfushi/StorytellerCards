@@ -7,14 +7,19 @@
 import { useCallback, useRef } from 'react';
 import type { Session, Game, VersionInfo } from '../types';
 
-function resolveApiBase(): string {
-  if (import.meta.env.VITE_API_URL) return import.meta.env.VITE_API_URL as string;
-  const base = `http://${window.location.hostname}:3001`;
-  console.info(`[API] Resolved API base: ${base}`);
-  return base;
+let _apiBase: string | null = null;
+
+function getApiBase(): string {
+  if (_apiBase) return _apiBase;
+  if (import.meta.env.VITE_API_URL) {
+    _apiBase = import.meta.env.VITE_API_URL as string;
+  } else {
+    _apiBase = `http://${window.location.hostname}:3001`;
+  }
+  console.info(`[API] Resolved API base: ${_apiBase}`);
+  return _apiBase;
 }
 
-const API_BASE = resolveApiBase();
 const DEBOUNCE_MS = 1000;
 
 /** Result of a push operation — includes conflict info if applicable. */
@@ -26,7 +31,7 @@ export interface PushResult<T> {
 }
 
 async function request<T>(path: string, options?: RequestInit): Promise<T | null> {
-  const url = `${API_BASE}${path}`;
+  const url = `${getApiBase()}${path}`;
   try {
     const res = await fetch(url, {
       headers: { 'Content-Type': 'application/json' },
@@ -45,7 +50,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T | null
 
 async function pushRequest<T>(path: string, options: RequestInit): Promise<PushResult<T>> {
   try {
-    const res = await fetch(`${API_BASE}${path}`, {
+    const res = await fetch(`${getApiBase()}${path}`, {
       headers: { 'Content-Type': 'application/json' },
       ...options,
     });
