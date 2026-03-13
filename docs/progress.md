@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-11
+> Last updated: 2026-03-12
 
 ## Milestone Overview
 
@@ -36,7 +36,7 @@
 | M27 | Character Selection & Assignment Redesign | ✅ Complete | [details](milestones/27%20-%20character%20selection%20redesign/milestone27.md) |
 | M28 | Alignment-Based Icon Variants | ✅ Complete | [details](milestones/28%20-%20alignment%20icon%20variants/milestone28.md) |
 | M29 | Bluff Improvements & Player Show Screen | ✅ Complete | [details](milestones/29%20-%20bluff%20and%20show%20screen/milestone29.md) |
-| M30 | Cross-Device Sync — version-based polling, optimistic concurrency, SyncStatusIndicator | ✅ Complete | [details](milestones/30%20-%20cross-device%20sync/milestone30.md) |
+| M30 | Cross-Device Sync — version-based polling, optimistic concurrency, SyncStatusIndicator, LAN networking, upsert sync | ✅ Complete | [details](milestones/30%20-%20cross-device%20sync/milestone30.md) |
 
 ## Key Design Decisions
 
@@ -49,7 +49,7 @@
 - **Exile vs execution** — functionally same but both terms retained
 - **Adaptive distribution engine in M27** — replaces static distribution with real-time targets responding to setup-affecting characters (Baron, Legion, Atheist, Xaan, etc.)
 
-## Verification (as of M30 Complete)
+## Verification (as of M30 Complete + Post-Merge Fixes)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
