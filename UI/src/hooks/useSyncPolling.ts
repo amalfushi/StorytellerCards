@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import type { VersionInfo, SyncStatus } from '@/types/index.ts';
+import { isSyncDisabled } from './useApiSync';
 
 export interface SyncPollingOptions {
   /** Whether polling is enabled. Disabled when there's no active resource to poll. */
@@ -114,10 +115,10 @@ export function useSyncPolling(options: SyncPollingOptions): { forceSync: () => 
     };
   }, [runPollAndReschedule, getInterval]);
 
-  // Start/stop polling based on enabled flag
+  // Start/stop polling based on enabled flag (skip entirely when sync is disabled)
   useEffect(() => {
     isMountedRef.current = true;
-    if (enabled) {
+    if (enabled && !isSyncDisabled) {
       scheduleRef.current();
     }
     return () => {
@@ -128,7 +129,7 @@ export function useSyncPolling(options: SyncPollingOptions): { forceSync: () => 
 
   // Pause polling when tab is hidden
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || isSyncDisabled) return;
 
     const handleVisibility = () => {
       if (document.hidden) {

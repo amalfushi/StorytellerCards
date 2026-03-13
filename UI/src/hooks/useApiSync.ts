@@ -2,12 +2,17 @@
  * Version-aware API sync hook for cross-device persistence.
  * Supports push (with X-Expected-Version), pull, version checks,
  * and 409 conflict handling. localStorage is always the primary store.
+ *
+ * When VITE_SYNC_DISABLED is set, all sync operations become no-ops
+ * and the app runs in local-only mode using only localStorage.
  */
 
 import { useCallback, useRef } from 'react';
 import type { Session, Game, VersionInfo } from '../types';
 
 const VITE_API_URL: string | undefined = import.meta.env.VITE_API_URL;
+
+export const isSyncDisabled: boolean = import.meta.env.VITE_SYNC_DISABLED === 'true';
 
 function getApiBase(): string {
   if (VITE_API_URL && VITE_API_URL !== 'undefined') {
@@ -108,6 +113,38 @@ export interface ApiSyncHook {
 }
 
 export function useApiSync(): ApiSyncHook {
+  const syncDisabledLogged = useRef(false);
+
+  if (isSyncDisabled) {
+    if (!syncDisabledLogged.current) {
+      console.info('[API] Sync disabled — running in local-only mode');
+      syncDisabledLogged.current = true;
+    }
+
+    const noop = useCallback(() => {}, []);
+    const noopAsync = useCallback(async () => null, []);
+    const noopPush = useCallback(
+      async () => ({ ok: true, status: 0, data: null }) as PushResult<never>,
+      [],
+    );
+    const noopFetchSessions = useCallback(async (): Promise<Session[]> => [], []);
+
+    return {
+      syncSession: noop,
+      syncGame: noop,
+      fetchSession: noopAsync as (id: string) => Promise<Session | null>,
+      fetchSessions: noopFetchSessions,
+      fetchGame: noopAsync as (sessionId: string, gameId: string) => Promise<Game | null>,
+      pushSession: noopPush as unknown as (session: Session) => Promise<PushResult<Session>>,
+      pushGame: noopPush as unknown as (game: Game) => Promise<PushResult<Game>>,
+      pullSessionVersion: noopAsync as (sessionId: string) => Promise<VersionInfo | null>,
+      pullGameVersion: noopAsync as (
+        sessionId: string,
+        gameId: string,
+      ) => Promise<VersionInfo | null>,
+    };
+  }
+
   const pushSessionDirect = useCallback(async (session: Session): Promise<PushResult<Session>> => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     if (session.version !== undefined) {

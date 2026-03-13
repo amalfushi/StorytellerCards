@@ -4,7 +4,7 @@ import type { Session, Game, PlayerSeat } from '@/types/index.ts';
 import { Phase, Alignment } from '@/types/index.ts';
 import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
 import { generateId } from '@/utils/idGenerator.ts';
-import { useApiSync } from '@/hooks/useApiSync.ts';
+import { useApiSync, isSyncDisabled } from '@/hooks/useApiSync.ts';
 
 // ──────────────────────────────────────────────
 // State
@@ -272,7 +272,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [state, setPersisted]);
 
   // Fetch sessions from API on startup and merge with local state
+  // Skipped when sync is disabled (local-only mode)
   useEffect(() => {
+    if (isSyncDisabled) {
+      console.info('[SessionContext] Sync disabled — skipping API fetch on startup');
+      return;
+    }
     let cancelled = false;
     console.info('[SessionContext] Fetching sessions from API on startup...');
     apiFetchSessions().then((remoteSessions) => {
