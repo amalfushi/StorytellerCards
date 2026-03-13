@@ -132,19 +132,25 @@ export function useApiSync(): ApiSyncHook {
     });
   }, []);
 
-  const syncSessionImmediate = useCallback(
-    async (session: Session) => {
-      await pushSessionDirect(session);
-    },
-    [pushSessionDirect],
-  );
+  const syncSessionImmediate = useCallback(async (session: Session) => {
+    // Fire-and-forget push — no version header, server assigns version
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    await pushRequest<Session>(`/api/sessions/${session.id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(session),
+    });
+  }, []);
 
-  const syncGameImmediate = useCallback(
-    async (game: Game) => {
-      await pushGameDirect(game);
-    },
-    [pushGameDirect],
-  );
+  const syncGameImmediate = useCallback(async (game: Game) => {
+    // Fire-and-forget push — no version header, server assigns version
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    await pushRequest<Game>(`/api/sessions/${game.sessionId}/games/${game.id}`, {
+      method: 'PUT',
+      headers,
+      body: JSON.stringify(game),
+    });
+  }, []);
 
   const syncSession = useDebouncedFn(syncSessionImmediate, DEBOUNCE_MS);
   const syncGame = useDebouncedFn(syncGameImmediate, DEBOUNCE_MS);

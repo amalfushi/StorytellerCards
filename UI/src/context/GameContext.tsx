@@ -562,20 +562,12 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
  * Wraps the base reducer to auto-increment `game.version` on every
  * game-modifying action, except SYNC_GAME (remote) and LOAD_GAME (initial).
  */
+/**
+ * Wraps the base reducer. Version is managed by the server — the client
+ * does not increment version locally. SYNC_GAME and LOAD_GAME pass through unchanged.
+ */
 function gameReducerWithVersion(state: GameViewState, action: GameAction): GameViewState {
-  const newState = gameReducer(state, action);
-  if (
-    newState.game &&
-    newState.game !== state.game &&
-    action.type !== 'SYNC_GAME' &&
-    action.type !== 'LOAD_GAME'
-  ) {
-    return {
-      ...newState,
-      game: { ...newState.game, version: (newState.game.version ?? 0) + 1 },
-    };
-  }
-  return newState;
+  return gameReducer(state, action);
 }
 
 /** Write a game object to localStorage. */
