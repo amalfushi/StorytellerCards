@@ -112,6 +112,58 @@ func TestDeleteSession(t *testing.T) {
 	}
 }
 
+func TestDeleteGame(t *testing.T) {
+	dir := t.TempDir()
+	store := New(dir)
+	if err := store.EnsureDirectories(); err != nil {
+		t.Fatalf("EnsureDirectories: %v", err)
+	}
+
+	game := models.Game{
+		ID:           "game-del",
+		SessionID:    "sess-1",
+		ScriptID:     "boozling",
+		CurrentDay:   1,
+		CurrentPhase: models.Night,
+		IsFirstNight: true,
+		Players:      []models.PlayerSeat{},
+		NightHistory: []models.NightHistoryEntry{},
+	}
+	if err := store.SaveGame(game); err != nil {
+		t.Fatalf("SaveGame: %v", err)
+	}
+
+	// Verify it exists
+	_, err := store.GetGame("sess-1", "game-del")
+	if err != nil {
+		t.Fatalf("GetGame before delete: %v", err)
+	}
+
+	// Delete
+	if err := store.DeleteGame("sess-1", "game-del"); err != nil {
+		t.Fatalf("DeleteGame: %v", err)
+	}
+
+	// Verify it's gone
+	_, err = store.GetGame("sess-1", "game-del")
+	if err == nil {
+		t.Error("expected error after delete, got nil")
+	}
+}
+
+func TestDeleteGameNonexistent(t *testing.T) {
+	dir := t.TempDir()
+	store := New(dir)
+	if err := store.EnsureDirectories(); err != nil {
+		t.Fatalf("EnsureDirectories: %v", err)
+	}
+
+	// Deleting a nonexistent game should not error
+	if err := store.DeleteGame("sess-1", "nonexistent"); err != nil {
+		t.Errorf("DeleteGame nonexistent: %v", err)
+	}
+}
+
 func TestSaveAndGetGame(t *testing.T) {
 	dir := t.TempDir()
 	store := New(dir)

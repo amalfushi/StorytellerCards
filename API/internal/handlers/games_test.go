@@ -28,6 +28,7 @@ func setupGameRouter(t *testing.T) (*chi.Mux, *storage.FileStore) {
 	r.Post("/api/sessions/{sessionId}/games", games.Create)
 	r.Get("/api/sessions/{sessionId}/games/{gameId}", games.Get)
 	r.Put("/api/sessions/{sessionId}/games/{gameId}", games.Update)
+	r.Delete("/api/sessions/{sessionId}/games/{gameId}", games.Delete)
 	r.Get("/api/sessions/{sessionId}/games/{gameId}/version", games.GetVersion)
 
 	return r, store
@@ -349,6 +350,59 @@ func TestGamesGetVersion(t *testing.T) {
 
 		if w.Code != http.StatusNotFound {
 			t.Errorf("status = %d, want %d", w.Code, http.StatusNotFound)
+		}
+	})
+}
+
+func TestGamesDelete(t *testing.T) {
+	r, _ := setupGameRouter(t)
+
+	// Create a game first
+	game := models.Game{
+		ID:           "game-del",
+		ScriptID:     "boozling",
+		CurrentDay:   1,
+		CurrentPhase: models.Night,
+		IsFirstNight: true,
+		Players:      []models.PlayerSeat{},
+		NightHistory: []models.NightHistoryEntry{},
+	}
+	body, _ := json.Marshal(game)
+	req := httptest.NewRequest("POST", "/api/sessions/sess-1/games", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	r.ServeHTTP(w, req)
+
+	if w.Code != http.StatusCreated {
+		t.Fatalf("create status = %d, want %d", w.Code, http.StatusCreated)
+	}
+
+	t.Run("delete removes it", func(t *testing.T) {
+		req := httptest.NewRequest("DELETE", "/api/sessions/sess-1/games/game-del", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusNoContent {
+			t.Fatalf("delete status = %d, want %d", w.Code, http.StatusNoContent)
+		}
+
+		// Verify it's gone
+		req = httptest.NewRequest("GET", "/api/sessions/sess-1/games/game-del", nil)
+		w = httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusNotFound {
+			t.Errorf("get after delete status = %d, want %d", w.Code, http.StatusNotFound)
+		}
+	})
+
+	t.Run("delete nonexistent game returns 204", func(t *testing.T) {
+		req := httptest.NewRequest("DELETE", "/api/sessions/sess-1/games/nonexistent", nil)
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+
+		if w.Code != http.StatusNoContent {
+			t.Errorf("delete nonexistent status = %d, want %d", w.Code, http.StatusNoContent)
 		}
 	})
 }

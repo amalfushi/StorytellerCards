@@ -50,8 +50,10 @@ describe('useApiSync', () => {
     expect(typeof result.current.syncSession).toBe('function');
     expect(typeof result.current.syncGame).toBe('function');
     expect(typeof result.current.fetchSession).toBe('function');
-    expect(typeof result.current.fetchGame).toBe('function');
     expect(typeof result.current.fetchSessions).toBe('function');
+    expect(typeof result.current.fetchGame).toBe('function');
+    expect(typeof result.current.deleteSession).toBe('function');
+    expect(typeof result.current.deleteGame).toBe('function');
   });
 
   describe('fetchSession', () => {
@@ -302,6 +304,58 @@ describe('useApiSync', () => {
           body: JSON.stringify(game2),
         }),
       );
+    });
+  });
+
+  describe('deleteSession', () => {
+    it('sends DELETE request to the correct endpoint', async () => {
+      const { result } = renderHook(() => useApiSync());
+
+      act(() => {
+        result.current.deleteSession('session-1');
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/sessions/session-1'),
+        expect.objectContaining({ method: 'DELETE' }),
+      );
+    });
+
+    it('handles network errors gracefully (no throw)', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+      const { result } = renderHook(() => useApiSync());
+
+      expect(() => {
+        act(() => {
+          result.current.deleteSession('session-1');
+        });
+      }).not.toThrow();
+    });
+  });
+
+  describe('deleteGame', () => {
+    it('sends DELETE request to the correct endpoint', async () => {
+      const { result } = renderHook(() => useApiSync());
+
+      act(() => {
+        result.current.deleteGame('session-1', 'game-1');
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/sessions/session-1/games/game-1'),
+        expect.objectContaining({ method: 'DELETE' }),
+      );
+    });
+
+    it('handles network errors gracefully (no throw)', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+      const { result } = renderHook(() => useApiSync());
+
+      expect(() => {
+        act(() => {
+          result.current.deleteGame('session-1', 'game-1');
+        });
+      }).not.toThrow();
     });
   });
 });
