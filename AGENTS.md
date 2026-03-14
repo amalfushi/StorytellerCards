@@ -28,7 +28,7 @@ The app manages a hierarchy: **Sessions** (containers) → **Games** → **Playe
 |-------|-----------|
 | UI | React 19 + TypeScript + Vite 6 + MUI Core (free tier) |
 | State | React Context + `useReducer` + `localStorage` (primary), Go API (secondary sync) |
-| Testing | Vitest (3998 tests across 78 files), Storybook 8 (~99+ stories with `play()` interaction tests) |
+| Testing | Vitest (3998 tests across 78 files), Storybook 8 (~99+ stories with `play()` interaction tests), Playwright E2E (2 spec files) |
 | Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests + coverage) |
 | API | Go + Chi router, JSON file storage, 90-day auto-cleanup |
 | PWA | `manifest.json`, icons, mobile meta tags |
@@ -141,6 +141,10 @@ This applies to all files in all languages across the entire repository.
 | `cd UI && npx tsc --noEmit` | TypeScript compilation check (0 errors required) |
 | `cd UI && npx eslint .` | Lint check (0 errors required) |
 | `cd UI && npx storybook dev` | Run Storybook for visual testing |
+| `npm run test:e2e` | Playwright E2E — game lifecycle tests |
+| `npm run test:e2e:sync` | Playwright E2E — cross-device sync tests |
+| `npm run test:e2e:all` | Playwright E2E — all E2E tests |
+| `npm run test:integration` | Go roundtrip + all Playwright E2E tests |
 
 ### Development Checklist
 
@@ -190,10 +194,11 @@ Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
 
 See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 
-### Current Test Stats (as of M33 SSE sync + M34 integration testing)
+### Current Test Stats (as of M34 integration testing complete)
 - **3998 tests** across **78 test files** — all passing
 - **19 story files** with **~99+ stories** including `play()` interaction tests
 - **0 TypeScript errors**, **0 ESLint errors**
+- **Playwright E2E**: 2 spec files (game-lifecycle, cross-device-sync)
 
 ## Documentation Maintenance
 
