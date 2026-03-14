@@ -43,7 +43,7 @@ import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
 import { Phase as PhaseEnum } from '@/types/index.ts';
-import { AddTravellerDialog } from '@/components/TownSquare/AddTravellerDialog.tsx';
+import { AddPlayerDialog } from '@/components/TownSquare/AddPlayerDialog.tsx';
 import { DayTimerFab } from '@/components/Timer/DayTimerFab.tsx';
 
 /**
@@ -81,7 +81,7 @@ export function GameViewPage() {
   const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
-  const [addTravellerOpen, setAddTravellerOpen] = useState(false);
+  const [addPlayerOpen, setAddPlayerOpen] = useState(false);
 
   // ── Day timer (lifted here so state survives tab switches) ──
   const dayTimer = useTimer();
@@ -100,7 +100,7 @@ export function GameViewPage() {
 
   const isDayPhase = gameState.game?.currentPhase === PhaseEnum.Day;
 
-  const handleAddTraveller = useCallback(
+  const handleAddPlayer = useCallback(
     (seat: number, playerName: string, characterId: string, alignment: 'Good' | 'Evil') => {
       addTraveller(seat, playerName, characterId, alignment);
     },
@@ -560,8 +560,8 @@ export function GameViewPage() {
                 <Fab
                   color="primary"
                   size="small"
-                  aria-label="add traveller"
-                  onClick={() => setAddTravellerOpen(true)}
+                  aria-label="add player"
+                  onClick={() => setAddPlayerOpen(true)}
                   sx={{
                     position: 'absolute',
                     bottom: 16,
@@ -575,13 +575,15 @@ export function GameViewPage() {
               </>
             )}
 
-            {/* ── Add Traveller Dialog ── */}
-            <AddTravellerDialog
-              key={String(addTravellerOpen)}
-              open={addTravellerOpen}
+            {/* ── Add Player Dialog ── */}
+            <AddPlayerDialog
+              key={String(addPlayerOpen)}
+              open={addPlayerOpen}
               existingPlayers={players}
-              onClose={() => setAddTravellerOpen(false)}
-              onAdd={handleAddTraveller}
+              scriptCharacterIds={scriptCharacterIds}
+              inPlayCharacterIds={game?.inPlayCharacterIds ?? []}
+              onClose={() => setAddPlayerOpen(false)}
+              onAdd={handleAddPlayer}
             />
           </Box>
 
