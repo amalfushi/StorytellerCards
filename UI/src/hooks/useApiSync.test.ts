@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useApiSync } from './useApiSync.ts';
-import type { Session, Game } from '@/types/index.ts';
+import type { Session, Game, Script } from '@/types/index.ts';
 
 describe('useApiSync', () => {
   const mockFetch = vi.fn();
@@ -30,6 +30,15 @@ describe('useApiSync', () => {
     ...overrides,
   });
 
+  /** Minimal Script for testing. */
+  const makeScript = (overrides?: Partial<Script>): Script => ({
+    id: 'script-1',
+    name: 'Test Script',
+    author: 'Author',
+    characterIds: ['washerwoman', 'librarian'],
+    ...overrides,
+  });
+
   beforeEach(() => {
     mockFetch.mockReset();
     mockFetch.mockResolvedValue({
@@ -49,9 +58,11 @@ describe('useApiSync', () => {
     expect(result.current).toBeDefined();
     expect(typeof result.current.syncSession).toBe('function');
     expect(typeof result.current.syncGame).toBe('function');
+    expect(typeof result.current.syncScript).toBe('function');
     expect(typeof result.current.fetchSession).toBe('function');
     expect(typeof result.current.fetchSessions).toBe('function');
     expect(typeof result.current.fetchGame).toBe('function');
+    expect(typeof result.current.fetchScript).toBe('function');
     expect(typeof result.current.deleteSession).toBe('function');
     expect(typeof result.current.deleteGame).toBe('function');
   });
@@ -304,6 +315,103 @@ describe('useApiSync', () => {
           body: JSON.stringify(game2),
         }),
       );
+    });
+  });
+
+  describe('syncScript (fire-and-forget)', () => {
+    it('sends a POST to /api/scripts/import with the script data', async () => {
+      const { result } = renderHook(() => useApiSync());
+      const script = makeScript();
+
+      act(() => {
+        result.current.syncScript(script);
+      });
+
+      await act(async () => {
+        await new Promise((r) => setTimeout(r, 10));
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/scripts/import'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(script),
+        }),
+      );
+    });
+
+    it('handles network errors gracefully (no throw)', () => {
+      mockFetch.mockRejectedValue(new Error('Network error'));
+      const { result } = renderHook(() => useApiSync());
+
+      expect(() => {
+        act(() => {
+          result.current.syncScript(makeScript());
+        });
+      }).not.toThrow();
+    });
+  });
+
+  describe('fetchScript', () => {
+    it('makes a GET request to the correct endpoint', async () => {
+      const { result } = renderHook(() => useApiSync());
+
+      await act(async () => {
+        await result.current.fetchScript('my-script');
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/api/scripts/my-script'),
+        expect.objectContaining({
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      );
+    });
+
+    it('returns parsed JSON on success', async () => {
+      const scriptData = makeScript({ id: 'trouble-brewing' });
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(scriptData),
+      });
+
+      const { result } = renderHook(() => useApiSync());
+
+      let response: Script | null = null;
+      await act(async () => {
+        response = await result.current.fetchScript('trouble-brewing');
+      });
+
+      expect(response).toEqual(scriptData);
+    });
+
+    it('returns null on API error', async () => {
+      mockFetch.mockResolvedValueOnce({
+        ok: false,
+        status: 404,
+      });
+
+      const { result } = renderHook(() => useApiSync());
+
+      let response: Script | null = null;
+      await act(async () => {
+        response = await result.current.fetchScript('nonexistent');
+      });
+
+      expect(response).toBeNull();
+    });
+
+    it('returns null on network failure', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      const { result } = renderHook(() => useApiSync());
+
+      let response: Script | null = null;
+      await act(async () => {
+        response = await result.current.fetchScript('my-script');
+      });
+
+      expect(response).toBeNull();
     });
   });
 

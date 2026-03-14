@@ -129,7 +129,7 @@ export function useApiSync(): ApiSyncHook {
     void request(`/api/sessions/${sessionId}/games/${gameId}`, { method: 'DELETE' });
   }, []);
 
-  const syncScriptDirect = useCallback((script: Script) => {
+  const syncScriptDirect= useCallback((script: Script) => {
     if (isSyncDisabled) return;
     void request<Script>('/api/scripts/import', {
       method: 'POST',

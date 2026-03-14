@@ -113,7 +113,7 @@ export function GameViewPage() {
     [sessionState.sessions, sessionId],
   );
 
-  const { fetchGame: apiFetchGame } = useApiSync();
+  const { fetchGame: apiFetchGame, fetchScript } = useApiSync();
 
   // Read game from localStorage synchronously on first render (lazy initializer)
   const [initialGame, setInitialGame] = useState<Game | null>(() => {
@@ -154,8 +154,10 @@ export function GameViewPage() {
   // Derive loading: we found a game in localStorage but context hasn't received it yet
   const loading = !!initialGame && !gameState.game;
 
+  const [remoteScript, setRemoteScript] = useState<Script | null>(null);
+
   // Load the script from localStorage using the game's scriptId
-  const script = useMemo<Script | null>(() => {
+  const localScript = useMemo<Script | null>(() => {
     const scriptId = gameState.game?.scriptId;
     if (!scriptId) return null;
     try {
@@ -166,6 +168,28 @@ export function GameViewPage() {
     }
     return null;
   }, [gameState.game?.scriptId]);
+
+  // If script not in localStorage, fetch from API (remote device scenario)
+  useEffect(() => {
+    if (!gameState.game?.scriptId || localScript) return;
+    let cancelled = false;
+    fetchScript(gameState.game.scriptId).then((apiScript) => {
+      if (cancelled || !apiScript) return;
+      try {
+        localStorage.setItem(`storyteller-script-${apiScript.id}`, JSON.stringify(apiScript));
+      } catch {
+        // Silently ignore storage errors
+      }
+      setRemoteScript(apiScript);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [gameState.game?.scriptId, localScript, fetchScript]);
+
+  // Only use remoteScript if its ID matches the current game's scriptId
+  const script =
+    localScript ?? (remoteScript?.id === gameState.game?.scriptId ? remoteScript : null);
 
   // Derive script character IDs from the loaded script, falling back to all characters
   const scriptCharacterIds = useMemo(() => {

@@ -27,6 +27,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import { useSession } from '@/context/SessionContext.tsx';
+import { useApiSync } from '@/hooks/useApiSync.ts';
 import { importScript } from '@/utils/scriptImporter.ts';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { ScriptBuilder } from '@/components/ScriptBuilder/ScriptBuilder.tsx';
@@ -39,6 +40,7 @@ export function SessionSetupPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { state, updateSession, addGameToSession, selectGame, deleteGame } = useSession();
+  const { syncScript } = useApiSync();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const session = state.sessions.find((s) => s.id === sessionId);
@@ -146,6 +148,7 @@ export function SessionSetupPage() {
 
       // Save script to localStorage
       localStorage.setItem(`storyteller-script-${parsed.id}`, JSON.stringify(parsed));
+      syncScript(parsed);
 
       setScript(parsed);
       if (sessionId) {
@@ -370,6 +373,7 @@ export function SessionSetupPage() {
           open={scriptBuilderOpen}
           onClose={() => setScriptBuilderOpen(false)}
           onSave={(newScript) => {
+            syncScript(newScript);
             setScript(newScript);
             if (sessionId) {
               updateSession(sessionId, { defaultScriptId: newScript.id });
