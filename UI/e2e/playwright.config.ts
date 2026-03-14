@@ -25,5 +25,9 @@ export default defineConfig({
       name: 'sync',
       testMatch: 'cross-device-sync.spec.ts',
     },
+    {
+      name: 'journey',
+      testMatch: 'full-journey.spec.ts',
+    },
   ],
 });
