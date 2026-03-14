@@ -10,19 +10,10 @@
 import { useCallback, useRef } from 'react';
 import type { Session, Game, VersionInfo } from '../types';
 
-const VITE_API_URL: string | undefined = import.meta.env.VITE_API_URL;
-
 export const isSyncDisabled: boolean = import.meta.env.VITE_SYNC_DISABLED === 'true';
 
 function getApiBase(): string {
-  if (VITE_API_URL && VITE_API_URL !== 'undefined') {
-    console.info(`[API] Using VITE_API_URL: ${VITE_API_URL}`);
-    return VITE_API_URL;
-  }
-  const hostname = window.location.hostname;
-  const base = `http://${hostname}:3001`;
-  console.info(`[API] Using window.location.hostname="${hostname}" → ${base}`);
-  return base;
+  return ''; // Same-origin via Vite proxy (dev) or Go static serving (prod)
 }
 
 const DEBOUNCE_MS = 1000;
@@ -114,37 +105,16 @@ export interface ApiSyncHook {
 }
 
 export function useApiSync(): ApiSyncHook {
-  const syncDisabledLogged = useRef(false);
+  const syncDisabledLogged = useRef<boolean | null>(null);
 
-  if (isSyncDisabled) {
-    if (!syncDisabledLogged.current) {
-      console.info('[API] Sync disabled — running in local-only mode');
-      syncDisabledLogged.current = true;
-    }
-
-    const noop = useCallback(() => {}, []);
-    const noopAsync = useCallback(async () => null, []);
-    const noopPush = useCallback(
-      async () => ({ ok: true, status: 0, data: null }) as PushResult<never>,
-      [],
-    );
-    const noopFetchSessions = useCallback(async (): Promise<Session[]> => [], []);
-
-    return {
-      syncSession: noop,
-      syncGame: noop,
-      fetchSession: noopAsync as (id: string) => Promise<Session | null>,
-      fetchSessions: noopFetchSessions,
-      fetchGame: noopAsync as (sessionId: string, gameId: string) => Promise<Game | null>,
-      pushSession: noopPush as unknown as (session: Session) => Promise<PushResult<Session>>,
-      pushGame: noopPush as unknown as (game: Game) => Promise<PushResult<Game>>,
-      pullSessionVersion: noopAsync as (sessionId: string) => Promise<VersionInfo | null>,
-      pullGameVersion: noopAsync as (
-        sessionId: string,
-        gameId: string,
-      ) => Promise<VersionInfo | null>,
-    };
-  }
+  // All hooks called unconditionally (React rules of hooks)
+  const noop = useCallback(() => {}, []);
+  const noopAsync = useCallback(async () => null, []);
+  const noopPush = useCallback(
+    async () => ({ ok: true, status: 0, data: null }) as PushResult<never>,
+    [],
+  );
+  const noopFetchSessions = useCallback(async (): Promise<Session[]> => [], []);
 
   const pushSessionDirect = useCallback(async (session: Session): Promise<PushResult<Session>> => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -175,7 +145,6 @@ export function useApiSync(): ApiSyncHook {
   );
 
   const syncSessionImmediate = useCallback(async (session: Session) => {
-    // Fire-and-forget push — no version header, server assigns version
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     await pushRequest<Session>(`/api/sessions/${session.id}`, {
       method: 'PUT',
@@ -185,7 +154,6 @@ export function useApiSync(): ApiSyncHook {
   }, []);
 
   const syncGameImmediate = useCallback(async (game: Game) => {
-    // Fire-and-forget push — no version header, server assigns version
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     await pushRequest<Game>(`/api/sessions/${game.sessionId}/games/${game.id}`, {
       method: 'PUT',
@@ -222,7 +190,25 @@ export function useApiSync(): ApiSyncHook {
   );
 
   if (isSyncDisabled) {
-    return SYNC_DISABLED_HOOK;
+    if (syncDisabledLogged.current === null) {
+      syncDisabledLogged.current = true;
+      console.info('[API] Sync disabled — running in local-only mode');
+    }
+
+    return {
+      syncSession: noop,
+      syncGame: noop,
+      fetchSession: noopAsync as (id: string) => Promise<Session | null>,
+      fetchSessions: noopFetchSessions,
+      fetchGame: noopAsync as (sessionId: string, gameId: string) => Promise<Game | null>,
+      pushSession: noopPush as unknown as (session: Session) => Promise<PushResult<Session>>,
+      pushGame: noopPush as unknown as (game: Game) => Promise<PushResult<Game>>,
+      pullSessionVersion: noopAsync as (sessionId: string) => Promise<VersionInfo | null>,
+      pullGameVersion: noopAsync as (
+        sessionId: string,
+        gameId: string,
+      ) => Promise<VersionInfo | null>,
+    };
   }
 
   return {
