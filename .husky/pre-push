@@ -15,10 +15,28 @@ if [ -n "$UI_CHANGED" ]; then
   fi
   cd ..
 
-  # Auto-commit coverage report if tests passed
+  # Auto-commit coverage summary if tests passed
   if [ $FAILED -eq 0 ]; then
-    git add UI/coverage/coverage-final.json
-    git diff --cached --quiet UI/coverage/coverage-final.json || git commit --no-verify -m "chore: update coverage report"
+    # Extract summary from coverage-final.json into a small coverage-summary.json
+    node -e "
+      const c = require('./UI/coverage/coverage-final.json');
+      const s = {statements:{total:0,covered:0},branches:{total:0,covered:0},functions:{total:0,covered:0},lines:{total:0,covered:0}};
+      for (const f of Object.values(c)) {
+        for (const k of ['s','b','f']) {
+          const map = f[k];
+          for (const v of Object.values(map)) {
+            if (k==='s'){s.statements.total++;if(v>0)s.statements.covered++}
+            if (k==='f'){s.functions.total++;if(v>0)s.functions.covered++}
+            if (k==='b'){for(const bv of (Array.isArray(v)?v:[v])){s.branches.total++;if(bv>0)s.branches.covered++}}
+          }
+        }
+        const lm=f.statementMap;for(const[k2,v2] of Object.entries(f.s)){s.lines.total++;if(v2>0)s.lines.covered++}
+      }
+      for(const k of Object.keys(s)){s[k].pct=s[k].total?+(100*s[k].covered/s[k].total).toFixed(2):100}
+      require('fs').writeFileSync('UI/coverage/coverage-summary.json',JSON.stringify(s,null,2)+'\n');
+    " 2>/dev/null || true
+    git add UI/coverage/coverage-summary.json
+    git diff --cached --quiet UI/coverage/coverage-summary.json || git commit --no-verify -m "chore: update coverage summary"
   fi
 fi
 
