@@ -1,22 +1,22 @@
 {
   "statements": {
     "total": 3976,
-    "covered": 3266,
-    "pct": 82.14
+    "covered": 3283,
+    "pct": 82.57
   },
   "branches": {
     "total": 2989,
-    "covered": 2227,
-    "pct": 74.51
+    "covered": 2250,
+    "pct": 75.28
   },
   "functions": {
     "total": 987,
-    "covered": 725,
-    "pct": 73.45
+    "covered": 744,
+    "pct": 75.38
   },
   "lines": {
     "total": 3976,
-    "covered": 3266,
-    "pct": 82.14
+    "covered": 3283,
+    "pct": 82.57
   }
 }
