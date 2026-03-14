@@ -85,6 +85,15 @@
       "presentation": { "reveal": "always", "panel": "dedicated" }
     },
 
+    {
+      "label": "Test: E2E",
+      "type": "shell",
+      "command": "npm run test:e2e:all",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": "test",
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+
     // ── Lint tasks ─────────────────────────────────────────────
     {
       "label": "Lint: UI",

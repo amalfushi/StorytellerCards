@@ -1,0 +1,10 @@
+[
+  { "id": "_meta", "name": "Test Script", "author": "Integration Test" },
+  "washerwoman",
+  "librarian",
+  "investigator",
+  "chef",
+  "empath",
+  "imp",
+  "poisoner"
+]
