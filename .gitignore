@@ -148,6 +148,9 @@ vite.config.ts.timestamp-*
 # Editor/IDE
 .vscode/*
 !.vscode/extensions.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/settings.json
 .vscode-test
 .idea
 .DS_Store
@@ -191,6 +194,10 @@ UI/dist-ssr
 # Storybook
 UI/*storybook.log
 UI/storybook-static
+
+# Playwright
+UI/test-results/
+UI/playwright-report/
 
 # Coverage — track only the final report
 !UI/coverage/

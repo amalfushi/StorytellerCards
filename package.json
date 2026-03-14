@@ -11,7 +11,10 @@
     "dev:api": "cd API && go run ./cmd/server",
     "test": "concurrently --names UI,API \"cd UI && npm test\" \"cd API && go test ./...\"",
     "test:ui": "cd UI && npm test",
-    "test:api": "cd API && go test ./..."
+    "test:api": "cd API && go test ./...",
+    "test:e2e": "cd UI && npx playwright test --config=e2e/playwright.config.ts --project=lifecycle",
+    "test:e2e:sync": "cd UI && npx playwright test --config=e2e/playwright.config.ts --project=sync",
+    "test:e2e:all": "cd UI && npx playwright test --config=e2e/playwright.config.ts"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"
