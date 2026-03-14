@@ -11,7 +11,25 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Typography from '@mui/material/Typography';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { CharacterDef, Alignment, PlayerToken as PlayerTokenType } from '@/types/index.ts';
 import { useGame } from '@/context/GameContext.tsx';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -45,6 +63,13 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   const [swapSourceSeat, setSwapSourceSeat] = useState<number | null>(null);
   const [showAlignment, setShowAlignment] = useState(false);
   const [tokenManagerSeat, setTokenManagerSeat] = useState<number | null>(null);
+
+  // ── Drag-and-drop sensors ──
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
   const showCharacters = state.showCharacters;
@@ -189,6 +214,15 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
     setEditSeat(seat);
   }, []);
 
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+      swapPlayerSeats(Number(active.id), Number(over.id));
+    },
+    [swapPlayerSeats],
+  );
+
   const handleAddToken = useCallback(
     (seat: number, token: PlayerTokenType) => {
       addToken(seat, token);
@@ -246,62 +280,72 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         </Box>
       )}
 
-      <TableContainer>
-        <Table size="small" stickyHeader>
-          <TableHead>
-            <TableRow>
-              <TableCell align="center" sx={{ width: 40, px: 1 }}>
-                #
-              </TableCell>
-              <TableCell sx={{ px: 1 }}>Player</TableCell>
-              {showCharacters && <TableCell sx={{ px: 1 }}>Type</TableCell>}
-              {showCharacters && (
-                <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
-                  Icon
-                </TableCell>
-              )}
-              {showCharacters && <TableCell sx={{ px: 1 }}>Character</TableCell>}
-              {showCharacters && <TableCell sx={{ px: 1, flex: 2 }}>Ability</TableCell>}
-              {showCharacters && <TableCell sx={{ px: 1 }}>Reminders</TableCell>}
-              {showCharacters && showAlignment && (
-                <TableCell align="center" sx={{ width: 60, px: 0.5 }}>
-                  Align
-                </TableCell>
-              )}
-              <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
-                Alive
-              </TableCell>
-              <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
-                Vote
-              </TableCell>
-              {showCharacters && (
-                <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
-                  Edit
-                </TableCell>
-              )}
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {sortedPlayers.map((player) => (
-              <PlayerRow
-                key={player.seat}
-                player={player}
-                showCharacters={showCharacters}
-                showAlignment={showAlignment}
-                character={player.characterId ? getCharacter(player.characterId) : undefined}
-                apparentCharacter={
-                  player.apparentCharacterId ? getCharacter(player.apparentCharacterId) : undefined
-                }
-                onToggleAlive={handleToggleAlive}
-                onToggleGhostVote={handleToggleGhostVote}
-                onRowClick={handleRowClick}
-                onEdit={showCharacters ? handleOpenEdit : undefined}
-                isSwapSource={swapSourceSeat === player.seat}
-              />
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext
+          items={sortedPlayers.map((p) => String(p.seat))}
+          strategy={verticalListSortingStrategy}
+        >
+          <TableContainer>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ width: 28, px: 0 }} />
+                  <TableCell align="center" sx={{ width: 40, px: 1 }}>
+                    #
+                  </TableCell>
+                  <TableCell sx={{ px: 1 }}>Player</TableCell>
+                  {showCharacters && <TableCell sx={{ px: 1 }}>Type</TableCell>}
+                  {showCharacters && (
+                    <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
+                      Icon
+                    </TableCell>
+                  )}
+                  {showCharacters && <TableCell sx={{ px: 1 }}>Character</TableCell>}
+                  {showCharacters && <TableCell sx={{ px: 1, flex: 2 }}>Ability</TableCell>}
+                  {showCharacters && <TableCell sx={{ px: 1 }}>Reminders</TableCell>}
+                  {showCharacters && showAlignment && (
+                    <TableCell align="center" sx={{ width: 60, px: 0.5 }}>
+                      Align
+                    </TableCell>
+                  )}
+                  <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
+                    Alive
+                  </TableCell>
+                  <TableCell align="center" sx={{ width: 44, px: 0.5 }}>
+                    Vote
+                  </TableCell>
+                  {showCharacters && (
+                    <TableCell align="center" sx={{ width: 36, px: 0.5 }}>
+                      Edit
+                    </TableCell>
+                  )}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {sortedPlayers.map((player) => (
+                  <SortablePlayerRow
+                    key={player.seat}
+                    player={player}
+                    showCharacters={showCharacters}
+                    showAlignment={showAlignment}
+                    character={player.characterId ? getCharacter(player.characterId) : undefined}
+                    apparentCharacter={
+                      player.apparentCharacterId
+                        ? getCharacter(player.apparentCharacterId)
+                        : undefined
+                    }
+                    onToggleAlive={handleToggleAlive}
+                    onToggleGhostVote={handleToggleGhostVote}
+                    onRowClick={handleRowClick}
+                    onEdit={showCharacters ? handleOpenEdit : undefined}
+                    isSwapSource={swapSourceSeat === player.seat}
+                  />
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </SortableContext>
+      </DndContext>
 
       {/* Shared PlayerActionsModal (same as TownSquare) */}
       <PlayerActionsModal
@@ -399,5 +443,50 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         </Box>
       )}
     </Box>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Sub-component: Sortable player row wrapper
+// ──────────────────────────────────────────────
+
+type SortablePlayerRowProps = Omit<
+  React.ComponentProps<typeof PlayerRow>,
+  'dragHandle' | 'rowRef' | 'rowStyle'
+>;
+
+function SortablePlayerRow(props: SortablePlayerRowProps) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: String(props.player.seat),
+  });
+
+  return (
+    <PlayerRow
+      {...props}
+      rowRef={setNodeRef as React.Ref<HTMLTableRowElement>}
+      rowStyle={{
+        transform: CSS.Transform.toString(transform),
+        transition: transition ?? undefined,
+        opacity: isDragging ? 0.5 : 1,
+      }}
+      dragHandle={
+        <Box
+          component="span"
+          {...attributes}
+          {...listeners}
+          sx={{
+            cursor: 'grab',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            touchAction: 'none',
+            py: 0.5,
+          }}
+          aria-label={`reorder seat ${props.player.seat}`}
+        >
+          <DragIndicatorIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+        </Box>
+      }
+    />
   );
 }

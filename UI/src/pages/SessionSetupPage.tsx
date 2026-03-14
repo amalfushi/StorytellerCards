@@ -26,7 +26,26 @@ import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  TouchSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { useSession } from '@/context/SessionContext.tsx';
 import { useApiSync } from '@/hooks/useApiSync.ts';
 import { importScript } from '@/utils/scriptImporter.ts';
@@ -98,6 +117,13 @@ export function SessionSetupPage() {
 
   // ── Player management ──
 
+  // Drag-and-drop sensors
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
   const savePlayers = useCallback(
     (updated: Array<{ seat: number; playerName: string }>) => {
       if (sessionId) {
@@ -129,6 +155,23 @@ export function SessionSetupPage() {
     setPlayers(renumbered);
     savePlayers(renumbered);
   };
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      const oldIndex = players.findIndex((p) => String(p.seat) === String(active.id));
+      const newIndex = players.findIndex((p) => String(p.seat) === String(over.id));
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(players, oldIndex, newIndex);
+      const renumbered = reordered.map((p, i) => ({ ...p, seat: i + 1 }));
+      setPlayers(renumbered);
+      savePlayers(renumbered);
+    },
+    [players, savePlayers],
+  );
 
   // ── Script import ──
 
@@ -297,38 +340,28 @@ export function SessionSetupPage() {
             </Button>
           </Box>
 
-          <Grid container spacing={1}>
-            {players.map((player) => (
-              <Grid size={{ xs: 12 }} key={player.seat}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Chip
-                    label={player.seat}
-                    size="small"
-                    color="primary"
-                    variant="outlined"
-                    sx={{ minWidth: 32 }}
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={players.map((p) => String(p.seat))}
+              strategy={verticalListSortingStrategy}
+            >
+              <Grid container spacing={1}>
+                {players.map((player) => (
+                  <SortablePlayerItem
+                    key={player.seat}
+                    player={player}
+                    onNameChange={handlePlayerNameChange}
+                    onRemove={handleRemovePlayer}
+                    removeDisabled={players.length <= MIN_PLAYERS}
                   />
-                  <TextField
-                    fullWidth
-                    size="small"
-                    variant="outlined"
-                    value={player.playerName}
-                    onChange={(e) => handlePlayerNameChange(player.seat, e.target.value)}
-                    placeholder={`Player ${player.seat}`}
-                  />
-                  <IconButton
-                    size="small"
-                    aria-label={`remove player ${player.seat}`}
-                    onClick={() => handleRemovePlayer(player.seat)}
-                    disabled={players.length <= MIN_PLAYERS}
-                    color="error"
-                  >
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </Box>
+                ))}
               </Grid>
-            ))}
-          </Grid>
+            </SortableContext>
+          </DndContext>
         </Paper>
 
         {/* ── Section C: Games List ── */}
@@ -383,6 +416,76 @@ export function SessionSetupPage() {
         />
       </Container>
     </Box>
+  );
+}
+
+// ──────────────────────────────────────────────
+// Sub-component: Game list item
+// ──────────────────────────────────────────────
+
+// ──────────────────────────────────────────────
+// Sub-component: Sortable default-player item
+// ──────────────────────────────────────────────
+
+function SortablePlayerItem({
+  player,
+  onNameChange,
+  onRemove,
+  removeDisabled,
+}: {
+  player: { seat: number; playerName: string };
+  onNameChange: (seat: number, name: string) => void;
+  onRemove: (seat: number) => void;
+  removeDisabled: boolean;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: String(player.seat),
+  });
+
+  const style: React.CSSProperties = {
+    transform: CSS.Transform.toString(transform),
+    transition: transition ?? undefined,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <Grid size={{ xs: 12 }} ref={setNodeRef} style={style}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box
+          component="span"
+          {...attributes}
+          {...listeners}
+          sx={{ display: 'flex', cursor: 'grab', touchAction: 'none' }}
+          aria-label={`reorder player ${player.seat}`}
+        >
+          <DragIndicatorIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+        </Box>
+        <Chip
+          label={player.seat}
+          size="small"
+          color="primary"
+          variant="outlined"
+          sx={{ minWidth: 32 }}
+        />
+        <TextField
+          fullWidth
+          size="small"
+          variant="outlined"
+          value={player.playerName}
+          onChange={(e) => onNameChange(player.seat, e.target.value)}
+          placeholder={`Player ${player.seat}`}
+        />
+        <IconButton
+          size="small"
+          aria-label={`remove player ${player.seat}`}
+          onClick={() => onRemove(player.seat)}
+          disabled={removeDisabled}
+          color="error"
+        >
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      </Box>
+    </Grid>
   );
 }
 

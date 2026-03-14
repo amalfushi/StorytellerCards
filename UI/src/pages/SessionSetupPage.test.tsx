@@ -183,6 +183,20 @@ describe('SessionSetupPage', () => {
     expect(removeButtons.length).toBe(5);
   });
 
+  it('shows drag handles for each player', () => {
+    render(<SessionSetupPage />);
+    const dragHandles = screen.getAllByLabelText(/reorder player/i);
+    expect(dragHandles).toHaveLength(5);
+  });
+
+  it('renders drag handle before each player name input', () => {
+    render(<SessionSetupPage />);
+    // Verify the drag indicator SVG icons are present
+    const dragHandles = screen.getAllByLabelText(/reorder player/i);
+    expect(dragHandles[0]).toHaveAttribute('aria-label', 'reorder player 1');
+    expect(dragHandles[4]).toHaveAttribute('aria-label', 'reorder player 5');
+  });
+
   it('disables remove player buttons when at minimum player count (5)', () => {
     render(<SessionSetupPage />);
     const removeButtons = screen.getAllByRole('button', { name: /remove player/i });

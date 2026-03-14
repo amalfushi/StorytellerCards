@@ -31,6 +31,12 @@ interface PlayerRowProps {
   isSwapSource?: boolean;
   /** Apparent (believed) character definition for concealed players. */
   apparentCharacter?: CharacterDef;
+  /** Optional drag handle element rendered as the first cell. */
+  dragHandle?: React.ReactNode;
+  /** Ref forwarded to the underlying TableRow element. */
+  rowRef?: React.Ref<HTMLTableRowElement>;
+  /** Inline style applied to the TableRow (e.g. sortable transform). */
+  rowStyle?: React.CSSProperties;
 }
 
 /**
@@ -54,6 +60,9 @@ export function PlayerRow({
   onEdit,
   isSwapSource,
   apparentCharacter,
+  dragHandle,
+  rowRef,
+  rowStyle,
 }: PlayerRowProps) {
   const [detailOpen, setDetailOpen] = useState(false);
   const typeColor = character ? getCharacterTypeColor(character.type) : '#9e9e9e';
@@ -96,6 +105,7 @@ export function PlayerRow({
   return (
     <>
       <TableRow
+        ref={rowRef}
         hover
         onClick={() => showCharacters && onRowClick(player.seat)}
         sx={{
@@ -105,7 +115,13 @@ export function PlayerRow({
           borderRight: travellerBorder,
           backgroundColor: isSwapSource ? 'rgba(237, 108, 2, 0.15)' : travellerBackground,
         }}
+        style={rowStyle}
       >
+        {/* Drag handle (when provided) */}
+        {dragHandle !== undefined && (
+          <TableCell sx={{ width: 28, px: 0, py: 0 }}>{dragHandle}</TableCell>
+        )}
+
         {/* Seat # */}
         <TableCell align="center" sx={{ width: 40, px: 1 }}>
           {player.seat}
