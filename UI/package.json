@@ -16,7 +16,10 @@
     "test:coverage": "vitest run --project=unit --coverage",
     "test:storybook": "vitest --project=storybook",
     "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build"
+    "build-storybook": "storybook build",
+    "e2e": "playwright test --config=e2e/playwright.config.ts",
+    "e2e:headed": "playwright test --config=e2e/playwright.config.ts --headed",
+    "e2e:debug": "playwright test --config=e2e/playwright.config.ts --debug"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
