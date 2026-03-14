@@ -156,10 +156,10 @@ These run automatically and will block your commit/push if they fail:
 | **Pre-commit** | `tsc --noEmit` (TypeScript compilation check) | Every `git commit` with UI changes |
 | **Pre-commit** | `go vet` | Every `git commit` with API changes |
 | **Pre-push** | `npm run test:coverage` (all tests + coverage threshold enforcement) | Every `git push` |
-| **Pre-push** | Auto-commits `coverage-final.json` if changed | Every `git push` |
+| **Pre-push** | Auto-commits `coverage-summary.json` if changed | Every `git push` |
 
 > ❌ Do **not** manually run `npm run test:coverage` — the pre-push hook does this.
-> ❌ Do **not** manually commit `coverage-final.json` — the pre-push hook auto-commits it.
+> ❌ Do **not** manually commit `coverage-summary.json` — the pre-push hook auto-commits it.
 > ❌ Do **not** manually run `go vet` — the pre-commit hook does this.
 
 #### What Agents Should Do During Development
@@ -308,7 +308,7 @@ These files are commonly touched by every milestone and are the primary source o
 | `UI/src/types/index.ts` | New types added per milestone | **Append new types at the end of the file** — never insert in the middle |
 | `UI/src/context/GameContext.tsx` | New reducer actions per milestone | **Add new actions at the end of the switch statement** |
 | `UI/src/pages/GameViewPage.tsx` | Top-level orchestrator, new tabs/views | Coordinate with other agents if touching this file |
-| `UI/coverage/coverage-final.json` | Auto-generated on every push | Always conflicts — resolve by accepting either version and re-pushing |
+| `UI/coverage/coverage-summary.json` | Auto-generated on every push | Small file (~6 lines), rarely conflicts |
 
 ### Milestone-Level Documentation Strategy
 
