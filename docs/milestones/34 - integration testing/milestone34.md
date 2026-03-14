@@ -1,44 +1,30 @@
 # Milestone 34 — Integration Testing for Cross-Device Sync
 
-## Status: 🔄 In Progress
+## Status: ✅ Complete
 
 **Started:** 2026-03-13
+**Completed:** 2026-03-14
 
 ### Summary
 
-Adding automated integration tests at three levels to catch the bug classes that required 15+ fix PRs after M30/M33 — Go model field mismatches, SSE self-echo issues, and cross-device state sync failures.
+Added automated integration tests at three levels to catch the bug classes that required 15+ fix PRs after M30/M33 — Go model field mismatches, SSE self-echo issues, and cross-device state sync failures.
+
+**What was implemented:**
+- **Level 1 — Go Model Roundtrip Tests**: `TestGameRoundtrip`, `TestSessionRoundtrip`, `TestPartialGameRoundtrip`, `TestEmptyCollections` in `API/internal/handlers/roundtrip_test.go`
+- **Level 2 — Playwright Game Lifecycle E2E**: Full UI workflow tests (session creation → game setup → night completion) in `UI/e2e/game-lifecycle.spec.ts`
+- **Level 3 — Playwright Cross-Device Sync E2E**: Dual browser context SSE sync tests in `UI/e2e/cross-device-sync.spec.ts`
+- **Playwright infrastructure**: Config, fixture script, dev server integration, `test:e2e`/`test:e2e:sync`/`test:e2e:all` scripts
+- **Root integration script**: `npm run test:integration` runs Go roundtrip + all Playwright E2E
+- **Documentation**: Testing guide updated with E2E section, milestone completed
 
 ### Progress
 
 | Level | Description | Status | PR |
 |-------|-------------|--------|----|
 | Level 1 | Go Model Roundtrip Tests | ✅ Complete | [#78](../../pulls/78) |
-| Level 2 | Playwright E2E — Game Lifecycle | ✅ Setup complete | [#79](../../pulls/79) |
-| Level 3 | Playwright E2E — Cross-Device Sync | 🔄 In Progress | Branch: `feat/e2e-sync` |
-
-### What's Done
-
-**Go Model Roundtrip Tests (PR #78):**
-- `TestGameRoundtrip` — PUT maximal game state, GET back, deep-compare all fields
-- `TestSessionRoundtrip` — same for sessions
-- Catches Go struct fields silently dropping data on JSON roundtrip (the #1 bug class)
-
-**Playwright Setup (PR #79):**
-- Added `@playwright/test` as dev dependency
-- Created `playwright.config.ts` with Chromium-only config and Vite dev server integration
-- Created `e2e/helpers/api.ts` and `e2e/helpers/navigation.ts` page object helpers
-- Added `test:e2e` and `test:e2e:ui` scripts to `UI/package.json`
-
-**Cross-Device Sync E2E (branch `feat/e2e-sync`):**
-- Dual browser context tests for SSE sync validation
-- Tests player sync, token sync, bluff sync, night completion sync
-- Self-echo detection and bidirectional sync verification
-
-### What Remains
-
-- Complete and merge Level 3 E2E sync tests
-- Game lifecycle E2E tests (create session → night completion flow)
-- Documentation updates
+| Level 2 | Playwright E2E — Game Lifecycle | ✅ Complete | [#79](../../pulls/79), [#81](../../pulls/81), [#84](../../pulls/84) |
+| Level 3 | Playwright E2E — Cross-Device Sync | ✅ Complete | [#80](../../pulls/80), [#83](../../pulls/83) |
+| Phase 5 | Documentation & Scripts | ✅ Complete | This PR |
 
 ---
 
@@ -118,37 +104,37 @@ These boundaries need **integration tests** that exercise the full stack — not
 
 ### Phase 3: Game Lifecycle E2E Tests (Level 2)
 
-- [ ] Create `UI/e2e/game-lifecycle.spec.ts`
-- [ ] Test: Create session → verify session exists in API
-- [ ] Test: Create game with script → verify game and script in API
-- [ ] Test: Add players and assign characters → verify player list in API
-- [ ] Test: Set demon bluffs → verify bluffs in API state
-- [ ] Test: Enter Night 1, complete sub-actions → verify night action state in API
-- [ ] Test: Complete Night 1, advance to Night 2 → verify night history saved in API
-- [ ] Test: Verify localStorage and API state match at each step
-- [ ] All lifecycle tests pass
+- [x] Create `UI/e2e/game-lifecycle.spec.ts`
+- [x] Test: Create session → verify session exists in API
+- [x] Test: Create game with script → verify game and script in API
+- [x] Test: Add players and assign characters → verify player list in API
+- [x] Test: Set demon bluffs → verify bluffs in API state
+- [x] Test: Enter Night 1, complete sub-actions → verify night action state in API
+- [x] Test: Complete Night 1, advance to Night 2 → verify night history saved in API
+- [x] Test: Verify localStorage and API state match at each step
+- [x] All lifecycle tests pass
 
 ### Phase 4: Cross-Device Sync E2E Tests (Level 3)
 
 - [x] Create `UI/e2e/cross-device-sync.spec.ts`
 - [x] Create helper for dual-context setup
-- [ ] Test: Player added on Context A appears on Context B within 3 seconds
-- [ ] Test: Token change on Context A reflects on Context B
-- [ ] Test: Demon bluffs set on Context A appear on Context B
-- [ ] Test: Night completion on Context A → night history visible on Context B
-- [ ] Test: Bidirectional sync — Context B makes a change, Context A sees it
-- [ ] Test: No self-echo — after Context A pushes, Context A's state doesn't flicker or revert
-- [ ] Test: SSE reconnection — simulate network drop, verify sync resumes
-- [ ] All sync tests pass
+- [x] Test: Player added on Context A appears on Context B within 3 seconds
+- [x] Test: Token change on Context A reflects on Context B
+- [x] Test: Demon bluffs set on Context A appear on Context B
+- [x] Test: Night completion on Context A → night history visible on Context B
+- [x] Test: Bidirectional sync — Context B makes a change, Context A sees it
+- [x] Test: No self-echo — after Context A pushes, Context A's state doesn't flicker or revert
+- [x] Test: SSE reconnection — simulate network drop, verify sync resumes
+- [x] All sync tests pass
 
 ### Phase 5: Documentation & CI Integration
 
-- [ ] Add Playwright E2E section to `docs/testing.md`
-- [ ] Document the three testing levels and when to run each
-- [ ] Add `test:integration` script to root `package.json`
-- [ ] Update this milestone doc with `## Status: ✅ Complete`
-- [ ] Update `docs/progress.md` — add M34 row, update verification stats
-- [ ] Update `AGENTS.md` — test stats if counts changed
+- [x] Add Playwright E2E section to `docs/testing.md`
+- [x] Document the three testing levels and when to run each
+- [x] Add `test:integration` script to root `package.json`
+- [x] Update this milestone doc with `## Status: ✅ Complete`
+- [x] Update `docs/progress.md` — add M34 row, update verification stats
+- [x] Update `AGENTS.md` — test stats if counts changed
 
 ---
 

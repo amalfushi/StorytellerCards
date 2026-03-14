@@ -40,7 +40,7 @@
 | M31 | Remove All Lint Suppressions | 📋 Planned | [details](milestones/31%20-%20remove%20lint%20suppressions/milestone31.md) |
 | M32 | Lazy Loading UI Components & Character Images | ⏳ Planning | [details](milestones/32%20-%20lazy%20loading/milestone32.md) |
 | M33 | SSE Sync Redesign — SSE hub, useSseSync hook, Vite proxy, same-origin API, remove polling/CORS | ✅ Complete | [details](milestones/33%20-%20sse%20sync%20redesign/milestone33.md) |
-| M34 | Integration Testing — Go model roundtrip, Playwright E2E game lifecycle, cross-device sync | 🔄 In Progress | [details](milestones/34%20-%20integration%20testing/milestone34.md) |
+| M34 | Integration Testing — Go model roundtrip, Playwright E2E game lifecycle, cross-device sync | ✅ Complete | [details](milestones/34%20-%20integration%20testing/milestone34.md) |
 
 ## Key Design Decisions
 
@@ -56,7 +56,7 @@
 - **Same-origin architecture in M33** — Vite proxy in dev (`/api` → `:3001`), Go static file serving in production. Eliminated all CORS configuration, `isPrivateOrigin()`, and cross-origin complexity
 - **Playwright E2E testing in M34** — three-level integration testing strategy: Go model roundtrip tests (catch field parity), Playwright game lifecycle (catch UI→API gaps), Playwright cross-device sync (catch SSE/sync bugs)
 
-## Verification (as of M33 SSE sync + M34 integration testing)
+## Verification (as of M34 integration testing complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
@@ -64,7 +64,7 @@
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 19 story files with ~99+ stories including `play()` interaction tests
 - Go build: success
-- Go tests: all passing (handlers, sse, storage packages)
+- Go tests: all passing (handlers, sse, storage packages + roundtrip integration tests)
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)
 - Character icons: 179 base + 312 alignment variants (156 `_e` + 156 `_g`)
-- Playwright E2E: configured (Chromium-only, `test:e2e` script)
+- Playwright E2E: 2 spec files (game-lifecycle, cross-device-sync), Chromium-only, `test:e2e`/`test:e2e:sync`/`test:e2e:all`/`test:integration` scripts

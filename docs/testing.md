@@ -314,6 +314,59 @@ const meta = {
 } satisfies Meta<typeof MyComponent>;
 ```
 
+## Integration & E2E Testing (Playwright)
+
+### Three Testing Levels
+
+Storyteller Cards uses a **three-level integration testing strategy** to catch bugs at system boundaries — where unit tests can't reach:
+
+| Level | What | Speed | Command |
+|-------|------|-------|---------|
+| **Level 1** — Go Model Roundtrip | PUT maximal game/session state to the API, GET back, deep-compare all fields. Catches Go struct fields silently dropping data on JSON roundtrip. | ~2s | `cd API && go test ./internal/handlers/ -run Roundtrip -v` |
+| **Level 2** — Playwright Game Lifecycle | Full UI workflow: create session → create game → import script → add players → complete night phase. Asserts API state matches at each step. | ~30s | `npm run test:e2e` |
+| **Level 3** — Playwright Cross-Device Sync | Two isolated browser contexts sharing the same API. Validates SSE sync, self-echo prevention, and bidirectional state propagation. | ~60s | `npm run test:e2e:sync` |
+
+### Running E2E Tests
+
+```bash
+# Run lifecycle tests only (Level 2)
+npm run test:e2e
+
+# Run sync tests only (Level 3)
+npm run test:e2e:sync
+
+# Run all Playwright E2E tests (Levels 2 + 3)
+npm run test:e2e:all
+
+# Run all integration tests (Go roundtrip + all Playwright E2E)
+npm run test:integration
+```
+
+### Running Headed / Debug Mode
+
+```bash
+# Watch the browser while tests run
+cd UI && npx playwright test --config=e2e/playwright.config.ts --headed
+
+# Slow down interactions (useful for debugging visual flows)
+cd UI && npx playwright test --config=e2e/playwright.config.ts --headed --slowmo=500
+
+# Step through tests interactively with Playwright Inspector
+cd UI && npx playwright test --config=e2e/playwright.config.ts --debug
+```
+
+### Test Fixture Script
+
+The E2E tests use a minimal fixture script at [`UI/e2e/fixtures/test-script.json`](../UI/e2e/fixtures/test-script.json) containing a small set of Trouble Brewing characters (Washerwoman, Librarian, Investigator, Chef, Empath, Imp, Poisoner). This keeps tests fast and deterministic.
+
+### Playwright Configuration
+
+- **Browser**: Chromium only (mobile-first app, no cross-browser matrix needed)
+- **Dev server**: Automatically starts `npm run dev` (Vite + Go API) before tests run
+- **Base URL**: `http://localhost:5173`
+- **Projects**: `lifecycle` (game-lifecycle.spec.ts) and `sync` (cross-device-sync.spec.ts)
+- **Config location**: [`UI/e2e/playwright.config.ts`](../UI/e2e/playwright.config.ts)
+
 ## Coverage
 
 ### Running Coverage
