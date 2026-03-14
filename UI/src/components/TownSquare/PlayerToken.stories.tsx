@@ -56,7 +56,7 @@ function PlayerTokenWithBadges({
         onClick={noop}
         size={size}
       />
-      {showCharacters && player.tokens.length > 0 && (
+      {showCharacters && (player.tokens ?? []).length > 0 && (
         <Box
           sx={{
             position: 'absolute',
@@ -65,7 +65,7 @@ function PlayerTokenWithBadges({
           }}
         >
           <TokenBadges
-            tokens={player.tokens}
+            tokens={player.tokens ?? []}
             tileX={tileX}
             tileY={tileY}
             centerX={centerX}

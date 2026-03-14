@@ -265,8 +265,8 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       // Snapshot each player's tokens keyed by characterId
       const tokenSnapshot: Record<string, PlayerToken[]> = {};
       for (const player of state.game.players) {
-        if (player.tokens && player.tokens.length > 0) {
-          tokenSnapshot[player.characterId] = [...player.tokens];
+        if ((player.tokens ?? []).length > 0) {
+          tokenSnapshot[player.characterId] = [...(player.tokens ?? [])];
         }
       }
       const historyEntry: NightHistoryEntry = {

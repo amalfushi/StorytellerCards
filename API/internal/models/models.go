@@ -121,16 +121,23 @@ type NightHistoryEntry struct {
 // ──────────────────────────────────────────────
 
 type Game struct {
-	ID           string              `json:"id"`
-	SessionID    string              `json:"sessionId"`
-	ScriptID     string              `json:"scriptId"`
-	CurrentDay   int                 `json:"currentDay"`
-	CurrentPhase Phase               `json:"currentPhase"`
-	IsFirstNight bool                `json:"isFirstNight"`
-	Players      []PlayerSeat        `json:"players"`
-	NightHistory []NightHistoryEntry `json:"nightHistory"`
-	Version      int                 `json:"version"`
-	UpdatedAt    string              `json:"updatedAt,omitempty"`
+	ID                   string              `json:"id"`
+	SessionID            string              `json:"sessionId"`
+	ScriptID             string              `json:"scriptId"`
+	CurrentDay           int                 `json:"currentDay"`
+	CurrentPhase         Phase               `json:"currentPhase"`
+	IsFirstNight         bool                `json:"isFirstNight"`
+	Players              []PlayerSeat        `json:"players"`
+	NightHistory         []NightHistoryEntry `json:"nightHistory"`
+	ActiveFabled         []string            `json:"activeFabled,omitempty"`
+	ActiveLoric          []string            `json:"activeLoric,omitempty"`
+	InPlayCharacterIds   []string            `json:"inPlayCharacterIds,omitempty"`
+	DemonBluffs          []string            `json:"demonBluffs,omitempty"`
+	LunaticBluffs        []string            `json:"lunaticBluffs,omitempty"`
+	PlayerBluffs         map[string][]string `json:"playerBluffs,omitempty"`
+	CustomPlayerMessages map[string]string   `json:"customPlayerMessages,omitempty"`
+	Version              int                 `json:"version"`
+	UpdatedAt            string              `json:"updatedAt,omitempty"`
 }
 
 // ──────────────────────────────────────────────
