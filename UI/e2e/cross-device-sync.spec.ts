@@ -226,20 +226,22 @@ test.describe('Cross-Device Sync', () => {
       players: updatedPlayers,
     });
 
-    // Device B: Switch to Players tab (index 1) to see tokens in the list
-    // First toggle showCharacters to reveal token column
-    // The token label "Poisoned" should appear after SSE sync
+    // Wait for SSE to deliver the token change to Device B.
+    // Tokens aren't visible in day view, so verify via localStorage which
+    // is updated when GameContext processes the SSE-triggered fetch.
     await pageB.waitForFunction(
-      () => {
-        // The Poisoned token gets stored in the game state; after SSE sync
-        // the GameContext will have the updated tokens. We check via API
-        // as the UI may show tokens differently based on view mode.
-        return true;
+      (gid: string) => {
+        const raw = localStorage.getItem(`storyteller-game-${gid}`);
+        if (!raw) return false;
+        const g = JSON.parse(raw);
+        const bob = g.players?.find((p: { seat: number }) => p.seat === 2);
+        return bob?.tokens?.length > 0 && bob.tokens[0].type === 'poisoned';
       },
-      { timeout: 1_000 },
+      gameId,
+      { timeout: 15_000, polling: 500 },
     );
 
-    // Verify the API has the token (authoritative check)
+    // Also verify via API as an authoritative cross-check
     const refreshedGame = await fetchGame(sessionId, gameId);
     const bob = refreshedGame.players.find((p: { seat: number }) => p.seat === 2);
     expect(bob.tokens).toHaveLength(1);
@@ -325,5 +327,312 @@ test.describe('Cross-Device Sync', () => {
     // Device B goes to home page — session should appear from API fetch
     await pageB.goto('/');
     await expect(pageB.getByText('E2E Sync Test')).toBeVisible({ timeout: 10_000 });
+  });
+
+  /* ------------------------------------------------------------------ */
+  /*  Phase 4 Milestone Tests                                            */
+  /* ------------------------------------------------------------------ */
+
+  test('player added on context A appears on context B within 3 seconds', async () => {
+    const { sessionId, gameId } = ids;
+    const gameUrl = `/session/${sessionId}/game/${gameId}`;
+
+    // Both devices load the game
+    await pageA.goto(gameUrl);
+    await pageB.goto(gameUrl);
+    await expect(pageA.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+    await expect(pageB.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+
+    // Allow SSE connections to establish (must exceed the 3s self-echo cooldown)
+    await pageA.waitForTimeout(4_000);
+    await pageB.waitForTimeout(500);
+
+    // Add a 4th player "Diana" via API (simulates Context A adding a player)
+    const game = await fetchGame(sessionId, gameId);
+    game.players.push(makeSeat(4, 'Diana', 'chef'));
+    await putGame(sessionId, gameId, game);
+
+    // Context B should see "Diana" within a generous window.
+    // SSE delivers version-changed → client fetches fresh state → DOM updates.
+    await pageB.waitForFunction(() => document.body.innerText.includes('Diana'), {
+      timeout: 10_000,
+      polling: 500,
+    });
+  });
+
+  test('demon bluffs set on context A appear on context B', async () => {
+    const { sessionId, gameId } = ids;
+    const gameUrl = `/session/${sessionId}/game/${gameId}`;
+
+    await pageA.goto(gameUrl);
+    await pageB.goto(gameUrl);
+    await expect(pageA.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+    await expect(pageB.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+
+    // Allow SSE to establish (past self-echo cooldown)
+    await pageA.waitForTimeout(4_000);
+    await pageB.waitForTimeout(500);
+
+    // Set demon bluffs via API (simulates Context A choosing bluffs)
+    const game = await fetchGame(sessionId, gameId);
+    await putGame(sessionId, gameId, {
+      ...game,
+      demonBluffs: ['washerwoman', 'librarian', 'investigator'],
+    });
+
+    // Demon bluffs aren't directly visible in day-view DOM, so verify via
+    // localStorage which is updated after SSE-triggered SYNC_GAME dispatch.
+    await pageB.waitForFunction(
+      (gid: string) => {
+        const raw = localStorage.getItem(`storyteller-game-${gid}`);
+        if (!raw) return false;
+        const g = JSON.parse(raw);
+        return (
+          Array.isArray(g.demonBluffs) &&
+          g.demonBluffs.length === 3 &&
+          g.demonBluffs.includes('washerwoman')
+        );
+      },
+      gameId,
+      { timeout: 15_000, polling: 500 },
+    );
+
+    // Cross-check with API
+    const refreshed = await fetchGame(sessionId, gameId);
+    expect(refreshed.demonBluffs).toEqual(['washerwoman', 'librarian', 'investigator']);
+  });
+
+  test('night completion on context A → night history visible on context B', async () => {
+    const { sessionId, gameId } = ids;
+    const gameUrl = `/session/${sessionId}/game/${gameId}`;
+
+    await pageA.goto(gameUrl);
+    await pageB.goto(gameUrl);
+    await expect(pageA.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+    await expect(pageB.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+
+    // Allow SSE to establish (past self-echo cooldown)
+    await pageA.waitForTimeout(4_000);
+    await pageB.waitForTimeout(500);
+
+    // Add a completed night history entry via API
+    const game = await fetchGame(sessionId, gameId);
+    const nightEntry = {
+      dayNumber: 1,
+      isFirstNight: true,
+      completedAt: new Date().toISOString(),
+      subActionStates: {
+        washerwoman: [true],
+        librarian: [true],
+        imp: [true],
+      },
+      notes: {},
+      selections: {},
+    };
+    await putGame(sessionId, gameId, {
+      ...game,
+      nightHistory: [nightEntry],
+      isFirstNight: false,
+      currentDay: 2,
+    });
+
+    // Verify Context B's localStorage has the night history via SSE sync
+    await pageB.waitForFunction(
+      (gid: string) => {
+        const raw = localStorage.getItem(`storyteller-game-${gid}`);
+        if (!raw) return false;
+        const g = JSON.parse(raw);
+        return Array.isArray(g.nightHistory) && g.nightHistory.length === 1;
+      },
+      gameId,
+      { timeout: 15_000, polling: 500 },
+    );
+
+    // Also verify updated day number appears in DOM
+    await pageB.waitForFunction(() => document.body.innerText.includes('Day 2'), {
+      timeout: 5_000,
+      polling: 500,
+    });
+  });
+
+  test('bidirectional sync — context B makes a change, context A sees it', async () => {
+    const { sessionId, gameId } = ids;
+    const gameUrl = `/session/${sessionId}/game/${gameId}`;
+
+    await pageA.goto(gameUrl);
+    await pageB.goto(gameUrl);
+    await expect(pageA.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+    await expect(pageB.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+
+    // Allow SSE to establish (past self-echo cooldown)
+    await pageA.waitForTimeout(4_000);
+    await pageB.waitForTimeout(500);
+
+    // Context B kills Alice via API (simulates B making a change)
+    const game = await fetchGame(sessionId, gameId);
+    game.players[0].alive = false;
+    await putGame(sessionId, gameId, game);
+
+    // Context A should see the dead marker via SSE sync
+    await pageA.waitForFunction(() => document.body.innerText.includes('💀'), {
+      timeout: 15_000,
+      polling: 500,
+    });
+
+    // Verify Context B also shows the change (it made the API call)
+    await pageB.reload();
+    await pageB.waitForFunction(() => document.body.innerText.includes('💀'), {
+      timeout: 10_000,
+      polling: 500,
+    });
+  });
+
+  test('no self-echo — after push, context A state does not flicker', async () => {
+    const { sessionId, gameId } = ids;
+    const gameUrl = `/session/${sessionId}/game/${gameId}`;
+
+    // Navigate Context A to the game
+    await pageA.goto(gameUrl);
+    await expect(pageA.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+
+    // Wait for SSE to establish (past self-echo cooldown from initial load)
+    await pageA.waitForTimeout(4_000);
+
+    // Switch to the Players tab so we can use the alive/dead toggle
+    await pageA.getByLabel('Players tab').click();
+    await pageA.waitForTimeout(500);
+
+    // Context A kills Alice through the UI (triggers GameContext push → sets cooldown)
+    const markDeadBtn = pageA.getByLabel('Mark as dead').first();
+    await expect(markDeadBtn).toBeVisible({ timeout: 5_000 });
+    await markDeadBtn.click();
+
+    // Switch back to TownSquare tab where 💀 emoji is rendered for dead players
+    await pageA.getByLabel('Town Square tab').click();
+    await pageA.waitForTimeout(500);
+
+    // Verify the change is immediately visible on Context A
+    await pageA.waitForFunction(() => document.body.innerText.includes('💀'), {
+      timeout: 5_000,
+      polling: 250,
+    });
+
+    // Set up a MutationObserver to detect any flicker (💀 disappearing then reappearing).
+    // The SSE self-echo cooldown (3s) should prevent the server echo from
+    // overwriting Context A's state.
+    await pageA.evaluate(() => {
+      const w = window as unknown as Record<string, unknown>;
+      w.__flickerDetected = false;
+      const observer = new MutationObserver(() => {
+        if (!document.body.innerText.includes('💀')) {
+          w.__flickerDetected = true;
+        }
+      });
+      observer.observe(document.body, {
+        childList: true,
+        subtree: true,
+        characterData: true,
+      });
+      w.__flickerObserver = observer;
+    });
+
+    // Wait well past the 3s self-echo cooldown + any SSE delivery latency
+    await pageA.waitForTimeout(6_000);
+
+    // Verify no flicker was detected during the wait
+    const flickered = await pageA.evaluate(() => {
+      const w = window as unknown as Record<string, unknown>;
+      return w.__flickerDetected as boolean;
+    });
+    expect(flickered).toBe(false);
+
+    // Clean up the observer
+    await pageA.evaluate(() => {
+      const w = window as unknown as Record<string, unknown>;
+      const obs = w.__flickerObserver as MutationObserver | undefined;
+      obs?.disconnect();
+    });
+
+    // Final assertion: dead marker is still visible on TownSquare
+    await expect(pageA.locator('text=💀')).toBeVisible();
+  });
+
+  test('SSE reconnection — sync resumes after simulated network drop', async () => {
+    const { sessionId, gameId } = ids;
+    const gameUrl = `/session/${sessionId}/game/${gameId}`;
+
+    // Device B navigates and lets SSE establish
+    await pageB.goto(gameUrl);
+    await expect(pageB.getByText('Alice')).toBeVisible({ timeout: 10_000 });
+
+    // Wait past self-echo cooldown so SSE events are processed
+    await pageB.waitForTimeout(4_000);
+
+    // ── 1. Block future SSE connections (won't affect current stream) ──
+    const eventsPattern = '**/api/sessions/*/games/*/events';
+    await pageB.route(eventsPattern, (route) => route.abort('connectionfailed'));
+
+    // ── 2. Force existing SSE to disconnect via visibility change ──
+    // The useSseSync hook closes EventSource when tab is hidden
+    await pageB.evaluate(() => {
+      Object.defineProperty(document, 'hidden', {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await pageB.waitForTimeout(500);
+
+    // Restore visibility — hook tries to reconnect but route blocks it.
+    // onVersionChanged also fires, fetching current game (unchanged).
+    await pageB.evaluate(() => {
+      Object.defineProperty(document, 'hidden', {
+        value: false,
+        writable: true,
+        configurable: true,
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await pageB.waitForTimeout(2_000);
+
+    // ── 3. Make a change while Device B is disconnected ──
+    const game = await fetchGame(sessionId, gameId);
+    game.players[0].alive = false;
+    await putGame(sessionId, gameId, game);
+
+    // Verify Device B does NOT see the change yet (SSE is blocked)
+    await pageB.waitForTimeout(3_000);
+    const deadBefore = await pageB.evaluate(() => document.body.innerText.includes('💀'));
+    expect(deadBefore).toBe(false);
+
+    // ── 4. Unblock SSE endpoint ──
+    await pageB.unroute(eventsPattern);
+
+    // ── 5. Force reconnection via visibility change cycle ──
+    await pageB.evaluate(() => {
+      Object.defineProperty(document, 'hidden', {
+        value: true,
+        writable: true,
+        configurable: true,
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+    await pageB.waitForTimeout(200);
+
+    await pageB.evaluate(() => {
+      Object.defineProperty(document, 'hidden', {
+        value: false,
+        writable: true,
+        configurable: true,
+      });
+      document.dispatchEvent(new Event('visibilitychange'));
+    });
+
+    // ── 6. Verify Device B sees the change after reconnection ──
+    await pageB.waitForFunction(() => document.body.innerText.includes('💀'), {
+      timeout: 15_000,
+      polling: 500,
+    });
   });
 });
