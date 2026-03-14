@@ -5,6 +5,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardActionArea from '@mui/material/CardActionArea';
+import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import Container from '@mui/material/Container';
@@ -417,34 +418,29 @@ function GameListItem({
   return (
     <ListItem disablePadding>
       <Card sx={{ width: '100%', mb: 1 }} variant="outlined">
-        <CardActionArea onClick={onClick}>
-          <CardContent
-            sx={{
-              py: 1.5,
-              '&:last-child': { pb: 1.5 },
-              display: 'flex',
-              alignItems: 'center',
-            }}
-          >
-            <ListItemText
-              primary={`Game ${gameNumber}`}
-              secondary={phase || 'Not started'}
-              sx={{ flex: 1 }}
-            />
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          <CardActionArea onClick={onClick} sx={{ flex: 1 }}>
+            <CardContent
+              sx={{
+                py: 1.5,
+                '&:last-child': { pb: 1.5 },
+              }}
+            >
+              <ListItemText primary={`Game ${gameNumber}`} secondary={phase || 'Not started'} />
+            </CardContent>
+          </CardActionArea>
+          <CardActions>
             <IconButton
               size="small"
               color="error"
               aria-label={`delete game ${gameNumber}`}
-              onClick={(e) => {
-                e.stopPropagation();
-                setConfirmOpen(true);
-              }}
+              onClick={() => setConfirmOpen(true)}
               data-testid={`delete-game-${gameId}`}
             >
               <DeleteIcon fontSize="small" />
             </IconButton>
-          </CardContent>
-        </CardActionArea>
+          </CardActions>
+        </Box>
       </Card>
 
       {/* Delete confirmation dialog */}
