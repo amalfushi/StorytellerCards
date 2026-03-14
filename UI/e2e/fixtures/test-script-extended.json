@@ -1,0 +1,13 @@
+[
+  { "id": "_meta", "name": "Extended Test Script", "author": "Integration Test" },
+  "washerwoman",
+  "librarian",
+  "investigator",
+  "chef",
+  "empath",
+  "fortuneteller",
+  "undertaker",
+  "monk",
+  "imp",
+  "poisoner"
+]
