@@ -267,8 +267,8 @@ export interface PlayerSeat {
   /** IDs of active reminder tokens placed on this seat. */
   activeReminders: string[];
   isTraveller: boolean;
-  /** Status tokens placed on this player (drunk, poisoned, custom). */
-  tokens: PlayerToken[];
+  /** Status tokens placed on this player (drunk, poisoned, custom). May be absent in legacy/API data. */
+  tokens?: PlayerToken[];
   /** Character ID this player believes they are (for Drunk/Marionette concealment). */
   apparentCharacterId?: string;
 }

@@ -123,10 +123,10 @@ function createRichTokenWithBadges(
   return (player: PlayerSeat, position: TokenPosition) => (
     <Box sx={{ position: 'relative' }}>
       <RichTokenPlaceholder player={player} />
-      {player.tokens.length > 0 && (
+      {(player.tokens ?? []).length > 0 && (
         <Box sx={{ position: 'absolute', left: '50%', top: '50%' }}>
           <TokenBadges
-            tokens={player.tokens}
+            tokens={player.tokens ?? []}
             tileX={position.x}
             tileY={position.y}
             centerX={centerX}

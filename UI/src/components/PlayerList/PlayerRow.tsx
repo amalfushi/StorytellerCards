@@ -203,7 +203,9 @@ export function PlayerRow({
         {/* Active tokens / reminders (night view only) */}
         {showCharacters && (
           <TableCell sx={{ px: 1 }}>
-            {player.tokens.length > 0 ? <ReminderTokenChips tokens={player.tokens} /> : null}
+            {(player.tokens ?? []).length > 0 ? (
+              <ReminderTokenChips tokens={player.tokens ?? []} />
+            ) : null}
           </TableCell>
         )}
 
