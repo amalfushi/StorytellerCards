@@ -19,7 +19,7 @@ import type {
 import { Phase, Alignment, CharacterType } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
 import { useApiSync } from '@/hooks/useApiSync.ts';
-import { useSyncPolling } from '@/hooks/useSyncPolling.ts';
+import { useSseSync } from '@/hooks/useSseSync.ts';
 
 // ──────────────────────────────────────────────
 // State
@@ -656,31 +656,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const isSyncingRef = useRef(false);
   const gameRef = useRef(state.game);
   const lastPushedGameRef = useRef<string | null>(null);
-  const [lastServerVersion, setLastServerVersion] = useState(0);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
 
-  const {
-    fetchGame: apiFetchGame,
-    pushGame: apiPushGame,
-    pullGameVersion: apiPullGameVersion,
-  } = useApiSync();
+  const { fetchGame: apiFetchGame, syncGame: apiSyncGame } = useApiSync();
 
   // Keep gameRef in sync
   useEffect(() => {
     gameRef.current = state.game;
   }, [state.game]);
-
-  // Ref to track last known server version without stale closures
-  const lastServerVersionRef = useRef(0);
-  useEffect(() => {
-    lastServerVersionRef.current = lastServerVersion;
-  }, [lastServerVersion]);
-
-  // Debounce timer for version-aware push
-  const pushTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined);
-  useEffect(() => {
-    return () => clearTimeout(pushTimerRef.current);
-  }, []);
 
   // Auto-save game to localStorage whenever it changes
   useEffect(() => {
@@ -689,60 +672,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
     }
   }, [state.game]);
 
-  /**
-   * Version-aware push: checks server version before pushing to avoid
-   * overwriting changes made on a remote device.
-   */
-  const versionAwarePushGame = useCallback(
-    async (game: Game) => {
-      // Check server version to detect remote changes
-      const serverVersionInfo = await apiPullGameVersion(game.sessionId, game.id);
-
-      if (serverVersionInfo && serverVersionInfo.version > lastServerVersionRef.current) {
-        // Server has newer data (e.g., from a remote device) — pull it
-        const remoteGame = await apiFetchGame(game.sessionId, game.id);
-        if (remoteGame) {
-          setLastServerVersion(remoteGame.version ?? 0);
-          isSyncingRef.current = true;
-          lastPushedGameRef.current = JSON.stringify(remoteGame);
-          dispatch({ type: 'SYNC_GAME', payload: { game: remoteGame } });
-        }
-        return;
-      }
-
-      // Server is not ahead — safe to push with expected version
-      const expectedVersion =
-        lastServerVersionRef.current > 0 ? lastServerVersionRef.current : undefined;
-      const result = await apiPushGame(game, expectedVersion);
-      if (result.ok && result.data) {
-        setLastServerVersion(result.data.version ?? 0);
-      } else if (result.status === 409) {
-        // Race condition: server changed between our version check and push
-        const remoteGame = await apiFetchGame(game.sessionId, game.id);
-        if (remoteGame) {
-          setLastServerVersion(remoteGame.version ?? 0);
-          isSyncingRef.current = true;
-          lastPushedGameRef.current = JSON.stringify(remoteGame);
-          dispatch({ type: 'SYNC_GAME', payload: { game: remoteGame } });
-        }
-      }
-    },
-    [apiPullGameVersion, apiFetchGame, apiPushGame],
-  );
-
   // Push game to API when it changes (skip if change came from SYNC_GAME)
   useEffect(() => {
     const game = state.game;
     if (game && !isSyncingRef.current) {
-      // Track what we're pushing so polling knows not to overwrite
       lastPushedGameRef.current = JSON.stringify(game);
-      clearTimeout(pushTimerRef.current);
-      pushTimerRef.current = setTimeout(() => versionAwarePushGame(game), 1000);
+      apiSyncGame(game);
     }
     isSyncingRef.current = false;
-  }, [state.game, versionAwarePushGame]);
+  }, [state.game, apiSyncGame]);
 
-  // Handle new version detected by polling
+  // Handle new version detected by SSE
   const handleNewVersion = useCallback(async () => {
     const g = gameRef.current;
     if (!g) return;
@@ -755,33 +695,23 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
     const remoteGame = await apiFetchGame(g.sessionId, g.id);
     if (remoteGame) {
-      setLastServerVersion(remoteGame.version ?? 0);
       isSyncingRef.current = true;
       lastPushedGameRef.current = JSON.stringify(remoteGame);
       dispatch({ type: 'SYNC_GAME', payload: { game: remoteGame } });
     }
   }, [apiFetchGame]);
 
-  // Stable fetchVersion callback using ref
-  const fetchVersion = useCallback(() => {
-    const g = gameRef.current;
-    if (!g) return Promise.resolve(null);
-    return apiPullGameVersion(g.sessionId, g.id);
-  }, [apiPullGameVersion]);
-
-  const { forceSync } = useSyncPolling({
+  const { forceSync } = useSseSync({
     enabled: !!state.game,
-    interval: 10000,
-    fetchVersion,
-    onNewVersion: handleNewVersion,
+    sessionId: state.game?.sessionId ?? null,
+    gameId: state.game?.id ?? null,
+    onVersionChanged: handleNewVersion,
     onStatusChange: setSyncStatus,
-    localVersion: lastServerVersion,
   });
 
   // ── Helper functions ──
 
   const loadGame = useCallback((game: Game) => {
-    setLastServerVersion(game.version ?? 0);
     lastPushedGameRef.current = null;
     dispatch({ type: 'LOAD_GAME', payload: { game } });
   }, []);
