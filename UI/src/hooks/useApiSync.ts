@@ -8,7 +8,7 @@
  */
 
 import { useCallback, useRef } from 'react';
-import type { Session, Game } from '../types';
+import type { Session, Game, Script } from '../types';
 
 export const isSyncDisabled: boolean = import.meta.env.VITE_SYNC_DISABLED === 'true';
 
@@ -70,12 +70,16 @@ export interface ApiSyncHook {
   syncSession: (session: Session) => void;
   /** Debounced fire-and-forget game push. */
   syncGame: (game: Game) => void;
+  /** Fire-and-forget script push to API. */
+  syncScript: (script: Script) => void;
   /** Fetch a full session from the API. */
   fetchSession: (id: string) => Promise<Session | null>;
   /** Fetch all sessions from the API. */
   fetchSessions: () => Promise<Session[]>;
   /** Fetch a full game from the API. */
   fetchGame: (sessionId: string, gameId: string) => Promise<Game | null>;
+  /** Fetch a script from the API by ID. */
+  fetchScript: (id: string) => Promise<Script | null>;
   /** Fire-and-forget DELETE for a session (and all its games). */
   deleteSession: (id: string) => void;
   /** Fire-and-forget DELETE for a single game. */
@@ -125,12 +129,27 @@ export function useApiSync(): ApiSyncHook {
     void request(`/api/sessions/${sessionId}/games/${gameId}`, { method: 'DELETE' });
   }, []);
 
+  const syncScriptDirect = useCallback((script: Script) => {
+    if (isSyncDisabled) return;
+    void request<Script>('/api/scripts/import', {
+      method: 'POST',
+      body: JSON.stringify(script),
+    });
+  }, []);
+
+  const fetchScriptDirect = useCallback((id: string) => {
+    if (isSyncDisabled) return Promise.resolve(null);
+    return request<Script>(`/api/scripts/${id}`);
+  }, []);
+
   return {
     syncSession,
     syncGame,
+    syncScript: syncScriptDirect,
     fetchSession,
     fetchSessions,
     fetchGame,
+    fetchScript: fetchScriptDirect,
     deleteSession: deleteSessionDirect,
     deleteGame: deleteGameDirect,
   };
