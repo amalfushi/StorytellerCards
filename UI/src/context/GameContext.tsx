@@ -651,11 +651,19 @@ const GameContext = createContext<GameContextValue | null>(null);
 // Provider
 // ──────────────────────────────────────────────
 
+/**
+ * After a local push, ignore incoming SSE version-changed events for this
+ * duration. This prevents "self-echo" — the server broadcasting our own save
+ * back to us, which would replace game state and reset UI (e.g., open dialogs).
+ */
+const SELF_ECHO_COOLDOWN_MS = 3_000;
+
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducerWithVersion, INITIAL_STATE);
   const isSyncingRef = useRef(false);
   const gameRef = useRef(state.game);
   const lastPushedGameRef = useRef<string | null>(null);
+  const lastPushTimestampRef = useRef(0);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
 
   const { fetchGame: apiFetchGame, syncGame: apiSyncGame } = useApiSync();
@@ -677,6 +685,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const game = state.game;
     if (game && !isSyncingRef.current) {
       lastPushedGameRef.current = JSON.stringify(game);
+      lastPushTimestampRef.current = Date.now();
       apiSyncGame(game);
     }
     isSyncingRef.current = false;
@@ -686,6 +695,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const handleNewVersion = useCallback(async () => {
     const g = gameRef.current;
     if (!g) return;
+
+    // Self-echo guard: after we push, the server broadcasts a version-changed
+    // event back to us. Ignore SSE events arriving within the cooldown window
+    // to prevent our own save from replacing state and resetting UI.
+    if (Date.now() - lastPushTimestampRef.current < SELF_ECHO_COOLDOWN_MS) {
+      return;
+    }
 
     // Don't overwrite local state if we have unpushed changes.
     const currentJson = JSON.stringify(g);
