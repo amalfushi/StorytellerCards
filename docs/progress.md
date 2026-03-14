@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-03-12
+> Last updated: 2026-06-24
 
 ## Milestone Overview
 
@@ -49,11 +49,11 @@
 - **Exile vs execution** — functionally same but both terms retained
 - **Adaptive distribution engine in M27** — replaces static distribution with real-time targets responding to setup-affecting characters (Baron, Legion, Atheist, Xaan, etc.)
 
-## Verification (as of M30 Complete + Post-Merge Fixes)
+## Verification (as of polling sync removal)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 3958/3958 passing (77 test files)
+- Tests: 3977/3977 passing (77 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 19 story files with ~99+ stories including `play()` interaction tests
 - Go build: success

@@ -1,30 +1,24 @@
 /**
- * Version-aware API sync hook for cross-device persistence.
- * Supports push (with X-Expected-Version), pull, version checks,
- * and 409 conflict handling. localStorage is always the primary store.
+ * API sync hook for cross-device persistence.
+ * Supports debounced fire-and-forget pushes and fetches.
+ * localStorage is always the primary store.
  *
  * When VITE_SYNC_DISABLED is set, all sync operations become no-ops
  * and the app runs in local-only mode using only localStorage.
  */
 
 import { useCallback, useRef } from 'react';
-import type { Session, Game, VersionInfo } from '../types';
+import type { Session, Game } from '../types';
 
 export const isSyncDisabled: boolean = import.meta.env.VITE_SYNC_DISABLED === 'true';
 
 function getApiBase(): string {
+  // In test environment (jsdom), relative URLs aren't valid for fetch — use localhost
+  if (typeof import.meta.env.VITEST !== 'undefined') return 'http://localhost:3001';
   return ''; // Same-origin via Vite proxy (dev) or Go static serving (prod)
 }
 
 const DEBOUNCE_MS = 1000;
-
-/** Result of a push operation — includes conflict info if applicable. */
-export interface PushResult<T> {
-  ok: boolean;
-  status: number;
-  data: T | null;
-  conflict?: { serverVersion: number; expectedVersion: number };
-}
 
 async function request<T>(path: string, options?: RequestInit): Promise<T | null> {
   const url = `${getApiBase()}${path}`;
@@ -44,30 +38,19 @@ async function request<T>(path: string, options?: RequestInit): Promise<T | null
   }
 }
 
-async function pushRequest<T>(path: string, options: RequestInit): Promise<PushResult<T>> {
+async function fireAndForgetPut(path: string, body: string): Promise<void> {
   const url = `${getApiBase()}${path}`;
   try {
     const res = await fetch(url, {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      ...options,
+      body,
     });
-
-    if (res.status === 409) {
-      const body = (await res.json()) as { serverVersion: number; expectedVersion: number };
-      console.warn(`[API] ${options.method} ${url} → 409 conflict`, body);
-      return { ok: false, status: 409, data: null, conflict: body };
-    }
-
     if (!res.ok) {
-      console.warn(`[API] ${options.method} ${url} → ${res.status}`);
-      return { ok: false, status: res.status, data: null };
+      console.warn(`[API] PUT ${url} → ${res.status}`);
     }
-
-    const data = (await res.json()) as T;
-    return { ok: true, status: res.status, data };
   } catch (err) {
-    console.warn(`[API] ${options.method} ${url} → network error:`, err);
-    return { ok: false, status: 0, data: null };
+    console.warn(`[API] PUT ${url} → network error:`, err);
   }
 }
 
@@ -83,9 +66,9 @@ function useDebouncedFn<Args extends unknown[]>(fn: (...args: Args) => void, del
 }
 
 export interface ApiSyncHook {
-  /** Debounced fire-and-forget session push (backward compat). */
+  /** Debounced fire-and-forget session push. */
   syncSession: (session: Session) => void;
-  /** Debounced fire-and-forget game push (backward compat). */
+  /** Debounced fire-and-forget game push. */
   syncGame: (game: Game) => void;
   /** Fetch a full session from the API. */
   fetchSession: (id: string) => Promise<Session | null>;
@@ -93,123 +76,40 @@ export interface ApiSyncHook {
   fetchSessions: () => Promise<Session[]>;
   /** Fetch a full game from the API. */
   fetchGame: (sessionId: string, gameId: string) => Promise<Game | null>;
-  /** Push a session with version-awareness. Returns push result with conflict info. */
-  pushSession: (session: Session) => Promise<PushResult<Session>>;
-  /** Push a game with version-awareness. Returns push result with conflict info.
-   *  An explicit expectedVersion overrides game.version for the X-Expected-Version header. */
-  pushGame: (game: Game, expectedVersion?: number) => Promise<PushResult<Game>>;
-  /** Lightweight version check for a session. */
-  pullSessionVersion: (sessionId: string) => Promise<VersionInfo | null>;
-  /** Lightweight version check for a game. */
-  pullGameVersion: (sessionId: string, gameId: string) => Promise<VersionInfo | null>;
 }
 
 export function useApiSync(): ApiSyncHook {
-  const syncDisabledLogged = useRef<boolean | null>(null);
-
-  // All hooks called unconditionally (React rules of hooks)
-  const noop = useCallback(() => {}, []);
-  const noopAsync = useCallback(async () => null, []);
-  const noopPush = useCallback(
-    async () => ({ ok: true, status: 0, data: null }) as PushResult<never>,
-    [],
-  );
-  const noopFetchSessions = useCallback(async (): Promise<Session[]> => [], []);
-
-  const pushSessionDirect = useCallback(async (session: Session): Promise<PushResult<Session>> => {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    if (session.version !== undefined) {
-      headers['X-Expected-Version'] = String(session.version);
-    }
-    return pushRequest<Session>(`/api/sessions/${session.id}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(session),
-    });
-  }, []);
-
-  const pushGameDirect = useCallback(
-    async (game: Game, expectedVersion?: number): Promise<PushResult<Game>> => {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      const version = expectedVersion ?? game.version;
-      if (version !== undefined) {
-        headers['X-Expected-Version'] = String(version);
-      }
-      return pushRequest<Game>(`/api/sessions/${game.sessionId}/games/${game.id}`, {
-        method: 'PUT',
-        headers,
-        body: JSON.stringify(game),
-      });
-    },
-    [],
-  );
-
   const syncSessionImmediate = useCallback(async (session: Session) => {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    await pushRequest<Session>(`/api/sessions/${session.id}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(session),
-    });
+    if (isSyncDisabled) return;
+    await fireAndForgetPut(`/api/sessions/${session.id}`, JSON.stringify(session));
   }, []);
 
   const syncGameImmediate = useCallback(async (game: Game) => {
-    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-    await pushRequest<Game>(`/api/sessions/${game.sessionId}/games/${game.id}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(game),
-    });
+    if (isSyncDisabled) return;
+    await fireAndForgetPut(
+      `/api/sessions/${game.sessionId}/games/${game.id}`,
+      JSON.stringify(game),
+    );
   }, []);
 
   const syncSession = useDebouncedFn(syncSessionImmediate, DEBOUNCE_MS);
   const syncGame = useDebouncedFn(syncGameImmediate, DEBOUNCE_MS);
 
-  const fetchSession = useCallback((id: string) => request<Session>(`/api/sessions/${id}`), []);
+  const fetchSession = useCallback((id: string) => {
+    if (isSyncDisabled) return Promise.resolve(null);
+    return request<Session>(`/api/sessions/${id}`);
+  }, []);
 
   const fetchSessions = useCallback(async (): Promise<Session[]> => {
+    if (isSyncDisabled) return [];
     const result = await request<Session[]>('/api/sessions');
     return result ?? [];
   }, []);
 
-  const fetchGame = useCallback(
-    (sessionId: string, gameId: string) =>
-      request<Game>(`/api/sessions/${sessionId}/games/${gameId}`),
-    [],
-  );
-
-  const pullSessionVersion = useCallback(
-    (sessionId: string) => request<VersionInfo>(`/api/sessions/${sessionId}/version`),
-    [],
-  );
-
-  const pullGameVersion = useCallback(
-    (sessionId: string, gameId: string) =>
-      request<VersionInfo>(`/api/sessions/${sessionId}/games/${gameId}/version`),
-    [],
-  );
-
-  if (isSyncDisabled) {
-    if (syncDisabledLogged.current === null) {
-      syncDisabledLogged.current = true;
-      console.info('[API] Sync disabled — running in local-only mode');
-    }
-
-    return {
-      syncSession: noop,
-      syncGame: noop,
-      fetchSession: noopAsync as (id: string) => Promise<Session | null>,
-      fetchSessions: noopFetchSessions,
-      fetchGame: noopAsync as (sessionId: string, gameId: string) => Promise<Game | null>,
-      pushSession: noopPush as unknown as (session: Session) => Promise<PushResult<Session>>,
-      pushGame: noopPush as unknown as (game: Game) => Promise<PushResult<Game>>,
-      pullSessionVersion: noopAsync as (sessionId: string) => Promise<VersionInfo | null>,
-      pullGameVersion: noopAsync as (
-        sessionId: string,
-        gameId: string,
-      ) => Promise<VersionInfo | null>,
-    };
-  }
+  const fetchGame = useCallback((sessionId: string, gameId: string) => {
+    if (isSyncDisabled) return Promise.resolve(null);
+    return request<Game>(`/api/sessions/${sessionId}/games/${gameId}`);
+  }, []);
 
   return {
     syncSession,
@@ -217,9 +117,5 @@ export function useApiSync(): ApiSyncHook {
     fetchSession,
     fetchSessions,
     fetchGame,
-    pushSession: pushSessionDirect,
-    pushGame: pushGameDirect,
-    pullSessionVersion,
-    pullGameVersion,
   };
 }
