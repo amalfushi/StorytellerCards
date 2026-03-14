@@ -7,13 +7,14 @@
 
 ### Summary
 
-Added automated integration tests at three levels to catch the bug classes that required 15+ fix PRs after M30/M33 — Go model field mismatches, SSE self-echo issues, and cross-device state sync failures.
+Added automated integration tests at three levels plus a **full journey E2E test** to catch the bug classes that required 15+ fix PRs after M30/M33 — Go model field mismatches, SSE self-echo issues, and cross-device state sync failures.
 
 **What was implemented:**
-- **Level 1 — Go Model Roundtrip Tests**: `TestGameRoundtrip`, `TestSessionRoundtrip`, `TestPartialGameRoundtrip`, `TestEmptyCollections` in `API/internal/handlers/roundtrip_test.go`
-- **Level 2 — Playwright Game Lifecycle E2E**: Full UI workflow tests (session creation → game setup → night completion) in `UI/e2e/game-lifecycle.spec.ts`
-- **Level 3 — Playwright Cross-Device Sync E2E**: Dual browser context SSE sync tests in `UI/e2e/cross-device-sync.spec.ts`
-- **Playwright infrastructure**: Config, fixture script, dev server integration, `test:e2e`/`test:e2e:sync`/`test:e2e:all` scripts
+- **Level 1 — Go Model Roundtrip Tests**: 4 tests verifying every TS field survives Go JSON serialization (`API/internal/handlers/roundtrip_test.go`)
+- **Level 2 — Playwright Game Lifecycle E2E**: 7 tests covering session creation → game setup → night completion (`UI/e2e/game-lifecycle.spec.ts`)
+- **Level 3 — Playwright Cross-Device Sync E2E**: 12 tests with dual browser contexts testing SSE sync, tokens, phases, bidirectional edits, self-echo, reconnection (`UI/e2e/cross-device-sync.spec.ts`)
+- **Full Journey E2E**: 10-phase test across 2 devices covering 3 nights with both devices actively editing — the ultimate regression test (`UI/e2e/full-journey.spec.ts`)
+- **Playwright infrastructure**: Config, fixture script, dev server integration, `test:e2e`/`test:e2e:sync`/`test:e2e:journey`/`test:e2e:all` scripts
 - **Root integration script**: `npm run test:integration` runs Go roundtrip + all Playwright E2E
 - **Documentation**: Testing guide updated with E2E section, milestone completed
 
@@ -21,10 +22,11 @@ Added automated integration tests at three levels to catch the bug classes that 
 
 | Level | Description | Status | PR |
 |-------|-------------|--------|----|
-| Level 1 | Go Model Roundtrip Tests | ✅ Complete | [#78](../../pulls/78) |
-| Level 2 | Playwright E2E — Game Lifecycle | ✅ Complete | [#79](../../pulls/79), [#81](../../pulls/81), [#84](../../pulls/84) |
-| Level 3 | Playwright E2E — Cross-Device Sync | ✅ Complete | [#80](../../pulls/80), [#83](../../pulls/83) |
-| Phase 5 | Documentation & Scripts | ✅ Complete | This PR |
+| Level 1 | Go Model Roundtrip Tests (4 tests) | ✅ Complete | [#78](../../pulls/78) |
+| Level 2 | Playwright E2E — Game Lifecycle (7 tests) | ✅ Complete | [#79](../../pulls/79), [#81](../../pulls/81), [#84](../../pulls/84) |
+| Level 3 | Playwright E2E — Cross-Device Sync (12 tests) | ✅ Complete | [#80](../../pulls/80), [#83](../../pulls/83) |
+| Full Journey | 2-device, 3-night bidirectional journey (10 phases) | ✅ Complete | [#88](../../pulls/88) |
+| Phase 5 | Documentation & Scripts | ✅ Complete | [#85](../../pulls/85) |
 
 ---
 
@@ -144,19 +146,21 @@ These boundaries need **integration tests** that exercise the full stack — not
 
 | File | Purpose |
 |------|---------|
-| `API/internal/handlers/roundtrip_test.go` | Go model roundtrip tests |
+| `API/internal/handlers/roundtrip_test.go` | Go model roundtrip tests (4 tests) |
 | `UI/playwright.config.ts` | Playwright configuration |
-| `UI/e2e/game-lifecycle.spec.ts` | Level 2 E2E — full game lifecycle |
-| `UI/e2e/cross-device-sync.spec.ts` | Level 3 E2E — dual browser SSE sync |
+| `UI/e2e/game-lifecycle.spec.ts` | Level 2 E2E — full game lifecycle (7 tests) |
+| `UI/e2e/cross-device-sync.spec.ts` | Level 3 E2E — dual browser SSE sync (12 tests) |
+| `UI/e2e/full-journey.spec.ts` | Full journey — 2 devices, 3 nights, bidirectional edits (10 phases) |
 | `UI/e2e/helpers/api.ts` | Direct HTTP helpers for API assertions |
 | `UI/e2e/helpers/navigation.ts` | Page object helpers for UI flows |
+| `UI/e2e/fixtures/test-script.json` | 7-character BotC test script |
 
 ### Modified Files
 
 | File | Changes |
 |------|---------|
 | `UI/package.json` | Add `@playwright/test`, `test:e2e` and `test:e2e:ui` scripts |
-| `package.json` (root) | Add `test:integration` script |
+| `package.json` (root) | Add `test:integration`, `test:e2e:journey` scripts |
 | `docs/testing.md` | Add Playwright E2E section |
 
 ---
