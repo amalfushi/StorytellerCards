@@ -62,6 +62,7 @@ func main() {
 		r.Post("/sessions/{sessionId}/games", games.Create)
 		r.Get("/sessions/{sessionId}/games/{gameId}", games.Get)
 		r.Put("/sessions/{sessionId}/games/{gameId}", games.Update)
+		r.Delete("/sessions/{sessionId}/games/{gameId}", games.Delete)
 		r.Get("/sessions/{sessionId}/games/{gameId}/version", games.GetVersion)
 		r.Get("/sessions/{sessionId}/games/{gameId}/events", events.Stream)
 

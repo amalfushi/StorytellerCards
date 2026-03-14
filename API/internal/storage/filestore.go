@@ -195,6 +195,15 @@ func (fs *FileStore) ListGames(sessionID string) ([]models.Game, error) {
 	return games, nil
 }
 
+// DeleteGame removes a single game file from disk.
+func (fs *FileStore) DeleteGame(sessionID, gameID string) error {
+	p := fs.gamePath(sessionID, gameID)
+	if err := os.Remove(p); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	return nil
+}
+
 // ──────────────────────────────────────────────
 // Scripts
 // ──────────────────────────────────────────────

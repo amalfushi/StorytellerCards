@@ -264,7 +264,12 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(sessionReducerWithVersion, persisted);
   const isSyncingRef = useRef(false);
 
-  const { syncSession: apiPushSession, fetchSessions: apiFetchSessions } = useApiSync();
+  const {
+    syncSession: apiPushSession,
+    fetchSessions: apiFetchSessions,
+    deleteSession: apiDeleteSession,
+    deleteGame: apiDeleteGame,
+  } = useApiSync();
 
   // Sync reducer state → localStorage whenever it changes
   useEffect(() => {
@@ -309,9 +314,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CREATE_SESSION', payload: { name, scriptId, players } });
   }, []);
 
-  const deleteSession = useCallback((id: string) => {
-    dispatch({ type: 'DELETE_SESSION', payload: { id } });
-  }, []);
+  const deleteSession = useCallback(
+    (id: string) => {
+      dispatch({ type: 'DELETE_SESSION', payload: { id } });
+      apiDeleteSession(id);
+    },
+    [apiDeleteSession],
+  );
 
   const selectSession = useCallback((id: string | null) => {
     dispatch({ type: 'SET_ACTIVE_SESSION', payload: { id } });
@@ -400,9 +409,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [state.sessions],
   );
 
-  const deleteGame = useCallback((sessionId: string, gameId: string) => {
-    dispatch({ type: 'DELETE_GAME', payload: { sessionId, gameId } });
-  }, []);
+  const deleteGame = useCallback(
+    (sessionId: string, gameId: string) => {
+      dispatch({ type: 'DELETE_GAME', payload: { sessionId, gameId } });
+      apiDeleteGame(sessionId, gameId);
+    },
+    [apiDeleteGame],
+  );
 
   const getActiveSession = useCallback((): Session | null => {
     if (!state.activeSessionId) return null;

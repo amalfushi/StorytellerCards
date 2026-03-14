@@ -76,6 +76,10 @@ export interface ApiSyncHook {
   fetchSessions: () => Promise<Session[]>;
   /** Fetch a full game from the API. */
   fetchGame: (sessionId: string, gameId: string) => Promise<Game | null>;
+  /** Fire-and-forget DELETE for a session (and all its games). */
+  deleteSession: (id: string) => void;
+  /** Fire-and-forget DELETE for a single game. */
+  deleteGame: (sessionId: string, gameId: string) => void;
 }
 
 export function useApiSync(): ApiSyncHook {
@@ -111,11 +115,23 @@ export function useApiSync(): ApiSyncHook {
     return request<Game>(`/api/sessions/${sessionId}/games/${gameId}`);
   }, []);
 
+  const deleteSessionDirect = useCallback((id: string) => {
+    if (isSyncDisabled) return;
+    void request(`/api/sessions/${id}`, { method: 'DELETE' });
+  }, []);
+
+  const deleteGameDirect = useCallback((sessionId: string, gameId: string) => {
+    if (isSyncDisabled) return;
+    void request(`/api/sessions/${sessionId}/games/${gameId}`, { method: 'DELETE' });
+  }, []);
+
   return {
     syncSession,
     syncGame,
     fetchSession,
     fetchSessions,
     fetchGame,
+    deleteSession: deleteSessionDirect,
+    deleteGame: deleteGameDirect,
   };
 }

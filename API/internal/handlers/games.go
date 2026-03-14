@@ -131,3 +131,15 @@ func (h *Games) Update(w http.ResponseWriter, r *http.Request) {
 	}
 	writeJSON(w, status, g)
 }
+
+// Delete removes a single game. DELETE /api/sessions/{sessionId}/games/{gameId}
+func (h *Games) Delete(w http.ResponseWriter, r *http.Request) {
+	sid := chi.URLParam(r, "sessionId")
+	gid := chi.URLParam(r, "gameId")
+	if err := h.store.DeleteGame(sid, gid); err != nil {
+		log.Printf("ERROR delete game %s/%s: %v", sid, gid, err)
+		http.Error(w, "internal error", http.StatusInternalServerError)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
