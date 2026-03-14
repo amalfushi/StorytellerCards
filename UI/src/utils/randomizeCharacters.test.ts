@@ -199,7 +199,7 @@ describe('randomizeCharacters', () => {
   });
 
   describe('Atheist', () => {
-    it('works without a demon', () => {
+    it('does not always select atheist when on script', () => {
       const scriptWithAtheist = [
         'atheist',
         'washerwoman',
@@ -216,36 +216,53 @@ describe('randomizeCharacters', () => {
         'drunk',
         'recluse',
         'saint',
+        'imp',
+        'poisoner',
       ];
-      const result = randomizeCharacters(scriptWithAtheist, 7);
-      expect(result).toHaveLength(7);
-
-      // No demons should be selected
-      const demonCount = result.filter((id) => mockCharacters[id]?.type === 'Demon').length;
-      expect(demonCount).toBe(0);
-
-      // No minions should be selected
-      const minionCount = result.filter((id) => mockCharacters[id]?.type === 'Minion').length;
-      expect(minionCount).toBe(0);
+      // Run many times — atheist should NOT always be selected
+      let atheistCount = 0;
+      const runs = 50;
+      for (let i = 0; i < runs; i++) {
+        const result = randomizeCharacters(scriptWithAtheist, 7);
+        if (result.includes('atheist')) atheistCount++;
+      }
+      // With many townsfolk, atheist should be rare (1/townsfolk_count chance)
+      expect(atheistCount).toBeLessThan(runs);
     });
 
-    it('includes atheist in the selection', () => {
-      const scriptWithAtheist = [
-        'atheist',
-        'washerwoman',
-        'librarian',
-        'investigator',
-        'chef',
-        'empath',
-        'fortuneteller',
-        'undertaker',
-        'butler',
-        'drunk',
-      ];
-      // Run multiple times — atheist should always be included
-      for (let i = 0; i < 10; i++) {
+    it('produces valid distribution when atheist IS selected', () => {
+      // When forceAtheist triggers, result has no evil characters
+      // We test this by mocking Math.random to always return 0 (forces atheist)
+      const origRandom = Math.random;
+      Math.random = () => 0; // Always < 1/townsfolk.length
+
+      try {
+        const scriptWithAtheist = [
+          'atheist',
+          'washerwoman',
+          'librarian',
+          'investigator',
+          'chef',
+          'empath',
+          'fortuneteller',
+          'undertaker',
+          'butler',
+          'drunk',
+          'recluse',
+          'imp',
+          'poisoner',
+        ];
         const result = randomizeCharacters(scriptWithAtheist, 7);
+        expect(result).toHaveLength(7);
         expect(result).toContain('atheist');
+        // No demons or minions when atheist is forced
+        const hasEvil = result.some((id) => {
+          const ch = mockCharacters[id];
+          return ch?.type === 'Demon' || ch?.type === 'Minion';
+        });
+        expect(hasEvil).toBe(false);
+      } finally {
+        Math.random = origRandom;
       }
     });
   });
