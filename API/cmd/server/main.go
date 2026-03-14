@@ -18,6 +18,7 @@ import (
 
 	"storyteller-cards-api/internal/cleanup"
 	"storyteller-cards-api/internal/handlers"
+	"storyteller-cards-api/internal/sse"
 	"storyteller-cards-api/internal/storage"
 )
 
@@ -39,9 +40,11 @@ func main() {
 	cleanup.Start(store)
 
 	// Handlers
+	sseHub := sse.NewHub()
 	sessions := handlers.NewSessions(store)
-	games := handlers.NewGames(store)
+	games := handlers.NewGames(store, sseHub)
 	scripts := handlers.NewScripts(store)
+	events := handlers.NewEvents(sseHub)
 
 	// CORS: allow localhost and any private-network IP (RFC 1918).
 	// Override via CORS_ORIGINS env var (comma-separated) for explicit control.
@@ -81,6 +84,7 @@ func main() {
 		r.Get("/sessions/{sessionId}/games/{gameId}", games.Get)
 		r.Put("/sessions/{sessionId}/games/{gameId}", games.Update)
 		r.Get("/sessions/{sessionId}/games/{gameId}/version", games.GetVersion)
+		r.Get("/sessions/{sessionId}/games/{gameId}/events", events.Stream)
 
 		// Scripts
 		r.Post("/scripts/import", scripts.Import)

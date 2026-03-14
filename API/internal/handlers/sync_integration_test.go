@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"storyteller-cards-api/internal/models"
+	"storyteller-cards-api/internal/sse"
 	"storyteller-cards-api/internal/storage"
 )
 
@@ -23,7 +24,7 @@ func setupFullRouter(t *testing.T) (*chi.Mux, *storage.FileStore) {
 	}
 
 	sessions := NewSessions(store)
-	games := NewGames(store)
+	games := NewGames(store, sse.NewHub())
 
 	r := chi.NewRouter()
 	r.Route("/api", func(r chi.Router) {
