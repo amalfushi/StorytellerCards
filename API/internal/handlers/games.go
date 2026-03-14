@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -10,17 +11,19 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"storyteller-cards-api/internal/models"
+	"storyteller-cards-api/internal/sse"
 	"storyteller-cards-api/internal/storage"
 )
 
 // Games holds game-related HTTP handlers.
 type Games struct {
 	store *storage.FileStore
+	hub   *sse.Hub
 }
 
 // NewGames creates a Games handler group.
-func NewGames(s *storage.FileStore) *Games {
-	return &Games{store: s}
+func NewGames(s *storage.FileStore, hub *sse.Hub) *Games {
+	return &Games{store: s, hub: hub}
 }
 
 // Get returns a single game. GET /api/sessions/{sessionId}/games/{gameId}
@@ -117,6 +120,9 @@ func (h *Games) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
+
+	gameKey := sse.GameKey(sid, gid)
+	h.hub.Broadcast(gameKey, fmt.Sprintf(`{"version":%d,"updatedAt":"%s"}`, g.Version, g.UpdatedAt))
 
 	status := http.StatusOK
 	if existErr != nil {

@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"storyteller-cards-api/internal/models"
+	"storyteller-cards-api/internal/sse"
 	"storyteller-cards-api/internal/storage"
 )
 
@@ -21,7 +22,7 @@ func setupGameRouter(t *testing.T) (*chi.Mux, *storage.FileStore) {
 		t.Fatalf("EnsureDirectories: %v", err)
 	}
 
-	games := NewGames(store)
+	games := NewGames(store, sse.NewHub())
 
 	r := chi.NewRouter()
 	r.Post("/api/sessions/{sessionId}/games", games.Create)
