@@ -88,27 +88,42 @@ export function randomizeCharacters(scriptCharacterIds: string[], playerCount: n
 
   const base = getDistribution(playerCount);
 
-  // Check for special characters on the script
-  const scriptIdSet = new Set(scriptCharacterIds);
-  const hasAtheist = scriptIdSet.has('atheist');
-  const hasLegion = scriptIdSet.has('legion');
+  // ── Standard distribution (first pass) ──
+  // Pick demons and minions first, then check for special characters
 
-  // ── Atheist: no evil characters ──
-  if (hasAtheist) {
+  const targetDemons = Math.min(base.demons, demons.length);
+  let targetMinions = Math.min(base.minions, minions.length);
+
+  const selectedDemons = pickRandom(demons, targetDemons);
+  const selectedMinions = pickRandom(minions, targetMinions);
+
+  // ── Check if special characters were randomly selected ──
+  const selectedEvilIds = new Set([
+    ...selectedDemons.map((c) => c.id),
+    ...selectedMinions.map((c) => c.id),
+  ]);
+
+  // ── Atheist: only if randomly selected as a townsfolk ──
+  // Atheist is a Townsfolk — it might be picked in the townsfolk pool below.
+  // We pre-check: should we force an Atheist game? Only with low probability.
+  const hasAtheistOnScript = townsfolk.some((c) => c.id === 'atheist');
+  const forceAtheist = hasAtheistOnScript && Math.random() < 1 / townsfolk.length;
+
+  if (forceAtheist) {
+    // Atheist game: no evil characters, all good
     const totalGood = playerCount;
-    const targetOutsiders = Math.min(base.outsiders, outsiders.length);
-    const targetTownsfolk = Math.min(totalGood - targetOutsiders, townsfolk.length);
+    const targetOutsidersAtheist = Math.min(base.outsiders, outsiders.length);
+    const targetTownsfolkAtheist = Math.min(totalGood - targetOutsidersAtheist, townsfolk.length);
 
     const selected = [
-      ...pickRandom(townsfolk, targetTownsfolk),
-      ...pickRandom(outsiders, targetOutsiders),
+      ...pickRandom(townsfolk, targetTownsfolkAtheist),
+      ...pickRandom(outsiders, targetOutsidersAtheist),
     ];
 
-    // Ensure atheist is in the selection (it's a townsfolk)
+    // Ensure atheist is in the selection
     if (!selected.some((c) => c.id === 'atheist')) {
       const atheistChar = characters.find((c) => c.id === 'atheist');
       if (atheistChar && selected.length > 0) {
-        // Replace a random townsfolk with atheist
         const townsfolkIndices = selected
           .map((c, i) => (c.type === 'Townsfolk' ? i : -1))
           .filter((i) => i >= 0);
@@ -121,9 +136,8 @@ export function randomizeCharacters(scriptCharacterIds: string[], playerCount: n
     return selected.map((c) => c.id);
   }
 
-  // ── Legion: reversed distribution ──
-  if (hasLegion) {
-    // Legion games have mostly evil players (Legion copies) + a few good
+  // ── Legion: only if randomly selected as a demon ──
+  if (selectedDemons.some((c) => c.id === 'legion')) {
     const goodCount = Math.min(
       playerCount <= 5 ? 1 : playerCount <= 8 ? 2 : 3,
       townsfolk.length + outsiders.length,
@@ -133,32 +147,16 @@ export function randomizeCharacters(scriptCharacterIds: string[], playerCount: n
     const goodPool = [...townsfolk, ...outsiders];
     const selectedGood = pickRandom(goodPool, goodCount);
 
-    // Fill Legion slots
     const legionIds = Array.from({ length: legionCount }, () => 'legion');
 
     return [...selectedGood.map((c) => c.id), ...legionIds];
   }
 
-  // ── Standard distribution ──
+  // ── Standard distribution (continued) ──
 
-  // First pass: pick demons and minions (to detect setup modifiers)
-  const targetDemons = Math.min(base.demons, demons.length);
-  let targetMinions = Math.min(base.minions, minions.length);
-
-  const selectedDemons = pickRandom(demons, targetDemons);
-  const selectedMinions = pickRandom(minions, targetMinions);
-
-  // Check selected evil characters for setup adjustments
-  const selectedEvilIds = new Set([
-    ...selectedDemons.map((c) => c.id),
-    ...selectedMinions.map((c) => c.id),
-  ]);
-
-  // Also check townsfolk/outsider setup modifiers that might be on the script
-  // We need to know if characters like Balloonist are available
   const adjustments = getSetupAdjustments(selectedEvilIds);
 
-  // Lord of Typhon: +1 minion, handled by adjusting minion slots
+  // Lord of Typhon: +1 minion
   if (selectedEvilIds.has('lordoftyphon')) {
     targetMinions = Math.min(base.minions + 1, minions.length);
   }
