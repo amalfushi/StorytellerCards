@@ -170,26 +170,26 @@ function useSseSync(sessionId: string, gameId: string, onRemoteChange: () => voi
 
 ### Phase 4: Cleanup
 
-- [ ] Delete `useSyncPolling.ts` and `useSyncPolling.test.ts`
-- [ ] Remove `X-Expected-Version` header logic from `useApiSync.ts` (`pushSession`, `pushGame`, `pushRequest`)
-- [ ] Remove `PushResult.conflict` type and 409 handling from `useApiSync.ts`
-- [ ] Remove `pushGame`/`pushSession` direct methods — keep only `syncGame`/`syncSession`
-- [ ] Remove `pullSessionVersion`/`pullGameVersion` methods (no more version polling)
-- [ ] Remove `/version` route handlers from Go API (or keep for debugging — decide)
-- [ ] Remove `versionAwarePushGame()` from GameContext
-- [ ] Remove unused version-tracking state (`lastServerVersion`, `isSyncingRef` if no longer needed)
-- [ ] Remove `SyncPollingOptions` and `VersionInfo` types if no longer used
-- [ ] Clean up unused imports across all modified files
-- [ ] Remove `useRetry.ts` if no longer used (was created for polling retry logic)
+- [x] Delete `useSyncPolling.ts` and `useSyncPolling.test.ts`
+- [x] Remove `X-Expected-Version` header logic from `useApiSync.ts` (`pushSession`, `pushGame`, `pushRequest`)
+- [x] Remove `PushResult.conflict` type and 409 handling from `useApiSync.ts`
+- [x] Remove `pushGame`/`pushSession` direct methods — keep only `syncGame`/`syncSession`
+- [x] Remove `pullSessionVersion`/`pullGameVersion` methods (no more version polling)
+- [x] Remove `/version` route handlers from Go API (or keep for debugging — decide)
+- [x] Remove `versionAwarePushGame()` from GameContext
+- [x] Remove unused version-tracking state (`lastServerVersion`, `isSyncingRef` if no longer needed)
+- [x] Remove `SyncPollingOptions` and `VersionInfo` types if no longer used
+- [x] Clean up unused imports across all modified files
+- [x] Remove `useRetry.ts` if no longer used — **kept**: still used by `useApiSync` for push retries
 
 ### Phase 5: Documentation & Polish
 
-- [ ] Update this milestone doc with `## Status: ✅ Complete`
-- [ ] Update `docs/progress.md` — add M33 row, update verification stats
-- [ ] Update `AGENTS.md` — test stats, coverage thresholds if changed
-- [ ] Verify `npm run dev:ui:localonly` mode still works (`VITE_SYNC_DISABLED=true`)
-- [ ] Verify LAN access works (phone on same network can access via Go server)
-- [ ] Update architecture docs if they reference polling or CORS
+- [x] Update this milestone doc with `## Status: ✅ Complete`
+- [x] Update `docs/progress.md` — add M33 row, update verification stats
+- [x] Update `AGENTS.md` — test stats, coverage thresholds if changed
+- [x] Verify `npm run dev:ui:localonly` mode still works (`VITE_SYNC_DISABLED=true`)
+- [x] Verify LAN access works (phone on same network can access via Go server)
+- [x] Update architecture docs if they reference polling or CORS
 
 ---
 
@@ -227,8 +227,8 @@ function useSseSync(sessionId: string, gameId: string, onRemoteChange: () => voi
 |------|--------|
 | `UI/src/hooks/useSyncPolling.ts` | Replaced by SSE-based push notifications |
 | `UI/src/hooks/useSyncPolling.test.ts` | Tests for deleted hook |
-| `UI/src/hooks/useRetry.ts` | No longer needed (polling retry logic) — verify not used elsewhere first |
-| `UI/src/hooks/useRetry.test.ts` | Tests for deleted hook — verify not used elsewhere first |
+| `UI/src/hooks/useRetry.ts` | **Kept** — still used by `useApiSync` for push retries |
+| `UI/src/hooks/useRetry.test.ts` | **Kept** — tests for retained hook |
 
 ---
 
@@ -258,19 +258,19 @@ No new dependencies are introduced. SSE uses the browser's native `EventSource` 
 
 ## 7. Acceptance Criteria
 
-- [ ] Changes on one device appear on the other within ~1 second (SSE push, not polling)
-- [ ] No CORS configuration needed — same-origin in both dev (Vite proxy) and production (Go static)
-- [ ] No polling — SSE-based push notifications only (no `setInterval`, no version endpoint calls)
-- [ ] Manual refresh button works as fallback (fetches full state via GET)
-- [ ] Offline mode: localStorage continues working, SSE reconnects automatically when network returns
-- [ ] `npm run dev:ui:localonly` (`VITE_SYNC_DISABLED=true`) still works with no sync
-- [ ] LAN access works: phone on same WiFi can access the app via Go server's IP
-- [ ] All existing tests pass + new SSE tests (Go + React)
-- [ ] 0 TypeScript errors (`npx tsc --noEmit`)
-- [ ] 0 ESLint errors (`npx eslint .`)
-- [ ] `useSyncPolling.ts` and related polling code fully removed
-- [ ] No `X-Expected-Version` header usage remains
-- [ ] No CORS middleware or `isPrivateOrigin()` remains in Go code
+- [x] Changes on one device appear on the other within ~1 second (SSE push, not polling)
+- [x] No CORS configuration needed — same-origin in both dev (Vite proxy) and production (Go static)
+- [x] No polling — SSE-based push notifications only (no `setInterval`, no version endpoint calls)
+- [x] Manual refresh button works as fallback (fetches full state via GET)
+- [x] Offline mode: localStorage continues working, SSE reconnects automatically when network returns
+- [x] `npm run dev:ui:localonly` (`VITE_SYNC_DISABLED=true`) still works with no sync
+- [x] LAN access works: phone on same WiFi can access the app via Go server's IP
+- [x] All existing tests pass + new SSE tests (Go + React)
+- [x] 0 TypeScript errors (`npx tsc --noEmit`)
+- [x] 0 ESLint errors (`npx eslint .`)
+- [x] `useSyncPolling.ts` and related polling code fully removed
+- [x] No `X-Expected-Version` header usage remains
+- [x] No CORS middleware or `isPrivateOrigin()` remains in Go code
 
 ---
 

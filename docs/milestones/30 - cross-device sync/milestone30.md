@@ -15,7 +15,7 @@
 - UI integration tests: version check → fetch workflow, 409 handling, offline behavior
 - 45 new tests (Go + UI), 3958 total UI tests passing, 6 new Storybook stories
 
-### Post-Merge Fixes (PRs #45–#50)
+### Post-Merge Fixes (PRs #45–#57)
 
 Several issues were discovered during real-world cross-device testing after the initial M30 merge:
 
@@ -29,6 +29,12 @@ Several issues were discovered during real-world cross-device testing after the 
 | #48/#49 | Phone/remote UI calling `localhost:3001` instead of LAN IP | `VITE_API_URL` env var in `.env` file overriding `window.location.hostname` | Removed `VITE_API_URL` check entirely; always derive API URL from `window.location.hostname:3001` |
 | #49 | CORS blocking LAN requests | Hardcoded `localhost` origins | Dynamic `isPrivateOrigin()` — allows localhost + RFC 1918 private IPs, rejects public internet |
 | #50 | Game state never synced to API (JSON on disk stuck at initial creation) | Games created in localStorage only, never POSTed to API; PUT returned 404 on version check | PUT handlers now upsert (create if not exists); version check only applies when resource already exists |
+| #52 | Client incrementing version independently of server | Both client and server were incrementing version, causing version mismatches | Stopped client-side version increment; server is sole version authority |
+| #53 | Polling overwrites pending local game changes | Poll fetch applied unconditionally, overwriting in-flight local edits | Added guard to skip poll results when local changes are pending |
+| #54 | Server version not tracked properly, poll interval too aggressive | `lastServerVersion` not updated correctly; 3s polling wasted resources | Fixed version tracking; slowed polling to 10s default |
+| #57 | Host device overwrites remote changes | Version-aware push not comparing against server version before PUT | Added version comparison before push to prevent stale overwrites |
+
+> These issues were ultimately architectural — the polling + version-tracking approach had too many timing windows. M33 (SSE Sync Redesign) replaced this entire system with SSE push notifications and same-origin architecture.
 
 > **Goal:** Enable the Storyteller to use multiple devices concurrently (e.g., laptop + phone) during a game, with all devices staying in sync within a few seconds via version-based polling against the Go API.
 

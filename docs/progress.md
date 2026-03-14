@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-06-24
+> Last updated: 2026-03-14
 
 ## Milestone Overview
 
@@ -37,6 +37,10 @@
 | M28 | Alignment-Based Icon Variants | ✅ Complete | [details](milestones/28%20-%20alignment%20icon%20variants/milestone28.md) |
 | M29 | Bluff Improvements & Player Show Screen | ✅ Complete | [details](milestones/29%20-%20bluff%20and%20show%20screen/milestone29.md) |
 | M30 | Cross-Device Sync — version-based polling, optimistic concurrency, SyncStatusIndicator, LAN networking, upsert sync | ✅ Complete | [details](milestones/30%20-%20cross-device%20sync/milestone30.md) |
+| M31 | Remove All Lint Suppressions | 📋 Planned | [details](milestones/31%20-%20remove%20lint%20suppressions/milestone31.md) |
+| M32 | Lazy Loading UI Components & Character Images | ⏳ Planning | [details](milestones/32%20-%20lazy%20loading/milestone32.md) |
+| M33 | SSE Sync Redesign — SSE hub, useSseSync hook, Vite proxy, same-origin API, remove polling/CORS | ✅ Complete | [details](milestones/33%20-%20sse%20sync%20redesign/milestone33.md) |
+| M34 | Integration Testing — Go model roundtrip, Playwright E2E game lifecycle, cross-device sync | 🔄 In Progress | [details](milestones/34%20-%20integration%20testing/milestone34.md) |
 
 ## Key Design Decisions
 
@@ -48,15 +52,19 @@
 - **Drunk vs Poisoned distinguished** — different sources, different clearing logic
 - **Exile vs execution** — functionally same but both terms retained
 - **Adaptive distribution engine in M27** — replaces static distribution with real-time targets responding to setup-affecting characters (Baron, Legion, Atheist, Xaan, etc.)
+- **SSE over polling in M33** — replaced 3-10s polling (M30) with Server-Sent Events for near-instant (<1s) cross-device sync. SSE hub in Go broadcasts `version-changed` events; React `useSseSync` hook uses native `EventSource` API
+- **Same-origin architecture in M33** — Vite proxy in dev (`/api` → `:3001`), Go static file serving in production. Eliminated all CORS configuration, `isPrivateOrigin()`, and cross-origin complexity
+- **Playwright E2E testing in M34** — three-level integration testing strategy: Go model roundtrip tests (catch field parity), Playwright game lifecycle (catch UI→API gaps), Playwright cross-device sync (catch SSE/sync bugs)
 
-## Verification (as of polling sync removal)
+## Verification (as of M33 SSE sync + M34 integration testing)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 3977/3977 passing (77 test files)
+- Tests: 3998/3998 passing (78 test files)
 - Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
 - Storybook: 19 story files with ~99+ stories including `play()` interaction tests
 - Go build: success
-- Go tests: all passing
+- Go tests: all passing (handlers, sse, storage packages)
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)
 - Character icons: 179 base + 312 alignment variants (156 `_e` + 156 `_g`)
+- Playwright E2E: configured (Chromium-only, `test:e2e` script)
