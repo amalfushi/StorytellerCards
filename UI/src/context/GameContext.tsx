@@ -1,12 +1,4 @@
-import {
-  createContext,
-  useContext,
-  useReducer,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type {
   Game,
@@ -14,7 +6,6 @@ import type {
   PlayerToken,
   NightProgress,
   NightHistoryEntry,
-  SyncStatus,
 } from '@/types/index.ts';
 import { Phase, Alignment, CharacterType } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
@@ -641,8 +632,6 @@ interface GameContextValue {
   setCustomPlayerMessage: (characterId: string, message: string) => void;
   clearCustomPlayerMessage: (characterId: string) => void;
   syncGame: (game: Game) => void;
-  syncStatus: SyncStatus;
-  forceSync: () => void;
 }
 
 const GameContext = createContext<GameContextValue | null>(null);
@@ -654,7 +643,6 @@ const GameContext = createContext<GameContextValue | null>(null);
 export function GameProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(gameReducerWithVersion, INITIAL_STATE);
   const isSyncingRef = useRef(false);
-  const gameRef = useRef(state.game);
   const lastPushedGameRef = useRef<string | null>(null);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
 
@@ -908,8 +896,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setCustomPlayerMessage,
     clearCustomPlayerMessage,
     syncGame,
-    syncStatus,
-    forceSync,
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
