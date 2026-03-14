@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
+import CasinoIcon from '@mui/icons-material/Casino';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
@@ -18,6 +19,7 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import RemoveIcon from '@mui/icons-material/Remove';
 import TextField from '@mui/material/TextField';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CloseIcon from '@mui/icons-material/Close';
@@ -30,6 +32,7 @@ import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 import { calculateAdaptiveTargets } from '@/utils/adaptiveDistribution.ts';
 import type { AdaptiveDistributionOptions } from '@/utils/adaptiveDistribution.ts';
+import { randomizeCharacters } from '@/utils/randomizeCharacters.ts';
 
 /** Ordered list of character type groups to display (Travellers omitted). */
 const TYPE_GROUP_ORDER: CharacterType[] = [
@@ -135,6 +138,18 @@ export function CharacterSelection({
     setExtraLegionCopies(0);
     setVariableModifiers({});
   }, [initialSelected]);
+
+  // Randomize character selection using distribution rules
+  const handleRandomize = useCallback(() => {
+    const scriptIds = scriptCharacters.map((ch) => ch.id);
+    const randomIds = randomizeCharacters(scriptIds, playerCount);
+    setSelectedIds(new Set(randomIds));
+    // Reset duplicates and variable modifiers since randomize picks fresh
+    setExtraVillageIdiots(0);
+    setExtraLegionCopies(0);
+    setVariableModifiers({});
+    setXaanX(undefined);
+  }, [scriptCharacters, playerCount]);
 
   // Filter out Travellers from script characters
   const nonTravellerCharacters = useMemo(
@@ -380,6 +395,16 @@ export function CharacterSelection({
           <Typography component="span" variant="h6" sx={{ flexGrow: 1 }}>
             {dialogTitle}
           </Typography>
+          <Tooltip title="Randomize selection">
+            <IconButton
+              aria-label="Randomize character selection"
+              onClick={handleRandomize}
+              size="small"
+              data-testid="randomize-button"
+            >
+              <CasinoIcon />
+            </IconButton>
+          </Tooltip>
           <IconButton aria-label="close" onClick={onClose} size="small">
             <CloseIcon />
           </IconButton>
