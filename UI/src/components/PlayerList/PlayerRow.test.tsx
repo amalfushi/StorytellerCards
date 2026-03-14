@@ -344,4 +344,40 @@ describe('PlayerRow', () => {
     const row = container.querySelector('tr');
     expect(row).toBeTruthy();
   });
+
+  // ── Drag handle tests ──
+
+  it('does not render drag handle cell when dragHandle is not provided', () => {
+    renderPlayerRow(alivePlayer, true, nobleCharacter);
+    // Seat number is the first visible cell — no drag handle before it
+    const cells = screen.getAllByRole('cell');
+    expect(cells[0]).toHaveTextContent('1'); // seat number
+  });
+
+  it('renders drag handle cell when dragHandle prop is provided', () => {
+    const onToggleAlive = vi.fn();
+    const onToggleGhostVote = vi.fn();
+    const onRowClick = vi.fn();
+
+    render(
+      <Table>
+        <TableBody>
+          <PlayerRow
+            player={alivePlayer}
+            showCharacters={true}
+            character={nobleCharacter}
+            onToggleAlive={onToggleAlive}
+            onToggleGhostVote={onToggleGhostVote}
+            onRowClick={onRowClick}
+            dragHandle={<span data-testid="drag-indicator">☰</span>}
+          />
+        </TableBody>
+      </Table>,
+    );
+
+    expect(screen.getByTestId('drag-indicator')).toBeInTheDocument();
+    // Drag handle should be in the first cell
+    const cells = screen.getAllByRole('cell');
+    expect(cells[0]).toContainElement(screen.getByTestId('drag-indicator'));
+  });
 });

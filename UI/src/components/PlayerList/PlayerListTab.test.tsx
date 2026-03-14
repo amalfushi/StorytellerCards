@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { PlayerListTab } from '@/components/PlayerList/PlayerListTab.tsx';
@@ -188,8 +189,17 @@ vi.mock('@/components/common/characterTypeColor.ts', () => ({
 
 // Mock PlayerRow to simplify
 vi.mock('@/components/PlayerList/PlayerRow.tsx', () => ({
-  PlayerRow: ({ player, showCharacters }: { player: PlayerSeat; showCharacters: boolean }) => (
+  PlayerRow: ({
+    player,
+    showCharacters,
+    dragHandle,
+  }: {
+    player: PlayerSeat;
+    showCharacters: boolean;
+    dragHandle?: React.ReactNode;
+  }) => (
     <tr data-testid={`player-row-${player.seat}`}>
+      {dragHandle !== undefined && <td data-testid={`drag-handle-${player.seat}`}>{dragHandle}</td>}
       <td>{player.seat}</td>
       <td>{player.playerName}</td>
       {showCharacters && <td data-testid="character-col">{player.characterId}</td>}
@@ -361,5 +371,21 @@ describe('PlayerListTab', () => {
     render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.getByTestId('modifier-angel')).toBeInTheDocument();
     expect(screen.getByTestId('modifier-bigwig')).toBeInTheDocument();
+  });
+
+  // ── Drag-and-drop reorder tests ──
+
+  it('renders drag handles for each player row', () => {
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    expect(screen.getByTestId('drag-handle-1')).toBeInTheDocument();
+    expect(screen.getByTestId('drag-handle-2')).toBeInTheDocument();
+    expect(screen.getByTestId('drag-handle-3')).toBeInTheDocument();
+  });
+
+  it('renders an empty header cell for the drag handle column', () => {
+    render(<PlayerListTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    const headerRow = screen.getAllByRole('columnheader');
+    // First header cell is the empty drag handle column
+    expect(headerRow[0]).toHaveTextContent('');
   });
 });
