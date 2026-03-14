@@ -203,6 +203,7 @@ UI/playwright-report/
 !UI/coverage/
 UI/coverage/*
 !UI/coverage/coverage-final.json
+!UI/coverage/coverage-summary.json
 
 # ============================================================
 # API
