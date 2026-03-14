@@ -91,17 +91,27 @@ type Script struct {
 // Player / Seat
 // ──────────────────────────────────────────────
 
+type PlayerToken struct {
+	ID                string `json:"id"`
+	Type              string `json:"type"`
+	Label             string `json:"label"`
+	SourceCharacterID string `json:"sourceCharacterId,omitempty"`
+	Color             string `json:"color,omitempty"`
+}
+
 type PlayerSeat struct {
-	Seat              int       `json:"seat"`
-	PlayerName        string    `json:"playerName"`
-	CharacterID       string    `json:"characterId"`
-	Alive             bool      `json:"alive"`
-	GhostVoteUsed     bool      `json:"ghostVoteUsed"`
-	VisibleAlignment  Alignment `json:"visibleAlignment"`
-	ActualAlignment   Alignment `json:"actualAlignment"`
-	StartingAlignment Alignment `json:"startingAlignment"`
-	ActiveReminders   []string  `json:"activeReminders"`
-	IsTraveller       bool      `json:"isTraveller"`
+	Seat                int           `json:"seat"`
+	PlayerName          string        `json:"playerName"`
+	CharacterID         string        `json:"characterId"`
+	Alive               bool          `json:"alive"`
+	GhostVoteUsed       bool          `json:"ghostVoteUsed"`
+	VisibleAlignment    Alignment     `json:"visibleAlignment"`
+	ActualAlignment     Alignment     `json:"actualAlignment"`
+	StartingAlignment   Alignment     `json:"startingAlignment"`
+	ActiveReminders     []string      `json:"activeReminders"`
+	IsTraveller         bool          `json:"isTraveller"`
+	Tokens              []PlayerToken `json:"tokens,omitempty"`
+	ApparentCharacterID string        `json:"apparentCharacterId,omitempty"`
 }
 
 // ──────────────────────────────────────────────
@@ -109,11 +119,13 @@ type PlayerSeat struct {
 // ──────────────────────────────────────────────
 
 type NightHistoryEntry struct {
-	DayNumber       int                 `json:"dayNumber"`
-	IsFirstNight    bool                `json:"isFirstNight"`
-	CompletedAt     string              `json:"completedAt"`
-	SubActionStates map[string][]bool   `json:"subActionStates"`
-	Notes           map[string]string   `json:"notes"`
+	DayNumber       int                           `json:"dayNumber"`
+	IsFirstNight    bool                          `json:"isFirstNight"`
+	CompletedAt     string                        `json:"completedAt"`
+	SubActionStates map[string][]bool             `json:"subActionStates"`
+	Notes           map[string]string             `json:"notes"`
+	Selections      map[string]any                `json:"selections,omitempty"`
+	TokenSnapshot   map[string][]PlayerToken      `json:"tokenSnapshot,omitempty"`
 }
 
 // ──────────────────────────────────────────────
