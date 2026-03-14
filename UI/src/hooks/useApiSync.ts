@@ -13,6 +13,8 @@ import type { Session, Game } from '../types';
 export const isSyncDisabled: boolean = import.meta.env.VITE_SYNC_DISABLED === 'true';
 
 function getApiBase(): string {
+  // In test environment (jsdom), relative URLs aren't valid for fetch — use localhost
+  if (typeof import.meta.env.VITEST !== 'undefined') return 'http://localhost:3001';
   return ''; // Same-origin via Vite proxy (dev) or Go static serving (prod)
 }
 
