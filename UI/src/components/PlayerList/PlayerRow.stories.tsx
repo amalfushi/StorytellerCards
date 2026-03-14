@@ -228,3 +228,74 @@ export const DayViewNoEditButton: Story = {
     onEdit: fn(),
   },
 };
+
+// ────────────────────────────────────────────────────────
+// Drag handle stories (PR #87)
+// ────────────────────────────────────────────────────────
+
+/** Night view with drag handle — grip icon rendered before the seat number. */
+export const WithDragHandle: Story = {
+  args: {
+    player: alicePlayer,
+    showCharacters: true,
+    character: noble,
+    dragHandle: (
+      <span
+        style={{
+          cursor: 'grab',
+          color: 'rgba(255,255,255,0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 4px',
+        }}
+      >
+        ⠿
+      </span>
+    ),
+  },
+};
+
+/** Day view with drag handle — handle visible even when characters are hidden. */
+export const DayViewWithDragHandle: Story = {
+  args: {
+    player: bobPlayer,
+    showCharacters: false,
+    character: undefined,
+    dragHandle: (
+      <span
+        style={{
+          cursor: 'grab',
+          color: 'rgba(255,255,255,0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 4px',
+        }}
+      >
+        ⠿
+      </span>
+    ),
+  },
+};
+
+/** Night view with drag handle + edit button — both controls present. */
+export const WithDragHandleAndEdit: Story = {
+  args: {
+    player: alicePlayer,
+    showCharacters: true,
+    character: noble,
+    onEdit: fn(),
+    dragHandle: (
+      <span
+        style={{
+          cursor: 'grab',
+          color: 'rgba(255,255,255,0.4)',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '0 4px',
+        }}
+      >
+        ⠿
+      </span>
+    ),
+  },
+};

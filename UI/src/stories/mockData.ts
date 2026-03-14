@@ -29,6 +29,12 @@ export const slayer = mockCharacters.find((c) => c.id === 'slayer')!;
 export const philosopher = mockCharacters.find((c) => c.id === 'philosopher')!;
 export const huntsman = mockCharacters.find((c) => c.id === 'huntsman')!;
 export const pitHag = mockCharacters.find((c) => c.id === 'pithag')!;
+export const lunatic = mockCharacters.find((c) => c.id === 'lunatic')!;
+export const fangGu = mockCharacters.find((c) => c.id === 'fanggu')!;
+export const baron = mockCharacters.find((c) => c.id === 'baron')!;
+export const scarletWoman = mockCharacters.find((c) => c.id === 'scarletwoman')!;
+export const nodashii = mockCharacters.find((c) => c.id === 'nodashii')!;
+export const oracle = mockCharacters.find((c) => c.id === 'oracle')!;
 
 /**
  * Mock Traveller character — "Spirit of Ivory".
@@ -91,6 +97,14 @@ export const demonInfoEntry: NightOrderEntry = mockNightOrder.firstNight.find(
 
 export const pitHagOtherNightEntry: NightOrderEntry = mockNightOrder.otherNights.find(
   (e) => e.id === 'pithag',
+)!;
+
+export const lunaticFirstNightEntry: NightOrderEntry = mockNightOrder.firstNight.find(
+  (e) => e.id === 'lunatic',
+)!;
+
+export const fangGuOtherNightEntry: NightOrderEntry = mockNightOrder.otherNights.find(
+  (e) => e.id === 'fanggu',
 )!;
 
 // ──────────────────────────────────────────────
