@@ -12,6 +12,7 @@ Completed: 2026-06-01
 - Added game/session seat swap, shift, and insert actions with character-bound state moving with players.
 - Added a default-on "Reuse last seating" toggle when creating another game in a session.
 - Added unit coverage and Storybook interaction stories for the new tools.
+- Final verification after rebasing on M36: 4053 Vitest tests across 82 test files passed.
 
 ### Decision
 

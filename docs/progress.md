@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-06-01
+> Last updated: 2026-06-02
 
 ## Milestone Overview
 
@@ -62,8 +62,8 @@
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 4084/4084 passing (81 test files)
-- Coverage: Stmts 82.17%, Branch 75.41%, Funcs 75.63%, Lines 82.17% (thresholds enforced)
+- Tests: 4053/4053 passing (82 test files)
+- Coverage: Stmts 81.75%, Branch 74.81%, Funcs 74.23%, Lines 81.75% (thresholds enforced)
 - Storybook: 21 story files with ~105+ stories including `play()` interaction tests
 - Go build: success
 - Go tests: all passing (handlers, sse, storage packages + roundtrip integration tests)
