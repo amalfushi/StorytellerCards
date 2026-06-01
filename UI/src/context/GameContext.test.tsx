@@ -88,7 +88,11 @@ describe('GameContext', () => {
         result.current.loadGame(game);
       });
 
-      expect(result.current.state.game).toEqual(game);
+      expect(result.current.state.game).toEqual({
+        ...game,
+        showMessages: [],
+        showTemplates: [],
+      });
     });
 
     it('resets showCharacters to false on load', () => {
@@ -2092,6 +2096,104 @@ describe('GameContext', () => {
       });
 
       expect(result.current.state.game).toBeNull();
+    });
+  });
+
+  describe('M36 show-to-player messages', () => {
+    it('migrates a game without showMessages to empty arrays', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      expect(result.current.state.game!.showMessages).toEqual([]);
+      expect(result.current.state.game!.showTemplates).toEqual([]);
+    });
+
+    it('migrates existing per-character custom messages to player slots when findable', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [makePlayer({ seat: 3, characterId: 'imp' })],
+            customPlayerMessages: { imp: 'Legacy message', empath: 'No player for this character' },
+            updatedAt: '2026-06-01T00:00:00.000Z',
+          }),
+        );
+      });
+
+      expect(result.current.state.game!.showMessages).toEqual([
+        expect.objectContaining({
+          seat: 3,
+          text: 'Legacy message',
+          createdAt: '2026-06-01T00:00:00.000Z',
+        }),
+      ]);
+    });
+
+    it('adds, marks shown, edits, and deletes a show message', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+      act(() => {
+        result.current.addShowMessage('test-game', 1, 'Original');
+      });
+
+      const messageId = result.current.state.game!.showMessages![0].id;
+      expect(result.current.state.game!.showMessages![0]).toEqual(
+        expect.objectContaining({ seat: 1, text: 'Original' }),
+      );
+
+      act(() => {
+        result.current.markShowMessageShown('test-game', messageId);
+      });
+      expect(result.current.state.game!.showMessages![0].lastShownAt).toEqual(expect.any(String));
+
+      act(() => {
+        result.current.editShowMessage('test-game', messageId, 'Edited');
+      });
+      expect(result.current.state.game!.showMessages![0].text).toBe('Edited');
+
+      act(() => {
+        result.current.deleteShowMessage('test-game', messageId);
+      });
+      expect(result.current.state.game!.showMessages).toEqual([]);
+    });
+
+    it('pins, unpins, and bumps template usage', () => {
+      const { result } = renderGameHook();
+
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+      act(() => {
+        result.current.pinShowTemplate('test-game', 'Choose a player', 'script', 'test-script');
+      });
+
+      const template = result.current.state.game!.showTemplates![0];
+      expect(template).toEqual(
+        expect.objectContaining({
+          text: 'Choose a player',
+          scope: 'script',
+          scriptId: 'test-script',
+          usageCount: 0,
+        }),
+      );
+
+      act(() => {
+        result.current.bumpTemplateUsage('test-game', template.id);
+      });
+      expect(result.current.state.game!.showTemplates![0].usageCount).toBe(1);
+      expect(result.current.state.game!.showTemplates![0].lastUsedAt).toEqual(expect.any(String));
+
+      act(() => {
+        result.current.unpinShowTemplate('test-game', template.id);
+      });
+      expect(result.current.state.game!.showTemplates).toEqual([]);
     });
   });
 });

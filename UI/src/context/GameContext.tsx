@@ -15,6 +15,7 @@ import type {
   NightProgress,
   NightHistoryEntry,
   SyncStatus,
+  ShowToPlayerTemplate,
 } from '@/types/index.ts';
 import { Phase, Alignment, CharacterType } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
@@ -52,6 +53,34 @@ function deriveAlignmentFromType(type: CharacterType): Alignment | undefined {
   if (type === CharacterType.Demon || type === CharacterType.Minion) return Alignment.Evil;
   if (type === CharacterType.Townsfolk || type === CharacterType.Outsider) return Alignment.Good;
   return undefined;
+}
+
+function createShowToPlayerId(prefix: string): string {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function normalizeShowToPlayerGame(game: Game): Game {
+  const needsMessageMigration = game.showMessages === undefined;
+  const showMessages = needsMessageMigration
+    ? Object.entries(game.customPlayerMessages ?? {}).flatMap(([characterId, text]) => {
+        const player = game.players.find((p) => p.characterId === characterId);
+        if (!player || !text.trim()) return [];
+        return [
+          {
+            id: `m36-migrated-${game.id}-${player.seat}-${characterId}`,
+            seat: player.seat,
+            text,
+            createdAt: game.updatedAt ?? new Date().toISOString(),
+          },
+        ];
+      })
+    : game.showMessages;
+
+  return {
+    ...game,
+    showMessages: showMessages ?? [],
+    showTemplates: game.showTemplates ?? [],
+  };
 }
 
 // ──────────────────────────────────────────────
@@ -120,7 +149,25 @@ type GameAction =
   | { type: 'SET_PLAYER_BLUFFS'; payload: { seat: number; bluffIds: string[] } }
   | { type: 'SET_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string; message: string } }
   | { type: 'CLEAR_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string } }
-  | { type: 'SYNC_GAME'; payload: { game: Game } };
+  | { type: 'SYNC_GAME'; payload: { game: Game } }
+  | {
+      type: 'ADD_SHOW_MESSAGE';
+      payload: { gameId: string; seat: number; text: string; templateId?: string };
+    }
+  | { type: 'MARK_SHOW_MESSAGE_SHOWN'; payload: { gameId: string; messageId: string } }
+  | { type: 'EDIT_SHOW_MESSAGE'; payload: { gameId: string; messageId: string; text: string } }
+  | { type: 'DELETE_SHOW_MESSAGE'; payload: { gameId: string; messageId: string } }
+  | {
+      type: 'PIN_SHOW_TEMPLATE';
+      payload: {
+        gameId: string;
+        text: string;
+        scope: ShowToPlayerTemplate['scope'];
+        scriptId?: string;
+      };
+    }
+  | { type: 'UNPIN_SHOW_TEMPLATE'; payload: { gameId: string; templateId: string } }
+  | { type: 'BUMP_TEMPLATE_USAGE'; payload: { gameId: string; templateId: string } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -131,7 +178,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
     case 'LOAD_GAME':
       return {
         ...state,
-        game: action.payload.game,
+        game: normalizeShowToPlayerGame(action.payload.game),
         showCharacters: false,
         nightProgress: null,
       };
@@ -541,11 +588,139 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
     }
 
     case 'SYNC_GAME': {
-      const remote = action.payload.game;
+      const remote = normalizeShowToPlayerGame(action.payload.game);
       if (!state.game || state.game.id !== remote.id) return state;
       return {
         ...state,
         game: remote,
+      };
+    }
+
+    case 'ADD_SHOW_MESSAGE': {
+      if (!state.game || state.game.id !== action.payload.gameId) return state;
+      const text = action.payload.text.trim();
+      if (!text) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          showMessages: [
+            ...(state.game.showMessages ?? []),
+            {
+              id: createShowToPlayerId('show-message'),
+              seat: action.payload.seat,
+              text,
+              templateId: action.payload.templateId,
+              createdAt: new Date().toISOString(),
+            },
+          ],
+        },
+      };
+    }
+
+    case 'MARK_SHOW_MESSAGE_SHOWN': {
+      if (!state.game || state.game.id !== action.payload.gameId) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          showMessages: (state.game.showMessages ?? []).map((message) =>
+            message.id === action.payload.messageId
+              ? { ...message, lastShownAt: new Date().toISOString() }
+              : message,
+          ),
+        },
+      };
+    }
+
+    case 'EDIT_SHOW_MESSAGE': {
+      if (!state.game || state.game.id !== action.payload.gameId) return state;
+      const text = action.payload.text.trim();
+      if (!text) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          showMessages: (state.game.showMessages ?? []).map((message) =>
+            message.id === action.payload.messageId ? { ...message, text } : message,
+          ),
+        },
+      };
+    }
+
+    case 'DELETE_SHOW_MESSAGE': {
+      if (!state.game || state.game.id !== action.payload.gameId) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          showMessages: (state.game.showMessages ?? []).filter(
+            (message) => message.id !== action.payload.messageId,
+          ),
+        },
+      };
+    }
+
+    case 'PIN_SHOW_TEMPLATE': {
+      if (!state.game || state.game.id !== action.payload.gameId) return state;
+      const text = action.payload.text.trim();
+      if (!text) return state;
+      const current = state.game.showTemplates ?? [];
+      const alreadyPinned = current.some(
+        (template) =>
+          template.text.localeCompare(text, undefined, { sensitivity: 'accent' }) === 0 &&
+          template.scope === action.payload.scope &&
+          template.scriptId === action.payload.scriptId,
+      );
+      if (alreadyPinned) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          showTemplates: [
+            ...current,
+            {
+              id: createShowToPlayerId('show-template'),
+              text,
+              scope: action.payload.scope,
+              scriptId: action.payload.scriptId,
+              usageCount: 0,
+              lastUsedAt: new Date().toISOString(),
+            },
+          ],
+        },
+      };
+    }
+
+    case 'UNPIN_SHOW_TEMPLATE': {
+      if (!state.game || state.game.id !== action.payload.gameId) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          showTemplates: (state.game.showTemplates ?? []).filter(
+            (template) => template.id !== action.payload.templateId,
+          ),
+        },
+      };
+    }
+
+    case 'BUMP_TEMPLATE_USAGE': {
+      if (!state.game || state.game.id !== action.payload.gameId) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          showTemplates: (state.game.showTemplates ?? []).map((template) =>
+            template.id === action.payload.templateId
+              ? {
+                  ...template,
+                  usageCount: template.usageCount + 1,
+                  lastUsedAt: new Date().toISOString(),
+                }
+              : template,
+          ),
+        },
       };
     }
 
@@ -640,6 +815,18 @@ interface GameContextValue {
   setPlayerBluffs: (seat: number, bluffIds: string[]) => void;
   setCustomPlayerMessage: (characterId: string, message: string) => void;
   clearCustomPlayerMessage: (characterId: string) => void;
+  addShowMessage: (gameId: string, seat: number, text: string, templateId?: string) => void;
+  markShowMessageShown: (gameId: string, messageId: string) => void;
+  editShowMessage: (gameId: string, messageId: string, text: string) => void;
+  deleteShowMessage: (gameId: string, messageId: string) => void;
+  pinShowTemplate: (
+    gameId: string,
+    text: string,
+    scope: ShowToPlayerTemplate['scope'],
+    scriptId?: string,
+  ) => void;
+  unpinShowTemplate: (gameId: string, templateId: string) => void;
+  bumpTemplateUsage: (gameId: string, templateId: string) => void;
   syncGame: (game: Game) => void;
   syncStatus: SyncStatus;
   forceSync: () => void;
@@ -891,6 +1078,40 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SYNC_GAME', payload: { game } });
   }, []);
 
+  const addShowMessage = useCallback(
+    (gameId: string, seat: number, text: string, templateId?: string) => {
+      dispatch({ type: 'ADD_SHOW_MESSAGE', payload: { gameId, seat, text, templateId } });
+    },
+    [],
+  );
+
+  const markShowMessageShown = useCallback((gameId: string, messageId: string) => {
+    dispatch({ type: 'MARK_SHOW_MESSAGE_SHOWN', payload: { gameId, messageId } });
+  }, []);
+
+  const editShowMessage = useCallback((gameId: string, messageId: string, text: string) => {
+    dispatch({ type: 'EDIT_SHOW_MESSAGE', payload: { gameId, messageId, text } });
+  }, []);
+
+  const deleteShowMessage = useCallback((gameId: string, messageId: string) => {
+    dispatch({ type: 'DELETE_SHOW_MESSAGE', payload: { gameId, messageId } });
+  }, []);
+
+  const pinShowTemplate = useCallback(
+    (gameId: string, text: string, scope: ShowToPlayerTemplate['scope'], scriptId?: string) => {
+      dispatch({ type: 'PIN_SHOW_TEMPLATE', payload: { gameId, text, scope, scriptId } });
+    },
+    [],
+  );
+
+  const unpinShowTemplate = useCallback((gameId: string, templateId: string) => {
+    dispatch({ type: 'UNPIN_SHOW_TEMPLATE', payload: { gameId, templateId } });
+  }, []);
+
+  const bumpTemplateUsage = useCallback((gameId: string, templateId: string) => {
+    dispatch({ type: 'BUMP_TEMPLATE_USAGE', payload: { gameId, templateId } });
+  }, []);
+
   const value: GameContextValue = {
     state,
     dispatch,
@@ -923,6 +1144,13 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPlayerBluffs,
     setCustomPlayerMessage,
     clearCustomPlayerMessage,
+    addShowMessage,
+    markShowMessageShown,
+    editShowMessage,
+    deleteShowMessage,
+    pinShowTemplate,
+    unpinShowTemplate,
+    bumpTemplateUsage,
     syncGame,
     syncStatus,
     forceSync,
