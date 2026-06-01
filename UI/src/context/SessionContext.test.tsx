@@ -564,6 +564,38 @@ describe('SessionContext', () => {
       expect(secondGame.players[0].alive).toBe(true);
     });
 
+    it('can opt out of reusing last seating and use session defaults', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+
+      act(() => {
+        result.current.addGameToSession(sessionId);
+      });
+
+      const firstGameId = result.current.state.sessions[0].gameIds[0];
+      const firstGameRaw = localStorage.getItem(`storyteller-game-${firstGameId}`);
+      const firstGame = JSON.parse(firstGameRaw!) as Game;
+      firstGame.players = [
+        { ...firstGame.players[0], seat: 1, playerName: 'Bob' },
+        { ...firstGame.players[1], seat: 2, playerName: 'Alice' },
+      ];
+      localStorage.setItem(`storyteller-game-${firstGameId}`, JSON.stringify(firstGame));
+
+      act(() => {
+        result.current.addGameToSession(sessionId, false);
+      });
+
+      const secondGameId = result.current.state.sessions[0].gameIds[1];
+      const secondGameRaw = localStorage.getItem(`storyteller-game-${secondGameId}`);
+      const secondGame = JSON.parse(secondGameRaw!) as Game;
+      expect(secondGame.players[0].playerName).toBe('Alice');
+      expect(secondGame.players[1].playerName).toBe('Bob');
+    });
+
     it('falls back to session defaults if last game is not in localStorage', () => {
       const { result } = renderSessionHook();
 
@@ -695,6 +727,61 @@ describe('SessionContext', () => {
       expect(game.players[0].playerName).toBe('Alice');
       expect(game.players[1].playerName).toBe('Bob');
       expect(game.players[2].playerName).toBe('Charlie');
+    });
+  });
+
+  describe('session seating helpers', () => {
+    it('swaps default players', () => {
+      const { result } = renderSessionHook();
+      act(() => {
+        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+
+      act(() => {
+        result.current.swapSessionPlayers(sessionId, 1, 2);
+      });
+
+      expect(result.current.state.sessions[0].defaultPlayers).toEqual([
+        { seat: 1, playerName: 'Bob' },
+        { seat: 2, playerName: 'Alice' },
+      ]);
+    });
+
+    it('shifts default players clockwise with wrapping', () => {
+      const { result } = renderSessionHook();
+      act(() => {
+        result.current.createSession('Session', 'boozling', ['Alice', 'Bob', 'Charlie']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+
+      act(() => {
+        result.current.shiftSessionPlayers(sessionId, 1, 1);
+      });
+
+      expect(result.current.state.sessions[0].defaultPlayers).toEqual([
+        { seat: 1, playerName: 'Charlie' },
+        { seat: 2, playerName: 'Alice' },
+        { seat: 3, playerName: 'Bob' },
+      ]);
+    });
+
+    it('inserts a named player slot and shifts outward', () => {
+      const { result } = renderSessionHook();
+      act(() => {
+        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+
+      act(() => {
+        result.current.insertSessionPlayerSlot(sessionId, 2, 'Charlie');
+      });
+
+      expect(result.current.state.sessions[0].defaultPlayers).toEqual([
+        { seat: 1, playerName: 'Alice' },
+        { seat: 2, playerName: 'Charlie' },
+        { seat: 3, playerName: 'Bob' },
+      ]);
     });
   });
 

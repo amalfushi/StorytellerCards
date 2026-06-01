@@ -23,6 +23,7 @@ import type { TokenPosition } from '@/components/TownSquare/TownSquareLayout.tsx
 import { PlayerActionsModal } from '@/components/TownSquare/PlayerActionsModal.tsx';
 import { TokenManager, TokenBadges } from '@/components/TownSquare/TokenManager.tsx';
 import { buildAvailableTokens } from '@/utils/buildAvailableTokens.ts';
+import { ReseatTool } from '@/components/common/ReseatTool.tsx';
 
 /** Persisted layout preference — `'auto'` defers to viewport size. */
 type TokenLayoutPref = 'radial' | 'linear' | 'auto';
@@ -151,6 +152,8 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
   const [actionsSeat, setActionsSeat] = useState<number | null>(null);
   /** Seat number of the player initiating a swap (null = not in swap mode). */
   const [swapSourceSeat, setSwapSourceSeat] = useState<number | null>(null);
+  const [reseatInitialSeat, setReseatInitialSeat] = useState<number | null>(null);
+  const [reseatOpen, setReseatOpen] = useState(false);
   /** Derive the current player from live state so the modal always sees fresh data. */
   const actionsPlayer =
     actionsSeat !== null ? (players.find((p) => p.seat === actionsSeat) ?? null) : null;
@@ -270,6 +273,11 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
   const handleSwapWith = useCallback((seat: number) => {
     setSwapSourceSeat(seat);
     setSelectedSeat(seat);
+  }, []);
+
+  const handleOpenReseat = useCallback((seat: number) => {
+    setReseatInitialSeat(seat);
+    setReseatOpen(true);
   }, []);
 
   const handleManageTokens = useCallback((seat: number) => {
@@ -432,8 +440,17 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         onRemoveTraveller={handleRemoveTraveller}
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
+        onReseat={handleOpenReseat}
         onSwapWith={handleSwapWith}
         onChangeBluff={handleChangeBluff}
+      />
+
+      <ReseatTool
+        open={reseatOpen}
+        players={players}
+        initialSeat={reseatInitialSeat}
+        onClose={() => setReseatOpen(false)}
+        onConfirmSwap={swapPlayerSeats}
       />
 
       {/* ── Token layout toggle ── */}

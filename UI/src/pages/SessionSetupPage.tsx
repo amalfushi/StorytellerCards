@@ -14,12 +14,14 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
 import Paper from '@mui/material/Paper';
+import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -51,6 +53,7 @@ import { useApiSync } from '@/hooks/useApiSync.ts';
 import { importScript } from '@/utils/scriptImporter.ts';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { ScriptBuilder } from '@/components/ScriptBuilder/ScriptBuilder.tsx';
+import { ShiftSeatsDialog } from '@/components/common/ShiftSeatsDialog.tsx';
 import type { Script } from '@/types/index.ts';
 
 const MIN_PLAYERS = 5;
@@ -59,7 +62,15 @@ const MAX_PLAYERS = 20;
 export function SessionSetupPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
-  const { state, updateSession, addGameToSession, selectGame, deleteGame } = useSession();
+  const {
+    state,
+    updateSession,
+    addGameToSession,
+    selectGame,
+    deleteGame,
+    shiftSessionPlayers,
+    insertSessionPlayerSlot,
+  } = useSession();
   const { syncScript } = useApiSync();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -72,6 +83,8 @@ export function SessionSetupPage() {
   const [scriptError, setScriptError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [scriptBuilderOpen, setScriptBuilderOpen] = useState(false);
+  const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
+  const [reuseLastSeating, setReuseLastSeating] = useState(true);
 
   // Initialize local state from session
   useEffect(() => {
@@ -147,6 +160,42 @@ export function SessionSetupPage() {
     savePlayers(updated);
   };
 
+  const handleAddPlayerAtSeat = (seat: number, playerName: string) => {
+    if (!sessionId || players.length >= MAX_PLAYERS) return;
+    insertSessionPlayerSlot(sessionId, seat, playerName);
+    const updated = [
+      ...players.map((player) =>
+        player.seat >= seat ? { ...player, seat: player.seat + 1 } : player,
+      ),
+      { seat, playerName },
+    ].sort((a, b) => a.seat - b.seat);
+    setPlayers(updated);
+  };
+
+  const handleShiftSeats = (startSeat: number, shiftBy: number) => {
+    if (!sessionId) return;
+    shiftSessionPlayers(sessionId, startSeat, shiftBy);
+    const affected = players
+      .filter((player) => player.seat >= startSeat)
+      .sort((a, b) => a.seat - b.seat);
+    if (affected.length <= 1) return;
+    const normalizedShift = ((shiftBy % affected.length) + affected.length) % affected.length;
+    const seatMap = new Map<number, number>();
+    affected.forEach((player, index) => {
+      const targetIndex = (index + normalizedShift) % affected.length;
+      seatMap.set(player.seat, affected[targetIndex].seat);
+    });
+    setPlayers(
+      players
+        .map((player) => ({ ...player, seat: seatMap.get(player.seat) ?? player.seat }))
+        .sort((a, b) => a.seat - b.seat),
+    );
+  };
+
+  const handleInsertEmptySeat = (seat: number) => {
+    handleAddPlayerAtSeat(seat, '');
+  };
+
   const handleRemovePlayer = (seat: number) => {
     if (players.length <= MIN_PLAYERS) return;
     // Remove player and re-number seats
@@ -214,7 +263,7 @@ export function SessionSetupPage() {
 
   const handleCreateGame = () => {
     if (!sessionId) return;
-    addGameToSession(sessionId);
+    addGameToSession(sessionId, reuseLastSeating);
   };
 
   const handleOpenGame = (gameId: string) => {
@@ -332,6 +381,13 @@ export function SessionSetupPage() {
             </Typography>
             <Button
               size="small"
+              onClick={() => setShiftDialogOpen(true)}
+              disabled={players.length >= MAX_PLAYERS}
+            >
+              Shift / Insert
+            </Button>
+            <Button
+              size="small"
               startIcon={<AddIcon />}
               onClick={handleAddPlayer}
               disabled={players.length >= MAX_PLAYERS}
@@ -362,6 +418,14 @@ export function SessionSetupPage() {
               </Grid>
             </SortableContext>
           </DndContext>
+          <ShiftSeatsDialog
+            open={shiftDialogOpen}
+            players={players}
+            onClose={() => setShiftDialogOpen(false)}
+            onAddPlayerAtSeat={handleAddPlayerAtSeat}
+            onShiftSeats={handleShiftSeats}
+            onInsertEmptySeat={handleInsertEmptySeat}
+          />
         </Paper>
 
         {/* ── Section C: Games List ── */}
@@ -370,6 +434,23 @@ export function SessionSetupPage() {
             <Typography variant="subtitle1" fontWeight="bold" sx={{ flexGrow: 1 }}>
               Games ({session.gameIds.length})
             </Typography>
+            {session.gameIds.length > 0 && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    size="small"
+                    checked={reuseLastSeating}
+                    onChange={(_, checked) => setReuseLastSeating(checked)}
+                  />
+                }
+                label={
+                  <Typography variant="caption" color="text.secondary">
+                    Reuse last seating
+                  </Typography>
+                }
+                sx={{ mr: 1 }}
+              />
+            )}
             <Button
               variant="contained"
               size="small"

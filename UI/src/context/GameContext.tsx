@@ -83,6 +83,36 @@ function normalizeShowToPlayerGame(game: Game): Game {
   };
 }
 
+function remapPlayerBluffs(
+  playerBluffs: Record<string, string[]> | undefined,
+  seatMap: Map<number, number>,
+): Record<string, string[]> | undefined {
+  if (!playerBluffs) return playerBluffs;
+  const remapped: Record<string, string[]> = {};
+  for (const [seat, bluffs] of Object.entries(playerBluffs)) {
+    const numericSeat = Number(seat);
+    const targetSeat = seatMap.get(numericSeat) ?? numericSeat;
+    remapped[String(targetSeat)] = bluffs;
+  }
+  return remapped;
+}
+
+function makeEmptySeat(atSeat: number): PlayerSeat {
+  return {
+    seat: atSeat,
+    playerName: '',
+    characterId: '',
+    alive: true,
+    ghostVoteUsed: false,
+    visibleAlignment: Alignment.Unknown,
+    actualAlignment: Alignment.Unknown,
+    startingAlignment: Alignment.Unknown,
+    activeReminders: [],
+    isTraveller: false,
+    tokens: [],
+  };
+}
+
 // ──────────────────────────────────────────────
 // Actions
 // ──────────────────────────────────────────────
@@ -142,7 +172,9 @@ type GameAction =
   | { type: 'ADD_LORIC'; payload: { characterId: string } }
   | { type: 'REMOVE_LORIC'; payload: { characterId: string } }
   | { type: 'SET_IN_PLAY_CHARACTERS'; payload: { characterIds: string[] } }
-  | { type: 'SWAP_PLAYER_SEATS'; payload: { seatA: number; seatB: number } }
+  | { type: 'SWAP_PLAYER_SEATS'; payload: { gameId: string; seatA: number; seatB: number } }
+  | { type: 'SHIFT_PLAYER_SEATS'; payload: { gameId: string; startSeat: number; shiftBy: number } }
+  | { type: 'INSERT_EMPTY_SEAT'; payload: { gameId: string; atSeat: number } }
   | { type: 'SET_APPARENT_CHARACTER'; payload: { seat: number; apparentCharacterId: string } }
   | { type: 'SET_DEMON_BLUFFS'; payload: { characterIds: string[] } }
   | { type: 'SET_LUNATIC_BLUFFS'; payload: { characterIds: string[] } }
@@ -486,11 +518,16 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'SWAP_PLAYER_SEATS': {
       if (!state.game) return state;
-      const { seatA, seatB } = action.payload;
+      const { gameId, seatA, seatB } = action.payload;
+      if (state.game.id !== gameId) return state;
       if (seatA === seatB) return state;
       const playerA = state.game.players.find((p) => p.seat === seatA);
       const playerB = state.game.players.find((p) => p.seat === seatB);
       if (!playerA || !playerB) return state;
+      const seatMap = new Map<number, number>([
+        [seatA, seatB],
+        [seatB, seatA],
+      ]);
       return {
         ...state,
         game: {
@@ -510,6 +547,55 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
             }
             return p;
           }),
+          playerBluffs: remapPlayerBluffs(state.game.playerBluffs, seatMap),
+        },
+      };
+    }
+
+    case 'SHIFT_PLAYER_SEATS': {
+      if (!state.game) return state;
+      const { gameId, startSeat, shiftBy } = action.payload;
+      if (state.game.id !== gameId || shiftBy === 0) return state;
+      const affected = state.game.players
+        .filter((player) => player.seat >= startSeat)
+        .sort((a, b) => a.seat - b.seat);
+      if (affected.length <= 1) return state;
+      const normalizedShift = ((shiftBy % affected.length) + affected.length) % affected.length;
+      if (normalizedShift === 0) return state;
+      const seatMap = new Map<number, number>();
+      affected.forEach((player, index) => {
+        const targetIndex = (index + normalizedShift) % affected.length;
+        seatMap.set(player.seat, affected[targetIndex].seat);
+      });
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: state.game.players.map((player) => ({
+            ...player,
+            seat: seatMap.get(player.seat) ?? player.seat,
+          })),
+          playerBluffs: remapPlayerBluffs(state.game.playerBluffs, seatMap),
+        },
+      };
+    }
+
+    case 'INSERT_EMPTY_SEAT': {
+      if (!state.game) return state;
+      const { gameId, atSeat } = action.payload;
+      if (state.game.id !== gameId || atSeat < 1) return state;
+      const seatMap = new Map<number, number>();
+      const shiftedPlayers = state.game.players.map((player) => {
+        if (player.seat < atSeat) return player;
+        seatMap.set(player.seat, player.seat + 1);
+        return { ...player, seat: player.seat + 1 };
+      });
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: [...shiftedPlayers, makeEmptySeat(atSeat)].sort((a, b) => a.seat - b.seat),
+          playerBluffs: remapPlayerBluffs(state.game.playerBluffs, seatMap),
         },
       };
     }
@@ -809,6 +895,8 @@ interface GameContextValue {
   removeLoric: (characterId: string) => void;
   setInPlayCharacters: (characterIds: string[]) => void;
   swapPlayerSeats: (seatA: number, seatB: number) => void;
+  shiftPlayerSeats: (startSeat: number, shiftBy: number) => void;
+  insertEmptySeat: (atSeat: number) => void;
   setApparentCharacter: (seat: number, apparentCharacterId: string) => void;
   setDemonBluffs: (characterIds: string[]) => void;
   setLunaticBluffs: (characterIds: string[]) => void;
@@ -1047,7 +1135,21 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const swapPlayerSeats = useCallback((seatA: number, seatB: number) => {
-    dispatch({ type: 'SWAP_PLAYER_SEATS', payload: { seatA, seatB } });
+    const gameId = gameRef.current?.id;
+    if (!gameId) return;
+    dispatch({ type: 'SWAP_PLAYER_SEATS', payload: { gameId, seatA, seatB } });
+  }, []);
+
+  const shiftPlayerSeats = useCallback((startSeat: number, shiftBy: number) => {
+    const gameId = gameRef.current?.id;
+    if (!gameId) return;
+    dispatch({ type: 'SHIFT_PLAYER_SEATS', payload: { gameId, startSeat, shiftBy } });
+  }, []);
+
+  const insertEmptySeat = useCallback((atSeat: number) => {
+    const gameId = gameRef.current?.id;
+    if (!gameId) return;
+    dispatch({ type: 'INSERT_EMPTY_SEAT', payload: { gameId, atSeat } });
   }, []);
 
   const setApparentCharacter = useCallback((seat: number, apparentCharacterId: string) => {
@@ -1138,6 +1240,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     removeLoric,
     setInPlayCharacters,
     swapPlayerSeats,
+    shiftPlayerSeats,
+    insertEmptySeat,
     setApparentCharacter,
     setDemonBluffs,
     setLunaticBluffs,

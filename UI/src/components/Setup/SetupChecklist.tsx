@@ -53,6 +53,8 @@ export interface SetupChecklistProps {
   scriptCharacterIds: string[];
   /** Callback when "Start Night 1" is clicked. */
   onStartNight: () => void;
+  /** Callback when the Storyteller opens the quick reseat tool. */
+  onReseat?: () => void;
 }
 
 // ── Helpers ──
@@ -192,6 +194,7 @@ export function SetupChecklist({
   inPlayCharacterIds,
   scriptCharacterIds,
   onStartNight,
+  onReseat,
 }: SetupChecklistProps) {
   const [checkedState, setCheckedState] = useState<Record<string, boolean>>(() =>
     loadCheckedState(gameId),
@@ -226,9 +229,16 @@ export function SetupChecklist({
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           No setup steps required — ready to start!
         </Typography>
-        <Button variant="contained" startIcon={<NightlightRoundIcon />} onClick={onStartNight}>
-          Start Night 1 →
-        </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
+          {onReseat && (
+            <Button variant="outlined" size="small" onClick={onReseat}>
+              Reseat
+            </Button>
+          )}
+          <Button variant="contained" startIcon={<NightlightRoundIcon />} onClick={onStartNight}>
+            Start Night 1 →
+          </Button>
+        </Box>
       </Box>
     );
   }
@@ -259,6 +269,11 @@ export function SetupChecklist({
           sx={{ ml: 1 }}
         />
       </Typography>
+      {onReseat && (
+        <Button variant="outlined" size="small" onClick={onReseat} sx={{ mb: 1 }}>
+          Reseat
+        </Button>
+      )}
 
       {Object.entries(groupedItems).map(([category, categoryItems]) => (
         <Paper key={category} elevation={1} sx={{ mb: 1.5, p: 1.5, bgcolor: 'background.default' }}>
