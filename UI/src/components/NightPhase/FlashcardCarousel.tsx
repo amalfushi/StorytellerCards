@@ -37,8 +37,11 @@ export interface FlashcardCarouselProps {
   onDotClick?: (index: number) => void;
   /** Callback fired whenever the current card index changes */
   onCardChange?: (index: number) => void;
-  /** Callback when a reminder token is clicked (navigates to Day view). */
-  onReminderTokenClick?: (tokenText: string) => void;
+  /** Callback when a reminder token is clicked. */
+  onReminderTokenClick?: (
+    token: import('@/types/index.ts').PlayerToken,
+    event: React.MouseEvent<HTMLElement>,
+  ) => void;
   /** Demon bluff character definitions (passed to demoninfo StructuralCard). */
   bluffCharacters?: CharacterDef[];
   /** Per-player bluffs keyed by seat number (as string). */
@@ -60,6 +63,14 @@ export interface FlashcardCarouselProps {
   ) => void;
   onUnpinShowTemplate?: (templateId: string) => void;
   onBumpTemplateUsage?: (templateId: string) => void;
+  /** Custom player messages keyed by characterId. */
+  customPlayerMessages?: Record<string, string>;
+  /** Active Fabled/Loric definitions whose reminder tokens are globally available. */
+  activeSetupPowers?: CharacterDef[];
+  /** Callback when a custom player message is saved. */
+  onCustomMessageChange?: (characterId: string, message: string) => void;
+  /** Callback when a custom player message is cleared. */
+  onClearCustomMessage?: (characterId: string) => void;
 }
 
 /**
@@ -95,6 +106,10 @@ export function FlashcardCarousel({
   onPinShowTemplate,
   onUnpinShowTemplate,
   onBumpTemplateUsage,
+  customPlayerMessages: _customPlayerMessages,
+  activeSetupPowers = [],
+  onCustomMessageChange: _onCustomMessageChange,
+  onClearCustomMessage: _onClearCustomMessage,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
   const [slideDir, setSlideDir] = useState<'none' | 'left' | 'right'>('none');
@@ -120,7 +135,10 @@ export function FlashcardCarousel({
     const set = new Set<string>();
     for (const entry of entries) {
       if (entry.type === 'character') {
-        const player = players.find((p) => p.characterId === entry.id);
+        const player =
+          entry.gainedAbilityHostSeat !== undefined
+            ? players.find((p) => p.seat === entry.gainedAbilityHostSeat)
+            : players.find((p) => p.characterId === entry.id);
         if (player && !player.alive) set.add(entry.id);
       }
     }
@@ -232,7 +250,10 @@ export function FlashcardCarousel({
       );
     }
 
-    const player = players.find((p) => p.characterId === entry.id);
+    const player =
+      entry.gainedAbilityHostSeat !== undefined
+        ? players.find((p) => p.seat === entry.gainedAbilityHostSeat)
+        : players.find((p) => p.characterId === entry.id);
     const charDef = characterLookup(entry.id);
     const isDead = player ? !player.alive : false;
     const isDemon = charDef?.type === 'Demon';
@@ -265,6 +286,7 @@ export function FlashcardCarousel({
         characterLookup={characterLookup}
         previousNotes={prevNote}
         onReminderTokenClick={onReminderTokenClick}
+        activeSetupPowers={activeSetupPowers}
         lunaticBluffCharacters={isLunatic ? resolvedBluffChars : undefined}
         demonBluffCharacters={isDemon ? resolvedBluffChars : undefined}
         onOpenShowDrawer={() => setShowDrawerOpen(true)}

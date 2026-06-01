@@ -226,7 +226,7 @@ describe('TownSquareLayout', () => {
     { id: 'bigwig', name: 'Big Wig', abilityShort: 'Gives defence lawyer.' },
   ];
 
-  it('renders Fabled chips in upper-left corner', () => {
+  it('renders Fabled chips in setup powers corner', () => {
     render(
       <TownSquareLayout
         players={makePlayers(5)}
@@ -237,12 +237,12 @@ describe('TownSquareLayout', () => {
         activeFabled={mockFabled}
       />,
     );
-    expect(screen.getByTestId('fabled-corner')).toBeInTheDocument();
+    expect(screen.getByTestId('setup-powers-corner')).toBeInTheDocument();
     expect(screen.getByTestId('fabled-chip-angel')).toBeInTheDocument();
     expect(screen.getByTestId('fabled-chip-djinn')).toBeInTheDocument();
   });
 
-  it('renders Loric chips in upper-right corner', () => {
+  it('renders Loric chips in setup powers corner', () => {
     render(
       <TownSquareLayout
         players={makePlayers(5)}
@@ -253,7 +253,7 @@ describe('TownSquareLayout', () => {
         activeLoric={mockLoric}
       />,
     );
-    expect(screen.getByTestId('loric-corner')).toBeInTheDocument();
+    expect(screen.getByTestId('setup-powers-corner')).toBeInTheDocument();
     expect(screen.getByTestId('loric-chip-bigwig')).toBeInTheDocument();
   });
 
@@ -271,7 +271,7 @@ describe('TownSquareLayout', () => {
     expect(screen.queryByTestId('loric-corner')).not.toBeInTheDocument();
   });
 
-  it('renders both Fabled and Loric corners simultaneously', () => {
+  it('renders Fabled and Loric in the unified setup powers corner', () => {
     render(
       <TownSquareLayout
         players={makePlayers(5)}
@@ -283,8 +283,8 @@ describe('TownSquareLayout', () => {
         activeLoric={mockLoric}
       />,
     );
-    expect(screen.getByTestId('fabled-corner')).toBeInTheDocument();
-    expect(screen.getByTestId('loric-corner')).toBeInTheDocument();
+    expect(screen.getByTestId('setup-powers-corner')).toBeInTheDocument();
+    expect(screen.getByTestId('setup-powers-corner')).toBeInTheDocument();
   });
 
   it('shows ability dialog when Fabled chip is clicked', () => {

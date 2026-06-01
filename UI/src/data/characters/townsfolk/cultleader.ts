@@ -47,6 +47,14 @@ export const cultleader: CharacterDef = {
         isConditional: true,
       },
     ],
+    choices: [
+      {
+        type: 'alignment-change',
+        options: ['Good', 'Evil', 'Unchanged'],
+        maxSelections: 1,
+        label: 'Alignment result',
+      },
+    ],
   },
   icon: {
     small: '/icons/characters/cultleaderIcon.webp',
@@ -54,7 +62,10 @@ export const cultleader: CharacterDef = {
     large: '/icons/characters/cultleaderIcon.webp',
     placeholder: '#1976d2',
   },
-  reminders: [],
+  reminders: [
+    { id: 'cultleader-good-neighbor', text: 'Good Neighbor', sourceCharacterId: 'cultleader' },
+    { id: 'cultleader-evil-neighbor', text: 'Evil Neighbor', sourceCharacterId: 'cultleader' },
+  ],
   jinxes: [
     {
       characterId: 'boffin',

@@ -48,14 +48,12 @@ function GameLoader({
 
   useEffect(() => {
     loadGame(mockGame);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (state.game && showCharacters && !state.showCharacters) {
       toggleShowCharacters();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.game?.id]);
 
   return <>{children}</>;

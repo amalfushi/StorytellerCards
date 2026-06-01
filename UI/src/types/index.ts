@@ -40,6 +40,7 @@ export const NightChoiceType = {
   Character: 'character',
   Alignment: 'alignment',
   YesNo: 'yesno',
+  AlignmentChange: 'alignment-change',
 } as const;
 export type NightChoiceType = (typeof NightChoiceType)[keyof typeof NightChoiceType];
 
@@ -271,6 +272,10 @@ export interface PlayerSeat {
   tokens?: PlayerToken[];
   /** Character ID this player believes they are (for Drunk/Marionette concealment). */
   apparentCharacterId?: string;
+  /** M35: history of alignment changes for this player (Cult Leader, Mezepheles, etc.). */
+  alignmentHistory?: AlignmentChange[];
+  /** M35: secondary character ability layered on top of base (Cannibal, Pixie, Philosopher, etc.). */
+  gainedAbility?: GainedAbility;
 }
 
 // ──────────────────────────────────────────────
@@ -387,6 +392,26 @@ export type SyncStatus = (typeof SyncStatus)[keyof typeof SyncStatus];
 export interface VersionInfo {
   version: number;
   updatedAt: string;
+}
+
+// ──────────────────────────────────────────────
+// M35 generalized character primitives
+// ──────────────────────────────────────────────
+
+export interface AlignmentChange {
+  id: string;
+  day: number;
+  nightPhase: 'first' | 'other' | 'day' | 'manual';
+  newAlignment: Alignment;
+  reason: string;
+  timestamp: number;
+}
+
+export interface GainedAbility {
+  characterId: string;
+  source: 'cannibal' | 'pixie' | 'philosopher' | 'alchemist' | 'boffin' | 'manual';
+  hostSeat: number;
+  grantedDay: number;
 }
 
 // ──────────────────────────────────────────────

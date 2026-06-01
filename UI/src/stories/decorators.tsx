@@ -1,4 +1,3 @@
-/* eslint-disable react-refresh/only-export-components */
 import type { Decorator } from '@storybook/react-vite';
 import type { ReactNode } from 'react';
 import { GameProvider, useGame } from '../context/GameContext';
@@ -44,7 +43,6 @@ function GameLoader({
     } as Game;
 
     loadGame(game);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -52,7 +50,6 @@ function GameLoader({
     if (state.game && overrides.game?.currentPhase) {
       setPhase(overrides.game.currentPhase);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.game?.id]);
 
   useEffect(() => {
@@ -63,7 +60,6 @@ function GameLoader({
     ) {
       toggleShowCharacters();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.game?.id]);
 
   return <>{children}</>;

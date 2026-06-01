@@ -501,6 +501,29 @@ describe('SessionContext', () => {
       expect(game.currentDay).toBe(1);
     });
 
+    it('auto-populates active Loric and Fabled from a stored script', () => {
+      const { result } = renderSessionHook();
+      localStorage.setItem(
+        'storyteller-script-m35-test',
+        JSON.stringify({ characterIds: ['stormcatcher', 'djinn', 'imp'] }),
+      );
+
+      act(() => {
+        result.current.createSession('Session', 'm35-test', ['Alice']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+
+      act(() => {
+        result.current.addGameToSession(sessionId);
+      });
+
+      const gameId = result.current.state.sessions[0].gameIds[0];
+      const raw = localStorage.getItem(`storyteller-game-${gameId}`);
+      const game = JSON.parse(raw!) as Game;
+      expect(game.activeLoric).toEqual(['stormcatcher']);
+      expect(game.activeFabled).toEqual(['djinn']);
+    });
+
     it('creates a game with players based on session defaults', () => {
       const { result } = renderSessionHook();
 

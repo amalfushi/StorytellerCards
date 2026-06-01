@@ -30,7 +30,7 @@ export const philosopher: CharacterDef = {
         isConditional: true,
       },
     ],
-    choices: [{ type: 'character', maxSelections: 1, label: 'Choose a character' }],
+    choices: [{ type: 'character', maxSelections: 1, label: 'Choose a character ability' }],
   },
   otherNights: {
     order: 4,
@@ -47,7 +47,7 @@ export const philosopher: CharacterDef = {
         isConditional: true,
       },
     ],
-    choices: [{ type: 'character', maxSelections: 1, label: 'Choose a character' }],
+    choices: [{ type: 'character', maxSelections: 1, label: 'Choose a character ability' }],
   },
   icon: {
     small: '/icons/characters/philosopherIcon.webp',

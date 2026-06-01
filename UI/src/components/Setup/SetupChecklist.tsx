@@ -84,7 +84,6 @@ function saveCheckedState(gameId: string, state: Record<string, boolean>): void 
 /**
  * Build checklist items from the current game state.
  */
-// eslint-disable-next-line react-refresh/only-export-components
 export function buildChecklistItems(
   players: PlayerSeat[],
   inPlayCharacterIds: string[],

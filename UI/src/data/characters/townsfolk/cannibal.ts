@@ -15,7 +15,25 @@ export const cannibal: CharacterDef = {
 • If the Cannibal has an “even if dead” ability, such as the Recluse, or an ability that implies it works while dead, such as the Ravenkeeper or Sweetheart, the Cannibal keeps that ability when they die, but loses their Cannibal ability.`,
   wikiLink: 'https://wiki.bloodontheclocktower.com/Cannibal',
   firstNight: null,
-  otherNights: null,
+  otherNights: {
+    order: 99,
+    helpText: 'If a townsfolk died by execution today, record which ability the Cannibal gained.',
+    subActions: [
+      {
+        id: 'cannibal-on-1',
+        description: 'Choose the executed townsfolk ability the Cannibal has gained.',
+        isConditional: true,
+      },
+    ],
+    choices: [
+      {
+        type: 'character',
+        filter: 'townsfolk-not-in-play-or-any-townsfolk',
+        maxSelections: 1,
+        label: 'Executed townsfolk ability',
+      },
+    ],
+  },
   icon: {
     small: '/icons/characters/cannibalIcon.webp',
     medium: '/icons/characters/cannibalIcon.webp',

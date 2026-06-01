@@ -58,12 +58,17 @@ export interface NightFlashcardProps {
   characterLookup?: (id: string) => CharacterDef | undefined;
   /** Previous night's notes for pre-population. */
   previousNotes?: string;
-  /** Callback when a reminder token is clicked (navigates to Day view). */
-  onReminderTokenClick?: (tokenText: string) => void;
+  /** Callback when a reminder token is clicked. */
+  onReminderTokenClick?: (
+    token: import('@/types/index.ts').PlayerToken,
+    event: React.MouseEvent<HTMLElement>,
+  ) => void;
   /** Lunatic bluff character definitions (shown on Lunatic's first-night card). */
   lunaticBluffCharacters?: CharacterDef[];
   /** Demon bluff character definitions (shown for demon characters). */
   demonBluffCharacters?: CharacterDef[];
+  /** Active setup powers whose reminders are globally available. */
+  activeSetupPowers?: CharacterDef[];
   /** Callback to open the Show Player drawer (triggered by FAB moved to card). */
   onOpenShowDrawer?: () => void;
 }
@@ -95,6 +100,7 @@ export function NightFlashcard({
   onReminderTokenClick,
   lunaticBluffCharacters,
   demonBluffCharacters: _demonBluffCharacters,
+  activeSetupPowers = [],
   onOpenShowDrawer,
 }: NightFlashcardProps) {
   const [detailOpen, setDetailOpen] = useState(false);
@@ -103,6 +109,30 @@ export function NightFlashcard({
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
 
   const typeName = characterDef?.type ?? 'Unknown';
+
+  const filterCharactersForChoice = useCallback(
+    (filter?: string) => {
+      if (!filter) return scriptCharacters;
+      const inPlayIds = new Set(players.map((player) => player.characterId).filter(Boolean));
+      switch (filter) {
+        case 'townsfolk':
+          return scriptCharacters.filter((character) => character.type === 'Townsfolk');
+        case 'townsfolk-not-in-play-or-any-townsfolk':
+          return scriptCharacters.filter((character) => character.type === 'Townsfolk');
+        case 'minion-not-in-play':
+          return scriptCharacters.filter(
+            (character) => character.type === 'Minion' && !inPlayIds.has(character.id),
+          );
+        case 'good-not-in-play':
+          return scriptCharacters.filter(
+            (character) => character.defaultAlignment === 'Good' && !inPlayIds.has(character.id),
+          );
+        default:
+          return scriptCharacters;
+      }
+    },
+    [players, scriptCharacters],
+  );
 
   // Get explicit choices from the character definition's night action
   const parsedChoices = useMemo(() => {
@@ -205,17 +235,27 @@ export function NightFlashcard({
   }, [previousNotes, notes, readOnly, onNotesChange]);
 
   // Phase 2: Build a map of placed reminder tokens → player info
+  const availableReminderTokens = useMemo(() => {
+    const tokens = characterDef ? [...characterDef.reminders] : [];
+    for (const setupPower of activeSetupPowers) {
+      tokens.push(...setupPower.reminders);
+    }
+    return tokens;
+  }, [activeSetupPowers, characterDef]);
+
   const placedReminders = useMemo(() => {
-    if (!characterDef) return new Map<string, PlayerSeat>();
     const map = new Map<string, PlayerSeat>();
     for (const player of players) {
       for (const reminderId of player.activeReminders) {
-        const token = characterDef.reminders.find((r) => r.id === reminderId);
+        const token = availableReminderTokens.find((r) => r.id === reminderId);
         if (token) map.set(token.id, player);
+      }
+      for (const token of player.tokens ?? []) {
+        if (availableReminderTokens.some((r) => r.id === token.id)) map.set(token.id, player);
       }
     }
     return map;
-  }, [characterDef, players]);
+  }, [availableReminderTokens, players]);
 
   // Phase 4: Separate affecting tokens (from OTHER characters) from this character's tokens
   const affectingTokens = useMemo(
@@ -594,7 +634,7 @@ export function NightFlashcard({
       )}
 
       {/* Phase 4: Available reminder tokens → below separator, above checklist */}
-      {!reminderSegments && characterDef && characterDef.reminders.length > 0 && (
+      {!reminderSegments && availableReminderTokens.length > 0 && (
         <Box
           data-testid="reminder-tokens"
           sx={{
@@ -610,7 +650,7 @@ export function NightFlashcard({
           <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.5)', mr: 0.5 }}>
             Reminders:
           </Typography>
-          {characterDef.reminders.map((r) => {
+          {availableReminderTokens.map((r) => {
             const placedOn = placedReminders.get(r.id);
             const placedCharDef =
               placedOn?.characterId && characterLookup
@@ -627,7 +667,20 @@ export function NightFlashcard({
                 placed={!!placedOn}
                 placedInfo={placedText}
                 sourceName={placedText ?? r.text}
-                onClick={onReminderTokenClick ? () => onReminderTokenClick(r.text) : undefined}
+                onClick={
+                  onReminderTokenClick
+                    ? (event) =>
+                        onReminderTokenClick(
+                          {
+                            id: r.id,
+                            type: 'custom',
+                            label: r.text,
+                            sourceCharacterId: r.sourceCharacterId,
+                          },
+                          event,
+                        )
+                    : undefined
+                }
               />
             );
           })}
@@ -757,9 +810,10 @@ export function NightFlashcard({
                 value={getCompoundValue(idx)}
                 onChange={(v) => handleCompoundChange(idx, v)}
                 players={players}
-                characters={scriptCharacters}
+                characters={filterCharactersForChoice(choice.filter)}
                 previousValue={getCompoundPrev(idx)}
                 label={choice.label}
+                filter={choice.filter}
                 readOnly={readOnly}
                 characterLookup={characterLookup}
               />

@@ -12,7 +12,10 @@ export interface NightTabPanelProps {
   /** Called when the night is completed so the parent can switch back to Day view */
   onComplete?: () => void;
   /** Called when a reminder token is clicked — switches to Day view */
-  onReminderTokenClick?: (tokenText: string) => void;
+  onReminderTokenClick?: (
+    token: import('@/types/index.ts').PlayerToken,
+    event: React.MouseEvent<HTMLElement>,
+  ) => void;
 }
 
 /**
@@ -42,6 +45,10 @@ export function NightTabPanel({
     pinShowTemplate,
     unpinShowTemplate,
     bumpTemplateUsage,
+    setCustomPlayerMessage,
+    clearCustomPlayerMessage,
+    recordAlignmentChange,
+    setGainedAbility,
   } = useGame();
   const { nightProgress } = state;
   const game = state.game;
@@ -60,6 +67,11 @@ export function NightTabPanel({
   }, [game]);
 
   // Demon bluff characters for the demoninfo structural card
+  const activeSetupPowers = useMemo(
+    () => getCharactersByIds([...(game?.activeFabled ?? []), ...(game?.activeLoric ?? [])]),
+    [game?.activeFabled, game?.activeLoric, getCharactersByIds],
+  );
+
   const bluffCharacters = useMemo(() => {
     if (!game?.demonBluffs?.length) return undefined;
     return getCharactersByIds(game.demonBluffs);
@@ -98,8 +110,73 @@ export function NightTabPanel({
   const handleUpdateSelection = useCallback(
     (characterId: string, value: string | string[]) => {
       updateNightProgress(characterId, undefined, undefined, value);
+      if (!game || Array.isArray(value) || !value) return;
+
+      const actor = game.players.find((player) => player.characterId === characterId);
+      const selectedPlayer = game.players.find((player) => player.playerName === value);
+      const selectedCharacter = scriptCharacters.find((character) => character.name === value);
+      const nightPhase = game.isFirstNight ? 'first' : 'other';
+
+      if (characterId === 'cultleader' && actor && (value === 'Good' || value === 'Evil')) {
+        recordAlignmentChange(
+          actor.seat,
+          value,
+          'Cult Leader matched a living neighbor',
+          game.currentDay,
+          nightPhase,
+        );
+        return;
+      }
+      if (characterId === 'mezepheles' && selectedPlayer) {
+        recordAlignmentChange(
+          selectedPlayer.seat,
+          'Evil',
+          'Mezepheles whispered the word',
+          game.currentDay,
+          nightPhase,
+        );
+        return;
+      }
+      if (!selectedCharacter) return;
+
+      const sourceByCharacter = {
+        cannibal: 'cannibal',
+        pixie: 'pixie',
+        philosopher: 'philosopher',
+        alchemist: 'alchemist',
+      } as const;
+      const source = sourceByCharacter[characterId as keyof typeof sourceByCharacter];
+      if (actor && source) {
+        setGainedAbility(actor.seat, {
+          characterId: selectedCharacter.id,
+          source,
+          hostSeat: actor.seat,
+          grantedDay: game.currentDay,
+        });
+        return;
+      }
+      if (characterId === 'boffin') {
+        const demon = game.players.find(
+          (player) => getCharacter(player.characterId)?.type === 'Demon',
+        );
+        if (demon) {
+          setGainedAbility(demon.seat, {
+            characterId: selectedCharacter.id,
+            source: 'boffin',
+            hostSeat: demon.seat,
+            grantedDay: game.currentDay,
+          });
+        }
+      }
     },
-    [updateNightProgress],
+    [
+      game,
+      getCharacter,
+      recordAlignmentChange,
+      scriptCharacters,
+      setGainedAbility,
+      updateNightProgress,
+    ],
   );
 
   /** Sync card index changes back to context. */
@@ -174,6 +251,10 @@ export function NightTabPanel({
         onBumpTemplateUsage={
           game ? (templateId) => bumpTemplateUsage(game.id, templateId) : undefined
         }
+        customPlayerMessages={game?.customPlayerMessages}
+        activeSetupPowers={activeSetupPowers}
+        onCustomMessageChange={setCustomPlayerMessage}
+        onClearCustomMessage={clearCustomPlayerMessage}
       />
     </Box>
   );

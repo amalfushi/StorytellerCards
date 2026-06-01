@@ -30,6 +30,7 @@ export interface NightChoiceSelectorProps {
   characters?: CharacterDef[];
   previousValue?: string | string[];
   label?: string;
+  filter?: string;
   readOnly?: boolean;
   /** Lookup function to resolve character definitions by ID (for inline icons). */
   characterLookup?: (id: string) => CharacterDef | undefined;
@@ -57,22 +58,29 @@ export function NightChoiceSelector({
   characters = [],
   previousValue,
   label = 'Choose',
+  filter,
   readOnly = false,
   characterLookup,
 }: NightChoiceSelectorProps) {
   // Build player options filtered by type
   const playerOptions = useMemo(() => {
-    switch (type) {
-      case 'livingPlayer':
-        return players.filter((p) => p.alive);
-      case 'deadPlayer':
-        return players.filter((p) => !p.alive);
-      case 'player':
-        return players;
-      default:
-        return [];
+    const base = (() => {
+      switch (type) {
+        case 'livingPlayer':
+          return players.filter((p) => p.alive);
+        case 'deadPlayer':
+          return players.filter((p) => !p.alive);
+        case 'player':
+          return players;
+        default:
+          return [];
+      }
+    })();
+    if (filter === 'good-alive') {
+      return base.filter((p) => p.alive && p.actualAlignment === 'Good');
     }
-  }, [players, type]);
+    return base;
+  }, [filter, players, type]);
 
   const isPlayerType = type === 'player' || type === 'livingPlayer' || type === 'deadPlayer';
 
@@ -287,7 +295,7 @@ export function NightChoiceSelector({
       )}
 
       {/* ── Alignment toggle ── */}
-      {type === 'alignment' && (
+      {(type === 'alignment' || type === 'alignment-change') && (
         <Box>
           <Typography
             variant="caption"
@@ -310,6 +318,11 @@ export function NightChoiceSelector({
             <ToggleButton value="Evil" sx={{ color: '#ef5350' }}>
               Evil
             </ToggleButton>
+            {type === 'alignment-change' && (
+              <ToggleButton value="Unchanged" sx={{ color: 'rgba(255,255,255,0.65)' }}>
+                Unchanged
+              </ToggleButton>
+            )}
           </ToggleButtonGroup>
         </Box>
       )}

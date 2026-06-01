@@ -25,6 +25,14 @@ export const alchemist: CharacterDef = {
         isConditional: false,
       },
     ],
+    choices: [
+      {
+        type: 'character',
+        filter: 'minion-not-in-play',
+        maxSelections: 1,
+        label: 'Choose a Minion ability',
+      },
+    ],
   },
   otherNights: null,
   icon: {

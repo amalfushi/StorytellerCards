@@ -16,6 +16,7 @@ import type {
   NightHistoryEntry,
   SyncStatus,
   ShowToPlayerTemplate,
+  GainedAbility,
 } from '@/types/index.ts';
 import { Phase, Alignment, CharacterType } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
@@ -167,6 +168,14 @@ type GameAction =
   | { type: 'ADD_TOKEN'; payload: { seat: number; token: PlayerToken } }
   | { type: 'REMOVE_TOKEN'; payload: { seat: number; tokenId: string } }
   | { type: 'UPDATE_NIGHT_HISTORY'; payload: { index: number; entry: NightHistoryEntry } }
+  | {
+      type: 'UPDATE_NIGHT_HISTORY_NOTE';
+      payload: { nightIndex: number; characterId: string; note: string };
+    }
+  | {
+      type: 'UPDATE_NIGHT_HISTORY_CHOICE';
+      payload: { nightIndex: number; characterId: string; choiceValue: string | string[] };
+    }
   | { type: 'ADD_FABLED'; payload: { characterId: string } }
   | { type: 'REMOVE_FABLED'; payload: { characterId: string } }
   | { type: 'ADD_LORIC'; payload: { characterId: string } }
@@ -199,7 +208,20 @@ type GameAction =
       };
     }
   | { type: 'UNPIN_SHOW_TEMPLATE'; payload: { gameId: string; templateId: string } }
-  | { type: 'BUMP_TEMPLATE_USAGE'; payload: { gameId: string; templateId: string } };
+  | { type: 'BUMP_TEMPLATE_USAGE'; payload: { gameId: string; templateId: string } }
+  | {
+      type: 'RECORD_ALIGNMENT_CHANGE';
+      payload: {
+        seat: number;
+        newAlignment: Alignment;
+        reason: string;
+        day: number;
+        nightPhase: 'first' | 'other' | 'day' | 'manual';
+      };
+    }
+  | { type: 'SET_GAINED_ABILITY'; payload: { seat: number; gainedAbility: GainedAbility } }
+  | { type: 'CLEAR_GAINED_ABILITY'; payload: { seat: number } }
+  | { type: 'SYNC_GAME'; payload: { game: Game } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -673,6 +695,66 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'RECORD_ALIGNMENT_CHANGE': {
+      if (!state.game) return state;
+      const { seat, newAlignment, reason, day, nightPhase } = action.payload;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: state.game.players.map((player) =>
+            player.seat === seat
+              ? {
+                  ...player,
+                  actualAlignment: newAlignment,
+                  alignmentHistory: [
+                    ...(player.alignmentHistory ?? []),
+                    {
+                      id: `${seat}-${day}-${nightPhase}-${Date.now()}`,
+                      day,
+                      nightPhase,
+                      newAlignment,
+                      reason,
+                      timestamp: Date.now(),
+                    },
+                  ],
+                }
+              : player,
+          ),
+        },
+      };
+    }
+
+    case 'SET_GAINED_ABILITY': {
+      if (!state.game) return state;
+      const { seat, gainedAbility } = action.payload;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: state.game.players.map((player) =>
+            player.seat === seat ? { ...player, gainedAbility } : player,
+          ),
+        },
+      };
+    }
+
+    case 'CLEAR_GAINED_ABILITY': {
+      if (!state.game) return state;
+      const { seat } = action.payload;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          players: state.game.players.map((player) => {
+            if (player.seat !== seat) return player;
+            const { gainedAbility: _gainedAbility, ...rest } = player;
+            return rest;
+          }),
+        },
+      };
+    }
+
     case 'SYNC_GAME': {
       const remote = normalizeShowToPlayerGame(action.payload.game);
       if (!state.game || state.game.id !== remote.id) return state;
@@ -915,6 +997,15 @@ interface GameContextValue {
   ) => void;
   unpinShowTemplate: (gameId: string, templateId: string) => void;
   bumpTemplateUsage: (gameId: string, templateId: string) => void;
+  recordAlignmentChange: (
+    seat: number,
+    newAlignment: Alignment,
+    reason: string,
+    day: number,
+    nightPhase: 'first' | 'other' | 'day' | 'manual',
+  ) => void;
+  setGainedAbility: (seat: number, gainedAbility: GainedAbility) => void;
+  clearGainedAbility: (seat: number) => void;
   syncGame: (game: Game) => void;
   syncStatus: SyncStatus;
   forceSync: () => void;
@@ -1176,6 +1267,30 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'CLEAR_CUSTOM_PLAYER_MESSAGE', payload: { characterId } });
   }, []);
 
+  const recordAlignmentChange = useCallback(
+    (
+      seat: number,
+      newAlignment: Alignment,
+      reason: string,
+      day: number,
+      nightPhase: 'first' | 'other' | 'day' | 'manual',
+    ) => {
+      dispatch({
+        type: 'RECORD_ALIGNMENT_CHANGE',
+        payload: { seat, newAlignment, reason, day, nightPhase },
+      });
+    },
+    [],
+  );
+
+  const setGainedAbility = useCallback((seat: number, gainedAbility: GainedAbility) => {
+    dispatch({ type: 'SET_GAINED_ABILITY', payload: { seat, gainedAbility } });
+  }, []);
+
+  const clearGainedAbility = useCallback((seat: number) => {
+    dispatch({ type: 'CLEAR_GAINED_ABILITY', payload: { seat } });
+  }, []);
+
   const syncGame = useCallback((game: Game) => {
     dispatch({ type: 'SYNC_GAME', payload: { game } });
   }, []);
@@ -1255,6 +1370,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
     pinShowTemplate,
     unpinShowTemplate,
     bumpTemplateUsage,
+    recordAlignmentChange,
+    setGainedAbility,
+    clearGainedAbility,
     syncGame,
     syncStatus,
     forceSync,
@@ -1267,7 +1385,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
 // Hook
 // ──────────────────────────────────────────────
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useGame(): GameContextValue {
   const ctx = useContext(GameContext);
   if (!ctx) {

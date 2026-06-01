@@ -6,6 +6,7 @@ import { Alignment } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { OverlayToken } from '@/components/common/OverlayToken.tsx';
 import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 // ──────────────────────────────────────────────
@@ -181,19 +182,29 @@ export const PlayerToken = memo(function PlayerToken({
   const tokenContent = (
     <>
       {/* ── Character icon: visible in night view, or always for travellers ── */}
-      {showIcon && (
-        <CharacterIconImage
-          characterId={displayCharacterId ?? ''}
-          characterName={displayCharacterDef?.name ?? '?'}
-          typeColor={displayTypeColor}
-          size={s.icon}
-          borderColor={getAlignmentBorderColor(
-            showCharacters ? player.actualAlignment : displayAlignment,
-            displayTypeColor,
-          )}
-          alignment={showCharacters ? player.actualAlignment : displayAlignment}
-          onClick={handleIconClick}
-/>
+      {showIcon && player.gainedAbility ? (
+        <Box onClick={handleIconClick} sx={{ cursor: characterDef ? 'pointer' : 'default' }}>
+          <OverlayToken
+            baseCharacterId={displayCharacterId ?? ''}
+            gainedCharacterId={player.gainedAbility.characterId}
+            size={s.icon}
+          />
+        </Box>
+      ) : (
+        showIcon && (
+          <CharacterIconImage
+            characterId={displayCharacterId ?? ''}
+            characterName={displayCharacterDef?.name ?? '?'}
+            typeColor={displayTypeColor}
+            size={s.icon}
+            borderColor={getAlignmentBorderColor(
+              showCharacters ? player.actualAlignment : displayAlignment,
+              displayTypeColor,
+            )}
+            alignment={showCharacters ? player.actualAlignment : displayAlignment}
+            onClick={handleIconClick}
+          />
+        )
       )}
 
       {/* ── Night view: abbreviated character name ── */}

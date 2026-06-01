@@ -5,6 +5,28 @@ import { Phase, Alignment } from '@/types/index.ts';
 import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
 import { generateId } from '@/utils/idGenerator.ts';
 import { useApiSync, isSyncDisabled } from '@/hooks/useApiSync.ts';
+import { getCharacter } from '@/data/characters/index.ts';
+
+function getSetupPowersForScript(scriptId: string): Pick<Game, 'activeFabled' | 'activeLoric'> {
+  try {
+    const raw = localStorage.getItem(`storyteller-script-${scriptId}`);
+    if (!raw) return {};
+    const script = JSON.parse(raw) as { characterIds?: string[] };
+    const activeFabled: string[] = [];
+    const activeLoric: string[] = [];
+    for (const characterId of script.characterIds ?? []) {
+      const character = getCharacter(characterId);
+      if (character?.type === 'Fabled') activeFabled.push(characterId);
+      if (character?.type === 'Loric') activeLoric.push(characterId);
+    }
+    return {
+      activeFabled: activeFabled.length > 0 ? activeFabled : undefined,
+      activeLoric: activeLoric.length > 0 ? activeLoric : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
 
 // ──────────────────────────────────────────────
 // State
@@ -453,6 +475,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       // Ensure players are always in sequential seat order
       players.sort((a, b) => a.seat - b.seat);
 
+      const setupPowers = getSetupPowersForScript(session.defaultScriptId);
+
       const game: Game = {
         id: gameId,
         sessionId,
@@ -462,6 +486,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         isFirstNight: true,
         players,
         nightHistory: [],
+        ...setupPowers,
       };
 
       // Also store a display label (Game 1, Game 2, etc.) — not part of Game type,
@@ -545,7 +570,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 // Hook
 // ──────────────────────────────────────────────
 
-// eslint-disable-next-line react-refresh/only-export-components
 export function useSession(): SessionContextValue {
   const ctx = useContext(SessionContext);
   if (!ctx) {
