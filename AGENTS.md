@@ -325,7 +325,6 @@ To minimize conflicts on shared documentation files:
 
 ### General Conflict Reduction Rules
 
-- **Don't modify files outside your milestone's scope** — if a file isn't listed in your milestone plan, don't touch it
 - **Append-only edits** on shared files — add new types, actions, and entries at the end rather than inserting in the middle
 - **Pull latest `main` and rebase** before creating a PR: `git pull --rebase origin main`
 - **Conflict resolution**: if conflicts occur on PR merge, the human will resolve them — agents should not force-push or rebase shared branches without coordination
