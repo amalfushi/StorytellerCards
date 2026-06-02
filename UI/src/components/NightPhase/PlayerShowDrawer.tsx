@@ -1,94 +1,169 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
+import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import EditIcon from '@mui/icons-material/Edit';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
-import MessageIcon from '@mui/icons-material/Message';
+import PushPinIcon from '@mui/icons-material/PushPin';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import type { CharacterDef } from '@/types/index.ts';
+import type { CharacterDef, ShowToPlayerMessage, ShowToPlayerTemplate } from '@/types/index.ts';
+import {
+  getSeededShowToPlayerTemplates,
+  rankShowToPlayerTemplates,
+} from '@/data/showToPlayerTemplates.ts';
 import { PlayerShowScreen } from './PlayerShowScreen.tsx';
 import type { PlayerShowScreenVariant } from './PlayerShowScreen.tsx';
 
 export interface PlayerShowDrawerProps {
   open: boolean;
   onClose: () => void;
-  /** Bluff characters to display (only shown if provided). */
+  seat?: number;
+  scriptId?: string;
+  playerName?: string;
+  messages?: ShowToPlayerMessage[];
+  templates?: ShowToPlayerTemplate[];
   bluffCharacters?: CharacterDef[];
-  /** Label for the bluff option (e.g., "Demon Bluffs" or "Lunatic Bluffs"). */
   bluffLabel?: string;
-  /** Persisted custom message for this character. */
-  customMessage?: string;
-  /** Called when the custom message is saved. */
-  onCustomMessageChange?: (message: string) => void;
-  /** Called when the custom message is cleared. */
-  onClearCustomMessage?: () => void;
+  onAddMessage?: (seat: number, text: string, templateId?: string) => void;
+  onMarkMessageShown?: (messageId: string) => void;
+  onEditMessage?: (messageId: string, text: string) => void;
+  onDeleteMessage?: (messageId: string) => void;
+  onPinTemplate?: (text: string, scope: ShowToPlayerTemplate['scope'], scriptId?: string) => void;
+  onUnpinTemplate?: (templateId: string) => void;
+  onBumpTemplateUsage?: (templateId: string) => void;
 }
 
-/**
- * Bottom drawer for selecting what to show a player fullscreen.
- *
- * Provides options like "Show Bluffs" (for demons/lunatics) and
- * "Custom Message" (always available). Each option opens a
- * fullscreen `PlayerShowScreen` overlay.
- */
+function sortByLastShownDesc(a: ShowToPlayerMessage, b: ShowToPlayerMessage): number {
+  return Date.parse(b.lastShownAt ?? b.createdAt) - Date.parse(a.lastShownAt ?? a.createdAt);
+}
+
 export function PlayerShowDrawer({
   open,
   onClose,
+  seat,
+  scriptId = 'carousel',
+  playerName,
+  messages = [],
+  templates = [],
   bluffCharacters,
   bluffLabel = 'Bluffs',
-  customMessage = '',
-  onCustomMessageChange,
-  onClearCustomMessage,
+  onAddMessage,
+  onMarkMessageShown,
+  onEditMessage,
+  onDeleteMessage,
+  onPinTemplate,
+  onUnpinTemplate,
+  onBumpTemplateUsage,
 }: PlayerShowDrawerProps) {
   const [showScreenOpen, setShowScreenOpen] = useState(false);
   const [showScreenVariant, setShowScreenVariant] = useState<PlayerShowScreenVariant>('text');
-  const [editingMessage, setEditingMessage] = useState(customMessage);
+  const [showMessage, setShowMessage] = useState('');
+  const [composeText, setComposeText] = useState('');
+  const [editingMessageId, setEditingMessageId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
+  const autoClonedMessageRef = useRef<string | null>(null);
 
   const hasBluffs = bluffCharacters && bluffCharacters.length > 0;
+  const playerMessages = useMemo(
+    () => messages.filter((message) => message.seat === seat),
+    [messages, seat],
+  );
+  const activeMessages = useMemo(
+    () => playerMessages.filter((message) => !message.lastShownAt),
+    [playerMessages],
+  );
+  const lastShownMessage = useMemo(
+    () => playerMessages.filter((message) => message.lastShownAt).sort(sortByLastShownDesc)[0],
+    [playerMessages],
+  );
+  const seededTemplates = useMemo(() => getSeededShowToPlayerTemplates(scriptId), [scriptId]);
+  const rankedTemplates = useMemo(
+    () => rankShowToPlayerTemplates([...templates, ...seededTemplates], messages, scriptId),
+    [messages, scriptId, seededTemplates, templates],
+  );
+  const pinnedTemplateIds = useMemo(
+    () => new Set(templates.map((template) => template.id)),
+    [templates],
+  );
+  const pinnedTemplates = useMemo(
+    () =>
+      templates.filter((template) => template.scope === 'global' || template.scriptId === scriptId),
+    [scriptId, templates],
+  );
+
+  useEffect(() => {
+    if (!open) {
+      autoClonedMessageRef.current = null;
+      return;
+    }
+    if (
+      seat === undefined ||
+      activeMessages.length > 0 ||
+      !lastShownMessage ||
+      autoClonedMessageRef.current === lastShownMessage.id
+    ) {
+      return;
+    }
+    autoClonedMessageRef.current = lastShownMessage.id;
+    onAddMessage?.(seat, lastShownMessage.text, lastShownMessage.templateId);
+  }, [activeMessages.length, lastShownMessage, onAddMessage, open, seat]);
 
   const handleShowBluffs = useCallback(() => {
     setShowScreenVariant('bluffs');
     setShowScreenOpen(true);
   }, []);
 
-  const handleShowCustomMessage = useCallback(() => {
-    // Save the message before showing
-    if (editingMessage.trim() && onCustomMessageChange) {
-      onCustomMessageChange(editingMessage.trim());
-    }
-    setShowScreenVariant('text');
-    setShowScreenOpen(true);
-  }, [editingMessage, onCustomMessageChange]);
+  const handleShowMessage = useCallback(
+    (message: ShowToPlayerMessage) => {
+      onMarkMessageShown?.(message.id);
+      setShowMessage(message.text);
+      setShowScreenVariant('text');
+      setShowScreenOpen(true);
+    },
+    [onMarkMessageShown],
+  );
 
-  const handleCloseShowScreen = useCallback(() => {
-    setShowScreenOpen(false);
-  }, []);
+  const handleTemplateSelect = useCallback(
+    (template: ShowToPlayerTemplate) => {
+      if (seat === undefined) return;
+      onAddMessage?.(seat, template.text, template.id);
+      onBumpTemplateUsage?.(template.id);
+      setShowMessage(template.text);
+      setShowScreenVariant('text');
+      setShowScreenOpen(true);
+    },
+    [onAddMessage, onBumpTemplateUsage, seat],
+  );
 
-  const handleMessageChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    setEditingMessage(e.target.value);
-  }, []);
+  const handleAddMessage = useCallback(() => {
+    if (seat === undefined) return;
+    const text = composeText.trim();
+    if (!text) return;
+    onAddMessage?.(seat, text);
+    setComposeText('');
+  }, [composeText, onAddMessage, seat]);
 
-  const handleMessageBlur = useCallback(() => {
-    if (editingMessage.trim() && onCustomMessageChange) {
-      onCustomMessageChange(editingMessage.trim());
-    }
-  }, [editingMessage, onCustomMessageChange]);
+  const handleSaveEdit = useCallback(
+    (messageId: string) => {
+      const text = editingText.trim();
+      if (!text) return;
+      onEditMessage?.(messageId, text);
+      setEditingMessageId(null);
+      setEditingText('');
+    },
+    [editingText, onEditMessage],
+  );
 
-  const handleClearMessage = useCallback(() => {
-    setEditingMessage('');
-    onClearCustomMessage?.();
-  }, [onClearCustomMessage]);
-
-  // Sync editing state when drawer opens with persisted message
-  const handleDrawerEnter = useCallback(() => {
-    setEditingMessage(customMessage);
-  }, [customMessage]);
+  const title = playerName ? `Show ${playerName}` : seat ? `Show Seat ${seat}` : 'Show Player';
 
   return (
     <>
@@ -97,132 +172,237 @@ export function PlayerShowDrawer({
         open={open}
         onClose={onClose}
         data-testid="player-show-drawer"
-        slotProps={{ transition: { onEnter: handleDrawerEnter } }}
         PaperProps={{
           sx: {
             borderTopLeftRadius: 16,
             borderTopRightRadius: 16,
-            maxHeight: '70vh',
+            maxHeight: '84vh',
             bgcolor: '#1a1a2e',
           },
         }}
       >
-        {/* Drag handle */}
         <Box sx={{ display: 'flex', justifyContent: 'center', pt: 1.5, pb: 0.5 }}>
-          <Box
-            sx={{
-              width: 40,
-              height: 4,
-              borderRadius: 2,
-              bgcolor: 'rgba(255,255,255,0.3)',
-            }}
-          />
+          <Box sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: 'rgba(255,255,255,0.3)' }} />
         </Box>
 
-        {/* Header */}
         <Box sx={{ display: 'flex', alignItems: 'center', px: 2, pb: 1 }}>
           <VisibilityIcon sx={{ color: 'rgba(255,255,255,0.7)', mr: 1 }} />
           <Typography variant="h6" sx={{ color: '#fff', flexGrow: 1, fontWeight: 700 }}>
-            Show Player
+            {title}
           </Typography>
-          <IconButton onClick={onClose} size="small" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+          <IconButton
+            aria-label="Close show drawer"
+            onClick={onClose}
+            size="small"
+            sx={{ color: 'rgba(255,255,255,0.5)' }}
+          >
             <CloseIcon />
           </IconButton>
         </Box>
 
-        <Box sx={{ px: 2, pb: 3 }}>
-          {/* Bluffs option */}
+        <Stack spacing={2} sx={{ px: 2, pb: 3, overflowY: 'auto' }}>
           {hasBluffs && (
-            <>
-              <Button
-                fullWidth
-                variant="outlined"
-                startIcon={<FullscreenIcon />}
-                onClick={handleShowBluffs}
-                data-testid="show-bluffs-btn"
-                sx={{
-                  justifyContent: 'flex-start',
-                  color: '#ff8a80',
-                  borderColor: 'rgba(255,138,128,0.3)',
-                  py: 1.5,
-                  textTransform: 'none',
-                  fontSize: '1rem',
-                  '&:hover': { borderColor: '#ff8a80', bgcolor: 'rgba(255,138,128,0.08)' },
-                }}
-              >
-                Show {bluffLabel}
-              </Button>
-              <Divider sx={{ my: 2, borderColor: 'rgba(255,255,255,0.1)' }} />
-            </>
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<FullscreenIcon />}
+              onClick={handleShowBluffs}
+              data-testid="show-bluffs-btn"
+              sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+            >
+              Show {bluffLabel}
+            </Button>
           )}
 
-          {/* Custom message section */}
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1.5 }}>
-            <MessageIcon sx={{ color: 'rgba(255,255,255,0.7)', mr: 1, fontSize: 20 }} />
-            <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 600 }}>
-              Custom Message
+          <Box>
+            <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 700, mb: 1 }}>
+              Active messages
             </Typography>
+            {activeMessages.length === 0 ? (
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                No active messages for this player.
+              </Typography>
+            ) : (
+              <Stack spacing={1}>
+                {activeMessages.map((message) => {
+                  const isPinned = message.templateId
+                    ? pinnedTemplateIds.has(message.templateId)
+                    : false;
+                  return (
+                    <Box
+                      key={message.id}
+                      data-testid="show-message-card"
+                      sx={{
+                        border: '1px solid rgba(255,255,255,0.12)',
+                        borderRadius: 2,
+                        p: 1.25,
+                        bgcolor: 'rgba(255,255,255,0.04)',
+                      }}
+                    >
+                      {editingMessageId === message.id ? (
+                        <Stack spacing={1}>
+                          <TextField
+                            value={editingText}
+                            onChange={(event) => setEditingText(event.target.value)}
+                            multiline
+                            minRows={2}
+                            size="small"
+                            inputProps={{ 'aria-label': 'Edit show message' }}
+                          />
+                          <Button
+                            variant="contained"
+                            size="small"
+                            onClick={() => handleSaveEdit(message.id)}
+                          >
+                            Save
+                          </Button>
+                        </Stack>
+                      ) : (
+                        <>
+                          <Typography sx={{ color: '#fff', mb: 1 }}>{message.text}</Typography>
+                          <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
+                            <Button size="small" onClick={() => handleShowMessage(message)}>
+                              Re-show
+                            </Button>
+                            <IconButton
+                              aria-label="Edit message"
+                              size="small"
+                              onClick={() => {
+                                setEditingMessageId(message.id);
+                                setEditingText(message.text);
+                              }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              aria-label="Clone message"
+                              size="small"
+                              onClick={() =>
+                                seat !== undefined && onAddMessage?.(seat, message.text)
+                              }
+                            >
+                              <ContentCopyIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              aria-label="Delete message"
+                              size="small"
+                              onClick={() => onDeleteMessage?.(message.id)}
+                            >
+                              <DeleteOutlineIcon fontSize="small" />
+                            </IconButton>
+                            {isPinned && message.templateId ? (
+                              <IconButton
+                                aria-label="Unpin template"
+                                size="small"
+                                onClick={() => onUnpinTemplate?.(message.templateId ?? '')}
+                              >
+                                <PushPinIcon fontSize="small" color="primary" />
+                              </IconButton>
+                            ) : (
+                              <IconButton
+                                aria-label="Pin template"
+                                size="small"
+                                onClick={() => onPinTemplate?.(message.text, 'script', scriptId)}
+                              >
+                                <PushPinIcon fontSize="small" />
+                              </IconButton>
+                            )}
+                          </Stack>
+                        </>
+                      )}
+                    </Box>
+                  );
+                })}
+              </Stack>
+            )}
           </Box>
 
-          <TextField
-            fullWidth
-            multiline
-            minRows={2}
-            maxRows={4}
-            value={editingMessage}
-            onChange={handleMessageChange}
-            onBlur={handleMessageBlur}
-            placeholder="Type a message to show this player…"
-            data-testid="custom-message-input"
-            sx={{
-              mb: 1.5,
-              '& .MuiOutlinedInput-root': {
-                color: '#fff',
-                '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
-                '&:hover fieldset': { borderColor: 'rgba(255,255,255,0.4)' },
-                '&.Mui-focused fieldset': { borderColor: '#90caf9' },
-              },
-              '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.4)' },
-            }}
-          />
+          <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
 
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <Box>
+            <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 700, mb: 1 }}>
+              Pinned templates
+            </Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              {pinnedTemplates.length === 0 ? (
+                <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.6)' }}>
+                  Pin a message to keep it here.
+                </Typography>
+              ) : (
+                pinnedTemplates.map((template) => (
+                  <Chip
+                    key={template.id}
+                    label={template.text}
+                    onClick={() => handleTemplateSelect(template)}
+                    onDelete={() => onUnpinTemplate?.(template.id)}
+                    color="primary"
+                    variant="outlined"
+                  />
+                ))
+              )}
+            </Stack>
+          </Box>
+
+          <Box>
+            <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 700, mb: 1 }}>
+              Recent templates
+            </Typography>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              {rankedTemplates.slice(0, 8).map((template) => (
+                <Chip
+                  key={template.id}
+                  label={template.text}
+                  onClick={() => handleTemplateSelect(template)}
+                  variant="outlined"
+                  sx={{ color: '#fff', borderColor: 'rgba(255,255,255,0.24)' }}
+                />
+              ))}
+            </Stack>
+          </Box>
+
+          <Divider sx={{ borderColor: 'rgba(255,255,255,0.1)' }} />
+
+          <Box>
+            <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 700, mb: 1 }}>
+              Compose
+            </Typography>
+            <TextField
+              fullWidth
+              multiline
+              minRows={2}
+              maxRows={4}
+              value={composeText}
+              onChange={(event) => setComposeText(event.target.value)}
+              placeholder="Type a message to show this player…"
+              data-testid="show-message-compose"
+              sx={{
+                mb: 1,
+                '& .MuiOutlinedInput-root': {
+                  color: '#fff',
+                  '& fieldset': { borderColor: 'rgba(255,255,255,0.2)' },
+                },
+                '& .MuiInputBase-input::placeholder': { color: 'rgba(255,255,255,0.4)' },
+              }}
+            />
             <Button
               fullWidth
               variant="contained"
-              startIcon={<FullscreenIcon />}
-              onClick={handleShowCustomMessage}
-              disabled={!editingMessage.trim()}
-              data-testid="show-custom-message-btn"
-              sx={{
-                py: 1,
-                textTransform: 'none',
-                fontSize: '0.95rem',
-              }}
+              onClick={handleAddMessage}
+              disabled={seat === undefined || !composeText.trim()}
+              data-testid="add-show-message-btn"
             >
-              Show Message
+              Add Message
             </Button>
-            {editingMessage.trim() && (
-              <IconButton
-                onClick={handleClearMessage}
-                size="small"
-                data-testid="clear-custom-message-btn"
-                sx={{ color: 'rgba(255,255,255,0.5)' }}
-              >
-                <DeleteOutlineIcon />
-              </IconButton>
-            )}
           </Box>
-        </Box>
+        </Stack>
       </Drawer>
 
-      {/* Fullscreen show screen */}
       <PlayerShowScreen
         open={showScreenOpen}
-        onClose={handleCloseShowScreen}
+        onClose={() => setShowScreenOpen(false)}
         variant={showScreenVariant}
         bluffCharacters={bluffCharacters}
-        message={editingMessage}
+        message={showMessage}
       />
     </>
   );

@@ -388,3 +388,33 @@ export interface VersionInfo {
   version: number;
   updatedAt: string;
 }
+
+// ──────────────────────────────────────────────
+// M36 Show-to-player redesign
+// ──────────────────────────────────────────────
+
+export type ShowToPlayerMessage = {
+  id: string;
+  seat: number;
+  text: string;
+  templateId?: string;
+  createdAt: string;
+  lastShownAt?: string;
+  pinned?: boolean;
+};
+
+export type ShowToPlayerTemplate = {
+  id: string;
+  text: string;
+  scope: 'script' | 'global';
+  scriptId?: string;
+  usageCount: number;
+  lastUsedAt: string;
+};
+
+export interface Game {
+  /** M36: Per-player, multi-slot messages waiting to be shown or recently shown. */
+  showMessages?: ShowToPlayerMessage[];
+  /** M36: User-pinned and recently used show-to-player templates. */
+  showTemplates?: ShowToPlayerTemplate[];
+}

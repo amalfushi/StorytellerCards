@@ -11,6 +11,8 @@ import type {
   CharacterDef,
   NightProgress,
   NightHistoryEntry,
+  ShowToPlayerMessage,
+  ShowToPlayerTemplate,
 } from '@/types/index.ts';
 import { NightFlashcard } from './NightFlashcard.tsx';
 import { StructuralCard } from './StructuralCard.tsx';
@@ -41,12 +43,23 @@ export interface FlashcardCarouselProps {
   bluffCharacters?: CharacterDef[];
   /** Per-player bluffs keyed by seat number (as string). */
   playerBluffs?: Record<string, string[]>;
-  /** Custom player messages keyed by characterId. */
-  customPlayerMessages?: Record<string, string>;
-  /** Callback when a custom player message is saved. */
-  onCustomMessageChange?: (characterId: string, message: string) => void;
-  /** Callback when a custom player message is cleared. */
-  onClearCustomMessage?: (characterId: string) => void;
+  /** Current game script id for template recall. */
+  scriptId?: string;
+  /** M36 per-player show-to-player messages. */
+  showMessages?: ShowToPlayerMessage[];
+  /** M36 show-to-player template library. */
+  showTemplates?: ShowToPlayerTemplate[];
+  onAddShowMessage?: (seat: number, text: string, templateId?: string) => void;
+  onMarkShowMessageShown?: (messageId: string) => void;
+  onEditShowMessage?: (messageId: string, text: string) => void;
+  onDeleteShowMessage?: (messageId: string) => void;
+  onPinShowTemplate?: (
+    text: string,
+    scope: ShowToPlayerTemplate['scope'],
+    scriptId?: string,
+  ) => void;
+  onUnpinShowTemplate?: (templateId: string) => void;
+  onBumpTemplateUsage?: (templateId: string) => void;
 }
 
 /**
@@ -72,9 +85,16 @@ export function FlashcardCarousel({
   onReminderTokenClick,
   bluffCharacters,
   playerBluffs,
-  customPlayerMessages,
-  onCustomMessageChange,
-  onClearCustomMessage,
+  scriptId = 'carousel',
+  showMessages = [],
+  showTemplates = [],
+  onAddShowMessage,
+  onMarkShowMessageShown,
+  onEditShowMessage,
+  onDeleteShowMessage,
+  onPinShowTemplate,
+  onUnpinShowTemplate,
+  onBumpTemplateUsage,
 }: FlashcardCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(nightProgress.currentCardIndex);
   const [slideDir, setSlideDir] = useState<'none' | 'left' | 'right'>('none');
@@ -383,19 +403,20 @@ export function FlashcardCarousel({
       <PlayerShowDrawer
         open={showDrawerOpen}
         onClose={() => setShowDrawerOpen(false)}
+        seat={currentPlayer?.seat}
+        playerName={currentPlayer?.playerName}
+        scriptId={scriptId}
+        messages={showMessages}
+        templates={showTemplates}
         bluffCharacters={currentBluffChars}
         bluffLabel={currentBluffLabel}
-        customMessage={customPlayerMessages?.[currentEntry?.id ?? '']}
-        onCustomMessageChange={
-          onCustomMessageChange && currentEntry
-            ? (msg) => onCustomMessageChange(currentEntry.id, msg)
-            : undefined
-        }
-        onClearCustomMessage={
-          onClearCustomMessage && currentEntry
-            ? () => onClearCustomMessage(currentEntry.id)
-            : undefined
-        }
+        onAddMessage={onAddShowMessage}
+        onMarkMessageShown={onMarkShowMessageShown}
+        onEditMessage={onEditShowMessage}
+        onDeleteMessage={onDeleteShowMessage}
+        onPinTemplate={onPinShowTemplate}
+        onUnpinTemplate={onUnpinShowTemplate}
+        onBumpTemplateUsage={onBumpTemplateUsage}
       />
 
       {/* Complete Night button — shown on last card */}

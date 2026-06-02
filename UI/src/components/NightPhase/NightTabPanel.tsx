@@ -35,8 +35,13 @@ export function NightTabPanel({
     updateNightProgress,
     completeNight,
     setNightCardIndex,
-    setCustomPlayerMessage,
-    clearCustomPlayerMessage,
+    addShowMessage,
+    markShowMessageShown,
+    editShowMessage,
+    deleteShowMessage,
+    pinShowTemplate,
+    unpinShowTemplate,
+    bumpTemplateUsage,
   } = useGame();
   const { nightProgress } = state;
   const game = state.game;
@@ -141,9 +146,34 @@ export function NightTabPanel({
         onReminderTokenClick={onReminderTokenClick}
         bluffCharacters={bluffCharacters}
         playerBluffs={game?.playerBluffs}
-        customPlayerMessages={game?.customPlayerMessages}
-        onCustomMessageChange={setCustomPlayerMessage}
-        onClearCustomMessage={clearCustomPlayerMessage}
+        scriptId={game?.scriptId}
+        showMessages={game?.showMessages}
+        showTemplates={game?.showTemplates}
+        onAddShowMessage={
+          game
+            ? (seat, text, templateId) => addShowMessage(game.id, seat, text, templateId)
+            : undefined
+        }
+        onMarkShowMessageShown={
+          game ? (messageId) => markShowMessageShown(game.id, messageId) : undefined
+        }
+        onEditShowMessage={
+          game ? (messageId, text) => editShowMessage(game.id, messageId, text) : undefined
+        }
+        onDeleteShowMessage={
+          game ? (messageId) => deleteShowMessage(game.id, messageId) : undefined
+        }
+        onPinShowTemplate={
+          game
+            ? (text, scope, scriptId) => pinShowTemplate(game.id, text, scope, scriptId)
+            : undefined
+        }
+        onUnpinShowTemplate={
+          game ? (templateId) => unpinShowTemplate(game.id, templateId) : undefined
+        }
+        onBumpTemplateUsage={
+          game ? (templateId) => bumpTemplateUsage(game.id, templateId) : undefined
+        }
       />
     </Box>
   );

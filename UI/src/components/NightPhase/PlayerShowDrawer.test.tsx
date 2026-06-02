@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { describe, expect, it, vi } from 'vitest';
+import { fireEvent, render, screen } from '@testing-library/react';
 import { PlayerShowDrawer } from '@/components/NightPhase/PlayerShowDrawer.tsx';
-import type { CharacterDef } from '@/types/index.ts';
+import type { CharacterDef, ShowToPlayerMessage, ShowToPlayerTemplate } from '@/types/index.ts';
 
 const makeChar = (overrides: Partial<CharacterDef> = {}): CharacterDef => ({
   id: 'washerwoman',
@@ -15,124 +15,131 @@ const makeChar = (overrides: Partial<CharacterDef> = {}): CharacterDef => ({
   ...overrides,
 });
 
+const makeMessage = (overrides: Partial<ShowToPlayerMessage> = {}): ShowToPlayerMessage => ({
+  id: 'message-1',
+  seat: 1,
+  text: 'Open your eyes',
+  createdAt: '2026-06-01T00:00:00.000Z',
+  ...overrides,
+});
+
+const makeTemplate = (overrides: Partial<ShowToPlayerTemplate> = {}): ShowToPlayerTemplate => ({
+  id: 'template-1',
+  text: 'Choose a player by pointing',
+  scope: 'script',
+  scriptId: 'carousel',
+  usageCount: 2,
+  lastUsedAt: '2026-06-01T00:00:00.000Z',
+  ...overrides,
+});
+
 const bluffCharacters: CharacterDef[] = [
   makeChar({ id: 'washerwoman', name: 'Washerwoman', type: 'Townsfolk' }),
   makeChar({ id: 'empath', name: 'Empath', type: 'Townsfolk' }),
   makeChar({ id: 'butler', name: 'Butler', type: 'Outsider' }),
 ];
 
-const defaultProps = {
-  open: true,
-  onClose: vi.fn(),
-};
-
 describe('PlayerShowDrawer', () => {
-  it('renders the drawer with Show Player header', () => {
-    render(<PlayerShowDrawer {...defaultProps} />);
-    expect(screen.getByText('Show Player')).toBeInTheDocument();
-  });
-
-  it('shows custom message section', () => {
-    render(<PlayerShowDrawer {...defaultProps} />);
-    expect(screen.getByText('Custom Message')).toBeInTheDocument();
-    expect(screen.getByTestId('custom-message-input')).toBeInTheDocument();
-  });
-
-  it('shows bluffs button when bluffCharacters are provided', () => {
+  it('renders multiple active messages for one player', () => {
     render(
       <PlayerShowDrawer
-        {...defaultProps}
-        bluffCharacters={bluffCharacters}
-        bluffLabel="Demon Bluffs"
+        open
+        onClose={vi.fn()}
+        seat={1}
+        messages={[makeMessage(), makeMessage({ id: 'message-2', text: 'Go to the basement' })]}
       />,
     );
-    expect(screen.getByTestId('show-bluffs-btn')).toBeInTheDocument();
-    expect(screen.getByText('Show Demon Bluffs')).toBeInTheDocument();
+
+    expect(screen.getByText('Open your eyes')).toBeInTheDocument();
+    expect(screen.getByText('Go to the basement')).toBeInTheDocument();
   });
 
-  it('does not show bluffs button when no bluffCharacters', () => {
-    render(<PlayerShowDrawer {...defaultProps} />);
-    expect(screen.queryByTestId('show-bluffs-btn')).not.toBeInTheDocument();
+  it('creates a new message from the compose box', () => {
+    const onAddMessage = vi.fn();
+    render(<PlayerShowDrawer open onClose={vi.fn()} seat={1} onAddMessage={onAddMessage} />);
+
+    fireEvent.change(screen.getByTestId('show-message-compose').querySelector('textarea')!, {
+      target: { value: 'Quietly stand up' },
+    });
+    fireEvent.click(screen.getByTestId('add-show-message-btn'));
+
+    expect(onAddMessage).toHaveBeenCalledWith(1, 'Quietly stand up');
   });
 
-  it('uses custom bluff label', () => {
+  it('pins an active message as a template', () => {
+    const onPinTemplate = vi.fn();
     render(
       <PlayerShowDrawer
-        {...defaultProps}
-        bluffCharacters={bluffCharacters}
-        bluffLabel="Lunatic Bluffs"
+        open
+        onClose={vi.fn()}
+        seat={1}
+        scriptId="carousel"
+        messages={[makeMessage({ text: 'Go to the basement' })]}
+        onPinTemplate={onPinTemplate}
       />,
     );
-    expect(screen.getByText('Show Lunatic Bluffs')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByLabelText('Pin template'));
+
+    expect(onPinTemplate).toHaveBeenCalledWith('Go to the basement', 'script', 'carousel');
   });
 
-  it('shows the custom message show button disabled when input is empty', () => {
-    render(<PlayerShowDrawer {...defaultProps} />);
-    expect(screen.getByTestId('show-custom-message-btn')).toBeDisabled();
-  });
-
-  it('enables show button when custom message is typed', () => {
-    render(<PlayerShowDrawer {...defaultProps} />);
-    const input = screen.getByTestId('custom-message-input').querySelector('textarea')!;
-    fireEvent.change(input, { target: { value: 'Hello player' } });
-    expect(screen.getByTestId('show-custom-message-btn')).not.toBeDisabled();
-  });
-
-  it('shows clear button when message has content', () => {
-    render(<PlayerShowDrawer {...defaultProps} customMessage="Existing message" />);
-    expect(screen.getByTestId('clear-custom-message-btn')).toBeInTheDocument();
-  });
-
-  it('does not show clear button when message is empty', () => {
-    render(<PlayerShowDrawer {...defaultProps} />);
-    expect(screen.queryByTestId('clear-custom-message-btn')).not.toBeInTheDocument();
-  });
-
-  it('calls onClearCustomMessage when clear is clicked', () => {
-    const onClear = vi.fn();
+  it('adds and shows a recent template when tapped', () => {
+    const onAddMessage = vi.fn();
+    const onBumpTemplateUsage = vi.fn();
     render(
       <PlayerShowDrawer
-        {...defaultProps}
-        customMessage="Some message"
-        onClearCustomMessage={onClear}
+        open
+        onClose={vi.fn()}
+        seat={1}
+        scriptId="carousel"
+        templates={[makeTemplate()]}
+        onAddMessage={onAddMessage}
+        onBumpTemplateUsage={onBumpTemplateUsage}
       />,
     );
-    fireEvent.click(screen.getByTestId('clear-custom-message-btn'));
-    expect(onClear).toHaveBeenCalledTimes(1);
-  });
 
-  it('pre-fills custom message from prop', () => {
-    render(<PlayerShowDrawer {...defaultProps} customMessage="Pre-filled message" />);
-    const input = screen.getByTestId('custom-message-input').querySelector('textarea')!;
-    expect(input).toHaveValue('Pre-filled message');
-  });
+    fireEvent.click(screen.getAllByText('Choose a player by pointing')[0]);
 
-  it('calls onClose when close icon is clicked', () => {
-    const onClose = vi.fn();
-    render(<PlayerShowDrawer open={true} onClose={onClose} />);
-    // The drawer has a small CloseIcon button in the header
-    const closeButtons = screen.getAllByRole('button');
-    // The last icon button with CloseIcon is the header close
-    const headerClose = closeButtons.find((btn) => btn.querySelector('[data-testid="CloseIcon"]'));
-    expect(headerClose).toBeDefined();
-    fireEvent.click(headerClose!);
-    expect(onClose).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not render when open is false', () => {
-    render(<PlayerShowDrawer open={false} onClose={vi.fn()} />);
-    expect(screen.queryByText('Show Player')).not.toBeInTheDocument();
+    expect(onAddMessage).toHaveBeenCalledWith(1, 'Choose a player by pointing', 'template-1');
+    expect(onBumpTemplateUsage).toHaveBeenCalledWith('template-1');
+    expect(screen.getByTestId('player-show-screen')).toBeInTheDocument();
   });
 
   it('opens fullscreen show screen when Show Bluffs is clicked', () => {
     render(
       <PlayerShowDrawer
-        {...defaultProps}
+        open
+        onClose={vi.fn()}
+        seat={1}
         bluffCharacters={bluffCharacters}
         bluffLabel="Demon Bluffs"
       />,
     );
+
     fireEvent.click(screen.getByTestId('show-bluffs-btn'));
+
     expect(screen.getByText('Your bluffs are:')).toBeInTheDocument();
+  });
+
+  it('auto-clones the last shown message when no active message exists', () => {
+    const onAddMessage = vi.fn();
+    render(
+      <PlayerShowDrawer
+        open
+        onClose={vi.fn()}
+        seat={1}
+        messages={[
+          makeMessage({
+            id: 'shown-message',
+            text: 'Previously shown',
+            lastShownAt: '2026-06-01T01:00:00.000Z',
+          }),
+        ]}
+        onAddMessage={onAddMessage}
+      />,
+    );
+
+    expect(onAddMessage).toHaveBeenCalledWith(1, 'Previously shown', undefined);
   });
 });

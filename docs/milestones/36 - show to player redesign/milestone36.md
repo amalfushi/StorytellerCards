@@ -1,6 +1,15 @@
 # Milestone 36 — Show-to-Player Workflow Redesign
 
-## Status: 📋 Planned
+## Status: ✅ Complete
+
+Completed: 2026-06-01
+
+### What shipped
+
+- Added per-player multi-slot show-to-player messages and a pinned/recent template library.
+- Rebuilt `PlayerShowDrawer` with stacked active messages, compose, edit, clone, delete, pin/unpin, re-show, and one-tap template recall.
+- Added migration from existing per-character custom messages when the character is currently seated; no separate legacy schema beyond `customPlayerMessages` exists in `PlayerShowDrawer.tsx`.
+- Added Town Square active-message count badges, seeded script templates, sorting heuristics, unit coverage, and a Storybook interaction story.
 
 ### Summary
 
@@ -20,13 +29,13 @@ Feedback from the live "Whose Cult Is It Anyway?" game:
 
 ### Concrete gaps in the current implementation (`PlayerShowDrawer.tsx`)
 
-| Gap | Today | Needed |
-|---|---|---|
-| Storage key | One persisted custom message **per character** | Per **player**, with multiple concurrent slots |
-| Multi-message per night | Only one message per player per night | N messages per player per night |
-| Template recall | None — every message is from-scratch | Per-script template library + global "recent" history; one-tap recall |
-| Re-show | Drawer auto-saves on blur; previously-used messages are not surfaced | Tapping a previous template re-shows without retyping |
-| Edit/clone | Hidden behind blur save | Explicit edit / clone / pin / delete |
+| Gap                     | Today                                                                | Needed                                                                |
+| ----------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Storage key             | One persisted custom message **per character**                       | Per **player**, with multiple concurrent slots                        |
+| Multi-message per night | Only one message per player per night                                | N messages per player per night                                       |
+| Template recall         | None — every message is from-scratch                                 | Per-script template library + global "recent" history; one-tap recall |
+| Re-show                 | Drawer auto-saves on blur; previously-used messages are not surfaced | Tapping a previous template re-shows without retyping                 |
+| Edit/clone              | Hidden behind blur save                                              | Explicit edit / clone / pin / delete                                  |
 
 ---
 
@@ -80,14 +89,14 @@ showTemplates?: ShowToPlayerTemplate[];
 
 ## 3. Task List (preliminary — refined at M36 planning)
 
-- [ ] Data model: append `showMessages`, `showTemplates` to game state in `types/index.ts` and reducer actions in `GameContext.tsx` (append-only per AGENTS.md conflict avoidance)
-- [ ] Migration: convert existing per-character custom messages into seeded per-player slots on first load
-- [ ] `PlayerShowDrawer` rewrite: multi-slot list, template recall, compose box
-- [ ] Template management UI: pin, unpin, edit, delete
-- [ ] TownSquare seat badge for active-message count
-- [ ] Quick-recall heuristics (this-game / this-script / global recency)
-- [ ] Tests (unit + Storybook play() interactions per AGENTS.md testing policy)
-- [ ] Documentation: this `milestone36.md` updated, `docs/progress.md` row, `AGENTS.md` stats if test count changes
+- [x] Data model: append `showMessages`, `showTemplates` to game state in `types/index.ts` and reducer actions in `GameContext.tsx` (append-only per AGENTS.md conflict avoidance)
+- [x] Migration: convert existing per-character custom messages into seeded per-player slots on first load
+- [x] `PlayerShowDrawer` rewrite: multi-slot list, template recall, compose box
+- [x] Template management UI: pin, unpin, edit, delete
+- [x] TownSquare seat badge for active-message count
+- [x] Quick-recall heuristics (this-game / this-script / global recency)
+- [x] Tests (unit + Storybook play() interactions per AGENTS.md testing policy)
+- [x] Documentation: this `milestone36.md` updated, `docs/progress.md` row, `AGENTS.md` stats if test count changes
 
 ---
 
@@ -95,21 +104,23 @@ showTemplates?: ShowToPlayerTemplate[];
 
 ### New files
 
-| File | Purpose |
-|---|---|
-| `UI/src/components/NightPhase/TemplatePickerSection.tsx` | Recent + pinned template chip list |
-| `UI/src/data/showToPlayerTemplates.ts` | Seeded common-template list per script |
+| File                                                        | Purpose                                        |
+| ----------------------------------------------------------- | ---------------------------------------------- |
+| `UI/src/data/showToPlayerTemplates.ts`                      | Seeded common-template list per script         |
+| `UI/src/data/showToPlayerTemplates.test.ts`                 | Seed and quick-recall ranking coverage         |
+| `UI/src/components/NightPhase/PlayerShowDrawer.stories.tsx` | Multi-slot workflow Storybook play interaction |
 
 ### Modified files
 
-| File | Change |
-|---|---|
-| `UI/src/types/index.ts` | Append message + template types and `Game` fields |
-| `UI/src/context/GameContext.tsx` | New reducer actions (append-only at end of switch) |
-| `UI/src/components/NightPhase/PlayerShowDrawer.tsx` | Multi-slot rewrite |
-| `UI/src/components/TownSquare/PlayerSeat.tsx` | Active-message count badge |
-| `docs/progress.md` | Append M36 row |
-| `AGENTS.md` | Test-count refresh if changed |
+| File                                                     | Change                                             |
+| -------------------------------------------------------- | -------------------------------------------------- |
+| `UI/src/types/index.ts`                                  | Append message + template types and `Game` fields  |
+| `UI/src/context/GameContext.tsx`                         | New reducer actions (append-only at end of switch) |
+| `UI/src/components/NightPhase/PlayerShowDrawer.tsx`      | Multi-slot rewrite                                 |
+| `UI/src/components/NightPhase/PlayerShowDrawer.test.tsx` | Multi-slot drawer interaction coverage             |
+| `UI/src/components/TownSquare/TownSquareTab.tsx`         | Active-message count badge                         |
+| `docs/progress.md`                                       | Append M36 row                                     |
+| `AGENTS.md`                                              | Test-count refresh if changed                      |
 
 ---
 
@@ -123,8 +134,8 @@ showTemplates?: ShowToPlayerTemplate[];
 
 ## 6. Acceptance Criteria (preliminary)
 
-- [ ] A storyteller can show 3 different messages to the same player in the same night without retyping
-- [ ] A message used last game on the same script is one tap away
-- [ ] A pinned template is one tap away in every game
-- [ ] All existing per-character messages remain accessible after the migration
-- [ ] Full test suite passes; no new lint suppressions per AGENTS.md
+- [x] A storyteller can show 3 different messages to the same player in the same night without retyping
+- [x] A message used last game on the same script is one tap away
+- [x] A pinned template is one tap away in every game
+- [x] All existing per-character messages remain accessible after the migration
+- [x] Full test suite passes; no new lint suppressions per AGENTS.md

@@ -18,20 +18,20 @@ The `install:all` script (defined in the root [`package.json`](package.json)) ru
 
 ## Project Overview
 
-**Storyteller Cards** is a mobile-first React + Go application that helps *Blood on the Clocktower* Storytellers manage games. The core feature is **Night Phase Flashcards** — swipeable cards that guide the Storyteller through each character's night action in the correct order.
+**Storyteller Cards** is a mobile-first React + Go application that helps _Blood on the Clocktower_ Storytellers manage games. The core feature is **Night Phase Flashcards** — swipeable cards that guide the Storyteller through each character's night action in the correct order.
 
 The app manages a hierarchy: **Sessions** (containers) → **Games** → **Players with Characters from Scripts**.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| UI | React 19 + TypeScript + Vite 6 + MUI Core (free tier) |
-| State | React Context + `useReducer` + `localStorage` (primary), Go API (secondary sync) |
-| Testing | Vitest (3998 tests across 78 files), Storybook 8 (~99+ stories with `play()` interaction tests), Playwright E2E (2 spec files) |
-| Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests + coverage) |
-| API | Go + Chi router, JSON file storage, 90-day auto-cleanup |
-| PWA | `manifest.json`, icons, mobile meta tags |
+| Layer        | Technology                                                                                                                      |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| UI           | React 19 + TypeScript + Vite 6 + MUI Core (free tier)                                                                           |
+| State        | React Context + `useReducer` + `localStorage` (primary), Go API (secondary sync)                                                |
+| Testing      | Vitest (4028 tests across 80 files), Storybook 8 (~100+ stories with `play()` interaction tests), Playwright E2E (2 spec files) |
+| Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests + coverage)                                            |
+| API          | Go + Chi router, JSON file storage, 90-day auto-cleanup                                                                         |
+| PWA          | `manifest.json`, icons, mobile meta tags                                                                                        |
 
 ## How to Run
 
@@ -62,15 +62,15 @@ cd UI && npm run storybook  # Storybook (localhost:6006)
 
 ## Color Scheme
 
-| Type | Color | Hex |
-|------|-------|-----|
-| Townsfolk | Blue | `#1976d2` |
-| Outsider | Light Blue | `#42a5f5` |
-| Minion | Red | `#d32f2f` |
-| Demon | Dark Red | `#b71c1c` |
-| Traveller | Split blue/red | `#1976d2` (good) / `#d32f2f` (evil) |
-| Fabled | Orange-gold gradient | `#ff9800` → `#ffd54f` |
-| Loric | Mossy green | `#558b2f` |
+| Type      | Color                | Hex                                 |
+| --------- | -------------------- | ----------------------------------- |
+| Townsfolk | Blue                 | `#1976d2`                           |
+| Outsider  | Light Blue           | `#42a5f5`                           |
+| Minion    | Red                  | `#d32f2f`                           |
+| Demon     | Dark Red             | `#b71c1c`                           |
+| Traveller | Split blue/red       | `#1976d2` (good) / `#d32f2f` (evil) |
+| Fabled    | Orange-gold gradient | `#ff9800` → `#ffd54f`               |
+| Loric     | Mossy green          | `#558b2f`                           |
 
 See [`characterTypeColor.ts`](UI/src/components/common/characterTypeColor.ts) for the implementation.
 
@@ -97,29 +97,32 @@ This applies to all files in all languages across the entire repository.
 
 ## Key Files to Read First
 
-| File | Purpose |
-|------|---------|
-| [`docs/milestones/1 - initial app setup/architecture-plan.md`](docs/milestones/1 - initial app setup/architecture-plan.md) | Full architecture design |
-| [`UI/src/types/index.ts`](UI/src/types/index.ts) | All TypeScript types |
-| [`UI/src/context/GameContext.tsx`](UI/src/context/GameContext.tsx) | Game state management |
-| [`UI/src/context/SessionContext.tsx`](UI/src/context/SessionContext.tsx) | Session state management |
-| [`UI/src/data/characters/index.ts`](UI/src/data/characters/index.ts) | Character registry barrel (179 characters) |
-| [`UI/src/data/characters/_nightOrder.ts`](UI/src/data/characters/_nightOrder.ts) | Night order derivation + structural entries |
-| [`docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md`](docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md) | Current pending feedback items |
+| File                                                                                                                                                                                 | Purpose                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| [`docs/milestones/1 - initial app setup/architecture-plan.md`](docs/milestones/1 - initial app setup/architecture-plan.md)                                                           | Full architecture design                    |
+| [`UI/src/types/index.ts`](UI/src/types/index.ts)                                                                                                                                     | All TypeScript types                        |
+| [`UI/src/context/GameContext.tsx`](UI/src/context/GameContext.tsx)                                                                                                                   | Game state management                       |
+| [`UI/src/context/SessionContext.tsx`](UI/src/context/SessionContext.tsx)                                                                                                             | Session state management                    |
+| [`UI/src/data/characters/index.ts`](UI/src/data/characters/index.ts)                                                                                                                 | Character registry barrel (179 characters)  |
+| [`UI/src/data/characters/_nightOrder.ts`](UI/src/data/characters/_nightOrder.ts)                                                                                                     | Night order derivation + structural entries |
+| [`docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md`](docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md) | Current pending feedback items              |
 
 ## Testing Requirements
 
 ### Policy: Every File Gets Tests
+
 - Every new `.ts` or `.tsx` file must have a corresponding `.test.ts` or `.test.tsx` file with meaningful tests
 - Every milestone must include tests for its changes, or confirm existing tests cover the changes
 - Run `cd UI && npm test` before completing any code task — all tests must pass
 
 ### Exceptions
+
 - Individual character data files in `UI/src/data/characters/` — covered by the structural validation test in [`characterData.test.ts`](UI/src/data/characters/characterData.test.ts) which auto-validates all characters
 - Pure re-export barrel files (e.g., `index.ts` that only re-exports)
 - Character `setupModification`/`storytellerSetup` behavior tests — deferred until those fields have game-state actions
 
 ### Test Patterns
+
 - **Unit tests**: `vitest` with `jsdom` environment, `@testing-library/react` for components
 - **Factory helpers**: Create `make*()` functions for test data (see existing tests for patterns)
 - **Context testing**: Use `renderHook()` with Provider wrapper for hook/context tests
@@ -127,24 +130,26 @@ This applies to all files in all languages across the entire repository.
 - **Character validation**: The structural validation test in `characterData.test.ts` dynamically validates all characters — adding new characters automatically includes them
 
 ### Storybook Requirements
+
 - Visual components must have Storybook stories (`.stories.tsx`)
 - Interactive components should have `play()` interaction tests in stories
 - Use responsive viewport variants for layout-critical components
 - Stories should have JSDoc comments explaining each scenario
 
 ### Running Tests
-| Command | Purpose |
-|---------|---------|
-| `cd UI && npm test` | Run all tests (fast, no coverage) |
-| `cd UI && npm run test:watch` | Watch mode (development) |
+
+| Command                          | Purpose                                                     |
+| -------------------------------- | ----------------------------------------------------------- |
+| `cd UI && npm test`              | Run all tests (fast, no coverage)                           |
+| `cd UI && npm run test:watch`    | Watch mode (development)                                    |
 | `cd UI && npm run test:coverage` | Run with coverage report + threshold enforcement (pre-push) |
-| `cd UI && npx tsc --noEmit` | TypeScript compilation check (0 errors required) |
-| `cd UI && npx eslint .` | Lint check (0 errors required) |
-| `cd UI && npx storybook dev` | Run Storybook for visual testing |
-| `npm run test:e2e` | Playwright E2E — game lifecycle tests |
-| `npm run test:e2e:sync` | Playwright E2E — cross-device sync tests |
-| `npm run test:e2e:all` | Playwright E2E — all E2E tests |
-| `npm run test:integration` | Go roundtrip + all Playwright E2E tests |
+| `cd UI && npx tsc --noEmit`      | TypeScript compilation check (0 errors required)            |
+| `cd UI && npx eslint .`          | Lint check (0 errors required)                              |
+| `cd UI && npx storybook dev`     | Run Storybook for visual testing                            |
+| `npm run test:e2e`               | Playwright E2E — game lifecycle tests                       |
+| `npm run test:e2e:sync`          | Playwright E2E — cross-device sync tests                    |
+| `npm run test:e2e:all`           | Playwright E2E — all E2E tests                              |
+| `npm run test:integration`       | Go roundtrip + all Playwright E2E tests                     |
 
 ### Development Checklist
 
@@ -154,13 +159,13 @@ Before completing any code task, agents **MUST** ensure all quality checks pass.
 
 These run automatically and will block your commit/push if they fail:
 
-| Hook | What It Does | When |
-|------|-------------|------|
-| **Pre-commit** | `lint-staged` (ESLint fix + Prettier on staged `.ts`/`.tsx` files) | Every `git commit` |
-| **Pre-commit** | `tsc --noEmit` (TypeScript compilation check) | Every `git commit` with UI changes |
-| **Pre-commit** | `go vet` | Every `git commit` with API changes |
-| **Pre-push** | `npm run test:coverage` (all tests + coverage threshold enforcement) | Every `git push` |
-| **Pre-push** | Auto-commits `coverage-summary.json` if changed | Every `git push` |
+| Hook           | What It Does                                                         | When                                |
+| -------------- | -------------------------------------------------------------------- | ----------------------------------- |
+| **Pre-commit** | `lint-staged` (ESLint fix + Prettier on staged `.ts`/`.tsx` files)   | Every `git commit`                  |
+| **Pre-commit** | `tsc --noEmit` (TypeScript compilation check)                        | Every `git commit` with UI changes  |
+| **Pre-commit** | `go vet`                                                             | Every `git commit` with API changes |
+| **Pre-push**   | `npm run test:coverage` (all tests + coverage threshold enforcement) | Every `git push`                    |
+| **Pre-push**   | Auto-commits `coverage-summary.json` if changed                      | Every `git push`                    |
 
 > ❌ Do **not** manually run `npm run test:coverage` — the pre-push hook does this.
 > ❌ Do **not** manually commit `coverage-summary.json` — the pre-push hook auto-commits it.
@@ -186,7 +191,9 @@ Before marking any milestone complete, agents **MUST** verify all of the followi
 - [ ] All documentation updates are in the **same commit/PR** as the milestone work
 
 ### Coverage Thresholds
+
 Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
+
 - Statements: 77% (baseline: 82.87%)
 - Branches: 74% (baseline: 79.95%)
 - Functions: 69% (baseline: 74.08%)
@@ -194,9 +201,10 @@ Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
 
 See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 
-### Current Test Stats (as of M34 integration testing complete)
-- **3998 tests** across **78 test files** — all passing
-- **19 story files** with **~99+ stories** including `play()` interaction tests
+### Current Test Stats (as of M36 show-to-player redesign complete)
+
+- **4028 tests** across **80 test files** — all passing
+- **20 story files** with **~100+ stories** including `play()` interaction tests
 - **0 TypeScript errors**, **0 ESLint errors**
 - **Playwright E2E**: 2 spec files (game-lifecycle, cross-device-sync)
 
@@ -273,11 +281,11 @@ npm run install:all    # MANDATORY — worktrees start without node_modules
 
 ### Branch Naming Convention
 
-| Type | Pattern | Example |
-|------|---------|---------|
-| Milestone work | `m<N>/<kebab-case-description>` | `m18/traveller-fabled-loric` |
-| Docs-only changes | `docs/<description>` | `docs/update-progress` |
-| Bug fixes | `fix/<description>` | `fix/night-card-index` |
+| Type              | Pattern                         | Example                      |
+| ----------------- | ------------------------------- | ---------------------------- |
+| Milestone work    | `m<N>/<kebab-case-description>` | `m18/traveller-fabled-loric` |
+| Docs-only changes | `docs/<description>`            | `docs/update-progress`       |
+| Bug fixes         | `fix/<description>`             | `fix/night-card-index`       |
 
 ### PR Workflow
 
@@ -306,14 +314,14 @@ When multiple agents work in parallel, merge conflicts are inevitable on certain
 
 These files are commonly touched by every milestone and are the primary source of merge conflicts:
 
-| File | Why It Conflicts | Mitigation |
-|------|-----------------|------------|
-| `AGENTS.md` | Test stats, coverage thresholds updated per milestone | Update stats in a single block at the end; keep changes minimal |
-| `docs/progress.md` | Milestone status table | Only update your milestone's row + verification section |
-| `UI/src/types/index.ts` | New types added per milestone | **Append new types at the end of the file** — never insert in the middle |
-| `UI/src/context/GameContext.tsx` | New reducer actions per milestone | **Add new actions at the end of the switch statement** |
-| `UI/src/pages/GameViewPage.tsx` | Top-level orchestrator, new tabs/views | Coordinate with other agents if touching this file |
-| `UI/coverage/coverage-summary.json` | Auto-generated on every push | Small file (~6 lines), rarely conflicts |
+| File                                | Why It Conflicts                                      | Mitigation                                                               |
+| ----------------------------------- | ----------------------------------------------------- | ------------------------------------------------------------------------ |
+| `AGENTS.md`                         | Test stats, coverage thresholds updated per milestone | Update stats in a single block at the end; keep changes minimal          |
+| `docs/progress.md`                  | Milestone status table                                | Only update your milestone's row + verification section                  |
+| `UI/src/types/index.ts`             | New types added per milestone                         | **Append new types at the end of the file** — never insert in the middle |
+| `UI/src/context/GameContext.tsx`    | New reducer actions per milestone                     | **Add new actions at the end of the switch statement**                   |
+| `UI/src/pages/GameViewPage.tsx`     | Top-level orchestrator, new tabs/views                | Coordinate with other agents if touching this file                       |
+| `UI/coverage/coverage-summary.json` | Auto-generated on every push                          | Small file (~6 lines), rarely conflicts                                  |
 
 ### Milestone-Level Documentation Strategy
 
