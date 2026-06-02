@@ -12,6 +12,10 @@ import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import List from '@mui/material/List';
+import ListItemButton from '@mui/material/ListItemButton';
+import ListItemText from '@mui/material/ListItemText';
+import Popover from '@mui/material/Popover';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
@@ -22,9 +26,9 @@ import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
-import type { Game, Phase, Script } from '@/types/index.ts';
-import { useSession } from '@/context/SessionContext.tsx';
-import { useGame } from '@/context/GameContext.tsx';
+import type { Game, Phase, PlayerToken, Script } from '@/types/index.ts';
+import { useSession } from '@/context/useSession.ts';
+import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { useNightOrder } from '@/hooks/useNightOrder.ts';
 import { useApiSync } from '@/hooks/useApiSync.ts';
@@ -72,6 +76,7 @@ export function GameViewPage() {
     setLunaticBluffs,
     setPlayerBluffs,
     swapPlayerSeats,
+    addToken,
   } = useGame();
   const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
 
@@ -85,6 +90,10 @@ export function GameViewPage() {
   const [reseatOpen, setReseatOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
   const [addPlayerOpen, setAddPlayerOpen] = useState(false);
+  const [reminderPicker, setReminderPicker] = useState<{
+    anchorEl: HTMLElement;
+    token: PlayerToken;
+  } | null>(null);
 
   // ── Day timer (lifted here so state survives tab switches) ──
   const dayTimer = useTimer();
@@ -212,7 +221,13 @@ export function GameViewPage() {
   // Build night order entries for the NightTabPanel
   const isFirstNight = game?.isFirstNight ?? true;
   const players = useMemo(() => game?.players ?? [], [game?.players]);
-  const nightEntries = useNightOrder(scriptCharacterIds, isFirstNight, players);
+  const nightEntries = useNightOrder(
+    scriptCharacterIds,
+    isFirstNight,
+    players,
+    game?.activeLoric ?? [],
+    game?.activeFabled ?? [],
+  );
 
   // Check if characters need to be assigned (all non-traveller players have empty characterId)
   const needsCharacterAssignment = useMemo(() => {
@@ -337,11 +352,23 @@ export function GameViewPage() {
     setViewMode('day');
   }, []);
 
-  // Phase 2: Reminder token click — switch to Day view (TownSquare tab)
-  const handleReminderTokenClick = useCallback(() => {
-    setViewMode('day');
-    setTabIndex(0);
-  }, []);
+  // M35: Reminder token click opens an inline picker in night view.
+  const handleReminderTokenClick = useCallback(
+    (token: PlayerToken, event: React.MouseEvent<HTMLElement>) => {
+      setReminderPicker({ anchorEl: event.currentTarget, token });
+    },
+    [],
+  );
+
+  const handleReminderSeatSelect = useCallback(
+    (seat: number) => {
+      if (reminderPicker) {
+        addToken(seat, reminderPicker.token);
+      }
+      setReminderPicker(null);
+    },
+    [addToken, reminderPicker],
+  );
 
   if (loading) {
     return <LoadingState message="Loading game data…" />;
@@ -637,6 +664,26 @@ export function GameViewPage() {
         onClose={() => setReseatOpen(false)}
         onConfirmSwap={swapPlayerSeats}
       />
+
+      <Popover
+        open={!!reminderPicker}
+        anchorEl={reminderPicker?.anchorEl}
+        onClose={() => setReminderPicker(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+      >
+        <List dense sx={{ minWidth: 220 }} data-testid="reminder-player-picker">
+          {players.map((player) => (
+            <ListItemButton
+              key={player.seat}
+              selected={player.tokens?.some((token) => token.id === reminderPicker?.token.id)}
+              onClick={() => handleReminderSeatSelect(player.seat)}
+            >
+              <ListItemText primary={`${player.seat}. ${player.playerName}`} />
+            </ListItemButton>
+          ))}
+        </List>
+      </Popover>
 
       {/* Character Assignment Dialog */}
       {game && (

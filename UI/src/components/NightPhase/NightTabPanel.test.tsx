@@ -57,7 +57,7 @@ const mockSetNightCardIndex = vi.fn();
 
 let mockNightProgress: NightProgress | null = null;
 
-vi.mock('@/context/GameContext.tsx', () => ({
+vi.mock('@/context/useGame.ts', () => ({
   useGame: () => ({
     state: {
       game: {

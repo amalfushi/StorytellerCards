@@ -40,6 +40,14 @@ export const mezepheles: CharacterDef = {
         isConditional: false,
       },
     ],
+    choices: [
+      {
+        type: 'player',
+        filter: 'good-alive',
+        maxSelections: 1,
+        label: 'Good alive player who said the word',
+      },
+    ],
   },
   icon: {
     small: '/icons/characters/mezephelesIcon.webp',

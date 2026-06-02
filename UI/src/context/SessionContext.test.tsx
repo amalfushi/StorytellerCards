@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { SessionProvider, useSession } from './SessionContext';
+import { SessionProvider } from './SessionContext';
+import { useSession } from './useSession';
 import type { Game, Session } from '@/types/index.ts';
 import { Phase, Alignment } from '@/types/index.ts';
 
@@ -499,6 +500,29 @@ describe('SessionContext', () => {
       expect(game.currentPhase).toBe(Phase.Day);
       expect(game.isFirstNight).toBe(true);
       expect(game.currentDay).toBe(1);
+    });
+
+    it('auto-populates active Loric and Fabled from a stored script', () => {
+      const { result } = renderSessionHook();
+      localStorage.setItem(
+        'storyteller-script-m35-test',
+        JSON.stringify({ characterIds: ['stormcatcher', 'djinn', 'imp'] }),
+      );
+
+      act(() => {
+        result.current.createSession('Session', 'm35-test', ['Alice']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+
+      act(() => {
+        result.current.addGameToSession(sessionId);
+      });
+
+      const gameId = result.current.state.sessions[0].gameIds[0];
+      const raw = localStorage.getItem(`storyteller-game-${gameId}`);
+      const game = JSON.parse(raw!) as Game;
+      expect(game.activeLoric).toEqual(['stormcatcher']);
+      expect(game.activeFabled).toEqual(['djinn']);
     });
 
     it('creates a game with players based on session defaults', () => {

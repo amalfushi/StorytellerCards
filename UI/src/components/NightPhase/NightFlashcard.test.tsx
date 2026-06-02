@@ -305,7 +305,15 @@ describe('NightFlashcard', () => {
     );
     const chip = screen.getByText('Red Herring');
     fireEvent.click(chip);
-    expect(onTokenClick).toHaveBeenCalledWith('Red Herring');
+    expect(onTokenClick).toHaveBeenCalledWith(
+      {
+        id: 'ft-red-herring',
+        type: 'custom',
+        label: 'Red Herring',
+        sourceCharacterId: 'fortuneteller',
+      },
+      expect.any(Object),
+    );
   });
 
   // Phase 4: Affecting tokens displayed next to icon

@@ -1,10 +1,33 @@
-import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
+import { useReducer, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Session, Game, PlayerSeat } from '@/types/index.ts';
 import { Phase, Alignment } from '@/types/index.ts';
 import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
 import { generateId } from '@/utils/idGenerator.ts';
 import { useApiSync, isSyncDisabled } from '@/hooks/useApiSync.ts';
+import { getCharacter } from '@/data/characters/index.ts';
+import { SessionContext } from './useSession.ts';
+
+function getSetupPowersForScript(scriptId: string): Pick<Game, 'activeFabled' | 'activeLoric'> {
+  try {
+    const raw = localStorage.getItem(`storyteller-script-${scriptId}`);
+    if (!raw) return {};
+    const script = JSON.parse(raw) as { characterIds?: string[] };
+    const activeFabled: string[] = [];
+    const activeLoric: string[] = [];
+    for (const characterId of script.characterIds ?? []) {
+      const character = getCharacter(characterId);
+      if (character?.type === 'Fabled') activeFabled.push(characterId);
+      if (character?.type === 'Loric') activeLoric.push(characterId);
+    }
+    return {
+      activeFabled: activeFabled.length > 0 ? activeFabled : undefined,
+      activeLoric: activeLoric.length > 0 ? activeLoric : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
 
 // ──────────────────────────────────────────────
 // State
@@ -289,7 +312,7 @@ function sessionReducerWithVersion(state: SessionState, action: SessionAction): 
 // Context value shape
 // ──────────────────────────────────────────────
 
-interface SessionContextValue {
+export interface SessionContextValue {
   state: SessionState;
   dispatch: React.Dispatch<SessionAction>;
   createSession: (name: string, scriptId: string, players: string[]) => void;
@@ -313,8 +336,6 @@ interface SessionContextValue {
   getActiveGame: () => Game | null;
   syncSession: (session: Session) => void;
 }
-
-const SessionContext = createContext<SessionContextValue | null>(null);
 
 // ──────────────────────────────────────────────
 // Provider
@@ -453,6 +474,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       // Ensure players are always in sequential seat order
       players.sort((a, b) => a.seat - b.seat);
 
+      const setupPowers = getSetupPowersForScript(session.defaultScriptId);
+
       const game: Game = {
         id: gameId,
         sessionId,
@@ -462,6 +485,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         isFirstNight: true,
         players,
         nightHistory: [],
+        ...setupPowers,
       };
 
       // Also store a display label (Game 1, Game 2, etc.) — not part of Game type,
@@ -539,19 +563,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   };
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
-}
-
-// ──────────────────────────────────────────────
-// Hook
-// ──────────────────────────────────────────────
-
-// eslint-disable-next-line react-refresh/only-export-components
-export function useSession(): SessionContextValue {
-  const ctx = useContext(SessionContext);
-  if (!ctx) {
-    throw new Error('useSession must be used within a <SessionProvider>');
-  }
-  return ctx;
 }
 
 // ──────────────────────────────────────────────

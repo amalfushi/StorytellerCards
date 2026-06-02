@@ -24,7 +24,25 @@ export const pixie: CharacterDef = {
       },
     ],
   },
-  otherNights: null,
+  otherNights: {
+    order: 6.5,
+    helpText: 'If the matched townsfolk died today, record the ability the Pixie gained.',
+    subActions: [
+      {
+        id: 'pixie-on-1',
+        description: 'Choose the townsfolk ability the Pixie has gained.',
+        isConditional: true,
+      },
+    ],
+    choices: [
+      {
+        type: 'character',
+        filter: 'townsfolk',
+        maxSelections: 1,
+        label: 'Gained townsfolk ability',
+      },
+    ],
+  },
   icon: {
     small: '/icons/characters/pixieIcon.webp',
     medium: '/icons/characters/pixieIcon.webp',

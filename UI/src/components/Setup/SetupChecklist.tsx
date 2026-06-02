@@ -22,25 +22,10 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import type { CharacterDef, PlayerSeat } from '@/types/index.ts';
-import { getCharacter } from '@/data/characters/index.ts';
-import { getSetupModifiers } from '@/utils/setupModifiers.ts';
-import { getRequiredCharacters, getSetupPrompts } from '@/utils/requiredCharacters.ts';
+import type { PlayerSeat } from '@/types/index.ts';
+import { buildChecklistItems, type SetupChecklistItem } from './buildChecklistItems.ts';
 
 // ── Types ──
-
-export interface SetupChecklistItem {
-  /** Unique ID for this checklist item. */
-  id: string;
-  /** Display label. */
-  label: string;
-  /** Optional description with more detail. */
-  description?: string;
-  /** Whether this item blocks starting Night 1. */
-  critical: boolean;
-  /** Category for grouping. */
-  category: 'setup' | 'modifier' | 'required' | 'reminder' | 'prompt';
-}
 
 export interface SetupChecklistProps {
   /** Current game ID — used for localStorage key. */
@@ -80,111 +65,7 @@ function saveCheckedState(gameId: string, state: Record<string, boolean>): void 
 }
 
 // ── Item generation ──
-
-/**
- * Build checklist items from the current game state.
- */
-// eslint-disable-next-line react-refresh/only-export-components
-export function buildChecklistItems(
-  players: PlayerSeat[],
-  inPlayCharacterIds: string[],
-  scriptCharacterIds: string[],
-): SetupChecklistItem[] {
-  const items: SetupChecklistItem[] = [];
-
-  // Resolve in-play character defs
-  const inPlayChars: CharacterDef[] = [];
-  for (const id of inPlayCharacterIds) {
-    const def = getCharacter(id);
-    if (def) inPlayChars.push(def);
-  }
-
-  // 1. Characters with storytellerSetup steps
-  for (const char of inPlayChars) {
-    if (char.storytellerSetup) {
-      for (const step of char.storytellerSetup) {
-        items.push({
-          id: `setup-${char.id}-${step.id}`,
-          label: `${char.name}: ${step.description}`,
-          critical: true,
-          category: 'setup',
-        });
-      }
-    }
-  }
-
-  // 2. Characters with setup: true that may need ST decisions (no storytellerSetup but have setup flag)
-  for (const char of inPlayChars) {
-    if (char.setup && !char.storytellerSetup?.length && !char.setupModification) {
-      items.push({
-        id: `setup-flag-${char.id}`,
-        label: `${char.name}: Confirm setup requirements`,
-        description: char.abilityShort,
-        critical: false,
-        category: 'setup',
-      });
-    }
-  }
-
-  // 3. Distribution modifiers
-  const modifiers = getSetupModifiers(inPlayCharacterIds);
-  for (const mod of modifiers) {
-    items.push({
-      id: `modifier-${mod.characterId}`,
-      label: `${mod.characterName}: ${mod.description}`,
-      description: 'Confirm distribution has been adjusted',
-      critical: false,
-      category: 'modifier',
-    });
-  }
-
-  // 4. Required character warnings
-  const required = getRequiredCharacters(scriptCharacterIds);
-  for (const req of required) {
-    // Only flag if the required character is also not in the in-play set
-    if (!inPlayCharacterIds.includes(req.requiredCharacterId)) {
-      items.push({
-        id: `required-${req.sourceCharacterId}-${req.requiredCharacterId}`,
-        label: `${req.sourceCharacterName} requires ${req.requiredCharacterName}`,
-        description: req.reason,
-        critical: true,
-        category: 'required',
-      });
-    }
-  }
-
-  // 5. Setup prompts (e.g. Bounty Hunter)
-  const prompts = getSetupPrompts(inPlayCharacterIds);
-  for (const prompt of prompts) {
-    items.push({
-      id: `prompt-${prompt.characterId}`,
-      label: `${prompt.characterName}: ${prompt.prompt}`,
-      critical: true,
-      category: 'prompt',
-    });
-  }
-
-  // 6. Global reminder placements needed
-  for (const char of inPlayChars) {
-    if (char.remindersGlobal && char.remindersGlobal.length > 0) {
-      // Check if any player has had the apparent character set (for Marionette/Drunk)
-      const hasApparentAssignment = players.some(
-        (p) => p.characterId === char.id && p.apparentCharacterId,
-      );
-      if (!hasApparentAssignment) {
-        items.push({
-          id: `reminder-global-${char.id}`,
-          label: `Place "${char.remindersGlobal[0].text}" reminder for ${char.name}`,
-          description: `Global reminder token for ${char.name}`,
-          critical: false,
-          category: 'reminder',
-        });
-      }
-    }
-  }
-
-  return items;
-}
+// `buildChecklistItems` lives in `./buildChecklistItems.ts` and is re-imported above.
 
 // ── Component ──
 

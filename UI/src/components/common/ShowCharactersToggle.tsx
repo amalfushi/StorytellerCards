@@ -2,7 +2,7 @@ import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
-import { useGame } from '@/context/GameContext.tsx';
+import { useGame } from '@/context/useGame.ts';
 
 /**
  * Toggle switch for showing/hiding character information across all tabs.

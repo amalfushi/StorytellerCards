@@ -31,8 +31,11 @@ export function filterNightOrder(
   scriptCharacterIds: string[],
   isFirstNight: boolean,
   players?: PlayerSeat[],
+  activeLoric: string[] = [],
+  activeFabled: string[] = [],
 ): NightOrderEntry[] {
   const scriptIdSet = new Set(scriptCharacterIds);
+  const activeSetupPowerIds = new Set([...activeLoric, ...activeFabled]);
 
   // When players are provided, build a set of assigned character IDs
   const assignedIdSet: Set<string> | null = players
@@ -69,12 +72,17 @@ export function filterNightOrder(
         assignedIdSet,
       );
     }
-    // Must be on the script
-    if (!scriptIdSet.has(entry.id)) {
+    if (entry.gainedAbilityHostSeat !== undefined) {
+      return true;
+    }
+
+    const isActiveSetupPower = activeSetupPowerIds.has(entry.id);
+    // Must be on the script unless it is an active Loric/Fabled setup power.
+    if (!scriptIdSet.has(entry.id) && !isActiveSetupPower) {
       return false;
     }
-    // When players provided, must also be assigned to a player
-    if (assignedIdSet) {
+    // When players provided, must also be assigned to a player unless active setup power.
+    if (assignedIdSet && !isActiveSetupPower) {
       if (!assignedIdSet.has(entry.id)) {
         return false;
       }

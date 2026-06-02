@@ -18,6 +18,7 @@ export interface CornerCharacter {
   id: string;
   name: string;
   abilityShort: string;
+  type?: string;
 }
 
 export interface TownSquareLayoutProps {
@@ -168,10 +169,10 @@ export function TownSquareLayout({
         );
       })}
 
-      {/* Fabled corner — upper-left */}
-      {activeFabled.length > 0 && (
+      {/* Setup powers corner — Fabled and Loric */}
+      {[...activeFabled, ...activeLoric].length > 0 && (
         <Box
-          data-testid="fabled-corner"
+          data-testid="setup-powers-corner"
           sx={{
             position: 'absolute',
             top: 4,
@@ -180,51 +181,21 @@ export function TownSquareLayout({
             flexDirection: 'column',
             gap: 0.5,
             zIndex: 2,
+            alignItems: 'flex-start',
           }}
         >
-          {activeFabled.map((ch) => (
+          {[
+            ...activeFabled.map((ch) => ({ ...ch, setupType: 'Fabled' as const })),
+            ...activeLoric.map((ch) => ({ ...ch, setupType: 'Loric' as const })),
+          ].map((ch) => (
             <Chip
-              key={ch.id}
-              label={ch.name}
+              key={`${ch.setupType}-${ch.id}`}
+              label={`${ch.setupType}: ${ch.name}`}
               size="small"
-              data-testid={`fabled-chip-${ch.id}`}
+              data-testid={`${ch.setupType === 'Fabled' ? 'fabled' : 'loric'}-chip-${ch.id}`}
               onClick={() => setAbilityDialog(ch)}
               sx={{
-                bgcolor: '#ff9800',
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: '0.65rem',
-                cursor: 'pointer',
-              }}
-            />
-          ))}
-        </Box>
-      )}
-
-      {/* Loric corner — upper-right */}
-      {activeLoric.length > 0 && (
-        <Box
-          data-testid="loric-corner"
-          sx={{
-            position: 'absolute',
-            top: 4,
-            right: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0.5,
-            alignItems: 'flex-end',
-            zIndex: 2,
-          }}
-        >
-          {activeLoric.map((ch) => (
-            <Chip
-              key={ch.id}
-              label={ch.name}
-              size="small"
-              data-testid={`loric-chip-${ch.id}`}
-              onClick={() => setAbilityDialog(ch)}
-              sx={{
-                bgcolor: '#558b2f',
+                bgcolor: ch.setupType === 'Fabled' ? '#ff9800' : '#558b2f',
                 color: '#fff',
                 fontWeight: 600,
                 fontSize: '0.65rem',

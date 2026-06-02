@@ -35,6 +35,14 @@ export const boffin: CharacterDef = {
         isConditional: false,
       },
     ],
+    choices: [
+      {
+        type: 'character',
+        filter: 'good-not-in-play',
+        maxSelections: 1,
+        label: 'Choose a Good character to grant the Demon',
+      },
+    ],
   },
   otherNights: null,
   icon: {

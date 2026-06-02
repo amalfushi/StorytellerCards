@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { GameProvider, useGame } from '@/context/GameContext.tsx';
+import { GameProvider } from '@/context/GameContext.tsx';
+import { useGame } from '@/context/useGame.ts';
 import { ShowCharactersToggle } from '@/components/common/ShowCharactersToggle.tsx';
 import type { Game } from '@/types/index.ts';
 import { Phase } from '@/types/index.ts';
 import type { ReactNode } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 // Minimal game to load into the provider
 const mockGame: Game = {
@@ -45,18 +46,19 @@ function GameLoader({
   showCharacters: boolean;
 }) {
   const { loadGame, toggleShowCharacters, state } = useGame();
+  const showCharactersRef = useRef(showCharacters);
+  const appliedRef = useRef(false);
 
   useEffect(() => {
     loadGame(mockGame);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [loadGame]);
 
   useEffect(() => {
-    if (state.game && showCharacters && !state.showCharacters) {
+    if (!appliedRef.current && state.game && showCharactersRef.current && !state.showCharacters) {
+      appliedRef.current = true;
       toggleShowCharacters();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [state.game?.id]);
+  }, [state.game, state.showCharacters, toggleShowCharacters]);
 
   return <>{children}</>;
 }

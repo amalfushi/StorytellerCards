@@ -11,7 +11,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import NotesIcon from '@mui/icons-material/Notes';
 import type { NightHistoryEntry } from '@/types/index.ts';
-import { useGame } from '@/context/GameContext.tsx';
+import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { getNightSummary, generateActionableNightSummary } from '@/utils/nightHistoryUtils.ts';
 import { NightHistoryReview } from './NightHistoryReview.tsx';

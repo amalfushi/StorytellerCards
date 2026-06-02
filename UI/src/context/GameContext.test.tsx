@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { GameProvider, useGame } from './GameContext';
+import { GameProvider } from './GameContext';
+import { useGame } from './useGame';
 import type { Game, PlayerSeat, NightHistoryEntry, PlayerToken } from '@/types/index.ts';
 import { Phase, Alignment } from '@/types/index.ts';
 
@@ -74,6 +75,56 @@ describe('GameContext', () => {
       expect(result.current.state.game).toBeNull();
       expect(result.current.state.showCharacters).toBe(false);
       expect(result.current.state.nightProgress).toBeNull();
+    });
+  });
+
+  describe('M35 generalized primitives', () => {
+    it('records alignment changes and updates actual alignment', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({ players: [makePlayer({ seat: 1, actualAlignment: Alignment.Good })] }),
+        );
+      });
+
+      act(() => {
+        result.current.recordAlignmentChange(
+          1,
+          Alignment.Evil,
+          'Mezepheles whispered the word',
+          2,
+          'other',
+        );
+      });
+
+      const player = result.current.state.game?.players[0];
+      expect(player?.actualAlignment).toBe(Alignment.Evil);
+      expect(player?.alignmentHistory).toHaveLength(1);
+      expect(player?.alignmentHistory?.[0].reason).toBe('Mezepheles whispered the word');
+    });
+
+    it('sets and clears gained abilities', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({ players: [makePlayer({ seat: 1, characterId: 'cannibal' })] }),
+        );
+      });
+
+      act(() => {
+        result.current.setGainedAbility(1, {
+          characterId: 'philosopher',
+          source: 'cannibal',
+          hostSeat: 1,
+          grantedDay: 2,
+        });
+      });
+      expect(result.current.state.game?.players[0].gainedAbility?.characterId).toBe('philosopher');
+
+      act(() => {
+        result.current.clearGainedAbility(1);
+      });
+      expect(result.current.state.game?.players[0].gainedAbility).toBeUndefined();
     });
   });
 

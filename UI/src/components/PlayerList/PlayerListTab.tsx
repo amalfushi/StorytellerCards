@@ -31,7 +31,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { CharacterDef, Alignment, PlayerToken as PlayerTokenType } from '@/types/index.ts';
-import { useGame } from '@/context/GameContext.tsx';
+import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { PlayerRow } from '@/components/PlayerList/PlayerRow.tsx';

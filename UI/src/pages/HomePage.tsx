@@ -21,7 +21,7 @@ import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
-import { useSession } from '@/context/SessionContext.tsx';
+import { useSession } from '@/context/useSession.ts';
 
 export function HomePage() {
   const { state, createSession, deleteSession } = useSession();

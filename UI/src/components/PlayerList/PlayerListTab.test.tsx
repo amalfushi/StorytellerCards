@@ -71,7 +71,7 @@ const mockUpdatePlayer = vi.fn();
 let mockShowCharacters: boolean;
 let mockGame: Game | null;
 
-vi.mock('@/context/GameContext.tsx', () => ({
+vi.mock('@/context/useGame.ts', () => ({
   useGame: () => ({
     state: {
       game: mockGame,

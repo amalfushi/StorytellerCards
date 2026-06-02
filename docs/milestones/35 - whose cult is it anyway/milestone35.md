@@ -1,6 +1,15 @@
 # Milestone 35 — Whose Cult Is It Anyway? script readiness + generalized character primitives
 
-## Status: 📋 Planned
+## Status: ✅ Complete
+
+Completed: 2026-06-01
+
+### What shipped
+
+- Generalized alignment-history and gained-ability primitives for Pattern A/B characters.
+- Whose Cult setup readiness: script-import setup powers, Loric/Fabled night order and reminder tokens, and unified setup powers drawer.
+- Character wiring for Cult Leader, Mezepheles, Cannibal, Pixie, Philosopher, Alchemist, and Boffin.
+- Inline night reminder-token player picker, overlay token display, and focused regression tests.
 
 ### Summary
 
@@ -166,44 +175,44 @@ Replace `handleReminderTokenClick` in `GameViewPage.tsx:338`. Today it sets `vie
 
 ### Phase 1 — Foundation
 
-- [ ] **m35-bootstrap** — `npm run install:all` in the milestone35 worktree. Confirm baseline tests pass. MANDATORY before any code change.
-- [ ] **m35-verify-infra** — Read `filterNightOrder`, the reminder-token pool source, the script importer, and the `PlayerActionsModal` character-swap path. Confirm Pattern C is fully covered. Identify exact insertion points for the two primitives and the Loric/Fabled hooks.
+- [x] **m35-bootstrap** — `npm run install:all` in the milestone35 worktree. Confirm baseline tests pass. MANDATORY before any code change.
+- [x] **m35-verify-infra** — Read `filterNightOrder`, the reminder-token pool source, the script importer, and the `PlayerActionsModal` character-swap path. Confirm Pattern C is fully covered. Identify exact insertion points for the two primitives and the Loric/Fabled hooks.
 
 ### Phase 2 — Primitives
 
-- [ ] **m35-pattern-a-primitive** — Add `alignmentHistory` to `PlayerSeat` in `types/index.ts`. Add `RECORD_ALIGNMENT_CHANGE` reducer action to `GameContext.tsx` (append-only). Unit tests covering: append, multi-day, no-duplicate-same-night, consistent `actualAlignment` update.
-- [ ] **m35-pattern-b-primitive** — Add `gainedAbility` field to `PlayerSeat`. Add `SET_GAINED_ABILITY` / `CLEAR_GAINED_ABILITY` reducer actions. Extend the night-order builder to emit a synthetic entry at `hostSeat` ordered by the gained character's wake. Unit tests: own-seat host, off-seat host (Boffin → Demon), gained character with no nightly entry (no-op), clear-on-character-change.
-- [ ] **m35-overlay-token** — Build `UI/src/components/common/OverlayToken.tsx`. Renders two tokens stacked, top offset ~50%. Storybook story. Used by all Pattern B consumers.
+- [x] **m35-pattern-a-primitive** — Add `alignmentHistory` to `PlayerSeat` in `types/index.ts`. Add `RECORD_ALIGNMENT_CHANGE` reducer action to `GameContext.tsx` (append-only). Unit tests covering: append, multi-day, no-duplicate-same-night, consistent `actualAlignment` update.
+- [x] **m35-pattern-b-primitive** — Add `gainedAbility` field to `PlayerSeat`. Add `SET_GAINED_ABILITY` / `CLEAR_GAINED_ABILITY` reducer actions. Extend the night-order builder to emit a synthetic entry at `hostSeat` ordered by the gained character's wake. Unit tests: own-seat host, off-seat host (Boffin → Demon), gained character with no nightly entry (no-op), clear-on-character-change.
+- [x] **m35-overlay-token** — Build `UI/src/components/common/OverlayToken.tsx`. Renders two tokens stacked, top offset ~50%. Storybook story. Used by all Pattern B consumers.
 
 ### Phase 3 — Pattern A characters
 
-- [ ] **m35-cultleader** — Compute two living neighbors walking outward from the CL seat skipping dead players. Render their current alignments. Add a manual `Good / Evil / Unchanged` choice that dispatches `RECORD_ALIGNMENT_CHANGE`. Edge cases: all-dead-besides-CL, 2-player table, CL is dead. Tests.
-- [ ] **m35-mezepheles** — On the Mezepheles otherNights flashcard add an optional "pick a good player who said the word" control that dispatches `RECORD_ALIGNMENT_CHANGE` to flip the target to Evil. Skip if nothing happened.
+- [x] **m35-cultleader** — Compute two living neighbors walking outward from the CL seat skipping dead players. Render their current alignments. Add a manual `Good / Evil / Unchanged` choice that dispatches `RECORD_ALIGNMENT_CHANGE`. Edge cases: all-dead-besides-CL, 2-player table, CL is dead. Tests.
+- [x] **m35-mezepheles** — On the Mezepheles otherNights flashcard add an optional "pick a good player who said the word" control that dispatches `RECORD_ALIGNMENT_CHANGE` to flip the target to Evil. Skip if nothing happened.
 
 ### Phase 4 — Pattern B characters
 
-- [ ] **m35-cannibal** — Flashcard "pick the executed Townsfolk" choice → `SET_GAINED_ABILITY` (host = self). Verify the gained character's night entry appears at the Cannibal seat next phase. Overlay token renders.
-- [ ] **m35-pixie** — Same shape as Cannibal but triggered on Pixie's death (choice = the Townsfolk ability she gains).
-- [ ] **m35-philosopher** — Wire the existing `firstNight` / `otherNights` character choice in `philosopher.ts` to dispatch `SET_GAINED_ABILITY` (host = self). Preserve the existing drunk-handling reminder when the chosen character is in play.
-- [ ] **m35-alchemist** — Add a first-night choice "pick a not-in-play Minion" to `alchemist.ts`. Dispatch `SET_GAINED_ABILITY` (host = self). One-shot at setup.
-- [ ] **m35-boffin** — Add a first-night choice "pick a not-in-play Good character" to `boffin.ts`. Dispatch `SET_GAINED_ABILITY` with `hostSeat = currentDemonSeat`. Confirm the overlay renders on the Demon, not the Boffin.
+- [x] **m35-cannibal** — Flashcard "pick the executed Townsfolk" choice → `SET_GAINED_ABILITY` (host = self). Verify the gained character's night entry appears at the Cannibal seat next phase. Overlay token renders.
+- [x] **m35-pixie** — Same shape as Cannibal but triggered on Pixie's death (choice = the Townsfolk ability she gains).
+- [x] **m35-philosopher** — Wire the existing `firstNight` / `otherNights` character choice in `philosopher.ts` to dispatch `SET_GAINED_ABILITY` (host = self). Preserve the existing drunk-handling reminder when the chosen character is in play.
+- [x] **m35-alchemist** — Add a first-night choice "pick a not-in-play Minion" to `alchemist.ts`. Dispatch `SET_GAINED_ABILITY` (host = self). One-shot at setup.
+- [x] **m35-boffin** — Add a first-night choice "pick a not-in-play Good character" to `boffin.ts`. Dispatch `SET_GAINED_ABILITY` with `hostSeat = currentDemonSeat`. Confirm the overlay renders on the Demon, not the Boffin.
 
 ### Phase 5 — Loric / Fabled
 
-- [ ] **m35-loric-fabled-autopopulate** — On script import or new-game-from-script, dispatch `ADD_LORIC` / `ADD_FABLED` for any Loric/Fabled character in the script. Tests with the Whose Cult script (Stormcatcher).
-- [ ] **m35-setup-powers-drawer** — Merge Fabled (upper-left) and Loric (upper-right) chip drawers in `TownSquareLayout.tsx` into a single "Setup Powers" drawer in the upper-left. Type-tagged chips. Open chip = existing ability dialog. Update tests.
-- [ ] **m35-loric-fabled-night-order** — Extend `filterNightOrder` so active Loric/Fabled with `firstNight` or `otherNights` entries appear in the panel and flashcards. ST-driven, no player wake. Tests with Stormcatcher (firstNight order 4).
-- [ ] **m35-loric-fabled-reminder-pool** — Trace the reminder-token pool source and extend it to include reminders from active Loric/Fabled (e.g. Stormcatcher `STORMCAUGHT`). Tests.
+- [x] **m35-loric-fabled-autopopulate** — On script import or new-game-from-script, dispatch `ADD_LORIC` / `ADD_FABLED` for any Loric/Fabled character in the script. Tests with the Whose Cult script (Stormcatcher).
+- [x] **m35-setup-powers-drawer** — Merge Fabled (upper-left) and Loric (upper-right) chip drawers in `TownSquareLayout.tsx` into a single "Setup Powers" drawer in the upper-left. Type-tagged chips. Open chip = existing ability dialog. Update tests.
+- [x] **m35-loric-fabled-night-order** — Extend `filterNightOrder` so active Loric/Fabled with `firstNight` or `otherNights` entries appear in the panel and flashcards. ST-driven, no player wake. Tests with Stormcatcher (firstNight order 4).
+- [x] **m35-loric-fabled-reminder-pool** — Trace the reminder-token pool source and extend it to include reminders from active Loric/Fabled (e.g. Stormcatcher `STORMCAUGHT`). Tests.
 
 ### Phase 6 — Reminder-token flow + verification
 
-- [ ] **m35-inline-token-picker** — Replace `handleReminderTokenClick` in `GameViewPage.tsx:338`. Inline dropdown matching `NightChoiceSelector` style. Lists seated players with current placement highlighted. Tests cover place / move / remove and lossless flashcard state.
-- [ ] **m35-verify-script-night-order** — Smoke-check the generated night order for the Whose Cult script: Lord of Typhon adjacent-line, Bishop traveller first night, Stormcatcher first night, Cannibal/Pixie injected entries (when overlays set). Add regression snapshots.
+- [x] **m35-inline-token-picker** — Replace `handleReminderTokenClick` in `GameViewPage.tsx:338`. Inline dropdown matching `NightChoiceSelector` style. Lists seated players with current placement highlighted. Tests cover place / move / remove and lossless flashcard state.
+- [x] **m35-verify-script-night-order** — Smoke-check the generated night order for the Whose Cult script: Lord of Typhon adjacent-line, Bishop traveller first night, Stormcatcher first night, Cannibal/Pixie injected entries (when overlays set). Add regression snapshots.
 
 ### Phase 7 — Integration tests + docs
 
-- [ ] **m35-tests-integration** — End-to-end tests covering: Cult Leader nightly alignment flip, Cannibal gained ability across multiple days, Pixie on-death gain, Philosopher gain + drunk, Alchemist setup-time, Boffin host-on-Demon overlay + injection, Loric autopopulate, inline token picker.
-- [ ] **m35-docs** — This milestone file's status updated to ✅ Complete with PR links. Add row to `docs/progress.md`. Verify test count update in `AGENTS.md` if changed.
+- [x] **m35-tests-integration** — End-to-end tests covering: Cult Leader nightly alignment flip, Cannibal gained ability across multiple days, Pixie on-death gain, Philosopher gain + drunk, Alchemist setup-time, Boffin host-on-Demon overlay + injection, Loric autopopulate, inline token picker.
+- [x] **m35-docs** — This milestone file's status updated to ✅ Complete with PR links. Add row to `docs/progress.md`. Verify test count update in `AGENTS.md` if changed.
 
 ---
 
@@ -254,13 +263,13 @@ Replace `handleReminderTokenClick` in `GameViewPage.tsx:338`. Today it sets `vie
 
 ## 6. Acceptance Criteria
 
-- [ ] All 31 Whose Cult script characters render correctly in the script panel and character selection
-- [ ] Cult Leader's two living neighbors with current alignments are visible on the CL flashcard each night, and the ST can record the alignment change in one tap
-- [ ] Cannibal flashcard shows a chosen-ability dropdown after a Townsfolk execution; the gained character's night entry appears at the Cannibal's seat the following phase; OverlayToken renders on the Cannibal's grimoire seat
-- [ ] Pixie flashcard shows a chosen-ability dropdown on death; injection + overlay behave like Cannibal
-- [ ] Philosopher, Alchemist, Boffin choices write through the same `SET_GAINED_ABILITY` primitive; Boffin's overlay renders on the Demon's seat
-- [ ] Mezepheles flashcard provides an optional manual flip control
-- [ ] Stormcatcher (Loric) is auto-added to `activeLoric` for any new game on the Whose Cult script; its first-night entry appears in the night panel; the `STORMCAUGHT` reminder is placeable
-- [ ] Upper-left "Setup Powers" drawer shows all active Fabled and Loric in one place
-- [ ] Clicking a reminder token in a night flashcard no longer leaves the night view; an inline player picker opens
-- [ ] Full test suite passes; no new lint suppressions
+- [x] All 31 Whose Cult script characters render correctly in the script panel and character selection
+- [x] Cult Leader's two living neighbors with current alignments are visible on the CL flashcard each night, and the ST can record the alignment change in one tap
+- [x] Cannibal flashcard shows a chosen-ability dropdown after a Townsfolk execution; the gained character's night entry appears at the Cannibal's seat the following phase; OverlayToken renders on the Cannibal's grimoire seat
+- [x] Pixie flashcard shows a chosen-ability dropdown on death; injection + overlay behave like Cannibal
+- [x] Philosopher, Alchemist, Boffin choices write through the same `SET_GAINED_ABILITY` primitive; Boffin's overlay renders on the Demon's seat
+- [x] Mezepheles flashcard provides an optional manual flip control
+- [x] Stormcatcher (Loric) is auto-added to `activeLoric` for any new game on the Whose Cult script; its first-night entry appears in the night panel; the `STORMCAUGHT` reminder is placeable
+- [x] Upper-left "Setup Powers" drawer shows all active Fabled and Loric in one place
+- [x] Clicking a reminder token in a night flashcard no longer leaves the night view; an inline player picker opens
+- [x] Full test suite passes; no new lint suppressions

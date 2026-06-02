@@ -56,7 +56,7 @@ vi.mock('react-router-dom', () => ({
   useParams: () => ({ sessionId: mockSessionId }),
 }));
 
-vi.mock('@/context/SessionContext.tsx', () => ({
+vi.mock('@/context/useSession.ts', () => ({
   useSession: () => ({
     state: { sessions: mockSessions },
     updateSession: mockUpdateSession,

@@ -177,6 +177,44 @@ describe('useNightOrder', () => {
     });
   });
 
+  describe('M35 setup powers and gained abilities', () => {
+    it('includes active Loric even when not in script characters or player seats', () => {
+      const players = [makePlayerSeat({ seat: 1, characterId: 'imp' })];
+
+      const { result } = renderHook(() =>
+        useNightOrder(['imp'], true, players, ['stormcatcher'], []),
+      );
+
+      expect(result.current.map((entry) => entry.id)).toContain('stormcatcher');
+    });
+
+    it('emits gained ability synthetic entries at the gained character order', () => {
+      const players = [
+        makePlayerSeat({
+          seat: 3,
+          characterId: 'cannibal',
+          gainedAbility: {
+            characterId: 'philosopher',
+            source: 'cannibal',
+            hostSeat: 3,
+            grantedDay: 2,
+          },
+        }),
+      ];
+
+      const { result } = renderHook(() =>
+        useNightOrder(['cannibal', 'philosopher'], false, players),
+      );
+      const gainedEntry = result.current.find(
+        (entry) => entry.id === 'philosopher' && entry.gainedAbilityHostSeat === 3,
+      );
+
+      expect(gainedEntry).toBeDefined();
+      expect(gainedEntry?.name).toContain('gained by seat 3');
+      expect(gainedEntry?.order).toBe(4);
+    });
+  });
+
   describe('memoization', () => {
     it('returns the same reference when inputs do not change', () => {
       const scriptIds = ['imp', 'poisoner'];

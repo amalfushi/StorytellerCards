@@ -13,7 +13,7 @@ import type {
   PlayerSeat,
   PlayerToken as PlayerTokenType,
 } from '@/types/index.ts';
-import { useGame } from '@/context/GameContext.tsx';
+import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
 import { PlayerToken, SIZE_MAP } from '@/components/TownSquare/PlayerToken.tsx';
@@ -100,12 +100,21 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
   );
 
   // ── Dynamic token set from active characters ──
+  const activeSetupPowers = useMemo(
+    () =>
+      [...(state.game?.activeFabled ?? []), ...(state.game?.activeLoric ?? [])]
+        .map((id) => getCharacter(id))
+        .filter((character): character is CharacterDef => character !== undefined),
+    [state.game?.activeFabled, state.game?.activeLoric, getCharacter],
+  );
+
   const activeCharacters = useMemo(() => {
-    if (!state.game) return [];
-    return state.game.players
+    if (!state.game) return activeSetupPowers;
+    const playerCharacters = state.game.players
       .map((p) => getCharacter(p.characterId))
       .filter((c): c is CharacterDef => c !== undefined);
-  }, [state.game, getCharacter]);
+    return [...playerCharacters, ...activeSetupPowers];
+  }, [state.game, getCharacter, activeSetupPowers]);
 
   // Apparent characters for concealed identities (Drunk/Marionette)
   const apparentCharacters = useMemo(() => {
@@ -420,6 +429,12 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
           containerHeight={dims.height}
           tokenRadius={TOKEN_HALF[tokenSize]}
           tokenLayout={effectiveLayout}
+          activeFabled={(state.game?.activeFabled ?? [])
+            .map((id) => getCharacter(id))
+            .filter((character): character is CharacterDef => character !== undefined)}
+          activeLoric={(state.game?.activeLoric ?? [])
+            .map((id) => getCharacter(id))
+            .filter((character): character is CharacterDef => character !== undefined)}
         />
       )}
 

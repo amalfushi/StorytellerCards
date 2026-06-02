@@ -7,7 +7,7 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import type { NightHistoryEntry, NightProgress } from '@/types/index.ts';
-import { useGame } from '@/context/GameContext.tsx';
+import { useGame } from '@/context/useGame.ts';
 import { useNightOrder } from '@/hooks/useNightOrder.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { FlashcardCarousel } from '@/components/NightPhase/FlashcardCarousel.tsx';
