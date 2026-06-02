@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { GameProvider, useGame } from './GameContext';
+import { GameProvider } from './GameContext';
+import { useGame } from './useGame';
 import type { Game, PlayerSeat, NightHistoryEntry, PlayerToken } from '@/types/index.ts';
 import { Phase, Alignment } from '@/types/index.ts';
 

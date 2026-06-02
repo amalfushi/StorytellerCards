@@ -3,7 +3,7 @@ import Box from '@mui/material/Box';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
 import Typography from '@mui/material/Typography';
-import { useGame } from '@/context/GameContext.tsx';
+import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { useNightOrder } from '@/hooks/useNightOrder.ts';
 import { NightOrderEntry } from '@/components/NightOrder/NightOrderEntry.tsx';

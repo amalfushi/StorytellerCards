@@ -1,12 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useReducer,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { useReducer, useCallback, useEffect, useRef, useState } from 'react';
+import { GameContext } from './useGame.ts';
 import type { ReactNode } from 'react';
 import type {
   Game,
@@ -922,7 +915,7 @@ function persistGame(game: Game): void {
 // Context value shape
 // ──────────────────────────────────────────────
 
-interface GameContextValue {
+export interface GameContextValue {
   state: GameViewState;
   dispatch: React.Dispatch<GameAction>;
   loadGame: (game: Game) => void;
@@ -1010,8 +1003,6 @@ interface GameContextValue {
   syncStatus: SyncStatus;
   forceSync: () => void;
 }
-
-const GameContext = createContext<GameContextValue | null>(null);
 
 // ──────────────────────────────────────────────
 // Provider
@@ -1379,16 +1370,4 @@ export function GameProvider({ children }: { children: ReactNode }) {
   };
 
   return <GameContext.Provider value={value}>{children}</GameContext.Provider>;
-}
-
-// ──────────────────────────────────────────────
-// Hook
-// ──────────────────────────────────────────────
-
-export function useGame(): GameContextValue {
-  const ctx = useContext(GameContext);
-  if (!ctx) {
-    throw new Error('useGame must be used within a <GameProvider>');
-  }
-  return ctx;
 }

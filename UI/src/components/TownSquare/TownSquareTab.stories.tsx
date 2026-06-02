@@ -2,7 +2,8 @@ import { useEffect, useRef } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import Box from '@mui/material/Box';
 import { TownSquareTab } from './TownSquareTab';
-import { GameProvider, useGame } from '../../context/GameContext';
+import { GameProvider } from '../../context/GameContext';
+import { useGame } from '../../context/useGame';
 import type { Game, PlayerSeat } from '../../types';
 import {
   generateMockPlayers,

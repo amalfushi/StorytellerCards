@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { SetupChecklist, buildChecklistItems } from '@/components/Setup/SetupChecklist.tsx';
+import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
+import { buildChecklistItems } from '@/components/Setup/buildChecklistItems.ts';
 import type { PlayerSeat } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
 

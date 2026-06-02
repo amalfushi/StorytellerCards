@@ -1,11 +1,10 @@
 import type { Decorator } from '@storybook/react-vite';
-import type { ReactNode } from 'react';
-import { GameProvider, useGame } from '../context/GameContext';
+import { GameProvider } from '../context/GameContext';
 import type { GameViewState } from '../context/GameContext';
 import type { Game } from '../types';
 import { Phase } from '../types';
-import { useEffect } from 'react';
 import { mockPlayers } from './mockData';
+import { GameLoader } from './GameLoader';
 
 // ──────────────────────────────────────────────
 // Default mock game
@@ -23,49 +22,6 @@ const defaultMockGame: Game = {
 };
 
 // ──────────────────────────────────────────────
-// Internal loader component
-// ──────────────────────────────────────────────
-
-function GameLoader({
-  overrides,
-  children,
-}: {
-  overrides: Partial<GameViewState>;
-  children: ReactNode;
-}) {
-  const { loadGame, setPhase, toggleShowCharacters, state } = useGame();
-
-  useEffect(() => {
-    // Build the game object with any overrides
-    const game: Game = {
-      ...defaultMockGame,
-      ...(overrides.game ?? {}),
-    } as Game;
-
-    loadGame(game);
-  }, []);
-
-  useEffect(() => {
-    // Apply phase override after game is loaded
-    if (state.game && overrides.game?.currentPhase) {
-      setPhase(overrides.game.currentPhase);
-    }
-  }, [state.game?.id]);
-
-  useEffect(() => {
-    // Apply showCharacters override
-    if (
-      overrides.showCharacters !== undefined &&
-      overrides.showCharacters !== state.showCharacters
-    ) {
-      toggleShowCharacters();
-    }
-  }, [state.game?.id]);
-
-  return <>{children}</>;
-}
-
-// ──────────────────────────────────────────────
 // Public decorator factory
 // ──────────────────────────────────────────────
 
@@ -80,10 +36,16 @@ function GameLoader({
  */
 export const withMockGameContext =
   (overrides: Partial<GameViewState> = {}): Decorator =>
-  (Story) => (
-    <GameProvider>
-      <GameLoader overrides={overrides}>
-        <Story />
-      </GameLoader>
-    </GameProvider>
-  );
+  (Story) => {
+    const game: Game = {
+      ...defaultMockGame,
+      ...(overrides.game ?? {}),
+    } as Game;
+    return (
+      <GameProvider>
+        <GameLoader game={game} overrides={overrides}>
+          <Story />
+        </GameLoader>
+      </GameProvider>
+    );
+  };

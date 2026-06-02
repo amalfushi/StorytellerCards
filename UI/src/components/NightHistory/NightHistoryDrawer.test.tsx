@@ -119,7 +119,7 @@ let mockState: {
   showCharacters: boolean;
 };
 
-vi.mock('@/context/GameContext.tsx', () => ({
+vi.mock('@/context/useGame.ts', () => ({
   useGame: () => ({
     state: mockState,
     updateNightHistory: mockUpdateNightHistory,

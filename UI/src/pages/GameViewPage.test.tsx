@@ -124,7 +124,7 @@ vi.mock('react-router-dom', () => ({
   useParams: () => ({ sessionId: 'session-1', gameId: 'game-1' }),
 }));
 
-vi.mock('@/context/SessionContext.tsx', () => ({
+vi.mock('@/context/useSession.ts', () => ({
   useSession: () => ({
     state: {
       sessions: [mockSession],
@@ -134,7 +134,7 @@ vi.mock('@/context/SessionContext.tsx', () => ({
   }),
 }));
 
-vi.mock('@/context/GameContext.tsx', () => ({
+vi.mock('@/context/useGame.ts', () => ({
   useGame: () => ({
     state: {
       game: mockGame,

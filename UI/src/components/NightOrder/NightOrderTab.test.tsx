@@ -119,7 +119,7 @@ let mockState: {
   showCharacters: boolean;
 };
 
-vi.mock('@/context/GameContext.tsx', () => ({
+vi.mock('@/context/useGame.ts', () => ({
   useGame: () => ({
     state: mockState,
   }),
@@ -134,7 +134,10 @@ vi.mock('@/hooks/useNightOrder.ts', () => ({
 vi.mock('@/hooks/useCharacterLookup.ts', () => ({
   useCharacterLookup: () => ({
     getCharacter: (id: string) => {
-      const chars: Record<string, { id: string; name: string; type: string; defaultAlignment: string; abilityShort: string }> = {
+      const chars: Record<
+        string,
+        { id: string; name: string; type: string; defaultAlignment: string; abilityShort: string }
+      > = {
         fortuneteller: {
           id: 'fortuneteller',
           name: 'Fortune Teller',
@@ -188,16 +191,12 @@ describe('NightOrderTab', () => {
   });
 
   it('renders without crashing', () => {
-    const { container } = render(
-      <NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />,
-    );
+    const { container } = render(<NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />);
     expect(container).toBeTruthy();
   });
 
   it('shows first night order by default when game isFirstNight is true', () => {
-    render(
-      <NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />,
-    );
+    render(<NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />);
     // Should show first night entries — Fortune Teller is in first night
     expect(screen.getByTestId('night-order-entry-fortuneteller')).toBeInTheDocument();
     expect(screen.getByTestId('night-order-entry-dusk')).toBeInTheDocument();
@@ -205,17 +204,13 @@ describe('NightOrderTab', () => {
   });
 
   it('has toggle between First Night and Other Nights', () => {
-    render(
-      <NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />,
-    );
+    render(<NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />);
     expect(screen.getByText('First Night')).toBeInTheDocument();
     expect(screen.getByText('Other Nights')).toBeInTheDocument();
   });
 
   it('switches to other nights when toggle is clicked', async () => {
-    render(
-      <NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />,
-    );
+    render(<NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />);
     const otherNightsButton = screen.getByText('Other Nights');
     await userEvent.click(otherNightsButton);
     // Other nights should include Imp
@@ -223,9 +218,7 @@ describe('NightOrderTab', () => {
   });
 
   it('displays filtered night order entries for current script', () => {
-    render(
-      <NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />,
-    );
+    render(<NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />);
     // Structural entries always shown
     expect(screen.getByTestId('night-order-entry-dusk')).toBeInTheDocument();
     // Character entries matching script
@@ -233,9 +226,7 @@ describe('NightOrderTab', () => {
   });
 
   it('shows assigned player for character entries', () => {
-    render(
-      <NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />,
-    );
+    render(<NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />);
     // Alice is assigned to fortuneteller
     const assignedPlayers = screen.getAllByTestId('assigned-player');
     expect(assignedPlayers.length).toBeGreaterThanOrEqual(1);
@@ -252,9 +243,7 @@ describe('NightOrderTab', () => {
     // Use empty script IDs to simulate no matching entries
     // But since our mock always returns entries, we test with no game
     mockState = { game: null, nightProgress: null, showCharacters: false };
-    render(
-      <NightOrderTab scriptCharacterIds={[]} />,
-    );
+    render(<NightOrderTab scriptCharacterIds={[]} />);
     // When game is null, players will be empty. Entries still come from the mock.
     // The entries from the mock still render, which is expected behavior.
     expect(screen.getByTestId('night-order-entry-dusk')).toBeInTheDocument();
@@ -265,9 +254,7 @@ describe('NightOrderTab', () => {
       ...mockState,
       game: { ...baseGame, isFirstNight: false },
     };
-    render(
-      <NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />,
-    );
+    render(<NightOrderTab scriptCharacterIds={['fortuneteller', 'imp']} />);
     // Should show other night entries — Imp is in other nights
     expect(screen.getByTestId('night-order-entry-imp')).toBeInTheDocument();
   });

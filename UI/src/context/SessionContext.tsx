@@ -1,4 +1,4 @@
-import { createContext, useContext, useReducer, useCallback, useEffect, useRef } from 'react';
+import { useReducer, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Session, Game, PlayerSeat } from '@/types/index.ts';
 import { Phase, Alignment } from '@/types/index.ts';
@@ -6,6 +6,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
 import { generateId } from '@/utils/idGenerator.ts';
 import { useApiSync, isSyncDisabled } from '@/hooks/useApiSync.ts';
 import { getCharacter } from '@/data/characters/index.ts';
+import { SessionContext } from './useSession.ts';
 
 function getSetupPowersForScript(scriptId: string): Pick<Game, 'activeFabled' | 'activeLoric'> {
   try {
@@ -311,7 +312,7 @@ function sessionReducerWithVersion(state: SessionState, action: SessionAction): 
 // Context value shape
 // ──────────────────────────────────────────────
 
-interface SessionContextValue {
+export interface SessionContextValue {
   state: SessionState;
   dispatch: React.Dispatch<SessionAction>;
   createSession: (name: string, scriptId: string, players: string[]) => void;
@@ -335,8 +336,6 @@ interface SessionContextValue {
   getActiveGame: () => Game | null;
   syncSession: (session: Session) => void;
 }
-
-const SessionContext = createContext<SessionContextValue | null>(null);
 
 // ──────────────────────────────────────────────
 // Provider
@@ -564,18 +563,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   };
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
-}
-
-// ──────────────────────────────────────────────
-// Hook
-// ──────────────────────────────────────────────
-
-export function useSession(): SessionContextValue {
-  const ctx = useContext(SessionContext);
-  if (!ctx) {
-    throw new Error('useSession must be used within a <SessionProvider>');
-  }
-  return ctx;
 }
 
 // ──────────────────────────────────────────────

@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
-import { SessionProvider, useSession } from './SessionContext';
+import { SessionProvider } from './SessionContext';
+import { useSession } from './useSession';
 import type { Game, Session } from '@/types/index.ts';
 import { Phase, Alignment } from '@/types/index.ts';
 

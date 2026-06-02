@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useEffect } from 'react';
 import Box from '@mui/material/Box';
 import type { CharacterDef, NightOrderEntry, PlayerSeat } from '@/types/index.ts';
-import { useGame } from '@/context/GameContext.tsx';
+import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { FlashcardCarousel } from './FlashcardCarousel.tsx';
 

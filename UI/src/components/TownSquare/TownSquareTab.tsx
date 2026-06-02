@@ -13,7 +13,7 @@ import type {
   PlayerSeat,
   PlayerToken as PlayerTokenType,
 } from '@/types/index.ts';
-import { useGame } from '@/context/GameContext.tsx';
+import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
 import { PlayerToken, SIZE_MAP } from '@/components/TownSquare/PlayerToken.tsx';

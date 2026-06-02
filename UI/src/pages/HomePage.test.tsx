@@ -47,7 +47,7 @@ vi.mock('react-router-dom', () => ({
   ),
 }));
 
-vi.mock('@/context/SessionContext.tsx', () => ({
+vi.mock('@/context/useSession.ts', () => ({
   useSession: () => ({
     state: mockSessionState,
     createSession: mockCreateSession,
@@ -84,9 +84,7 @@ describe('HomePage', () => {
   it('shows empty state when no sessions exist', () => {
     render(<HomePage />);
     expect(screen.getByText('No sessions yet')).toBeInTheDocument();
-    expect(
-      screen.getByText(/Create your first session to start managing/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/Create your first session to start managing/)).toBeInTheDocument();
   });
 
   it('shows a "Create Session" button in empty state', () => {
@@ -153,11 +151,7 @@ describe('HomePage', () => {
     });
     // Click Create in dialog
     fireEvent.click(screen.getByRole('button', { name: 'Create' }));
-    expect(mockCreateSession).toHaveBeenCalledWith(
-      'My New Game',
-      '',
-      expect.any(Array),
-    );
+    expect(mockCreateSession).toHaveBeenCalledWith('My New Game', '', expect.any(Array));
   });
 
   it('closes dialog when Cancel is clicked', async () => {

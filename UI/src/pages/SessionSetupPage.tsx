@@ -48,7 +48,7 @@ import {
   arrayMove,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useSession } from '@/context/SessionContext.tsx';
+import { useSession } from '@/context/useSession.ts';
 import { useApiSync } from '@/hooks/useApiSync.ts';
 import { importScript } from '@/utils/scriptImporter.ts';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
