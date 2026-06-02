@@ -43,6 +43,15 @@ type SessionAction =
   | { type: 'ADD_GAME_TO_SESSION'; payload: { sessionId: string; game: Game } }
   | { type: 'HYDRATE'; payload: SessionState }
   | { type: 'DELETE_GAME'; payload: { sessionId: string; gameId: string } }
+  | { type: 'SWAP_SESSION_PLAYERS'; payload: { sessionId: string; seatA: number; seatB: number } }
+  | {
+      type: 'SHIFT_SESSION_PLAYERS';
+      payload: { sessionId: string; startSeat: number; shiftBy: number };
+    }
+  | {
+      type: 'INSERT_SESSION_PLAYER_SLOT';
+      payload: { sessionId: string; atSeat: number; playerName: string };
+    }
   | { type: 'SYNC_SESSION'; payload: { session: Session } }
   | { type: 'MERGE_REMOTE_SESSIONS'; payload: { sessions: Session[] } };
 
@@ -173,6 +182,58 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       };
     }
 
+    case 'SWAP_SESSION_PLAYERS': {
+      const { sessionId, seatA, seatB } = action.payload;
+      if (seatA === seatB) return state;
+      return {
+        ...state,
+        sessions: state.sessions.map((session) => {
+          if (session.id !== sessionId) return session;
+          const playerA = session.defaultPlayers.find((player) => player.seat === seatA);
+          const playerB = session.defaultPlayers.find((player) => player.seat === seatB);
+          if (!playerA || !playerB) return session;
+          return {
+            ...session,
+            defaultPlayers: session.defaultPlayers.map((player) => {
+              if (player.seat === seatA) return { ...playerB, seat: seatA };
+              if (player.seat === seatB) return { ...playerA, seat: seatB };
+              return player;
+            }),
+          };
+        }),
+      };
+    }
+
+    case 'SHIFT_SESSION_PLAYERS': {
+      const { sessionId, startSeat, shiftBy } = action.payload;
+      if (shiftBy === 0) return state;
+      return {
+        ...state,
+        sessions: state.sessions.map((session) => {
+          if (session.id !== sessionId) return session;
+          return {
+            ...session,
+            defaultPlayers: shiftDefaultPlayers(session.defaultPlayers, startSeat, shiftBy),
+          };
+        }),
+      };
+    }
+
+    case 'INSERT_SESSION_PLAYER_SLOT': {
+      const { sessionId, atSeat, playerName } = action.payload;
+      if (atSeat < 1) return state;
+      return {
+        ...state,
+        sessions: state.sessions.map((session) => {
+          if (session.id !== sessionId) return session;
+          return {
+            ...session,
+            defaultPlayers: insertDefaultPlayer(session.defaultPlayers, atSeat, playerName),
+          };
+        }),
+      };
+    }
+
     case 'SYNC_SESSION': {
       const remote = action.payload.session;
       const localSession = state.sessions.find((s) => s.id === remote.id);
@@ -243,8 +304,11 @@ interface SessionContextValue {
       defaultScriptId?: string;
     },
   ) => void;
-  addGameToSession: (sessionId: string) => void;
+  addGameToSession: (sessionId: string, reuseLastSeating?: boolean) => void;
   deleteGame: (sessionId: string, gameId: string) => void;
+  swapSessionPlayers: (sessionId: string, seatA: number, seatB: number) => void;
+  shiftSessionPlayers: (sessionId: string, startSeat: number, shiftBy: number) => void;
+  insertSessionPlayerSlot: (sessionId: string, atSeat: number, playerName: string) => void;
   getActiveSession: () => Session | null;
   getActiveGame: () => Game | null;
   syncSession: (session: Session) => void;
@@ -346,7 +410,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   );
 
   const addGameToSession = useCallback(
-    (sessionId: string) => {
+    (sessionId: string, reuseLastSeating = true) => {
       const session = state.sessions.find((s) => s.id === sessionId);
       if (!session) return;
 
@@ -357,7 +421,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       let players: PlayerSeat[];
       const lastGameId = session.gameIds[session.gameIds.length - 1];
 
-      if (lastGameId) {
+      if (lastGameId && reuseLastSeating) {
         try {
           const raw = localStorage.getItem(`storyteller-game-${lastGameId}`);
           if (raw) {
@@ -417,6 +481,24 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [apiDeleteGame],
   );
 
+  const swapSessionPlayers = useCallback((sessionId: string, seatA: number, seatB: number) => {
+    dispatch({ type: 'SWAP_SESSION_PLAYERS', payload: { sessionId, seatA, seatB } });
+  }, []);
+
+  const shiftSessionPlayers = useCallback(
+    (sessionId: string, startSeat: number, shiftBy: number) => {
+      dispatch({ type: 'SHIFT_SESSION_PLAYERS', payload: { sessionId, startSeat, shiftBy } });
+    },
+    [],
+  );
+
+  const insertSessionPlayerSlot = useCallback(
+    (sessionId: string, atSeat: number, playerName: string) => {
+      dispatch({ type: 'INSERT_SESSION_PLAYER_SLOT', payload: { sessionId, atSeat, playerName } });
+    },
+    [],
+  );
+
   const getActiveSession = useCallback((): Session | null => {
     if (!state.activeSessionId) return null;
     return state.sessions.find((s) => s.id === state.activeSessionId) ?? null;
@@ -448,6 +530,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     updateSession,
     addGameToSession,
     deleteGame,
+    swapSessionPlayers,
+    shiftSessionPlayers,
+    insertSessionPlayerSlot,
     getActiveSession,
     getActiveGame,
     syncSession,
@@ -487,4 +572,38 @@ function buildPlayersFromDefaults(session: Session): PlayerSeat[] {
     isTraveller: false,
     tokens: [],
   }));
+}
+
+function shiftDefaultPlayers(
+  players: Array<{ seat: number; playerName: string }>,
+  startSeat: number,
+  shiftBy: number,
+): Array<{ seat: number; playerName: string }> {
+  const affected = players
+    .filter((player) => player.seat >= startSeat)
+    .sort((a, b) => a.seat - b.seat);
+  if (affected.length <= 1) return players;
+  const normalizedShift = ((shiftBy % affected.length) + affected.length) % affected.length;
+  if (normalizedShift === 0) return players;
+  const seatMap = new Map<number, number>();
+  affected.forEach((player, index) => {
+    const targetIndex = (index + normalizedShift) % affected.length;
+    seatMap.set(player.seat, affected[targetIndex].seat);
+  });
+  return players
+    .map((player) => ({ ...player, seat: seatMap.get(player.seat) ?? player.seat }))
+    .sort((a, b) => a.seat - b.seat);
+}
+
+function insertDefaultPlayer(
+  players: Array<{ seat: number; playerName: string }>,
+  atSeat: number,
+  playerName: string,
+): Array<{ seat: number; playerName: string }> {
+  return [
+    ...players.map((player) =>
+      player.seat >= atSeat ? { ...player, seat: player.seat + 1 } : player,
+    ),
+    { seat: atSeat, playerName },
+  ].sort((a, b) => a.seat - b.seat);
 }

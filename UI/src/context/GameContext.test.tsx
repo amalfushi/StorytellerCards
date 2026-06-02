@@ -1848,6 +1848,188 @@ describe('GameContext', () => {
       expect(seat2.alive).toBe(true);
       expect(seat2.ghostVoteUsed).toBe(false);
     });
+
+    it('moves character-bound state with the player identity', () => {
+      const { result } = renderGameHook();
+      const token: PlayerToken = {
+        id: 'poisoned-by-no-dashii',
+        type: 'poisoned',
+        label: 'Poisoned',
+      };
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            playerBluffs: { '1': ['washerwoman', 'librarian'] },
+            players: [
+              makePlayer({
+                seat: 1,
+                playerName: 'Alice',
+                characterId: 'imp',
+                actualAlignment: Alignment.Evil,
+                startingAlignment: Alignment.Evil,
+                activeReminders: ['scarlet-woman'],
+                tokens: [token],
+                apparentCharacterId: 'washerwoman',
+              }),
+              makePlayer({
+                seat: 2,
+                playerName: 'Bob',
+                characterId: 'undertaker',
+                actualAlignment: Alignment.Good,
+                startingAlignment: Alignment.Good,
+              }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.swapPlayerSeats(1, 2);
+      });
+
+      const game = result.current.state.game!;
+      const seat2 = game.players.find((p) => p.seat === 2)!;
+      expect(seat2.playerName).toBe('Alice');
+      expect(seat2.characterId).toBe('imp');
+      expect(seat2.actualAlignment).toBe(Alignment.Evil);
+      expect(seat2.activeReminders).toEqual(['scarlet-woman']);
+      expect(seat2.tokens).toEqual([token]);
+      expect(seat2.apparentCharacterId).toBe('washerwoman');
+      expect(game.playerBluffs).toEqual({ '2': ['washerwoman', 'librarian'] });
+    });
+  });
+
+  // ── SHIFT_PLAYER_SEATS / INSERT_EMPTY_SEAT ──
+
+  describe('seat shifting actions', () => {
+    it('shifts everyone clockwise by a positive amount with wrapping', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({ seat: 1, playerName: 'Alice' }),
+              makePlayer({ seat: 2, playerName: 'Bob' }),
+              makePlayer({ seat: 3, playerName: 'Charlie' }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.shiftPlayerSeats(1, 1);
+      });
+
+      const players = result.current.state.game!.players;
+      expect(players.find((p) => p.seat === 1)!.playerName).toBe('Charlie');
+      expect(players.find((p) => p.seat === 2)!.playerName).toBe('Alice');
+      expect(players.find((p) => p.seat === 3)!.playerName).toBe('Bob');
+    });
+
+    it('shifts everyone counter-clockwise by a negative amount with wrapping', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({ seat: 1, playerName: 'Alice' }),
+              makePlayer({ seat: 2, playerName: 'Bob' }),
+              makePlayer({ seat: 3, playerName: 'Charlie' }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.shiftPlayerSeats(1, -1);
+      });
+
+      const players = result.current.state.game!.players;
+      expect(players.find((p) => p.seat === 1)!.playerName).toBe('Bob');
+      expect(players.find((p) => p.seat === 2)!.playerName).toBe('Charlie');
+      expect(players.find((p) => p.seat === 3)!.playerName).toBe('Alice');
+    });
+
+    it('shifts from a start seat and leaves earlier seats unchanged', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({ seat: 1, playerName: 'Alice' }),
+              makePlayer({ seat: 2, playerName: 'Bob' }),
+              makePlayer({ seat: 3, playerName: 'Charlie' }),
+              makePlayer({ seat: 4, playerName: 'Diana' }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.shiftPlayerSeats(2, 1);
+      });
+
+      const players = result.current.state.game!.players;
+      expect(players.find((p) => p.seat === 1)!.playerName).toBe('Alice');
+      expect(players.find((p) => p.seat === 2)!.playerName).toBe('Diana');
+      expect(players.find((p) => p.seat === 3)!.playerName).toBe('Bob');
+      expect(players.find((p) => p.seat === 4)!.playerName).toBe('Charlie');
+    });
+
+    it('inserts an empty seat and pushes the last seat outward', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({ seat: 1, playerName: 'Alice' }),
+              makePlayer({ seat: 2, playerName: 'Bob' }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.insertEmptySeat(1);
+      });
+
+      const players = result.current.state.game!.players;
+      expect(players).toHaveLength(3);
+      expect(players.find((p) => p.seat === 1)!.playerName).toBe('');
+      expect(players.find((p) => p.seat === 2)!.playerName).toBe('Alice');
+      expect(players.find((p) => p.seat === 3)!.playerName).toBe('Bob');
+    });
+
+    it('moves full PlayerSeat data during shifts', () => {
+      const { result } = renderGameHook();
+      const token: PlayerToken = { id: 'drunk', type: 'drunk', label: 'Drunk' };
+      act(() => {
+        result.current.loadGame(
+          makeGame({
+            players: [
+              makePlayer({
+                seat: 1,
+                playerName: 'Alice',
+                characterId: 'imp',
+                activeReminders: ['is-demon'],
+                tokens: [token],
+              }),
+              makePlayer({ seat: 2, playerName: 'Bob', characterId: 'chef' }),
+            ],
+          }),
+        );
+      });
+
+      act(() => {
+        result.current.shiftPlayerSeats(1, 1);
+      });
+
+      const seat2 = result.current.state.game!.players.find((p) => p.seat === 2)!;
+      expect(seat2.playerName).toBe('Alice');
+      expect(seat2.characterId).toBe('imp');
+      expect(seat2.activeReminders).toEqual(['is-demon']);
+      expect(seat2.tokens).toEqual([token]);
+    });
   });
 
   // ── SET_DEMON_BLUFFS ──

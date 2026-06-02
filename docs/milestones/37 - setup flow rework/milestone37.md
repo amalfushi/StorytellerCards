@@ -1,12 +1,35 @@
 # Milestone 37 — Pre-Game Setup Flow Rework
 
-## Status: 📋 Planned
+## Status: ✅ Complete
+
+Completed: 2026-06-01
+
+### What shipped
+
+- Option B — Seat Lock + Quick Reseat — delivered as the M37 implementation.
+- Added a reusable two-step `ReseatTool` with setup and in-game entry points.
+- Added `ShiftSeatsDialog` for late arrivals, whole-table rotation, and inserting empty seats.
+- Added game/session seat swap, shift, and insert actions with character-bound state moving with players.
+- Added a default-on "Reuse last seating" toggle when creating another game in a session.
+- Added unit coverage and Storybook interaction stories for the new tools.
+- Final verification after rebasing on M36: 4053 Vitest tests across 82 test files passed.
+
+### Decision
+
+Option B was selected because it is the lowest-risk change that directly targets the reported pain: seats changing at setup time or during play. It preserves the current setup flow, avoids a larger data-model/UI rewrite, and does not preclude Option C later if the visual seating canvas becomes worthwhile.
+
+#### Out of scope (deferred)
+
+- Option A — Seat-Free First, Snap Later.
+- Option C — Photo + Drag Seating.
+
+---
 
 ### Summary
 
 Rework the pre-game setup flow (player names → seat assignment → character selection → character-to-player assignment) to remove the friction that slows down starting a live game, especially when players don't sit in pre-set seats or seating changes between games.
 
-The chosen approach is selected at M37 planning time from three options presented below.
+The chosen approach was Option B — Seat Lock + Quick Reseat.
 
 ---
 
@@ -89,13 +112,13 @@ Start with **Option B** (low risk, high reward, doesn't preclude C later) and re
 
 ## 3. Task List (placeholder — refined at M37 planning)
 
-- [ ] Decision: Option A, B, or C (or a hybrid)
-- [ ] Design review of the chosen flow
-- [ ] Data model changes (if any) — append-only on `types/index.ts` and `GameContext.tsx` per AGENTS.md conflict avoidance
-- [ ] Implementation
-- [ ] Tests (unit + Storybook play() interactions per AGENTS.md testing policy)
-- [ ] Migration path for existing sessions/games
-- [ ] Documentation: this `milestone37.md` updated, `docs/progress.md` row, `AGENTS.md` stats if test count changes
+- [x] Decision: Option A, B, or C (or a hybrid)
+- [x] Design review of the chosen flow
+- [x] Data model changes (if any) — append-only on `types/index.ts` and `GameContext.tsx` per AGENTS.md conflict avoidance
+- [x] Implementation
+- [x] Tests (unit + Storybook play() interactions per AGENTS.md testing policy)
+- [x] Migration path for existing sessions/games
+- [x] Documentation: this `milestone37.md` updated, `docs/progress.md` row, `AGENTS.md` stats if test count changes
 
 ---
 
@@ -121,8 +144,8 @@ Start with **Option B** (low risk, high reward, doesn't preclude C later) and re
 
 ## 6. Acceptance Criteria (preliminary)
 
-- [ ] A late arrival can be added and seated in **under 3 taps**
-- [ ] A two-player seat swap mid-setup is **one gesture** (drag-and-drop or tap-tap)
-- [ ] Restarting a game with the same group reuses the last seating with one tap
-- [ ] No regression in the existing happy path (default players seated in order)
-- [ ] Full test suite passes; no new lint suppressions per AGENTS.md
+- [x] A late arrival can be added and seated in **under 3 taps**
+- [x] A two-player seat swap mid-setup is **one gesture** (drag-and-drop or tap-tap)
+- [x] Restarting a game with the same group reuses the last seating with one tap
+- [x] No regression in the existing happy path (default players seated in order)
+- [x] Full test suite passes; no new lint suppressions per AGENTS.md

@@ -38,6 +38,7 @@ import { PlayerRow } from '@/components/PlayerList/PlayerRow.tsx';
 import { PlayerActionsModal } from '@/components/TownSquare/PlayerActionsModal.tsx';
 import { TokenManager } from '@/components/TownSquare/TokenManager.tsx';
 import { buildAvailableTokens } from '@/utils/buildAvailableTokens.ts';
+import { ReseatTool } from '@/components/common/ReseatTool.tsx';
 
 interface PlayerListTabProps {
   scriptCharacterIds: string[];
@@ -61,6 +62,8 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
   const [editSeat, setEditSeat] = useState<number | null>(null);
   const [swapSourceSeat, setSwapSourceSeat] = useState<number | null>(null);
+  const [reseatInitialSeat, setReseatInitialSeat] = useState<number | null>(null);
+  const [reseatOpen, setReseatOpen] = useState(false);
   const [showAlignment, setShowAlignment] = useState(false);
   const [tokenManagerSeat, setTokenManagerSeat] = useState<number | null>(null);
 
@@ -198,6 +201,11 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
 
   const handleSwapWith = useCallback((seat: number) => {
     setSwapSourceSeat(seat);
+  }, []);
+
+  const handleOpenReseat = useCallback((seat: number) => {
+    setReseatInitialSeat(seat);
+    setReseatOpen(true);
   }, []);
 
   const handleRowClick = (seat: number) => {
@@ -364,8 +372,17 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         onRemoveTraveller={handleRemoveTraveller}
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
+        onReseat={handleOpenReseat}
         onSwapWith={handleSwapWith}
         onChangeBluff={handleChangeBluff}
+      />
+
+      <ReseatTool
+        open={reseatOpen}
+        players={players}
+        initialSeat={reseatInitialSeat}
+        onClose={() => setReseatOpen(false)}
+        onConfirmSwap={swapPlayerSeats}
       />
 
       {/* Token Manager Dialog */}

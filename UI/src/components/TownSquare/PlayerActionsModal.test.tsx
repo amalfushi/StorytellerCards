@@ -150,6 +150,24 @@ describe('PlayerActionsModal', () => {
     expect(screen.getByText(/Alice — Seat 1/)).toBeInTheDocument();
   });
 
+  it('calls onReseat with the selected player seat', () => {
+    const handlers = defaultHandlers();
+    const onReseat = vi.fn();
+    render(
+      <PlayerActionsModal
+        open={true}
+        player={alivePlayer}
+        showCharacters={false}
+        scriptCharacters={scriptCharacters}
+        onReseat={onReseat}
+        {...handlers}
+      />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Reseat/i }));
+    expect(onReseat).toHaveBeenCalledWith(1);
+    expect(handlers.onClose).toHaveBeenCalledTimes(1);
+  });
+
   // ── Hidden mode tests (showCharacters=false) ──
 
   describe('hidden mode (showCharacters=false)', () => {

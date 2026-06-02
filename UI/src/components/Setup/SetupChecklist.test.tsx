@@ -225,6 +225,13 @@ describe('SetupChecklist', () => {
     expect(onStartNight).toHaveBeenCalledTimes(1);
   });
 
+  it('calls onReseat when reseat button is clicked', () => {
+    const onReseat = vi.fn();
+    render(<SetupChecklist {...defaultProps} onReseat={onReseat} />);
+    fireEvent.click(screen.getByRole('button', { name: /Reseat/i }));
+    expect(onReseat).toHaveBeenCalledTimes(1);
+  });
+
   it('shows "ready to start" when no items needed', () => {
     render(
       <SetupChecklist

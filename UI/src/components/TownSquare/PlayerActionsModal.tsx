@@ -59,6 +59,7 @@ export interface PlayerActionsModalProps {
     seat: number,
     updates: { characterId?: string; actualAlignment?: Alignment },
   ) => void;
+  onReseat?: (seat: number) => void;
   onSwapWith?: (seat: number) => void;
   /** Called when a bluff is changed (old bluff ID replaced with new). */
   onChangeBluff?: (oldBluffId: string, newBluffId: string) => void;
@@ -88,6 +89,7 @@ export function PlayerActionsModal({
   onRemoveTraveller,
   onManageTokens,
   onSaveCharacter,
+  onReseat,
   onSwapWith,
   onChangeBluff,
 }: PlayerActionsModalProps) {
@@ -110,6 +112,7 @@ export function PlayerActionsModal({
       onRemoveTraveller={onRemoveTraveller}
       onManageTokens={onManageTokens}
       onSaveCharacter={onSaveCharacter}
+      onReseat={onReseat}
       onSwapWith={onSwapWith}
       onChangeBluff={onChangeBluff}
     />
@@ -132,6 +135,7 @@ function PlayerActionsModalInner({
   onRemoveTraveller,
   onManageTokens,
   onSaveCharacter,
+  onReseat,
   onSwapWith,
   onChangeBluff,
 }: Omit<PlayerActionsModalProps, 'open'> & { player: PlayerSeat }) {
@@ -208,6 +212,13 @@ function PlayerActionsModalInner({
     }
   };
 
+  const handleReseat = () => {
+    if (onReseat) {
+      onReseat(player.seat);
+      onClose();
+    }
+  };
+
   const handleManageTokens = () => {
     onManageTokens(player.seat);
     onClose();
@@ -251,17 +262,29 @@ function PlayerActionsModalInner({
         )}
 
         {/* ── Swap with another player ── */}
-        {onSwapWith && (
+        {(onReseat || onSwapWith) && (
           <>
             <Divider />
-            <Button
-              variant="outlined"
-              startIcon={<SwapHorizIcon />}
-              onClick={handleSwapWith}
-              fullWidth
-            >
-              Swap with…
-            </Button>
+            {onReseat && (
+              <Button
+                variant="outlined"
+                startIcon={<SwapHorizIcon />}
+                onClick={handleReseat}
+                fullWidth
+              >
+                Reseat…
+              </Button>
+            )}
+            {onSwapWith && (
+              <Button
+                variant="outlined"
+                startIcon={<SwapHorizIcon />}
+                onClick={handleSwapWith}
+                fullWidth
+              >
+                Swap with…
+              </Button>
+            )}
           </>
         )}
 

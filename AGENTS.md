@@ -28,7 +28,7 @@ The app manages a hierarchy: **Sessions** (containers) → **Games** → **Playe
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | UI           | React 19 + TypeScript + Vite 6 + MUI Core (free tier)                                                                           |
 | State        | React Context + `useReducer` + `localStorage` (primary), Go API (secondary sync)                                                |
-| Testing      | Vitest (4028 tests across 80 files), Storybook 8 (~100+ stories with `play()` interaction tests), Playwright E2E (2 spec files) |
+| Testing      | Vitest (4053 tests across 82 files), Storybook 8 (~105+ stories with `play()` interaction tests), Playwright E2E (2 spec files) |
 | Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests + coverage)                                            |
 | API          | Go + Chi router, JSON file storage, 90-day auto-cleanup                                                                         |
 | PWA          | `manifest.json`, icons, mobile meta tags                                                                                        |
@@ -201,10 +201,10 @@ Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
 
 See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 
-### Current Test Stats (as of M36 show-to-player redesign complete)
+### Current Test Stats (as of M37 setup flow rework complete)
 
-- **4028 tests** across **80 test files** — all passing
-- **20 story files** with **~100+ stories** including `play()` interaction tests
+- **4053 tests** across **82 test files** — all passing
+- **21 story files** with **~105+ stories** including `play()` interaction tests
 - **0 TypeScript errors**, **0 ESLint errors**
 - **Playwright E2E**: 2 spec files (game-lifecycle, cross-device-sync)
 

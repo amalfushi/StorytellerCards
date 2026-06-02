@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import type { Session } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -44,6 +44,9 @@ const mockUpdateSession = vi.fn();
 const mockAddGameToSession = vi.fn();
 const mockSelectGame = vi.fn();
 const mockNavigate = vi.fn();
+const mockDeleteGame = vi.fn();
+const mockShiftSessionPlayers = vi.fn();
+const mockInsertSessionPlayerSlot = vi.fn();
 
 let mockSessions: Session[];
 let mockSessionId: string;
@@ -59,6 +62,9 @@ vi.mock('@/context/SessionContext.tsx', () => ({
     updateSession: mockUpdateSession,
     addGameToSession: mockAddGameToSession,
     selectGame: mockSelectGame,
+    deleteGame: mockDeleteGame,
+    shiftSessionPlayers: mockShiftSessionPlayers,
+    insertSessionPlayerSlot: mockInsertSessionPlayerSlot,
   }),
 }));
 
@@ -143,9 +149,27 @@ describe('SessionSetupPage', () => {
     expect(screen.getByRole('button', { name: /add player/i })).toBeInTheDocument();
   });
 
+  it('shows Shift / Insert button', () => {
+    render(<SessionSetupPage />);
+    expect(screen.getByRole('button', { name: /shift \/ insert/i })).toBeInTheDocument();
+  });
+
   it('shows Games section with New Game button', () => {
     render(<SessionSetupPage />);
     expect(screen.getByRole('button', { name: /new game/i })).toBeInTheDocument();
+  });
+
+  it('creates a game with reuse last seating enabled by default', () => {
+    render(<SessionSetupPage />);
+    fireEvent.click(screen.getByRole('button', { name: /new game/i }));
+    expect(mockAddGameToSession).toHaveBeenCalledWith('session-1', true);
+  });
+
+  it('can turn off reuse last seating before creating a game', () => {
+    render(<SessionSetupPage />);
+    fireEvent.click(screen.getByRole('switch', { name: /reuse last seating/i }));
+    fireEvent.click(screen.getByRole('button', { name: /new game/i }));
+    expect(mockAddGameToSession).toHaveBeenCalledWith('session-1', false);
   });
 
   it('shows game count in Games section heading', () => {

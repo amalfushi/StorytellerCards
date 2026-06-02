@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-06-01
+> Last updated: 2026-06-02
 
 ## Milestone Overview
 
@@ -42,6 +42,7 @@
 | M33       | SSE Sync Redesign — SSE hub, useSseSync hook, Vite proxy, same-origin API, remove polling/CORS                                      | ✅ Complete                           | [details](milestones/33%20-%20sse%20sync%20redesign/milestone33.md)                                   |
 | M34       | Integration Testing — Go model roundtrip, Playwright E2E game lifecycle, cross-device sync                                          | ✅ Complete                           | [details](milestones/34%20-%20integration%20testing/milestone34.md)                                   |
 | M36       | Show-to-Player Workflow Redesign — per-player multi-slot messages, pinned/recent templates, quick recall, Town Square badges        | ✅ Complete                           | [details](milestones/36%20-%20show%20to%20player%20redesign/milestone36.md)                           |
+| M37       | Pre-Game Setup Flow Rework — Option B seat lock, quick reseat, shift/insert seats, reuse last seating                              | ✅ Complete                           | [details](milestones/37%20-%20setup%20flow%20rework/milestone37.md)                                   |
 
 ## Key Design Decisions
 
@@ -57,13 +58,13 @@
 - **Same-origin architecture in M33** — Vite proxy in dev (`/api` → `:3001`), Go static file serving in production. Eliminated all CORS configuration, `isPrivateOrigin()`, and cross-origin complexity
 - **Playwright E2E testing in M34** — three-level integration testing strategy: Go model roundtrip tests (catch field parity), Playwright game lifecycle (catch UI→API gaps), Playwright cross-device sync (catch SSE/sync bugs)
 
-## Verification (as of M36 show-to-player redesign complete)
+## Verification (as of M37 setup flow rework complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 4028/4028 passing (80 test files)
-- Coverage: Stmts 82.87%, Branch 79.95%, Funcs 74.08%, Lines 84.66% (thresholds enforced)
-- Storybook: 20 story files with ~100+ stories including `play()` interaction tests
+- Tests: 4053/4053 passing (82 test files)
+- Coverage: Stmts 81.90%, Branch 74.83%, Funcs 75.31%, Lines 81.90% (thresholds enforced)
+- Storybook: 21 story files with ~105+ stories including `play()` interaction tests
 - Go build: success
 - Go tests: all passing (handlers, sse, storage packages + roundtrip integration tests)
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)

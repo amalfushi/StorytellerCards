@@ -41,6 +41,7 @@ import { CharacterSelection } from '@/components/Setup/CharacterSelection.tsx';
 import { DemonBluffSelection } from '@/components/Setup/DemonBluffSelection.tsx';
 import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
+import { ReseatTool } from '@/components/common/ReseatTool.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
 import { Phase as PhaseEnum } from '@/types/index.ts';
 import { AddPlayerDialog } from '@/components/TownSquare/AddPlayerDialog.tsx';
@@ -70,6 +71,7 @@ export function GameViewPage() {
     setDemonBluffs,
     setLunaticBluffs,
     setPlayerBluffs,
+    swapPlayerSeats,
   } = useGame();
   const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
 
@@ -80,6 +82,7 @@ export function GameViewPage() {
   const [bluffSelectionOpen, setBluffSelectionOpen] = useState(false);
   const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
+  const [reseatOpen, setReseatOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
   const [addPlayerOpen, setAddPlayerOpen] = useState(false);
 
@@ -522,6 +525,7 @@ export function GameViewPage() {
                 setSetupChecklistOpen(false);
                 handleNightClick();
               }}
+              onReseat={() => setReseatOpen(true)}
             />
           </Box>
         </Drawer>
@@ -626,6 +630,13 @@ export function GameViewPage() {
 
       {/* Night History Drawer */}
       <NightHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
+
+      <ReseatTool
+        open={reseatOpen}
+        players={players}
+        onClose={() => setReseatOpen(false)}
+        onConfirmSwap={swapPlayerSeats}
+      />
 
       {/* Character Assignment Dialog */}
       {game && (
