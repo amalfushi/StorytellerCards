@@ -1,22 +1,22 @@
 {
   "statements": {
-    "total": 4393,
-    "covered": 3598,
-    "pct": 81.9
+    "total": 4557,
+    "covered": 3692,
+    "pct": 81.02
   },
   "branches": {
-    "total": 3326,
-    "covered": 2489,
-    "pct": 74.83
+    "total": 3480,
+    "covered": 2574,
+    "pct": 73.97
   },
   "functions": {
-    "total": 1122,
-    "covered": 845,
-    "pct": 75.31
+    "total": 1165,
+    "covered": 867,
+    "pct": 74.42
   },
   "lines": {
-    "total": 4393,
-    "covered": 3598,
-    "pct": 81.9
+    "total": 4557,
+    "covered": 3692,
+    "pct": 81.02
   }
 }
