@@ -95,6 +95,8 @@ export interface NightChoice {
   maxSelections: number;
   /** Label shown above the selector (e.g. "Choose 2 players"). */
   label: string;
+  /** Optional character/player filtering hint for reusable selectors. */
+  filter?: string;
 }
 
 /** Full storyteller instructions for one night phase. */
@@ -141,6 +143,16 @@ export interface StorytellerSetup {
   id: string;
 }
 
+/** Reminder-token setup the Storyteller should place before Night 1 begins. */
+export interface FirstNightReminderSetup {
+  /** Unique key for this setup reminder step. */
+  id: string;
+  /** Human-readable description of what reminder tokens to place. */
+  description: string;
+  /** Reminder token IDs this setup step is preparing. */
+  reminderTokenIds: string[];
+}
+
 /** Describes how a Fabled or Loric character overrides standard game rules. */
 export interface GameRuleOverride {
   /** Human-readable description of the override. */
@@ -183,6 +195,8 @@ export interface CharacterDef {
   setupModification?: SetupModification;
   /** Steps the Storyteller must complete during game setup. */
   storytellerSetup?: StorytellerSetup[];
+  /** Reminder-token placements to prepare before Night 1 starts. */
+  firstNightReminderSetup?: FirstNightReminderSetup[];
   /** Game rule overrides (for Fabled/Loric characters). */
   gameRuleOverrides?: GameRuleOverride[];
   /** Jinx interactions with other characters (M5). */

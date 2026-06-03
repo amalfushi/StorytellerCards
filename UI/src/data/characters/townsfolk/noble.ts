@@ -34,6 +34,13 @@ export const noble: CharacterDef = {
     { id: 'noble-know-2', text: 'Know', sourceCharacterId: 'noble' },
     { id: 'noble-know-3', text: 'Know', sourceCharacterId: 'noble' },
   ],
+  firstNightReminderSetup: [
+    {
+      id: 'know-tokens',
+      description: 'Place 3 Know reminders on the players Noble will learn (exactly 1 evil).',
+      reminderTokenIds: ['noble-know-1', 'noble-know-2', 'noble-know-3'],
+    },
+  ],
   flavor:
     'Sarcasm is indeed the lowest form of wit. But speaking in response to your criticism, Sir, it is, nevertheless, a form of wit.',
   edition: 'carousel',

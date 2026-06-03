@@ -132,15 +132,16 @@ describe('CharacterSelection', () => {
     expect(screen.queryByText('Select Characters')).not.toBeInTheDocument();
   });
 
-  it('renders characters grouped by type (Travellers excluded)', () => {
+  it('renders characters grouped by type (Travellers and setup powers excluded)', () => {
     render(<CharacterSelection {...defaultProps} />);
     expect(screen.getByTestId('char-group-Townsfolk')).toBeInTheDocument();
     expect(screen.getByTestId('char-group-Outsider')).toBeInTheDocument();
     expect(screen.getByTestId('char-group-Minion')).toBeInTheDocument();
     expect(screen.getByTestId('char-group-Demon')).toBeInTheDocument();
-    // Travellers are omitted from this screen
+    // Travellers, Fabled, and Loric setup powers are omitted from this player-character screen.
     expect(screen.queryByTestId('char-group-Traveller')).not.toBeInTheDocument();
-    expect(screen.getByTestId('char-group-Fabled')).toBeInTheDocument();
+    expect(screen.queryByTestId('char-group-Fabled')).not.toBeInTheDocument();
+    expect(screen.queryByText('Angel')).not.toBeInTheDocument();
   });
 
   it('renders character names within their groups', () => {
@@ -417,7 +418,7 @@ describe('CharacterSelection', () => {
       expect(screen.getByTestId('variable-stepper-godfather')).toBeInTheDocument();
     });
 
-    it('shows variable stepper for Sentinel when selected', () => {
+    it('does not show variable stepper for Sentinel because Fabled are setup powers', () => {
       render(
         <CharacterSelection
           {...defaultProps}
@@ -426,7 +427,7 @@ describe('CharacterSelection', () => {
           initialSelected={['sentinel']}
         />,
       );
-      expect(screen.getByTestId('variable-stepper-sentinel')).toBeInTheDocument();
+      expect(screen.queryByTestId('variable-stepper-sentinel')).not.toBeInTheDocument();
     });
 
     it('does not show variable stepper when character is not selected', () => {

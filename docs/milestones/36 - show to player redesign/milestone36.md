@@ -11,6 +11,10 @@ Completed: 2026-06-01
 - Added migration from existing per-character custom messages when the character is currently seated; no separate legacy schema beyond `customPlayerMessages` exists in `PlayerShowDrawer.tsx`.
 - Added Town Square active-message count badges, seeded script templates, sorting heuristics, unit coverage, and a Storybook interaction story.
 
+## Post-merge fixes (M38)
+
+Town Square no longer renders the active show-message count badge on player tiles. The underlying per-player message slots and template data remain intact; only the noisy visual badge was removed.
+
 ### Summary
 
 Replace the current single-message-per-character "show to players" drawer with a per-player slot system that supports multiple concurrent messages, template recall, and quick reuse — driven by live-game feedback.

@@ -43,6 +43,13 @@ export const grandmother: CharacterDef = {
     { id: 'grandmother-grandchild', text: 'Grandchild', sourceCharacterId: 'grandmother' },
     { id: 'grandmother-dead', text: 'Dead', sourceCharacterId: 'grandmother' },
   ],
+  firstNightReminderSetup: [
+    {
+      id: 'grandchild-token',
+      description: 'Place the Grandchild reminder on the good player Grandmother will learn.',
+      reminderTokenIds: ['grandmother-grandchild'],
+    },
+  ],
   jinxes: [
     {
       characterId: 'leviathan',

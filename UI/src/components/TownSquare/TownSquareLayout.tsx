@@ -1,10 +1,12 @@
 import { useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import type { PlayerSeat } from '@/types/index.ts';
 
 export interface TokenPosition {
@@ -187,22 +189,28 @@ export function TownSquareLayout({
           {[
             ...activeFabled.map((ch) => ({ ...ch, setupType: 'Fabled' as const })),
             ...activeLoric.map((ch) => ({ ...ch, setupType: 'Loric' as const })),
-          ].map((ch) => (
-            <Chip
-              key={`${ch.setupType}-${ch.id}`}
-              label={`${ch.setupType}: ${ch.name}`}
-              size="small"
-              data-testid={`${ch.setupType === 'Fabled' ? 'fabled' : 'loric'}-chip-${ch.id}`}
-              onClick={() => setAbilityDialog(ch)}
-              sx={{
-                bgcolor: ch.setupType === 'Fabled' ? '#ff9800' : '#558b2f',
-                color: '#fff',
-                fontWeight: 600,
-                fontSize: '0.65rem',
-                cursor: 'pointer',
-              }}
-            />
-          ))}
+          ].map((ch) => {
+            const typeColor = getCharacterTypeColor(ch.setupType);
+            return (
+              <IconButton
+                key={`${ch.setupType}-${ch.id}`}
+                size="small"
+                data-testid={`${ch.setupType === 'Fabled' ? 'fabled' : 'loric'}-chip-${ch.id}`}
+                onClick={() => setAbilityDialog(ch)}
+                aria-label={`${ch.setupType}: ${ch.name}`}
+                title={`${ch.setupType}: ${ch.name}`}
+                sx={{ p: 0.25 }}
+              >
+                <CharacterIconImage
+                  characterId={ch.id}
+                  characterName={ch.name}
+                  typeColor={typeColor}
+                  borderColor={typeColor}
+                  size={34}
+                />
+              </IconButton>
+            );
+          })}
         </Box>
       )}
 

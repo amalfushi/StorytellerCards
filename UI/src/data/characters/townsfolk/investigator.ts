@@ -37,6 +37,13 @@ export const investigator: CharacterDef = {
     { id: 'investigator-minion', text: 'Minion', sourceCharacterId: 'investigator' },
     { id: 'investigator-wrong', text: 'Wrong', sourceCharacterId: 'investigator' },
   ],
+  firstNightReminderSetup: [
+    {
+      id: 'minion-and-wrong-tokens',
+      description: 'Place Minion and Wrong reminders on the two players Investigator will learn.',
+      reminderTokenIds: ['investigator-minion', 'investigator-wrong'],
+    },
+  ],
   jinxes: [
     {
       characterId: 'vizier',

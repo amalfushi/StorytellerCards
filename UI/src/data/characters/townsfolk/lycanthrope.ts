@@ -38,6 +38,13 @@ export const lycanthrope: CharacterDef = {
     { id: 'lycanthrope-fauxpaw', text: 'Faux Paw', sourceCharacterId: 'lycanthrope' },
     { id: 'lycanthrope-dead', text: 'Dead', sourceCharacterId: 'lycanthrope' },
   ],
+  firstNightReminderSetup: [
+    {
+      id: 'faux-paw-token',
+      description: 'Place the Faux Paw reminder on the good player who registers as evil.',
+      reminderTokenIds: ['lycanthrope-fauxpaw'],
+    },
+  ],
   flavor: 'Beneath the thin veneer of civilisation lies a howling madness.',
   edition: 'carousel',
 };
