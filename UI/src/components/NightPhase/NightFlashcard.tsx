@@ -236,11 +236,16 @@ export function NightFlashcard({
 
   // Phase 2: Build a map of placed reminder tokens → player info
   const availableReminderTokens = useMemo(() => {
-    const tokens = characterDef ? [...characterDef.reminders] : [];
-    for (const setupPower of activeSetupPowers) {
-      tokens.push(...setupPower.reminders);
+    const tokensById = new Map<string, NonNullable<CharacterDef['reminders']>[number]>();
+    for (const token of characterDef?.reminders ?? []) {
+      tokensById.set(token.id, token);
     }
-    return tokens;
+    for (const setupPower of activeSetupPowers) {
+      for (const token of setupPower.reminders) {
+        if (!tokensById.has(token.id)) tokensById.set(token.id, token);
+      }
+    }
+    return Array.from(tokensById.values());
   }, [activeSetupPowers, characterDef]);
 
   const placedReminders = useMemo(() => {
@@ -662,7 +667,12 @@ export function NightFlashcard({
             return (
               <ReminderTokenChip
                 key={r.id}
-                token={{ id: r.id, label: r.text, sourceCharacterId: r.sourceCharacterId }}
+                token={{
+                  id: r.id,
+                  label: r.text,
+                  ...(r.pickerScope ? { pickerScope: r.pickerScope } : {}),
+                  sourceCharacterId: r.sourceCharacterId,
+                }}
                 size="small"
                 placed={!!placedOn}
                 placedInfo={placedText}
@@ -675,6 +685,7 @@ export function NightFlashcard({
                             id: r.id,
                             type: 'custom',
                             label: r.text,
+                            ...(r.pickerScope ? { pickerScope: r.pickerScope } : {}),
                             sourceCharacterId: r.sourceCharacterId,
                           },
                           event,

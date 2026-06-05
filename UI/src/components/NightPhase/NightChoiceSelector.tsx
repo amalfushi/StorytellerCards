@@ -37,6 +37,8 @@ export interface NightChoiceSelectorProps {
   emptyOptionLabel?: string;
   /** Lookup function to resolve character definitions by ID (for inline icons). */
   characterLookup?: (id: string) => CharacterDef | undefined;
+  /** When false, unassigned character options show only the character name. */
+  showUnassignedCharacterType?: boolean;
 }
 
 // ──────────────────────────────────────────────
@@ -65,6 +67,7 @@ export function NightChoiceSelector({
   readOnly = false,
   emptyOptionLabel = 'None',
   characterLookup,
+  showUnassignedCharacterType = true,
 }: NightChoiceSelectorProps) {
   // Build player options filtered by type
   const playerOptions = useMemo(() => {
@@ -265,7 +268,8 @@ export function NightChoiceSelector({
               const c = characters.find((ch) => ch.name === selected);
               if (!c) return selected;
               const p = playersByCharId.get(c.id);
-              return p ? `${c.name} (${p.playerName})` : `${c.name} (${c.type})`;
+              if (p) return `${c.name} (${p.playerName})`;
+              return showUnassignedCharacterType ? `${c.name} (${c.type})` : c.name;
             }}
             sx={{
               color: 'rgba(255,255,255,0.9)',
@@ -289,7 +293,13 @@ export function NightChoiceSelector({
                     />
                   </ListItemIcon>
                   <ListItemText
-                    primary={p ? `${c.name} (${p.playerName})` : `${c.name} (${c.type})`}
+                    primary={
+                      p
+                        ? `${c.name} (${p.playerName})`
+                        : showUnassignedCharacterType
+                          ? `${c.name} (${c.type})`
+                          : c.name
+                    }
                   />
                 </MenuItem>
               );

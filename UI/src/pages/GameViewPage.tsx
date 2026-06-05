@@ -23,7 +23,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
-import type { Game, Phase, PlayerToken, Script } from '@/types/index.ts';
+import type { CharacterDef, Game, Phase, PlayerToken, Script } from '@/types/index.ts';
 import { useSession } from '@/context/useSession.ts';
 import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -366,6 +366,33 @@ export function GameViewPage() {
     );
   }, [players, reminderPicker]);
 
+  const goodCharacterReminderOptions = useMemo(() => {
+    const inPlayIds = new Set<string>();
+    for (const id of game?.inPlayCharacterIds ?? []) {
+      if (id) inPlayIds.add(id);
+    }
+    for (const player of players) {
+      if (player.characterId) inPlayIds.add(player.characterId);
+    }
+
+    const orderedIds = [
+      ...scriptCharacterIds.filter((id) => inPlayIds.has(id)),
+      ...Array.from(inPlayIds).filter((id) => !scriptCharacterIds.includes(id)),
+    ];
+
+    return orderedIds
+      .map((id) => getCharacter(id))
+      .filter(
+        (character): character is CharacterDef =>
+          !!character && (character.type === 'Townsfolk' || character.type === 'Outsider'),
+      );
+  }, [game?.inPlayCharacterIds, getCharacter, players, scriptCharacterIds]);
+
+  const currentReminderCharacterName = useMemo(() => {
+    if (!currentReminderPlayer?.characterId) return '';
+    return getCharacter(currentReminderPlayer.characterId)?.name ?? '';
+  }, [currentReminderPlayer, getCharacter]);
+
   const handleReminderPlayerChange = useCallback(
     (value: string | string[]) => {
       if (!reminderPicker || Array.isArray(value)) return;
@@ -376,13 +403,37 @@ export function GameViewPage() {
         setReminderPicker(null);
         return;
       }
+      const pickerScope = reminderPicker.token.pickerScope ?? 'players';
+      if (pickerScope === 'goodCharacters') {
+        const selectedCharacter = goodCharacterReminderOptions.find(
+          (character) => character.name === value,
+        );
+        const selectedPlayer = selectedCharacter
+          ? players.find((player) => player.characterId === selectedCharacter.id)
+          : undefined;
+        if (selectedPlayer) {
+          addToken(selectedPlayer.seat, reminderPicker.token);
+        } else if (currentReminderPlayer) {
+          removeToken(currentReminderPlayer.seat, reminderPicker.token.id);
+        }
+        setReminderPicker(null);
+        return;
+      }
+
       const selectedPlayer = players.find((player) => player.playerName === value);
       if (selectedPlayer) {
         addToken(selectedPlayer.seat, reminderPicker.token);
       }
       setReminderPicker(null);
     },
-    [addToken, currentReminderPlayer, players, reminderPicker, removeToken],
+    [
+      addToken,
+      currentReminderPlayer,
+      goodCharacterReminderOptions,
+      players,
+      reminderPicker,
+      removeToken,
+    ],
   );
 
   if (loading) {
@@ -692,13 +743,27 @@ export function GameViewPage() {
           data-testid="reminder-player-picker"
         >
           <NightChoiceSelector
-            type="player"
-            value={currentReminderPlayer?.playerName ?? ''}
+            type={reminderPicker?.token.pickerScope === 'goodCharacters' ? 'character' : 'player'}
+            value={
+              reminderPicker?.token.pickerScope === 'goodCharacters'
+                ? currentReminderCharacterName
+                : (currentReminderPlayer?.playerName ?? '')
+            }
             onChange={handleReminderPlayerChange}
             players={players}
-            label="Choose a player"
+            characters={
+              reminderPicker?.token.pickerScope === 'goodCharacters'
+                ? goodCharacterReminderOptions
+                : undefined
+            }
+            label={
+              reminderPicker?.token.pickerScope === 'goodCharacters'
+                ? 'Choose a character'
+                : 'Choose a player'
+            }
             emptyOptionLabel="Unassigned"
             characterLookup={getCharacter}
+            showUnassignedCharacterType={reminderPicker?.token.pickerScope !== 'goodCharacters'}
           />
         </Box>
       </Popover>

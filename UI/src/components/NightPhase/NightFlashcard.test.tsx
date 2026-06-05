@@ -316,6 +316,61 @@ describe('NightFlashcard', () => {
     );
   });
 
+  it('passes reminder picker scope through token clicks', () => {
+    const onTokenClick = vi.fn();
+    const charWithScopedReminder: CharacterDef = {
+      ...mockCharacterDef,
+      reminders: [
+        {
+          id: 'stormcatcher-stormcaught',
+          text: 'Stormcaught',
+          sourceCharacterId: 'stormcatcher',
+          pickerScope: 'goodCharacters',
+        },
+      ],
+    };
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        characterDef={charWithScopedReminder}
+        onReminderTokenClick={onTokenClick}
+      />,
+    );
+    fireEvent.click(screen.getByText('Stormcaught'));
+    expect(onTokenClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'stormcatcher-stormcaught',
+        pickerScope: 'goodCharacters',
+      }),
+      expect.any(Object),
+    );
+  });
+
+  it('deduplicates setup power reminders already shown on their own card', () => {
+    const stormcatcherDef: CharacterDef = {
+      ...mockCharacterDef,
+      id: 'stormcatcher',
+      name: 'Storm Catcher',
+      type: CharacterType.Loric,
+      reminders: [
+        {
+          id: 'stormcatcher-stormcaught',
+          text: 'Stormcaught',
+          sourceCharacterId: 'stormcatcher',
+          pickerScope: 'goodCharacters',
+        },
+      ],
+    };
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        characterDef={stormcatcherDef}
+        activeSetupPowers={[stormcatcherDef]}
+      />,
+    );
+    expect(screen.getAllByText('Stormcaught')).toHaveLength(1);
+  });
+
   // Phase 4: Affecting tokens displayed next to icon
   it('shows affecting tokens (from other characters) next to the icon', () => {
     const playerWithTokens: PlayerSeat = {

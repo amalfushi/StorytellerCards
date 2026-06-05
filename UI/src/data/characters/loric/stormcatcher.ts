@@ -48,7 +48,12 @@ export const stormcatcher: CharacterDef = {
     placeholder: '#558b2f',
   },
   reminders: [
-    { id: 'stormcatcher-stormcaught', text: 'Stormcaught', sourceCharacterId: 'stormcatcher' },
+    {
+      id: 'stormcatcher-stormcaught',
+      text: 'Stormcaught',
+      sourceCharacterId: 'stormcatcher',
+      pickerScope: 'goodCharacters',
+    },
   ],
   flavor:
     'At dawn, the temple’s long shadow creeps to the fountain. At dusk, the obelisk blocks the red glare, cooling warm water under the archway. All lines converge here. A storm is coming, and this, this pebbled and lush and holy place between the apple trees, is the eye.',

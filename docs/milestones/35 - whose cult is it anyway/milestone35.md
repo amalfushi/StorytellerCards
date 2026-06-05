@@ -23,6 +23,12 @@ The reminder-token player picker now reuses the NightChoiceSelector “Choose a 
 
 Character-ability choices such as Philosopher, Cannibal, Pixie, Alchemist, and Boffin consistently filter out Loric/Fabled setup powers so players cannot gain storyteller-only abilities.
 
+## Post-merge fixes (M39)
+
+Stormcatcher’s Stormcaught reminder now declares a `goodCharacters` picker scope, so the inline night picker reuses NightChoiceSelector styling while listing in-play Townsfolk/Outsiders instead of seated players, including assigned player names when available.
+
+The Stormcatcher night card now deduplicates reminders contributed by the current Loric card and the active setup-power pool, so exactly one Stormcaught reminder chip is rendered.
+
 ### Summary
 
 Make the app ready to storytell the **Whose Cult Is It Anyway?** script (Aero, 31 characters) in a live game, plus land the most-requested QoL fix from the last live game (the night-flashcard reminder-token flow).

@@ -72,6 +72,16 @@ const mockCharacters: CharacterDef[] = [
     reminders: [],
   },
   {
+    id: 'saint',
+    name: 'Saint',
+    type: CharacterType.Outsider,
+    defaultAlignment: Alignment.Good,
+    abilityShort: 'If you die by execution, your team loses.',
+    firstNight: null,
+    otherNights: null,
+    reminders: [],
+  },
+  {
     id: 'stormcatcher',
     name: 'Stormcatcher',
     type: CharacterType.Loric,
@@ -293,6 +303,26 @@ describe('NightChoiceSelector', () => {
     fireEvent.mouseDown(combobox);
     const listbox = screen.getByRole('listbox');
     expect(within(listbox).getByText('Scarlet Woman (Minion)')).toBeInTheDocument();
+  });
+
+  it('can show unassigned character options without type context', () => {
+    render(
+      <NightChoiceSelector
+        type="character"
+        value=""
+        onChange={vi.fn()}
+        players={mockPlayers}
+        characters={mockCharacters.filter((character) => ['noble', 'saint'].includes(character.id))}
+        label="Choose character"
+        showUnassignedCharacterType={false}
+      />,
+    );
+    const combobox = screen.getByRole('combobox');
+    fireEvent.mouseDown(combobox);
+    const listbox = screen.getByRole('listbox');
+    expect(within(listbox).getByText('Noble (Alice)')).toBeInTheDocument();
+    expect(within(listbox).getByText('Saint')).toBeInTheDocument();
+    expect(within(listbox).queryByText('Saint (Outsider)')).not.toBeInTheDocument();
   });
 
   it('handles yesno choice type — shows toggle buttons', () => {
