@@ -29,6 +29,14 @@ Stormcatcher’s Stormcaught reminder now declares a `goodCharacters` picker sco
 
 The Stormcatcher night card now deduplicates reminders contributed by the current Loric card and the active setup-power pool, so exactly one Stormcaught reminder chip is rendered.
 
+Cerenovus and Pixie madness show-to-player screens now use the shared full character icon rendering, place madness consequence text above the shown character icon, and keep the Pixie's own source info hidden from the player-facing view.
+
+Reminder token placement now uses `PlayerSeat.tokens` as the canonical store across pre-game setup, night flashcards, and Town Square token badges, so setup placements are visible at night and removals update setup counts.
+
+Cult Leader's player-facing alignment change screen now offers a Good/Evil dropdown instead of a character picker and writes through the existing alignment-change flow.
+
+Stormcaught is no longer shown on unrelated player night-card reminder sections.
+
 ### Summary
 
 Make the app ready to storytell the **Whose Cult Is It Anyway?** script (Aero, 31 characters) in a live game, plus land the most-requested QoL fix from the last live game (the night-flashcard reminder-token flow).

@@ -260,7 +260,14 @@ describe('NightFlashcard', () => {
       seat: 1,
       playerName: 'Alice',
       characterId: 'noble',
-      activeReminders: ['ft-red-herring'],
+      tokens: [
+        {
+          id: 'ft-red-herring',
+          type: 'custom',
+          label: 'Red Herring',
+          sourceCharacterId: 'fortuneteller',
+        },
+      ],
     };
     const charLookup = (id: string) =>
       id === 'noble'
@@ -344,6 +351,54 @@ describe('NightFlashcard', () => {
       }),
       expect.any(Object),
     );
+  });
+
+  it('reads placed reminder status from player tokens', () => {
+    const nobleDef: CharacterDef = {
+      ...mockCharacterDef,
+      id: 'noble',
+      name: 'Noble',
+      reminders: [
+        { id: 'noble-know-1', text: 'Know', sourceCharacterId: 'noble' },
+        { id: 'noble-know-2', text: 'Know', sourceCharacterId: 'noble' },
+        { id: 'noble-know-3', text: 'Know', sourceCharacterId: 'noble' },
+      ],
+    };
+    const aliceWithNobleToken: PlayerSeat = {
+      ...mockPlayerSeat,
+      seat: 1,
+      playerName: 'Alice',
+      characterId: 'washerwoman',
+      tokens: [{ id: 'noble-know-1', type: 'custom', label: 'Know', sourceCharacterId: 'noble' }],
+    };
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        characterDef={nobleDef}
+        players={[aliceWithNobleToken]}
+        characterLookup={(id) => (id === 'washerwoman' ? mockCharacterDef : undefined)}
+      />,
+    );
+    expect(screen.getByText(/Alice/)).toBeInTheDocument();
+  });
+
+  it('does not show setup power reminders on unrelated player night cards', () => {
+    const stormcatcherDef: CharacterDef = {
+      ...mockCharacterDef,
+      id: 'stormcatcher',
+      name: 'Storm Catcher',
+      type: CharacterType.Loric,
+      reminders: [
+        {
+          id: 'stormcatcher-stormcaught',
+          text: 'Stormcaught',
+          sourceCharacterId: 'stormcatcher',
+          pickerScope: 'goodCharacters',
+        },
+      ],
+    };
+    render(<NightFlashcard {...defaultProps} activeSetupPowers={[stormcatcherDef]} />);
+    expect(screen.queryByText('Stormcaught')).not.toBeInTheDocument();
   });
 
   it('deduplicates setup power reminders already shown on their own card', () => {

@@ -62,8 +62,8 @@ describe('CharacterIconImage', () => {
   it('renders with correct size', () => {
     render(<CharacterIconImage {...defaultProps} size={80} />);
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
-    // Inner image size fixed at 58px for readability
-    expect(img).toHaveStyle({ width: '58px', height: '58px' });
+    // Inner image fills the wrapper minus the 3px border on each side.
+    expect(img).toHaveStyle({ width: '74px', height: '74px' });
   });
 
   it('enforces minimum size of 48px when given a smaller value', () => {
@@ -71,9 +71,9 @@ describe('CharacterIconImage', () => {
     const wrapper = container.firstChild as HTMLElement;
     // Outer box should be 48px (minimum), not 24px
     expect(wrapper).toBeTruthy();
-    // Inner image size fixed at 58px
+    // Inner image fills the minimum wrapper minus the 3px border on each side.
     const img = screen.getByRole('img', { name: 'Fortune Teller' });
-    expect(img).toHaveStyle({ width: '58px', height: '58px' });
+    expect(img).toHaveStyle({ width: '42px', height: '42px' });
   });
 
   it('applies dead state filter class (isDead=true)', () => {

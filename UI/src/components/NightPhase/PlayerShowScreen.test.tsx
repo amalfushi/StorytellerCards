@@ -185,12 +185,6 @@ describe('PlayerShowScreen', () => {
       type: 'Minion',
       defaultAlignment: 'Evil',
     });
-    const pixie = makeChar({
-      id: 'pixie',
-      name: 'Pixie',
-      type: 'Townsfolk',
-      defaultAlignment: 'Good',
-    });
     const fortune = makeChar({
       id: 'fortuneteller',
       name: 'Fortune Teller',
@@ -280,23 +274,46 @@ describe('PlayerShowScreen', () => {
       expect(screen.getByTestId('token-instruction-text')).toBeInTheDocument();
     });
 
-    it('renders Pixie fullscreen with character picker and instruction', () => {
+    it('renders Pixie fullscreen with character picker and instruction without the Pixie source icon', () => {
       render(
         <PlayerShowScreen
           open={true}
           onClose={vi.fn()}
           variant="token"
           tokenText="You must be MAD that you are:"
-          sourceCharacter={pixie}
           showCharacterPicker={true}
           scriptCharacters={[fortune]}
+          initialSelectedCharacterId="fortuneteller"
           instructionText="If you are MAD that you are this character, you may gain their ability when they die."
         />,
       );
       expect(screen.getByText('You must be MAD that you are:')).toBeInTheDocument();
-      expect(screen.getByTestId('source-character-pixie')).toBeInTheDocument();
+      expect(screen.queryByTestId('source-character-pixie')).not.toBeInTheDocument();
+      expect(screen.getByTestId('selected-character-fortuneteller')).toBeInTheDocument();
       expect(screen.getByTestId('token-character-picker')).toBeInTheDocument();
       expect(screen.getByTestId('token-instruction-text')).toBeInTheDocument();
+    });
+
+    it('renders Cult Leader alignment picker with only Good and Evil', () => {
+      const onAlignmentChange = vi.fn();
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="token"
+          tokenText="You are now:"
+          showCharacterPicker={true}
+          showAlignmentPicker={true}
+          alignmentValue="Good"
+          onAlignmentChange={onAlignmentChange}
+        />,
+      );
+      fireEvent.mouseDown(screen.getByRole('combobox'));
+      expect(screen.getByRole('option', { name: 'Good' })).toBeInTheDocument();
+      expect(screen.getByRole('option', { name: 'Evil' })).toBeInTheDocument();
+      expect(screen.queryByTestId('token-character-picker')).not.toBeInTheDocument();
+      fireEvent.click(screen.getByRole('option', { name: 'Evil' }));
+      expect(onAlignmentChange).toHaveBeenCalledWith('Evil');
     });
 
     it('does not render source character when not provided', () => {

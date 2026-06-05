@@ -306,6 +306,7 @@ describe('TokenManager', () => {
     expect(onAddToken).toHaveBeenCalledWith(
       1,
       expect.objectContaining({
+        id: characterReminderToken.id,
         type: 'custom',
         label: 'Dead — Lycanthrope',
       }),

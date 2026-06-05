@@ -51,6 +51,14 @@ export const widow: CharacterDef = {
     { id: 'widow-poisoned', text: 'Poisoned', sourceCharacterId: 'widow' },
     { id: 'widow-know', text: 'Know', sourceCharacterId: 'widow' },
   ],
+  firstNightReminderSetup: [
+    {
+      id: 'poisoned-and-know-tokens',
+      description:
+        'Place Poisoned on the Widow target and Know on the good player who learns a Widow is in play.',
+      reminderTokenIds: ['widow-poisoned', 'widow-know'],
+    },
+  ],
   jinxes: [
     {
       characterId: 'alchemist',

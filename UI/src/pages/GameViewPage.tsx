@@ -619,6 +619,8 @@ export function GameViewPage() {
                 handleNightClick();
               }}
               onReseat={() => setReseatOpen(true)}
+              onAddToken={addToken}
+              onRemoveToken={removeToken}
             />
           </Box>
         </Drawer>

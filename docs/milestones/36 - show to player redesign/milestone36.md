@@ -15,6 +15,10 @@ Completed: 2026-06-01
 
 Town Square no longer renders the active show-message count badge on player tiles. The underlying per-player message slots and template data remain intact; only the noisy visual badge was removed.
 
+## Post-merge fixes (M39)
+
+Madness-related show-to-player token screens now use shared character icon rendering and consistent help-text placement. The Pixie MAD screen defaults to the character currently marked with the Pixie Mad reminder, and Cult Leader uses a Good/Evil alignment dropdown instead of a character picker.
+
 ### Summary
 
 Replace the current single-message-per-character "show to players" drawer with a per-player slot system that supports multiple concurrent messages, template recall, and quick reuse — driven by live-game feedback.

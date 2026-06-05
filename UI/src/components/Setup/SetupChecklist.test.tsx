@@ -264,6 +264,64 @@ describe('SetupChecklist', () => {
     expect(onReseat).toHaveBeenCalledTimes(1);
   });
 
+  it('places first-night reminder tokens through the canonical token callbacks', () => {
+    const onAddToken = vi.fn();
+    render(
+      <SetupChecklist
+        {...defaultProps}
+        players={[makePlayer(1, 'noble'), makePlayer(2, 'imp')]}
+        inPlayCharacterIds={['noble']}
+        scriptCharacterIds={['noble', 'imp']}
+        onAddToken={onAddToken}
+      />,
+    );
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[0]);
+    fireEvent.click(screen.getByRole('option', { name: 'Player 2' }));
+    expect(onAddToken).toHaveBeenCalledWith(
+      2,
+      expect.objectContaining({
+        id: 'noble-know-1',
+        label: 'Know',
+        sourceCharacterId: 'noble',
+      }),
+    );
+  });
+
+  it('updates first-night reminder placement count from player token state', () => {
+    const players = [
+      {
+        ...makePlayer(1, 'noble'),
+        tokens: [
+          {
+            id: 'noble-know-1',
+            type: 'custom' as const,
+            label: 'Know',
+            sourceCharacterId: 'noble',
+          },
+        ],
+      },
+      makePlayer(2, 'imp'),
+    ];
+    const { rerender } = render(
+      <SetupChecklist
+        {...defaultProps}
+        players={players}
+        inPlayCharacterIds={['noble']}
+        scriptCharacterIds={['noble', 'imp']}
+      />,
+    );
+    expect(screen.getByText('1/3 placed')).toBeInTheDocument();
+    rerender(
+      <SetupChecklist
+        {...defaultProps}
+        players={[makePlayer(1, 'noble'), makePlayer(2, 'imp')]}
+        inPlayCharacterIds={['noble']}
+        scriptCharacterIds={['noble', 'imp']}
+      />,
+    );
+    expect(screen.getByText('0/3 placed')).toBeInTheDocument();
+  });
+
   it('shows "ready to start" when no items needed', () => {
     render(
       <SetupChecklist

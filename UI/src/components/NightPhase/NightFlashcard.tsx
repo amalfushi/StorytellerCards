@@ -240,21 +240,17 @@ export function NightFlashcard({
     for (const token of characterDef?.reminders ?? []) {
       tokensById.set(token.id, token);
     }
-    for (const setupPower of activeSetupPowers) {
+    for (const setupPower of activeSetupPowers.filter((power) => power.id === entry.id)) {
       for (const token of setupPower.reminders) {
         if (!tokensById.has(token.id)) tokensById.set(token.id, token);
       }
     }
     return Array.from(tokensById.values());
-  }, [activeSetupPowers, characterDef]);
+  }, [activeSetupPowers, characterDef, entry]);
 
   const placedReminders = useMemo(() => {
     const map = new Map<string, PlayerSeat>();
     for (const player of players) {
-      for (const reminderId of player.activeReminders) {
-        const token = availableReminderTokens.find((r) => r.id === reminderId);
-        if (token) map.set(token.id, player);
-      }
       for (const token of player.tokens ?? []) {
         if (availableReminderTokens.some((r) => r.id === token.id)) map.set(token.id, player);
       }
@@ -273,7 +269,6 @@ export function NightFlashcard({
   const tokenSourceCharacter = useMemo(() => {
     if (!tokenShowPhrase || !characterDef) return undefined;
     if (isSelectedYouToken(tokenShowPhrase)) return characterDef;
-    if (tokenShowPhrase === 'MAD' && characterDef.id === 'pixie') return characterDef;
     return undefined;
   }, [tokenShowPhrase, characterDef]);
 
@@ -281,14 +276,24 @@ export function NightFlashcard({
     if (!tokenShowPhrase || !characterDef) return undefined;
     if (isSelectedYouToken(tokenShowPhrase) && characterDef.id === 'cerenovus') {
       if (isCompound && Array.isArray(selectionValue) && selectionValue[1]) {
-        const charId = selectionValue[1];
-        if (typeof charId === 'string') {
-          return characterLookup?.(charId);
+        const characterValue = selectionValue[1];
+        if (typeof characterValue === 'string') {
+          return (
+            characterLookup?.(characterValue) ??
+            scriptCharacters.find((character) => character.name === characterValue)
+          );
         }
       }
     }
     return undefined;
-  }, [tokenShowPhrase, characterDef, isCompound, selectionValue, characterLookup]);
+  }, [
+    tokenShowPhrase,
+    characterDef,
+    isCompound,
+    selectionValue,
+    characterLookup,
+    scriptCharacters,
+  ]);
 
   const tokenAdditionalLabel = useMemo(() => {
     if (!tokenShowPhrase || !characterDef) return undefined;
@@ -320,6 +325,29 @@ export function NightFlashcard({
     if (tokenShowPhrase === 'MAD' && characterDef?.id === 'pixie') return true;
     return false;
   }, [tokenShowPhrase, characterDef]);
+
+  const effectiveShowAlignmentPicker = useMemo(
+    () =>
+      !!tokenShowPhrase &&
+      isCharacterIdentityToken(tokenShowPhrase) &&
+      characterDef?.id === 'cultleader',
+    [tokenShowPhrase, characterDef],
+  );
+
+  const tokenPickerCharacters = useMemo(() => {
+    if (tokenShowPhrase === 'MAD' && characterDef?.id === 'pixie') {
+      return scriptCharacters.filter(
+        (character) => character.type === 'Townsfolk' && character.id !== 'pixie',
+      );
+    }
+    return scriptCharacters;
+  }, [characterDef, scriptCharacters, tokenShowPhrase]);
+
+  const initialTokenCharacterId = useMemo(() => {
+    if (tokenShowPhrase !== 'MAD' || characterDef?.id !== 'pixie') return undefined;
+    return players.find((player) => (player.tokens ?? []).some((token) => token.id === 'pixie-mad'))
+      ?.characterId;
+  }, [characterDef, players, tokenShowPhrase]);
 
   const effectiveTokenText = useMemo(() => {
     if (!tokenShowPhrase) return '';
@@ -924,16 +952,21 @@ export function NightFlashcard({
 
       {/* Token fullscreen overlay */}
       <PlayerShowScreen
+        key={`token-show-${tokenShowPhrase ?? 'none'}-${initialTokenCharacterId ?? ''}`}
         open={tokenShowPhrase !== null}
         onClose={() => setTokenShowPhrase(null)}
         variant="token"
         tokenText={effectiveTokenText}
         showCharacterPicker={effectiveShowCharacterPicker}
-        scriptCharacters={scriptCharacters}
+        scriptCharacters={tokenPickerCharacters}
         sourceCharacter={tokenSourceCharacter}
         additionalCharacter={tokenMadnessCharacter}
         additionalLabel={tokenAdditionalLabel}
         instructionText={tokenInstructionText}
+        initialSelectedCharacterId={initialTokenCharacterId}
+        showAlignmentPicker={effectiveShowAlignmentPicker}
+        alignmentValue={typeof selectionValue === 'string' ? selectionValue : ''}
+        onAlignmentChange={(value) => onSelectionChange?.(value)}
       />
 
       {/* Character Detail Modal */}
