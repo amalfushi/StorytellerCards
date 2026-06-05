@@ -402,9 +402,13 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         ...state,
         game: {
           ...state.game,
-          players: state.game.players.map((p) =>
-            p.seat === tokenSeat ? { ...p, tokens: [...(p.tokens ?? []), token] } : p,
-          ),
+          players: state.game.players.map((p) => {
+            const tokensWithoutCopy = (p.tokens ?? []).filter(
+              (existing) => existing.id !== token.id,
+            );
+            if (p.seat !== tokenSeat) return { ...p, tokens: tokensWithoutCopy };
+            return { ...p, tokens: [...tokensWithoutCopy, token] };
+          }),
         },
       };
     }

@@ -82,16 +82,6 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
 
   const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
   const showCharacters = state.showCharacters;
-  const showMessageCounts = useMemo(() => {
-    const counts = new Map<number, number>();
-    for (const message of state.game?.showMessages ?? []) {
-      if (!message.lastShownAt) {
-        counts.set(message.seat, (counts.get(message.seat) ?? 0) + 1);
-      }
-    }
-    return counts;
-  }, [state.game?.showMessages]);
-
   const sorted = useMemo(() => [...players].sort((a, b) => a.seat - b.seat), [players]);
 
   const scriptCharacters: CharacterDef[] = useMemo(
@@ -319,7 +309,6 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         ? getCharacter(player.apparentCharacterId)
         : undefined;
       const playerTokens = player.tokens ?? [];
-      const showMessageCount = showMessageCounts.get(player.seat) ?? 0;
 
       return (
         <Box sx={{ position: 'relative' }}>
@@ -332,31 +321,6 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
             onClick={(e: React.MouseEvent<HTMLElement>) => handleTokenClick(player, e)}
             size={tokenSize}
           />
-          {showMessageCount > 0 && (
-            <Box
-              aria-label={`${showMessageCount} active show messages`}
-              data-testid={`show-message-badge-${player.seat}`}
-              sx={{
-                position: 'absolute',
-                top: -6,
-                right: -6,
-                minWidth: 20,
-                height: 20,
-                px: 0.5,
-                borderRadius: 10,
-                bgcolor: '#90caf9',
-                color: '#0d1117',
-                fontSize: '0.75rem',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.35)',
-              }}
-            >
-              {showMessageCount}
-            </Box>
-          )}
           {showCharacters && playerTokens.length > 0 && (
             <TokenBadges
               tokens={playerTokens}
@@ -381,7 +345,6 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
       centerX,
       centerY,
       effectiveLayout,
-      showMessageCounts,
     ],
   );
 

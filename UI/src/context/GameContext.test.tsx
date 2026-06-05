@@ -897,7 +897,7 @@ describe('GameContext', () => {
       expect(result.current.state.game!.players[0].tokens[1]).toEqual(newToken);
     });
 
-    it('does not affect other players', () => {
+    it('does not affect other players when placing a new token copy', () => {
       const { result } = renderGameHook();
       const p1 = makePlayer({ seat: 1 });
       const p2 = makePlayer({ seat: 2, playerName: 'Bob' });
@@ -911,6 +911,23 @@ describe('GameContext', () => {
       });
 
       expect(result.current.state.game!.players[1].tokens).toHaveLength(0);
+    });
+
+    it('reassigns an existing token copy from its previous player', () => {
+      const { result } = renderGameHook();
+      const token: PlayerToken = { id: 'noble-know-1', type: 'custom', label: 'Know' };
+      const p1 = makePlayer({ seat: 1, tokens: [token] });
+      const p2 = makePlayer({ seat: 2, playerName: 'Bob', tokens: [] });
+      act(() => {
+        result.current.loadGame(makeGame({ players: [p1, p2] }));
+      });
+
+      act(() => {
+        result.current.addToken(2, token);
+      });
+
+      expect(result.current.state.game!.players[0].tokens).toEqual([]);
+      expect(result.current.state.game!.players[1].tokens).toEqual([token]);
     });
 
     it('does nothing when no game is loaded', () => {

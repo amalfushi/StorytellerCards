@@ -86,6 +86,27 @@ vi.mock('@/data/characters/index.ts', () => {
       otherNights: null,
       reminders: [],
     },
+    noble: {
+      id: 'noble',
+      name: 'Noble',
+      type: 'Townsfolk' as const,
+      defaultAlignment: 'Good' as const,
+      abilityShort: 'You start knowing 3 players.',
+      firstNight: null,
+      otherNights: null,
+      reminders: [
+        { id: 'noble-know-1', text: 'Know', sourceCharacterId: 'noble' },
+        { id: 'noble-know-2', text: 'Know', sourceCharacterId: 'noble' },
+        { id: 'noble-know-3', text: 'Know', sourceCharacterId: 'noble' },
+      ],
+      firstNightReminderSetup: [
+        {
+          id: 'know-tokens',
+          description: 'Place 3 Know reminders on the players Noble will learn.',
+          reminderTokenIds: ['noble-know-1', 'noble-know-2', 'noble-know-3'],
+        },
+      ],
+    },
   };
   return {
     getCharacter: (id: string) => chars[id],
@@ -141,6 +162,16 @@ describe('buildChecklistItems', () => {
     const reminderItems = items.filter((i) => i.category === 'reminder');
     expect(reminderItems.length).toBeGreaterThanOrEqual(1);
     expect(reminderItems[0].label).toContain('Is The Marionette');
+  });
+
+  it('generates data-driven first-night reminder setup items', () => {
+    const players = [makePlayer(1, 'noble')];
+    const items = buildChecklistItems(players, ['noble'], ['noble']);
+    const reminderItems = items.filter((i) => i.category === 'reminder');
+    expect(reminderItems).toHaveLength(1);
+    expect(reminderItems[0].label).toContain('Noble');
+    expect(reminderItems[0].label).toContain('Place 3 Know reminders');
+    expect(reminderItems[0].description).toContain('Know, Know, Know');
   });
 
   it('generates Marionette setup prompt items', () => {

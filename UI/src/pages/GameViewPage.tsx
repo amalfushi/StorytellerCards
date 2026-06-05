@@ -12,9 +12,6 @@ import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import List from '@mui/material/List';
-import ListItemButton from '@mui/material/ListItemButton';
-import ListItemText from '@mui/material/ListItemText';
 import Popover from '@mui/material/Popover';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -40,6 +37,7 @@ import { ScriptReferenceTab } from '@/components/ScriptViewer/ScriptReferenceTab
 import { NightOrderTab } from '@/components/NightOrder/NightOrderTab.tsx';
 import { NightTabPanel } from '@/components/NightPhase/NightTabPanel.tsx';
 import { NightHistoryDrawer } from '@/components/NightHistory/NightHistoryDrawer.tsx';
+import { NightChoiceSelector } from '@/components/NightPhase/NightChoiceSelector.tsx';
 import { CharacterAssignmentDialog } from '@/components/CharacterAssignment/CharacterAssignmentDialog.tsx';
 import { CharacterSelection } from '@/components/Setup/CharacterSelection.tsx';
 import { DemonBluffSelection } from '@/components/Setup/DemonBluffSelection.tsx';
@@ -77,6 +75,7 @@ export function GameViewPage() {
     setPlayerBluffs,
     swapPlayerSeats,
     addToken,
+    removeToken,
   } = useGame();
   const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
 
@@ -360,14 +359,30 @@ export function GameViewPage() {
     [],
   );
 
-  const handleReminderSeatSelect = useCallback(
-    (seat: number) => {
-      if (reminderPicker) {
-        addToken(seat, reminderPicker.token);
+  const currentReminderPlayer = useMemo(() => {
+    if (!reminderPicker) return undefined;
+    return players.find((player) =>
+      (player.tokens ?? []).some((token) => token.id === reminderPicker.token.id),
+    );
+  }, [players, reminderPicker]);
+
+  const handleReminderPlayerChange = useCallback(
+    (value: string | string[]) => {
+      if (!reminderPicker || Array.isArray(value)) return;
+      if (!value) {
+        if (currentReminderPlayer) {
+          removeToken(currentReminderPlayer.seat, reminderPicker.token.id);
+        }
+        setReminderPicker(null);
+        return;
+      }
+      const selectedPlayer = players.find((player) => player.playerName === value);
+      if (selectedPlayer) {
+        addToken(selectedPlayer.seat, reminderPicker.token);
       }
       setReminderPicker(null);
     },
-    [addToken, reminderPicker],
+    [addToken, currentReminderPlayer, players, reminderPicker, removeToken],
   );
 
   if (loading) {
@@ -672,17 +687,20 @@ export function GameViewPage() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
       >
-        <List dense sx={{ minWidth: 220 }} data-testid="reminder-player-picker">
-          {players.map((player) => (
-            <ListItemButton
-              key={player.seat}
-              selected={player.tokens?.some((token) => token.id === reminderPicker?.token.id)}
-              onClick={() => handleReminderSeatSelect(player.seat)}
-            >
-              <ListItemText primary={`${player.seat}. ${player.playerName}`} />
-            </ListItemButton>
-          ))}
-        </List>
+        <Box
+          sx={{ minWidth: 260, p: 1.5, bgcolor: 'rgba(30, 30, 50, 0.98)' }}
+          data-testid="reminder-player-picker"
+        >
+          <NightChoiceSelector
+            type="player"
+            value={currentReminderPlayer?.playerName ?? ''}
+            onChange={handleReminderPlayerChange}
+            players={players}
+            label="Choose a player"
+            emptyOptionLabel="Unassigned"
+            characterLookup={getCharacter}
+          />
+        </Box>
       </Popover>
 
       {/* Character Assignment Dialog */}

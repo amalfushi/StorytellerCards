@@ -14,6 +14,10 @@ Completed: 2026-06-01
 - Added unit coverage and Storybook interaction stories for the new tools.
 - Final verification after rebasing on M36: 4053 Vitest tests across 82 test files passed.
 
+## Post-merge fixes (M38)
+
+Pre-game checklist reminder setup is now data-driven from character definitions. Characters such as Noble declare first-night reminder placements directly in their character data, and the checklist builder automatically includes those setup-token prompts before Night 1 begins.
+
 ### Decision
 
 Option B was selected because it is the lowest-risk change that directly targets the reported pain: seats changing at setup time or during play. It preserves the current setup flow, avoids a larger data-model/UI rewrite, and does not preclude Option C later if the visual seating canvas becomes worthwhile.

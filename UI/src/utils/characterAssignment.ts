@@ -1,6 +1,22 @@
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
-import { Alignment } from '@/types/index.ts';
+import { Alignment, CharacterType } from '@/types/index.ts';
 import type { Distribution } from '@/data/playerCountRules.ts';
+
+/** Characters that can be assigned to seats as player characters. */
+export function isPlayerAssignableCharacter(character: Pick<CharacterDef, 'type'>): boolean {
+  return (
+    character.type !== CharacterType.Traveller &&
+    character.type !== CharacterType.Fabled &&
+    character.type !== CharacterType.Loric
+  );
+}
+
+/** Filter a character list down to assignable player characters. */
+export function filterPlayerAssignableCharacters<T extends Pick<CharacterDef, 'type'>>(
+  characters: T[],
+): T[] {
+  return characters.filter(isPlayerAssignableCharacter);
+}
 
 /**
  * Shuffles an array in-place using the Fisher-Yates algorithm.
@@ -37,10 +53,11 @@ export function randomlyAssignCharacters(
   scriptCharacters: CharacterDef[],
   distribution: Distribution,
 ): PlayerSeat[] {
-  const townsfolk = scriptCharacters.filter((c) => c.type === 'Townsfolk');
-  const outsiders = scriptCharacters.filter((c) => c.type === 'Outsider');
-  const minions = scriptCharacters.filter((c) => c.type === 'Minion');
-  const demons = scriptCharacters.filter((c) => c.type === 'Demon');
+  const assignableCharacters = filterPlayerAssignableCharacters(scriptCharacters);
+  const townsfolk = assignableCharacters.filter((c) => c.type === 'Townsfolk');
+  const outsiders = assignableCharacters.filter((c) => c.type === 'Outsider');
+  const minions = assignableCharacters.filter((c) => c.type === 'Minion');
+  const demons = assignableCharacters.filter((c) => c.type === 'Demon');
 
   if (townsfolk.length < distribution.townsfolk) {
     throw new Error(

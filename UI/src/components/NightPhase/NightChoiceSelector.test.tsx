@@ -71,6 +71,26 @@ const mockCharacters: CharacterDef[] = [
     otherNights: null,
     reminders: [],
   },
+  {
+    id: 'stormcatcher',
+    name: 'Stormcatcher',
+    type: CharacterType.Loric,
+    defaultAlignment: Alignment.Unknown,
+    abilityShort: 'Setup power.',
+    firstNight: null,
+    otherNights: null,
+    reminders: [],
+  },
+  {
+    id: 'angel',
+    name: 'Angel',
+    type: CharacterType.Fabled,
+    defaultAlignment: Alignment.Unknown,
+    abilityShort: 'Setup power.',
+    firstNight: null,
+    otherNights: null,
+    reminders: [],
+  },
 ];
 
 const mockCharacterLookup = (id: string): CharacterDef | undefined =>
@@ -227,6 +247,24 @@ describe('NightChoiceSelector', () => {
     const listbox = screen.getByRole('listbox');
     expect(within(listbox).getByText('Noble (Alice)')).toBeInTheDocument();
     expect(within(listbox).getByText('Imp (Bob)')).toBeInTheDocument();
+  });
+
+  it('filters setup powers out of character choices', () => {
+    render(
+      <NightChoiceSelector
+        type="character"
+        value=""
+        onChange={vi.fn()}
+        players={mockPlayers}
+        characters={mockCharacters}
+        label="Choose"
+      />,
+    );
+    const combobox = screen.getByRole('combobox');
+    fireEvent.mouseDown(combobox);
+    const listbox = screen.getByRole('listbox');
+    expect(within(listbox).queryByText(/Stormcatcher/)).not.toBeInTheDocument();
+    expect(within(listbox).queryByText(/Angel/)).not.toBeInTheDocument();
   });
 
   it('falls back to type when character has no player', () => {

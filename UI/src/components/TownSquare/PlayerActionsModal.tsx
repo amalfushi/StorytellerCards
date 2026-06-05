@@ -21,9 +21,10 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type { PlayerSeat, CharacterDef, Alignment } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
 
 /** Type display order for grouping in the character selector. */
-const TYPE_ORDER = ['Townsfolk', 'Outsider', 'Minion', 'Demon', 'Traveller', 'Fabled', 'Loric'];
+const TYPE_ORDER = ['Townsfolk', 'Outsider', 'Minion', 'Demon', 'Traveller'];
 
 /** Character option extended with section info for the grouped Autocomplete. */
 interface CharacterOption {
@@ -146,11 +147,12 @@ function PlayerActionsModalInner({
 
   // Build grouped character options for the Autocomplete
   const characterOptions = useMemo(() => {
-    const scriptIds = new Set(scriptCharacters.map((c) => c.id));
+    const assignableScriptCharacters = filterPlayerAssignableCharacters(scriptCharacters);
+    const scriptIds = new Set(assignableScriptCharacters.map((c) => c.id));
     const options: CharacterOption[] = [];
 
-    // Section 1: Script characters
-    for (const ch of scriptCharacters) {
+    // Section 1: Script player characters
+    for (const ch of assignableScriptCharacters) {
       options.push({
         id: ch.id,
         name: ch.name,
@@ -163,7 +165,7 @@ function PlayerActionsModalInner({
 
     // Section 2: All other characters (not on script)
     if (allCharacters) {
-      for (const ch of allCharacters) {
+      for (const ch of filterPlayerAssignableCharacters(allCharacters)) {
         if (!scriptIds.has(ch.id)) {
           options.push({
             id: ch.id,

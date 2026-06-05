@@ -37,6 +37,13 @@ export const washerwoman: CharacterDef = {
     { id: 'washerwoman-townsfolk', text: 'Townsfolk', sourceCharacterId: 'washerwoman' },
     { id: 'washerwoman-wrong', text: 'Wrong', sourceCharacterId: 'washerwoman' },
   ],
+  firstNightReminderSetup: [
+    {
+      id: 'townsfolk-and-wrong-tokens',
+      description: 'Place Townsfolk and Wrong reminders on the two players Washerwoman will learn.',
+      reminderTokenIds: ['washerwoman-townsfolk', 'washerwoman-wrong'],
+    },
+  ],
   flavor: 'Bloodstains on a dinner jacket? No, this is cooking sherry. How careless.',
   edition: 'tb',
 };

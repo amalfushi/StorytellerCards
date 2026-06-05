@@ -30,6 +30,13 @@ export const steward: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'steward-know', text: 'Know', sourceCharacterId: 'steward' }],
+  firstNightReminderSetup: [
+    {
+      id: 'know-token',
+      description: 'Place the Know reminder on the good player Steward will learn.',
+      reminderTokenIds: ['steward-know'],
+    },
+  ],
   flavor:
     'How DARE you accuse Her Ladyship of wrongdoing? I’ve known her my entire life! All nine years!',
   edition: 'carousel',

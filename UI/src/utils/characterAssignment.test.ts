@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { randomlyAssignCharacters } from './characterAssignment';
+import { filterPlayerAssignableCharacters, randomlyAssignCharacters } from './characterAssignment';
 import type { CharacterDef, PlayerSeat } from '@/types/index';
 import { Alignment } from '@/types/index';
 import type { Distribution } from '@/data/playerCountRules';
@@ -73,6 +73,23 @@ function makePool(): CharacterDef[] {
 }
 
 // ── Tests ──
+
+describe('filterPlayerAssignableCharacters', () => {
+  it('excludes Travellers, Fabled, and Loric setup powers from player assignment pools', () => {
+    const characters = [
+      makeChar('noble', 'Townsfolk'),
+      makeChar('imp', 'Demon'),
+      makeChar('harlot', 'Traveller'),
+      makeChar('angel', 'Fabled'),
+      makeChar('stormcatcher', 'Loric'),
+    ];
+
+    expect(filterPlayerAssignableCharacters(characters).map((character) => character.id)).toEqual([
+      'noble',
+      'imp',
+    ]);
+  });
+});
 
 describe('randomlyAssignCharacters', () => {
   const pool = makePool();
@@ -229,25 +246,23 @@ describe('randomlyAssignCharacters', () => {
     const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 0, demons: 1 };
     const players = Array.from({ length: 4 }, (_, i) => makePlayer(i + 1));
 
-    expect(() => randomlyAssignCharacters(players, smallPool, dist)).toThrow('Not enough Townsfolk');
+    expect(() => randomlyAssignCharacters(players, smallPool, dist)).toThrow(
+      'Not enough Townsfolk',
+    );
   });
 
   it('throws when there are not enough Outsiders in the pool', () => {
-    const smallPool = [
-      makeChar('townsfolk1', 'Townsfolk'),
-      makeChar('demon1', 'Demon'),
-    ];
+    const smallPool = [makeChar('townsfolk1', 'Townsfolk'), makeChar('demon1', 'Demon')];
     const dist: Distribution = { townsfolk: 1, outsiders: 2, minions: 0, demons: 1 };
     const players = Array.from({ length: 4 }, (_, i) => makePlayer(i + 1));
 
-    expect(() => randomlyAssignCharacters(players, smallPool, dist)).toThrow('Not enough Outsiders');
+    expect(() => randomlyAssignCharacters(players, smallPool, dist)).toThrow(
+      'Not enough Outsiders',
+    );
   });
 
   it('throws when there are not enough Minions in the pool', () => {
-    const smallPool = [
-      makeChar('townsfolk1', 'Townsfolk'),
-      makeChar('demon1', 'Demon'),
-    ];
+    const smallPool = [makeChar('townsfolk1', 'Townsfolk'), makeChar('demon1', 'Demon')];
     const dist: Distribution = { townsfolk: 1, outsiders: 0, minions: 2, demons: 1 };
     const players = Array.from({ length: 4 }, (_, i) => makePlayer(i + 1));
 

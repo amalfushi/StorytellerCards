@@ -33,6 +33,13 @@ export const knight: CharacterDef = {
     { id: 'knight-know-1', text: 'Know', sourceCharacterId: 'knight' },
     { id: 'knight-know-2', text: 'Know', sourceCharacterId: 'knight' },
   ],
+  firstNightReminderSetup: [
+    {
+      id: 'know-tokens',
+      description: 'Place 2 Know reminders on the players Knight will learn are not the Demon.',
+      reminderTokenIds: ['knight-know-1', 'knight-know-2'],
+    },
+  ],
   flavor: 'When a man lies, he murders some part of the world.',
   edition: 'carousel',
 };

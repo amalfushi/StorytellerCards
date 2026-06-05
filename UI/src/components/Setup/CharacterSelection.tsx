@@ -33,16 +33,10 @@ import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 import { calculateAdaptiveTargets } from '@/utils/adaptiveDistribution.ts';
 import type { AdaptiveDistributionOptions } from '@/utils/adaptiveDistribution.ts';
 import { randomizeCharacters } from '@/utils/randomizeCharacters.ts';
+import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
 
 /** Ordered list of character type groups to display (Travellers omitted). */
-const TYPE_GROUP_ORDER: CharacterType[] = [
-  'Townsfolk',
-  'Outsider',
-  'Minion',
-  'Demon',
-  'Fabled',
-  'Loric',
-];
+const TYPE_GROUP_ORDER: CharacterType[] = ['Townsfolk', 'Outsider', 'Minion', 'Demon'];
 
 /** Map from CharacterType to Distribution key (only for counted types). */
 const TYPE_TO_DIST_KEY: Partial<Record<CharacterType, keyof Distribution>> = {
@@ -101,6 +95,20 @@ export function CharacterSelection({
   const [extraLegionCopies, setExtraLegionCopies] = useState(0);
   const [variableModifiers, setVariableModifiers] = useState<Record<string, number>>({});
 
+  // Filter out non-player setup powers and Travellers from selectable player characters.
+  const playerAssignableCharacters = useMemo(
+    () => filterPlayerAssignableCharacters(scriptCharacters),
+    [scriptCharacters],
+  );
+  const playerAssignableIdSet = useMemo(
+    () => new Set(playerAssignableCharacters.map((character) => character.id)),
+    [playerAssignableCharacters],
+  );
+  const selectedPlayerIds = useMemo(
+    () => Array.from(selectedIds).filter((id) => playerAssignableIdSet.has(id)),
+    [playerAssignableIdSet, selectedIds],
+  );
+
   // Build adaptive distribution options from current state
   const adaptiveOptions: AdaptiveDistributionOptions = useMemo(
     () => ({
@@ -114,8 +122,8 @@ export function CharacterSelection({
 
   // Adaptive distribution engine replaces static getDistribution
   const adaptiveTargets = useMemo(
-    () => calculateAdaptiveTargets(playerCount, Array.from(selectedIds), adaptiveOptions),
-    [playerCount, selectedIds, adaptiveOptions],
+    () => calculateAdaptiveTargets(playerCount, selectedPlayerIds, adaptiveOptions),
+    [playerCount, selectedPlayerIds, adaptiveOptions],
   );
 
   // Map from AdaptiveTargets to Distribution-like shape for chip rendering
@@ -131,13 +139,13 @@ export function CharacterSelection({
 
   // Reset when dialog opens
   const handleEnter = useCallback(() => {
-    setSelectedIds(new Set(initialSelected ?? []));
+    setSelectedIds(new Set((initialSelected ?? []).filter((id) => playerAssignableIdSet.has(id))));
     setSearchQuery('');
     setXaanX(undefined);
     setExtraVillageIdiots(0);
     setExtraLegionCopies(0);
     setVariableModifiers({});
-  }, [initialSelected]);
+  }, [initialSelected, playerAssignableIdSet]);
 
   // Randomize character selection using distribution rules
   const handleRandomize = useCallback(() => {
@@ -151,25 +159,19 @@ export function CharacterSelection({
     setXaanX(undefined);
   }, [scriptCharacters, playerCount]);
 
-  // Filter out Travellers from script characters
-  const nonTravellerCharacters = useMemo(
-    () => scriptCharacters.filter((ch) => ch.type !== 'Traveller'),
-    [scriptCharacters],
-  );
-
-  // Group script characters by type (excluding Travellers)
+  // Group script characters by type (excluding setup powers and Travellers)
   const charsByType = useMemo(() => {
     const groups: Record<string, CharacterDef[]> = {};
     for (const type of TYPE_GROUP_ORDER) {
       groups[type] = [];
     }
-    for (const ch of nonTravellerCharacters) {
+    for (const ch of playerAssignableCharacters) {
       if (groups[ch.type]) {
         groups[ch.type].push(ch);
       }
     }
     return groups;
-  }, [nonTravellerCharacters]);
+  }, [playerAssignableCharacters]);
 
   // Count selected by type (only non-Traveller), including duplicates
   const selectedCounts = useMemo(() => {
@@ -177,8 +179,8 @@ export function CharacterSelection({
     for (const type of TYPE_GROUP_ORDER) {
       counts[type] = 0;
     }
-    for (const id of selectedIds) {
-      const ch = nonTravellerCharacters.find((c) => c.id === id);
+    for (const id of selectedPlayerIds) {
+      const ch = playerAssignableCharacters.find((c) => c.id === id);
       if (ch) {
         counts[ch.type] = (counts[ch.type] ?? 0) + 1;
         // Add duplicate copies
@@ -187,7 +189,7 @@ export function CharacterSelection({
       }
     }
     return counts;
-  }, [selectedIds, nonTravellerCharacters, extraVillageIdiots, extraLegionCopies]);
+  }, [selectedPlayerIds, playerAssignableCharacters, extraVillageIdiots, extraLegionCopies]);
 
   // Filter characters by search query
   const normalizedQuery = searchQuery.trim().toLowerCase();
@@ -252,7 +254,7 @@ export function CharacterSelection({
 
   const handleConfirm = useCallback(() => {
     // Build the full selected list including duplicate copies
-    const ids = Array.from(selectedIds);
+    const ids = [...selectedPlayerIds];
     for (let i = 0; i < extraVillageIdiots; i++) {
       ids.push('villageidiot');
     }
@@ -261,7 +263,7 @@ export function CharacterSelection({
     }
     onConfirm(ids);
     onClose();
-  }, [selectedIds, extraVillageIdiots, extraLegionCopies, onConfirm, onClose]);
+  }, [selectedPlayerIds, extraVillageIdiots, extraLegionCopies, onConfirm, onClose]);
 
   /** Render a distribution status chip for a counted type. */
   function renderDistChip(type: CharacterType) {
@@ -286,7 +288,7 @@ export function CharacterSelection({
   }
 
   /** Total count of all selected characters including duplicates. */
-  const totalSelected = selectedIds.size + extraVillageIdiots + extraLegionCopies;
+  const totalSelected = selectedPlayerIds.length + extraVillageIdiots + extraLegionCopies;
 
   const dialogTitle = gameNumber ? `Game ${gameNumber}: Select Characters` : 'Select Characters';
 

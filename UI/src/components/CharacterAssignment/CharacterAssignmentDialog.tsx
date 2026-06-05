@@ -30,6 +30,7 @@ import { getSetupModifiers, getNetAdjustment } from '@/utils/setupModifiers.ts';
 import { getRequiredCharacters, getSetupPrompts } from '@/utils/requiredCharacters.ts';
 import { getSeatingWarnings, getMarionetteValidSeats } from '@/utils/seatingConstraints.ts';
 import { getDefaultCharacterIconPath } from '@/utils/characterIcon.ts';
+import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
 
 /** Characters that trigger identity concealment prompts on assignment. */
 const CONCEALMENT_CHARACTERS = new Set(['marionette', 'drunk']);
@@ -105,13 +106,13 @@ export function CharacterAssignmentDialog({
   const availableCharacters = useMemo(() => {
     if (inPlayCharacterIds && inPlayCharacterIds.length > 0) {
       // Use in-play character list (which may contain duplicates)
-      return inPlayCharacterIds
-        .map((id) => scriptCharacters.find((c) => c.id === id))
-        .filter((c): c is CharacterDef => c !== undefined);
+      return filterPlayerAssignableCharacters(
+        inPlayCharacterIds
+          .map((id) => scriptCharacters.find((c) => c.id === id))
+          .filter((c): c is CharacterDef => c !== undefined),
+      );
     }
-    return scriptCharacters.filter(
-      (c) => c.type !== 'Traveller' && c.type !== 'Fabled' && c.type !== 'Loric',
-    );
+    return filterPlayerAssignableCharacters(scriptCharacters);
   }, [scriptCharacters, inPlayCharacterIds]);
 
   // IDs of characters that allow duplicates (from inPlayCharacterIds duplicates)
@@ -226,9 +227,7 @@ export function CharacterAssignmentDialog({
   const dropdownCharacters = useMemo(() => {
     const source = inPlayCharacterIds
       ? availableCharacters
-      : scriptCharacters.filter(
-          (c) => c.type !== 'Traveller' && c.type !== 'Fabled' && c.type !== 'Loric',
-        );
+      : filterPlayerAssignableCharacters(scriptCharacters);
     const seen = new Set<string>();
     const deduped = source.filter((c) => {
       if (seen.has(c.id)) return false;

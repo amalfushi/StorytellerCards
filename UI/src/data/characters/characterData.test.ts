@@ -165,7 +165,26 @@ describe.each(allCharacters)('Character: $name ($id)', (char) => {
     }
   });
 
-  // ── 10. M22: Flavor text validation ──
+  // ── 10. First-night reminder setup validation ──
+
+  it('has valid firstNightReminderSetup entries (if present)', () => {
+    if (!char.firstNightReminderSetup) return;
+    expect(Array.isArray(char.firstNightReminderSetup)).toBe(true);
+    const reminderIds = new Set(char.reminders.map((reminder) => reminder.id));
+    for (const step of char.firstNightReminderSetup) {
+      expect(typeof step.id).toBe('string');
+      expect(step.id.length).toBeGreaterThan(0);
+      expect(typeof step.description).toBe('string');
+      expect(step.description.length).toBeGreaterThan(0);
+      expect(Array.isArray(step.reminderTokenIds)).toBe(true);
+      expect(step.reminderTokenIds.length).toBeGreaterThan(0);
+      for (const tokenId of step.reminderTokenIds) {
+        expect(reminderIds.has(tokenId)).toBe(true);
+      }
+    }
+  });
+
+  // ── 11. M22: Flavor text validation ──
 
   it('has non-empty flavor text', () => {
     expect(typeof char.flavor).toBe('string');

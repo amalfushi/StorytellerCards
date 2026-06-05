@@ -15,6 +15,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import type { PlayerSeat, CharacterDef, NightChoiceType } from '@/types/index.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
 
 // ──────────────────────────────────────────────
 // Types
@@ -32,6 +33,8 @@ export interface NightChoiceSelectorProps {
   label?: string;
   filter?: string;
   readOnly?: boolean;
+  /** Label for the empty player/character option. */
+  emptyOptionLabel?: string;
   /** Lookup function to resolve character definitions by ID (for inline icons). */
   characterLookup?: (id: string) => CharacterDef | undefined;
 }
@@ -60,6 +63,7 @@ export function NightChoiceSelector({
   label = 'Choose',
   filter,
   readOnly = false,
+  emptyOptionLabel = 'None',
   characterLookup,
 }: NightChoiceSelectorProps) {
   // Build player options filtered by type
@@ -148,7 +152,7 @@ export function NightChoiceSelector({
             }}
           >
             <MenuItem value="">
-              <em>None</em>
+              <em>{emptyOptionLabel}</em>
             </MenuItem>
             {playerOptions.map((p) => {
               const charDef =
@@ -271,9 +275,9 @@ export function NightChoiceSelector({
             }}
           >
             <MenuItem value="">
-              <em>None</em>
+              <em>{emptyOptionLabel}</em>
             </MenuItem>
-            {characters.map((c) => {
+            {filterPlayerAssignableCharacters(characters).map((c) => {
               const p = playersByCharId.get(c.id);
               return (
                 <MenuItem key={c.id} value={c.name}>

@@ -55,7 +55,25 @@ export function buildChecklistItems(
     }
   }
 
-  // 2. Characters with setup: true that may need ST decisions (no storytellerSetup but have setup flag)
+  // 2. First-night reminder-token placements declared by character data.
+  for (const char of inPlayChars) {
+    for (const step of char.firstNightReminderSetup ?? []) {
+      const tokenNames = step.reminderTokenIds
+        .map((tokenId) => char.reminders.find((reminder) => reminder.id === tokenId)?.text)
+        .filter((text): text is string => text !== undefined);
+      items.push({
+        id: `reminder-first-night-${char.id}-${step.id}`,
+        label: `${char.name}: ${step.description}`,
+        description: tokenNames.length
+          ? `Prepare reminder tokens: ${tokenNames.join(', ')}`
+          : 'Prepare first-night reminder tokens before Night 1 starts',
+        critical: false,
+        category: 'reminder',
+      });
+    }
+  }
+
+  // 3. Characters with setup: true that may need ST decisions (no storytellerSetup but have setup flag)
   for (const char of inPlayChars) {
     if (char.setup && !char.storytellerSetup?.length && !char.setupModification) {
       items.push({
@@ -68,7 +86,7 @@ export function buildChecklistItems(
     }
   }
 
-  // 3. Distribution modifiers
+  // 4. Distribution modifiers
   const modifiers = getSetupModifiers(inPlayCharacterIds);
   for (const mod of modifiers) {
     items.push({
@@ -80,7 +98,7 @@ export function buildChecklistItems(
     });
   }
 
-  // 4. Required character warnings
+  // 5. Required character warnings
   const required = getRequiredCharacters(scriptCharacterIds);
   for (const req of required) {
     // Only flag if the required character is also not in the in-play set
@@ -95,7 +113,7 @@ export function buildChecklistItems(
     }
   }
 
-  // 5. Setup prompts (e.g. Bounty Hunter)
+  // 6. Setup prompts (e.g. Bounty Hunter)
   const prompts = getSetupPrompts(inPlayCharacterIds);
   for (const prompt of prompts) {
     items.push({
@@ -106,7 +124,7 @@ export function buildChecklistItems(
     });
   }
 
-  // 6. Global reminder placements needed
+  // 7. Global reminder placements needed
   for (const char of inPlayChars) {
     if (char.remindersGlobal && char.remindersGlobal.length > 0) {
       // Check if any player has had the apparent character set (for Marionette/Drunk)

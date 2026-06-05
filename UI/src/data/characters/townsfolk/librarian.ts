@@ -39,6 +39,13 @@ export const librarian: CharacterDef = {
     { id: 'librarian-outsider', text: 'Outsider', sourceCharacterId: 'librarian' },
     { id: 'librarian-wrong', text: 'Wrong', sourceCharacterId: 'librarian' },
   ],
+  firstNightReminderSetup: [
+    {
+      id: 'outsider-and-wrong-tokens',
+      description: 'Place Outsider and Wrong reminders on the two players Librarian will learn.',
+      reminderTokenIds: ['librarian-outsider', 'librarian-wrong'],
+    },
+  ],
   flavor:
     'Certainly madam, under normal circumstances, you may borrow the Codex Malificarium from the library vaults. However, you do not seem to be a member.',
   edition: 'tb',

@@ -11,6 +11,18 @@ Completed: 2026-06-01
 - Character wiring for Cult Leader, Mezepheles, Cannibal, Pixie, Philosopher, Alchemist, and Boffin.
 - Inline night reminder-token player picker, overlay token display, and focused regression tests.
 
+## Post-merge fixes (M38)
+
+Loric and Fabled characters are now excluded from player-facing character selection, assignment, and gained-ability choices because they are storyteller setup powers, not player characters.
+
+The unified Setup Powers drawer keeps its upper-left location and shared structure, but Loric/Fabled entries render as character icons instead of text pills so they match the rest of the grimoire UI.
+
+Inline reminder-token placement now treats each token copy as single-select: choosing a new player reassigns that exact copy from its previous player atomically.
+
+The reminder-token player picker now reuses the NightChoiceSelector “Choose a player” control, with an Unassigned option for clearing a placement, to avoid maintaining duplicate dropdown styling.
+
+Character-ability choices such as Philosopher, Cannibal, Pixie, Alchemist, and Boffin consistently filter out Loric/Fabled setup powers so players cannot gain storyteller-only abilities.
+
 ### Summary
 
 Make the app ready to storytell the **Whose Cult Is It Anyway?** script (Aero, 31 characters) in a live game, plus land the most-requested QoL fix from the last live game (the night-flashcard reminder-token flow).
