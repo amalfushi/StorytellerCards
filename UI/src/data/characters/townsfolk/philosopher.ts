@@ -55,6 +55,7 @@ export const philosopher: CharacterDef = {
     large: '/icons/characters/philosopherIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [{ id: 'philosopher-drunk', text: 'Drunk', sourceCharacterId: 'philosopher' }],
   jinxes: [
     {

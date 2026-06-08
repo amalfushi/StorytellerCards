@@ -33,6 +33,7 @@ export interface PlayerShowDrawerProps {
   templates?: ShowToPlayerTemplate[];
   bluffCharacters?: CharacterDef[];
   bluffLabel?: string;
+  characterDef?: CharacterDef;
   onAddMessage?: (seat: number, text: string, templateId?: string) => void;
   onMarkMessageShown?: (messageId: string) => void;
   onEditMessage?: (messageId: string, text: string) => void;
@@ -56,6 +57,7 @@ export function PlayerShowDrawer({
   templates = [],
   bluffCharacters,
   bluffLabel = 'Bluffs',
+  characterDef,
   onAddMessage,
   onMarkMessageShown,
   onEditMessage,
@@ -119,6 +121,12 @@ export function PlayerShowDrawer({
 
   const handleShowBluffs = useCallback(() => {
     setShowScreenVariant('bluffs');
+    setShowScreenOpen(true);
+  }, []);
+
+  const handleShowOncePerGamePrompt = useCallback(() => {
+    setShowMessage('Would you like to use your ability?');
+    setShowScreenVariant('text');
     setShowScreenOpen(true);
   }, []);
 
@@ -211,6 +219,19 @@ export function PlayerShowDrawer({
               sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
             >
               Show {bluffLabel}
+            </Button>
+          )}
+
+          {characterDef?.oncePerGame && (
+            <Button
+              fullWidth
+              variant="outlined"
+              startIcon={<FullscreenIcon />}
+              onClick={handleShowOncePerGamePrompt}
+              data-testid="show-once-per-game-prompt-btn"
+              sx={{ justifyContent: 'flex-start', textTransform: 'none' }}
+            >
+              Ask to use ability
             </Button>
           )}
 

@@ -51,6 +51,7 @@ export const seamstress: CharacterDef = {
     large: '/icons/characters/seamstressIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [{ id: 'seamstress-noability', text: 'No Ability', sourceCharacterId: 'seamstress' }],
   flavor:
     "Did you hear that stranger in the cashmere coat put the word on our young Belle? And she said yes? Well, that's nothing compared to what Harry and that juggler got up to at the fair! The things I could say if I was a tattletale... my, yes.",

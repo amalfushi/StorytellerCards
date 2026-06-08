@@ -32,6 +32,7 @@ export const professor: CharacterDef = {
     large: '/icons/characters/professorIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [
     { id: 'professor-alive', text: 'Alive', sourceCharacterId: 'professor' },
     { id: 'professor-noability', text: 'No Ability', sourceCharacterId: 'professor' },

@@ -21,6 +21,7 @@ export const fisherman: CharacterDef = {
     large: '/icons/characters/fishermanIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [{ id: 'fisherman-noability', text: 'No Ability', sourceCharacterId: 'fisherman' }],
   flavor:
     'This was my favourite part of the river... see how the sunlight makes a rainbow from the monastery to the market? This was the best place for big fish. And the older I get, the bigger they were.',

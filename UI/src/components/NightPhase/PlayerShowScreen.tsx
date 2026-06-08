@@ -39,6 +39,8 @@ export interface PlayerShowScreenProps {
   sourceCharacter?: CharacterDef;
   /** Additional character to display (e.g. the madness character for Cerenovus). */
   additionalCharacter?: CharacterDef;
+  /** Character list to display with icons (e.g. not-in-play characters). */
+  characterList?: CharacterDef[];
   /** Label shown above the additional character (e.g. "You are now MAD that you are:"). */
   additionalLabel?: string;
   /** Instruction text shown between the token header and selected character icon. */
@@ -120,6 +122,7 @@ export function PlayerShowScreen({
   scriptCharacters = [],
   sourceCharacter,
   additionalCharacter,
+  characterList,
   additionalLabel,
   instructionText,
   initialSelectedCharacterId,
@@ -312,6 +315,22 @@ export function PlayerShowScreen({
               nameMaxWidth={nameMaxWidth}
               testId={`additional-character-${additionalCharacter.id}`}
             />
+          )}
+
+          {/* Character icon list (e.g. not-in-play characters) */}
+          {characterList && characterList.length > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, flexWrap: 'wrap' }}>
+              {characterList.map((character) => (
+                <CharacterShowIcon
+                  key={character.id}
+                  character={character}
+                  iconSize={Math.round(iconSize * 0.75)}
+                  nameVariant={nameVariant}
+                  nameMaxWidth={nameMaxWidth}
+                  testId={`token-character-list-${character.id}`}
+                />
+              ))}
+            </Box>
           )}
 
           {/* Selected character display from picker (large icon) */}

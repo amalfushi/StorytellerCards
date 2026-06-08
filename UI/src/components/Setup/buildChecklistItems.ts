@@ -97,7 +97,7 @@ export function buildChecklistItems(
   const modifiers = getSetupModifiers(inPlayCharacterIds);
   for (const mod of modifiers) {
     items.push({
-      id: `modifier-${mod.characterId}`,
+      id: `modifier-${mod.characterId}-${mod.type}`,
       label: `${mod.characterName}: ${mod.description}`,
       description: 'Confirm distribution has been adjusted',
       critical: false,

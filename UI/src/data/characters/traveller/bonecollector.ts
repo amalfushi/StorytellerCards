@@ -20,6 +20,7 @@ export const bonecollector: CharacterDef = {
     large: '/icons/characters/bonecollectorIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [
     { id: 'bonecollector-noability', text: 'No Ability', sourceCharacterId: 'bonecollector' },
     { id: 'bonecollector-hasability', text: 'Has Ability', sourceCharacterId: 'bonecollector' },

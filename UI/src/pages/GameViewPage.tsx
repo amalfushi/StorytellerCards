@@ -367,17 +367,11 @@ export function GameViewPage() {
   }, [players, reminderPicker]);
 
   const goodCharacterReminderOptions = useMemo(() => {
-    const inPlayIds = new Set<string>();
-    for (const id of game?.inPlayCharacterIds ?? []) {
-      if (id) inPlayIds.add(id);
-    }
-    for (const player of players) {
-      if (player.characterId) inPlayIds.add(player.characterId);
-    }
-
     const orderedIds = [
-      ...scriptCharacterIds.filter((id) => inPlayIds.has(id)),
-      ...Array.from(inPlayIds).filter((id) => !scriptCharacterIds.includes(id)),
+      ...scriptCharacterIds,
+      ...players
+        .map((player) => player.characterId)
+        .filter((id): id is string => !!id && !scriptCharacterIds.includes(id)),
     ];
 
     return orderedIds
@@ -386,7 +380,7 @@ export function GameViewPage() {
         (character): character is CharacterDef =>
           !!character && (character.type === 'Townsfolk' || character.type === 'Outsider'),
       );
-  }, [game?.inPlayCharacterIds, getCharacter, players, scriptCharacterIds]);
+  }, [getCharacter, players, scriptCharacterIds]);
 
   const currentReminderCharacterName = useMemo(() => {
     if (!currentReminderPlayer?.characterId) return '';

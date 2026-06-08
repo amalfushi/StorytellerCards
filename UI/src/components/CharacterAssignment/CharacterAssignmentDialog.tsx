@@ -60,6 +60,20 @@ function shuffle<T>(arr: T[]): T[] {
   return arr;
 }
 
+function sanitizePlayersForCharacterPool(
+  players: PlayerSeat[],
+  availableCharacters: CharacterDef[],
+): PlayerSeat[] {
+  const allowedIds = new Set(availableCharacters.map((character) => character.id));
+  return [...players]
+    .sort((a, b) => a.seat - b.seat)
+    .map((player) =>
+      player.characterId && !allowedIds.has(player.characterId)
+        ? { ...player, characterId: '' }
+        : player,
+    );
+}
+
 export interface CharacterAssignmentDialogProps {
   open: boolean;
   onClose: () => void;
@@ -95,13 +109,6 @@ export function CharacterAssignmentDialog({
     [nonTravellers.length],
   );
 
-  const [distribution, setDistribution] = useState<Distribution>(baseDistribution);
-  const [localPlayers, setLocalPlayers] = useState<PlayerSeat[]>(
-    [...players].sort((a, b) => a.seat - b.seat),
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [selectedChipId, setSelectedChipId] = useState<string | null>(null);
-
   // Characters available for assignment (in-play or all script chars)
   const availableCharacters = useMemo(() => {
     if (inPlayCharacterIds && inPlayCharacterIds.length > 0) {
@@ -114,6 +121,13 @@ export function CharacterAssignmentDialog({
     }
     return filterPlayerAssignableCharacters(scriptCharacters);
   }, [scriptCharacters, inPlayCharacterIds]);
+
+  const [distribution, setDistribution] = useState<Distribution>(baseDistribution);
+  const [localPlayers, setLocalPlayers] = useState<PlayerSeat[]>(() =>
+    sanitizePlayersForCharacterPool(players, availableCharacters),
+  );
+  const [error, setError] = useState<string | null>(null);
+  const [selectedChipId, setSelectedChipId] = useState<string | null>(null);
 
   // IDs of characters that allow duplicates (from inPlayCharacterIds duplicates)
   const duplicateAllowedIds = useMemo(() => {
@@ -257,10 +271,10 @@ export function CharacterAssignmentDialog({
     setDistribution(
       inPlayDistribution ?? getDistribution(players.filter((p) => !p.isTraveller).length),
     );
-    setLocalPlayers([...players].sort((a, b) => a.seat - b.seat));
+    setLocalPlayers(sanitizePlayersForCharacterPool(players, availableCharacters));
     setError(null);
     setSelectedChipId(null);
-  }, [players, inPlayDistribution]);
+  }, [availableCharacters, players, inPlayDistribution]);
 
   // Simplified randomize: assign all unassigned characters to all empty seats
   const handleRandomize = () => {
@@ -548,6 +562,11 @@ export function CharacterAssignmentDialog({
             .map((player) => {
               const isMarionetteValid =
                 selectedChipId === 'marionette' && marionetteSeats.includes(player.seat);
+              const selectValue = dropdownCharacters.some(
+                (character) => character.id === player.characterId,
+              )
+                ? player.characterId
+                : '';
               return (
                 <Box
                   key={player.seat}
@@ -580,7 +599,7 @@ export function CharacterAssignmentDialog({
                     <InputLabel id={`char-select-${player.seat}`}>Character</InputLabel>
                     <Select
                       labelId={`char-select-${player.seat}`}
-                      value={player.characterId}
+                      value={selectValue}
                       label="Character"
                       onChange={(e) => handleCharacterChange(player.seat, e.target.value)}
                     >

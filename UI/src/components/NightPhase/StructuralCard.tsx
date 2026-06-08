@@ -215,6 +215,9 @@ export function StructuralCard({
         onClose={() => setTokenShowPhrase(null)}
         variant="token"
         tokenText={tokenShowPhrase ? getTokenDisplayText(tokenShowPhrase) : ''}
+        characterList={
+          tokenShowPhrase === 'THESE CHARACTERS ARE NOT IN PLAY' ? bluffCharacters : undefined
+        }
       />
     </Box>
   );

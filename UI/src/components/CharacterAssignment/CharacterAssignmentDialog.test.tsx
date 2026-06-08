@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { CharacterAssignmentDialog } from '@/components/CharacterAssignment/CharacterAssignmentDialog.tsx';
+import { getCharacter } from '@/data/characters/index.ts';
 import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
 import { Alignment, CharacterType } from '@/types/index.ts';
 
@@ -57,6 +58,44 @@ function makePlayers(count: number): PlayerSeat[] {
 
 const fivePlayers = makePlayers(5);
 
+const whoseCultScriptIds = [
+  'noble',
+  'pixie',
+  'balloonist',
+  'preacher',
+  'villageidiot',
+  'king',
+  'cultleader',
+  'oracle',
+  'lycanthrope',
+  'savant',
+  'seamstress',
+  'cannibal',
+  'choirboy',
+  'recluse',
+  'mutant',
+  'zealot',
+  'puzzlemaster',
+  'witch',
+  'cerenovus',
+  'fearmonger',
+  'goblin',
+  'lilmonsta',
+  'nodashii',
+  'fanggu',
+  'lordoftyphon',
+  'harlot',
+  'butcher',
+  'bonecollector',
+  'beggar',
+  'bishop',
+  'stormcatcher',
+];
+
+const whoseCultCharacters = whoseCultScriptIds
+  .map((id) => getCharacter(id))
+  .filter((character): character is CharacterDef => character !== undefined);
+
 const playersWithTraveller: PlayerSeat[] = [
   ...fivePlayers,
   {
@@ -84,6 +123,68 @@ describe('CharacterAssignmentDialog', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+  });
+
+  it('clears stale assigned characters that are not in the selected in-play pool', () => {
+    const stalePlayers = makePlayers(5);
+    stalePlayers[0] = { ...stalePlayers[0], characterId: 'cannibal' };
+
+    render(
+      <CharacterAssignmentDialog
+        open
+        onClose={onClose}
+        players={stalePlayers}
+        scriptCharacters={mockScriptCharacters}
+        inPlayCharacterIds={['noble', 'fortuneteller', 'slayer', 'drunk', 'imp']}
+        onConfirm={onConfirm}
+      />,
+    );
+
+    fireEvent.click(screen.getByText('Confirm'));
+
+    expect(onConfirm).toHaveBeenCalledWith(
+      expect.arrayContaining([expect.objectContaining({ seat: 1, characterId: '' })]),
+    );
+  });
+
+  it('does not pass stale Whose Cult assignments to MUI select values', () => {
+    const stalePlayers = makePlayers(10);
+    stalePlayers[0] = { ...stalePlayers[0], characterId: 'cannibal' };
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    let consoleCalls: unknown[] = [];
+    try {
+      render(
+        <CharacterAssignmentDialog
+          open
+          onClose={onClose}
+          players={stalePlayers}
+          scriptCharacters={whoseCultCharacters}
+          inPlayCharacterIds={[
+            'balloonist',
+            'king',
+            'noble',
+            'savant',
+            'seamstress',
+            'zealot',
+            'fearmonger',
+            'goblin',
+            'witch',
+            'lordoftyphon',
+          ]}
+          onConfirm={onConfirm}
+        />,
+      );
+      consoleCalls = [...errorSpy.mock.calls, ...warnSpy.mock.calls].flat();
+    } finally {
+      errorSpy.mockRestore();
+      warnSpy.mockRestore();
+    }
+
+    expect(consoleCalls).not.toContainEqual(
+      expect.stringContaining('out-of-range value `cannibal`'),
+    );
   });
 
   it('renders nothing visible when not open', () => {

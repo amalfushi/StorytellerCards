@@ -17,17 +17,14 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
 import Chip from '@mui/material/Chip';
-import FormControl from '@mui/material/FormControl';
 import FormControlLabel from '@mui/material/FormControlLabel';
-import InputLabel from '@mui/material/InputLabel';
-import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
-import Select from '@mui/material/Select';
 import Typography from '@mui/material/Typography';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import type { PlayerSeat, PlayerToken, ReminderToken } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
+import { NightChoiceSelector } from '@/components/NightPhase/NightChoiceSelector.tsx';
 import { buildChecklistItems, type SetupChecklistItem } from './buildChecklistItems.ts';
 
 // ── Types ──
@@ -148,18 +145,18 @@ export function SetupChecklist({
   }, [players]);
 
   const handleReminderPlacement = useCallback(
-    (tokenId: string, seatValue: string) => {
+    (tokenId: string, playerName: string) => {
       const currentPlayer = tokenPlacements.get(tokenId);
-      if (!seatValue) {
+      if (!playerName) {
         if (currentPlayer) onRemoveToken?.(currentPlayer.seat, tokenId);
         return;
       }
       const reminder = reminderLookup.get(tokenId);
-      const seat = Number(seatValue);
-      if (!reminder || Number.isNaN(seat)) return;
-      onAddToken?.(seat, reminderToPlayerToken(reminder));
+      const selectedPlayer = players.find((player) => player.playerName === playerName);
+      if (!reminder || !selectedPlayer) return;
+      onAddToken?.(selectedPlayer.seat, reminderToPlayerToken(reminder));
     },
-    [onAddToken, onRemoveToken, reminderLookup, tokenPlacements],
+    [onAddToken, onRemoveToken, players, reminderLookup, tokenPlacements],
   );
 
   if (items.length === 0) {
@@ -272,30 +269,20 @@ export function SetupChecklist({
                           const placedPlayer = tokenPlacements.get(tokenId);
                           if (!reminder) return null;
                           return (
-                            <FormControl key={tokenId} size="small" fullWidth>
-                              <InputLabel id={`${item.id}-${tokenId}-label`}>
-                                {reminder.text}
-                              </InputLabel>
-                              <Select
-                                labelId={`${item.id}-${tokenId}-label`}
-                                label={reminder.text}
-                                value={placedPlayer ? String(placedPlayer.seat) : ''}
-                                onChange={(event) =>
-                                  handleReminderPlacement(tokenId, event.target.value)
-                                }
-                                disabled={!onAddToken && !onRemoveToken}
-                                inputProps={{ 'aria-label': `${item.label} ${reminder.text}` }}
-                              >
-                                <MenuItem value="">
-                                  <em>Unassigned</em>
-                                </MenuItem>
-                                {players.map((player) => (
-                                  <MenuItem key={player.seat} value={String(player.seat)}>
-                                    {player.playerName || `Seat ${player.seat}`}
-                                  </MenuItem>
-                                ))}
-                              </Select>
-                            </FormControl>
+                            <NightChoiceSelector
+                              key={tokenId}
+                              type="player"
+                              value={placedPlayer?.playerName ?? ''}
+                              onChange={(value) => {
+                                if (Array.isArray(value)) return;
+                                handleReminderPlacement(tokenId, value);
+                              }}
+                              players={players}
+                              label={reminder.text}
+                              readOnly={!onAddToken && !onRemoveToken}
+                              emptyOptionLabel="Unassigned"
+                              characterLookup={getCharacter}
+                            />
                           );
                         })}
                       </Box>

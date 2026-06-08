@@ -238,6 +238,20 @@ describe('PlayerShowScreen', () => {
       expect(screen.getByText('Fortune Teller')).toBeInTheDocument();
     });
 
+    it('renders character icon list when provided', () => {
+      render(
+        <PlayerShowScreen
+          open={true}
+          onClose={vi.fn()}
+          variant="token"
+          tokenText="These characters are not in play:"
+          characterList={[fortune]}
+        />,
+      );
+      expect(screen.getByTestId('token-character-list-fortuneteller')).toBeInTheDocument();
+      expect(screen.getByText('Fortune Teller')).toBeInTheDocument();
+    });
+
     it('renders instruction text when provided', () => {
       render(
         <PlayerShowScreen

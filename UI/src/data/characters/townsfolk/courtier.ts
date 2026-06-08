@@ -43,6 +43,7 @@ export const courtier: CharacterDef = {
     large: '/icons/characters/courtierIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [
     { id: 'courtier-drunk3', text: 'Drunk 3', sourceCharacterId: 'courtier' },
     { id: 'courtier-drunk2', text: 'Drunk 2', sourceCharacterId: 'courtier' },

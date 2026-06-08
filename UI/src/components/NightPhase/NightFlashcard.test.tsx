@@ -468,6 +468,42 @@ describe('NightFlashcard', () => {
     expect(screen.getByText(/👎/)).toBeInTheDocument();
   });
 
+  it('preserves selected players when recording a thumbs up/down signal', () => {
+    const signalEntry: NightOrderEntry = {
+      ...mockEntry,
+      subActions: [
+        { id: 'sig-1', description: 'Choose 2 players.', isConditional: false },
+        { id: 'sig-2', description: 'Give a Thumbs Up or Thumbs Down', isConditional: false },
+      ],
+    };
+    const charWithChoices: CharacterDef = {
+      ...mockCharacterDef,
+      firstNight: {
+        ...mockCharacterDef.firstNight!,
+        choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
+      },
+    };
+    const onSelectionChange = vi.fn();
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        entry={signalEntry}
+        characterDef={charWithChoices}
+        checkedStates={[false, false]}
+        players={[
+          { ...mockPlayerSeat, playerName: 'Alice' },
+          { ...mockPlayerSeat, seat: 4, playerName: 'Bob' },
+        ]}
+        selectionValue={['Alice', 'Bob']}
+        onSelectionChange={onSelectionChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /yes/i }));
+
+    expect(onSelectionChange).toHaveBeenCalledWith(['Alice', 'Bob', 'signal:thumbsUp']);
+  });
+
   it('shows finger signal dropdown for finger signal sub-actions', () => {
     const signalEntry: NightOrderEntry = {
       ...mockEntry,

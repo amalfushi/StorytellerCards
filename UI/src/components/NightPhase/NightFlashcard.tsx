@@ -107,6 +107,22 @@ export function NightFlashcard({
   const [choiceShowMessage, setChoiceShowMessage] = useState<string | null>(null);
   const [tokenShowPhrase, setTokenShowPhrase] = useState<string | null>(null);
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
+  const signalPrefix = 'signal:';
+
+  const extractStoredSignal = useCallback((value: string | string[] | undefined): string => {
+    if (typeof value === 'string')
+      return value.startsWith(signalPrefix) ? value.slice(signalPrefix.length) : '';
+    if (Array.isArray(value)) {
+      const signalValue = value.find((item) => item.startsWith(signalPrefix));
+      return signalValue ? signalValue.slice(signalPrefix.length) : '';
+    }
+    return '';
+  }, []);
+
+  const stripSignalValues = useCallback(
+    (value: string[]): string[] => value.filter((item) => !item.startsWith(signalPrefix)),
+    [],
+  );
 
   const typeName = characterDef?.type ?? 'Unknown';
 
@@ -175,16 +191,23 @@ export function NightFlashcard({
   const getCompoundValue = useCallback(
     (index: number): string | string[] => {
       if (!isCompound) {
-        // Single choice — use selectionValue directly
+        // Single choice — use selectionValue directly, excluding stored signal answers.
         const choice = parsedChoices[0];
         if (!choice) return '';
+        if (Array.isArray(selectionValue)) {
+          const choiceValues = stripSignalValues(selectionValue);
+          return choice.multiple ? choiceValues : (choiceValues[0] ?? '');
+        }
+        if (typeof selectionValue === 'string' && selectionValue.startsWith(signalPrefix)) {
+          return choice.multiple ? [] : '';
+        }
         return selectionValue ?? (choice.multiple ? [] : '');
       }
       // Compound — selectionValue should be string[] with one entry per selector
       if (!Array.isArray(selectionValue)) return '';
       return (selectionValue[index] as string) ?? '';
     },
-    [isCompound, parsedChoices, selectionValue],
+    [isCompound, parsedChoices, selectionValue, stripSignalValues],
   );
 
   const getCompoundPrev = useCallback(
@@ -200,6 +223,12 @@ export function NightFlashcard({
     (index: number, value: string | string[]) => {
       if (!onSelectionChange) return;
       if (!isCompound) {
+        const storedSignal = extractStoredSignal(selectionValue);
+        if (storedSignal) {
+          const valueWithoutSignal = Array.isArray(value) ? value : value ? [value] : [];
+          onSelectionChange([...valueWithoutSignal, `${signalPrefix}${storedSignal}`]);
+          return;
+        }
         onSelectionChange(value);
         return;
       }
@@ -212,7 +241,7 @@ export function NightFlashcard({
       current[index] = value;
       onSelectionChange(current);
     },
-    [onSelectionChange, isCompound, selectionValue, parsedChoices.length],
+    [extractStoredSignal, onSelectionChange, isCompound, selectionValue, parsedChoices.length],
   );
 
   // For dead players, desaturate only the background — keep content fully readable
@@ -295,11 +324,18 @@ export function NightFlashcard({
     scriptCharacters,
   ]);
 
+  const stormcaughtCharacter = useMemo(() => {
+    if (characterDef?.id !== 'stormcatcher') return undefined;
+    const placed = placedReminders.get('stormcatcher-stormcaught');
+    return placed?.characterId ? characterLookup?.(placed.characterId) : undefined;
+  }, [characterDef, characterLookup, placedReminders]);
+
   const tokenAdditionalLabel = useMemo(() => {
     if (!tokenShowPhrase || !characterDef) return undefined;
     if (isSelectedYouToken(tokenShowPhrase) && characterDef.id === 'cerenovus') {
       return 'You are now MAD that you are:';
     }
+    if (tokenShowPhrase === 'STORMCAUGHT') return 'This player is the:';
     return undefined;
   }, [tokenShowPhrase, characterDef]);
 
@@ -316,8 +352,27 @@ export function NightFlashcard({
     if (tokenShowPhrase === 'MAD' && characterDef.id === 'pixie') {
       return 'If you are MAD that you are this character, you may gain their ability when they die.';
     }
+    if (tokenShowPhrase === 'STORMCAUGHT' && stormcaughtCharacter) {
+      return `This player is the ${stormcaughtCharacter.name}. They can only die by execution.`;
+    }
+    if (tokenShowPhrase === 'THIS PLAYER IS' && characterDef.id === 'king' && playerSeat) {
+      return `${playerSeat.playerName} is the King.`;
+    }
     return undefined;
-  }, [tokenShowPhrase, characterDef]);
+  }, [tokenShowPhrase, characterDef, playerSeat, stormcaughtCharacter]);
+
+  const tokenDisplayCharacter = useMemo(() => {
+    if (tokenShowPhrase === 'STORMCAUGHT') return stormcaughtCharacter;
+    if (tokenShowPhrase === 'THIS PLAYER IS' && characterDef?.id === 'king') return characterDef;
+    return tokenMadnessCharacter;
+  }, [characterDef, stormcaughtCharacter, tokenMadnessCharacter, tokenShowPhrase]);
+
+  const tokenCharacterList = useMemo(() => {
+    if (tokenShowPhrase === 'THESE CHARACTERS ARE NOT IN PLAY' && stormcaughtCharacter) {
+      return [stormcaughtCharacter];
+    }
+    return undefined;
+  }, [stormcaughtCharacter, tokenShowPhrase]);
 
   const effectiveShowCharacterPicker = useMemo(() => {
     if (!tokenShowPhrase) return false;
@@ -354,6 +409,7 @@ export function NightFlashcard({
     if (tokenShowPhrase === 'MAD' && characterDef?.id === 'pixie') {
       return 'You must be MAD that you are:';
     }
+    if (tokenShowPhrase === 'STORMCAUGHT') return 'STORMCAUGHT';
     return getTokenDisplayText(tokenShowPhrase);
   }, [tokenShowPhrase, characterDef]);
 
@@ -693,34 +749,45 @@ export function NightFlashcard({
               ? `${placedOn.playerName}${placedCharDef ? ` (${placedCharDef.name})` : ''}`
               : undefined;
             return (
-              <ReminderTokenChip
-                key={r.id}
-                token={{
-                  id: r.id,
-                  label: r.text,
-                  ...(r.pickerScope ? { pickerScope: r.pickerScope } : {}),
-                  sourceCharacterId: r.sourceCharacterId,
-                }}
-                size="small"
-                placed={!!placedOn}
-                placedInfo={placedText}
-                sourceName={placedText ?? r.text}
-                onClick={
-                  onReminderTokenClick
-                    ? (event) =>
-                        onReminderTokenClick(
-                          {
-                            id: r.id,
-                            type: 'custom',
-                            label: r.text,
-                            ...(r.pickerScope ? { pickerScope: r.pickerScope } : {}),
-                            sourceCharacterId: r.sourceCharacterId,
-                          },
-                          event,
-                        )
-                    : undefined
-                }
-              />
+              <Box key={r.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                <ReminderTokenChip
+                  token={{
+                    id: r.id,
+                    label: r.text,
+                    ...(r.pickerScope ? { pickerScope: r.pickerScope } : {}),
+                    sourceCharacterId: r.sourceCharacterId,
+                  }}
+                  size="small"
+                  placed={!!placedOn}
+                  placedInfo={placedText}
+                  sourceName={placedText ?? r.text}
+                  onClick={
+                    onReminderTokenClick
+                      ? (event) =>
+                          onReminderTokenClick(
+                            {
+                              id: r.id,
+                              type: 'custom',
+                              label: r.text,
+                              ...(r.pickerScope ? { pickerScope: r.pickerScope } : {}),
+                              sourceCharacterId: r.sourceCharacterId,
+                            },
+                            event,
+                          )
+                      : undefined
+                  }
+                />
+                {r.id === 'stormcatcher-stormcaught' && placedOn && (
+                  <IconButton
+                    size="small"
+                    aria-label="Show Stormcaught player"
+                    onClick={() => setTokenShowPhrase('STORMCAUGHT')}
+                    sx={{ color: 'rgba(255,255,255,0.55)' }}
+                  >
+                    <VisibilityIcon fontSize="small" />
+                  </IconButton>
+                )}
+              </Box>
             );
           })}
         </Box>
@@ -752,16 +819,23 @@ export function NightFlashcard({
             {signalInfos.map((signalType, idx) => {
               if (signalType === 'none') return null;
               const signalKey = `${entry.id}__signal__${idx}`;
-              const currentSignal =
-                typeof selectionValue === 'object' && !Array.isArray(selectionValue) ? '' : '';
-              // Signal values are stored as selections with a special key prefix
-              const storedSignal = (() => {
-                // Look up signal from compound selection array or direct selection
-                if (typeof selectionValue === 'string' && selectionValue.startsWith('signal:')) {
-                  return selectionValue.replace('signal:', '');
+              const storedSignal = extractStoredSignal(selectionValue);
+              const updateSignal = (signal: string) => {
+                const signalValue = `${signalPrefix}${signal}`;
+                if (Array.isArray(selectionValue)) {
+                  onSelectionChange?.([...stripSignalValues(selectionValue), signalValue]);
+                  return;
                 }
-                return '';
-              })();
+                if (
+                  typeof selectionValue === 'string' &&
+                  selectionValue &&
+                  !selectionValue.startsWith(signalPrefix)
+                ) {
+                  onSelectionChange?.([selectionValue, signalValue]);
+                  return;
+                }
+                onSelectionChange?.(signalValue);
+              };
 
               if (signalType === 'finger') {
                 return (
@@ -775,12 +849,10 @@ export function NightFlashcard({
                       </InputLabel>
                       <Select
                         labelId={`signal-finger-${idx}`}
-                        value={storedSignal || currentSignal}
+                        value={storedSignal}
                         label="Finger signal"
                         disabled={readOnly}
-                        onChange={(e) => {
-                          onSelectionChange?.(`signal:${e.target.value}`);
-                        }}
+                        onChange={(e) => updateSignal(e.target.value)}
                         sx={{
                           color: 'rgba(255,255,255,0.9)',
                           '& .MuiOutlinedInput-notchedOutline': {
@@ -812,11 +884,11 @@ export function NightFlashcard({
                       Signal
                     </Typography>
                     <ToggleButtonGroup
-                      value={storedSignal || currentSignal}
+                      value={storedSignal}
                       exclusive
                       onChange={(_, val) => {
                         if (val !== null && !readOnly) {
-                          onSelectionChange?.(`signal:${val}`);
+                          updateSignal(val);
                         }
                       }}
                       size="small"
@@ -927,7 +999,7 @@ export function NightFlashcard({
               overflow: 'auto',
             },
             '& .MuiInputBase-root.Mui-disabled': {
-              '-webkit-text-fill-color': '#fff',
+              WebkitTextFillColor: '#fff',
             },
             '& .MuiOutlinedInput-notchedOutline': {
               borderColor: 'rgba(255,255,255,0.15)',
@@ -960,7 +1032,8 @@ export function NightFlashcard({
         showCharacterPicker={effectiveShowCharacterPicker}
         scriptCharacters={tokenPickerCharacters}
         sourceCharacter={tokenSourceCharacter}
-        additionalCharacter={tokenMadnessCharacter}
+        additionalCharacter={tokenDisplayCharacter}
+        characterList={tokenCharacterList}
         additionalLabel={tokenAdditionalLabel}
         instructionText={tokenInstructionText}
         initialSelectedCharacterId={initialTokenCharacterId}

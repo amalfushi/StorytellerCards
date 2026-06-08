@@ -58,6 +58,7 @@ const VARIABLE_MODIFIER_CONFIG: Record<string, { min: number; max: number; label
   hermit: { min: -1, max: 0, label: 'Hermit' },
   godfather: { min: -1, max: 1, label: 'Godfather' },
   kazali: { min: -3, max: 5, label: 'Kazali' },
+  lordoftyphon: { min: -3, max: 5, label: 'Lord of Typhon' },
   sentinel: { min: 0, max: 2, label: 'Sentinel' },
 } as const;
 

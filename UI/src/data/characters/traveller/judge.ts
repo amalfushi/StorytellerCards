@@ -20,6 +20,7 @@ export const judge: CharacterDef = {
     large: '/icons/characters/judgeIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [{ id: 'judge-noability', text: 'No Ability', sourceCharacterId: 'judge' }],
   flavor:
     'I find the defendant guilty of the crimes of murder, fraud, arson, larceny, impersonating an officer of the law, practicing medicine without a license, slander, regicide, and littering.',

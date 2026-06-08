@@ -101,6 +101,13 @@ const scriptWithModifiers: CharacterDef[] = [
     abilityShort: '-1 or +1 Outsider',
   }),
   makeChar({
+    id: 'lordoftyphon',
+    name: 'Lord of Typhon',
+    type: CharacterType.Demon,
+    defaultAlignment: Alignment.Evil,
+    abilityShort: '+1 Minion. -? to +? Outsiders',
+  }),
+  makeChar({
     id: 'sentinel',
     name: 'Sentinel',
     type: CharacterType.Fabled,
@@ -416,6 +423,18 @@ describe('CharacterSelection', () => {
         />,
       );
       expect(screen.getByTestId('variable-stepper-godfather')).toBeInTheDocument();
+    });
+
+    it('shows variable stepper for Lord of Typhon when selected', () => {
+      render(
+        <CharacterSelection
+          {...defaultProps}
+          scriptCharacters={scriptWithModifiers}
+          playerCount={8}
+          initialSelected={['lordoftyphon']}
+        />,
+      );
+      expect(screen.getByTestId('variable-stepper-lordoftyphon')).toBeInTheDocument();
     });
 
     it('does not show variable stepper for Sentinel because Fabled are setup powers', () => {

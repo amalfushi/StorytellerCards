@@ -53,7 +53,7 @@ function getSetupAdjustments(selectedIds: Set<string>): OutsiderAdjustment {
   // Godfather: variable, default to -1 townsfolk / +1 outsider
   if (selectedIds.has('godfather')) outsiderDelta += 1;
 
-  // Lord of Typhon: +1 minion handled separately, outsider adjustment variable
+  // Lord of Typhon: +1 minion and variable Outsiders handled in the main pass.
   // Balloonist: +0 or +1, default to 0
   // Hermit: -0 or -1, default to 0
   // Kazali: highly variable, default to 0
@@ -156,9 +156,12 @@ export function randomizeCharacters(scriptCharacterIds: string[], playerCount: n
 
   const adjustments = getSetupAdjustments(selectedEvilIds);
 
-  // Lord of Typhon: +1 minion
+  // Lord of Typhon: +1 Minion and Storyteller-variable Outsiders.
+  // For random setup, pick a legal Outsider count across the available good slots.
   if (selectedEvilIds.has('lordoftyphon')) {
     targetMinions = Math.min(base.minions + 1, minions.length);
+    const maxOutsiders = Math.min(outsiders.length, base.townsfolk + base.outsiders - 1);
+    adjustments.outsiderDelta += Math.floor(Math.random() * (maxOutsiders + 1)) - base.outsiders;
   }
 
   let targetOutsiders = Math.max(0, base.outsiders + adjustments.outsiderDelta);

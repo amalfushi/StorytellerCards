@@ -218,6 +218,8 @@ export interface CharacterDef {
   edition?: Edition;
   /** True when this character modifies game setup (e.g. Baron adds +2 Outsiders). */
   setup?: boolean;
+  /** True when this character has a once-per-game ability the player may need to opt into. */
+  oncePerGame?: boolean;
   /** Reminder tokens that apply even when this character is not in play. */
   remindersGlobal?: ReminderToken[];
 }
