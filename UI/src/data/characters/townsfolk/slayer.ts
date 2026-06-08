@@ -22,6 +22,7 @@ export const slayer: CharacterDef = {
     large: '/icons/characters/slayerIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [{ id: 'slayer-noability', text: 'No Ability', sourceCharacterId: 'slayer' }],
   jinxes: [
     {

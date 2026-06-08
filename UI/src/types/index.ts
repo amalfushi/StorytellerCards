@@ -44,6 +44,12 @@ export const NightChoiceType = {
 } as const;
 export type NightChoiceType = (typeof NightChoiceType)[keyof typeof NightChoiceType];
 
+export const ReminderPickerScope = {
+  Players: 'players',
+  GoodCharacters: 'goodCharacters',
+} as const;
+export type ReminderPickerScope = (typeof ReminderPickerScope)[keyof typeof ReminderPickerScope];
+
 export const Edition = {
   TroubleBrewing: 'tb',
   BadMoonRising: 'bmr',
@@ -119,6 +125,8 @@ export interface ReminderToken {
   id: string;
   text: string;
   icon?: string;
+  /** Which inline picker option set should be used when placing this reminder. Defaults to players. */
+  pickerScope?: ReminderPickerScope;
   /** True when this reminder applies even if the character is not in play. */
   isGlobal?: boolean;
   /** The character this reminder belongs to (for displaying the source character's icon). */
@@ -210,6 +218,8 @@ export interface CharacterDef {
   edition?: Edition;
   /** True when this character modifies game setup (e.g. Baron adds +2 Outsiders). */
   setup?: boolean;
+  /** True when this character has a once-per-game ability the player may need to opt into. */
+  oncePerGame?: boolean;
   /** Reminder tokens that apply even when this character is not in play. */
   remindersGlobal?: ReminderToken[];
 }
@@ -263,6 +273,8 @@ export interface PlayerToken {
   id: string;
   type: 'drunk' | 'poisoned' | 'custom';
   label: string;
+  /** Which inline picker option set should be used when placing this reminder. Defaults to players. */
+  pickerScope?: ReminderPickerScope;
   /** Which character placed this token (optional). */
   sourceCharacterId?: string;
   color?: string;

@@ -2,6 +2,47 @@
 
 > Reference guide for writing and maintaining tests in this project.
 
+## Test Suites Catalog
+
+This project has **six** distinct test suites. Each covers a different layer.
+**Run the right suite for the code you touched** — pre-push hooks only cover the fast suites.
+
+| # | Suite | Command (from repo root) | What it covers | When to run | Pre-push hook? | Runtime |
+|---|-------|---------------------------|----------------|-------------|----------------|---------|
+| 1 | **UI unit** | `npm run test:ui` | All `*.test.ts(x)` under `UI/src/` — components, hooks, reducers, utils, character data validation | After any UI change | ✅ (when UI/ changed) | ~30s |
+| 2 | **UI storybook interaction** | `npm run test:storybook` | All `*.stories.tsx` `play()` functions + a11y rules — runs real components in a Chromium browser | After any visual/component change | ✅ (when UI/ changed) | ~50s |
+| 3 | **API unit** | `npm run test:api` | `go test ./...` — Go handlers, services, persistence helpers | After any API change | ✅ (when API/ changed) | ~5s |
+| 4 | **API roundtrip** | `cd API && go test ./internal/handlers/ -run Roundtrip` | JSON model fidelity: marshal → unmarshal cycle preserves every field. Catches drift between Go structs and the on-disk session/game JSON | After any change to `Game`/`Session`/`Player` structs or character data shape | ✅ (when API/ changed) | ~2s |
+| 5 | **Playwright E2E — lifecycle** | `npm run test:e2e` | Session/game CRUD, page navigation, basic state persistence. Requires UI + API booted (config auto-starts them) | After changes to routing, session lifecycle, persistence | ❌ (too slow) | ~30s |
+| 6 | **Playwright E2E — sync** | `npm run test:e2e:sync` | Cross-device SSE sync — two browser contexts mutate the same game and verify real-time propagation | After changes to SSE, event broadcasting, or any cross-device state | ❌ (slow + occasional flakes) | ~60s |
+| 7 | **Playwright E2E — journey** | `npm run test:e2e:journey` | Full game playthrough end-to-end (multiple days/nights, character abilities). Longest, highest signal | Before releasing a milestone | ❌ (~3min, has known timing issues) | ~3min |
+| ★ | **Everything** | `npm run test:all` | Runs suites 1–6 sequentially (skips slow journey suite) | Before PR merge, after large refactors | — | ~3min |
+
+**Integration combo** (`npm run test:integration`) is a convenience that chains roundtrip + every Playwright project. Slower than `test:all`; useful when investigating cross-stack regressions.
+
+### Triggering the right suite
+
+| You touched… | Run at minimum… |
+|---|---|
+| A React component (`*.tsx`) | unit + storybook |
+| A reducer or context | unit |
+| A `data/characters/*.ts` file | unit (auto-validated) + roundtrip if shape changed |
+| A Go handler or model | api + roundtrip |
+| Session / game JSON shape | api + roundtrip + lifecycle E2E |
+| SSE / event publishing | api + sync E2E |
+| Night phase / character ability flow | unit + storybook + lifecycle E2E (journey before release) |
+
+### Why the hook doesn't cover Playwright
+
+E2E suites need a real browser (Chromium download ~120 MB), boot UI+API, and take 30s–3min each. Running them per push would block developer flow. The expectation is:
+- **Hook** catches unit-level regressions in <60 s
+- **PR author** runs the relevant E2E suite manually before requesting review
+- **CI** (when set up) runs `test:all` against every PR
+
+If you change session lifecycle, SSE, or full-game flows and skip the matching E2E suite, expect regressions to land. See the M39 milestone for context on why this catalog exists.
+
+---
+
 ## Test Stack
 
 | Tool | Purpose |

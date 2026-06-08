@@ -1,6 +1,10 @@
 import { useCallback, useState } from 'react';
 import Autocomplete from '@mui/material/Autocomplete';
 import Avatar from '@mui/material/Avatar';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import Select from '@mui/material/Select';
 import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import IconButton from '@mui/material/IconButton';
@@ -9,8 +13,9 @@ import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import CloseIcon from '@mui/icons-material/Close';
 import type { CharacterDef } from '@/types/index.ts';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
-import { getCharacterIconPath } from '@/utils/characterIcon.ts';
+import { getAlignmentBorderColor, getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { rewriteShowPlayerMessage } from '@/utils/rewriteShowPlayerMessage.ts';
 
 /** Variant determines the display layout. */
@@ -34,10 +39,65 @@ export interface PlayerShowScreenProps {
   sourceCharacter?: CharacterDef;
   /** Additional character to display (e.g. the madness character for Cerenovus). */
   additionalCharacter?: CharacterDef;
+  /** Character list to display with icons (e.g. not-in-play characters). */
+  characterList?: CharacterDef[];
   /** Label shown above the additional character (e.g. "You are now MAD that you are:"). */
   additionalLabel?: string;
-  /** Instruction text shown at the bottom in italics. */
+  /** Instruction text shown between the token header and selected character icon. */
   instructionText?: string;
+  /** Character ID selected by default when the character picker opens. */
+  initialSelectedCharacterId?: string;
+  /** Use a Good/Evil selector instead of the character picker. */
+  showAlignmentPicker?: boolean;
+  /** Current Good/Evil selection for the alignment picker. */
+  alignmentValue?: string;
+  /** Callback fired when a Good/Evil value is selected. */
+  onAlignmentChange?: (value: 'Good' | 'Evil') => void;
+}
+
+interface CharacterShowIconProps {
+  character: CharacterDef;
+  iconSize: number;
+  nameVariant: 'h3' | 'h4';
+  nameMaxWidth: number;
+  testId: string;
+}
+
+function CharacterShowIcon({
+  character,
+  iconSize,
+  nameVariant,
+  nameMaxWidth,
+  testId,
+}: CharacterShowIconProps) {
+  const typeColor = getCharacterTypeColor(character.type);
+  return (
+    <Box
+      sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}
+      data-testid={testId}
+    >
+      <CharacterIconImage
+        characterId={character.id}
+        characterName={character.name}
+        typeColor={typeColor}
+        size={iconSize}
+        borderColor={getAlignmentBorderColor(character.defaultAlignment, typeColor)}
+        alignment={character.defaultAlignment}
+      />
+      <Typography
+        variant={nameVariant}
+        sx={{
+          color: typeColor,
+          fontWeight: 600,
+          textAlign: 'center',
+          maxWidth: nameMaxWidth,
+          lineHeight: 1.2,
+        }}
+      >
+        {character.name}
+      </Typography>
+    </Box>
+  );
 }
 
 /**
@@ -62,14 +122,21 @@ export function PlayerShowScreen({
   scriptCharacters = [],
   sourceCharacter,
   additionalCharacter,
+  characterList,
   additionalLabel,
   instructionText,
+  initialSelectedCharacterId,
+  showAlignmentPicker = false,
+  alignmentValue = '',
+  onAlignmentChange,
 }: PlayerShowScreenProps) {
   const handleClose = useCallback(() => {
     onClose();
   }, [onClose]);
 
-  const [selectedCharacter, setSelectedCharacter] = useState<CharacterDef | null>(null);
+  const [selectedCharacterId, setSelectedCharacterId] = useState(initialSelectedCharacterId ?? '');
+  const selectedCharacter =
+    scriptCharacters.find((character) => character.id === selectedCharacterId) ?? null;
 
   const isLargeViewport = useMediaQuery('(min-width:600px)');
   const iconSize = isLargeViewport ? 168 : 112;
@@ -77,6 +144,7 @@ export function PlayerShowScreen({
   const nameMaxWidth = isLargeViewport ? 300 : 220;
   const titleVariant = isLargeViewport ? 'h3' : 'h4';
   const messageVariant = isLargeViewport ? 'h2' : 'h3';
+  const instructionVariant = isLargeViewport ? 'h5' : 'h6';
 
   return (
     <Dialog
@@ -137,39 +205,14 @@ export function PlayerShowScreen({
             }}
           >
             {bluffCharacters.map((ch) => (
-              <Box
+              <CharacterShowIcon
                 key={ch.id}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 1.5,
-                }}
-                data-testid={`player-show-bluff-${ch.id}`}
-              >
-                <Avatar
-                  src={getCharacterIconPath(ch.id)}
-                  alt={ch.name}
-                  sx={{
-                    width: iconSize,
-                    height: iconSize,
-                    border: `3px solid ${getCharacterTypeColor(ch.type)}`,
-                    bgcolor: '#fff',
-                  }}
-                />
-                <Typography
-                  variant={nameVariant}
-                  sx={{
-                    color: getCharacterTypeColor(ch.type),
-                    fontWeight: 600,
-                    textAlign: 'center',
-                    maxWidth: nameMaxWidth,
-                    lineHeight: 1.2,
-                  }}
-                >
-                  {ch.name}
-                </Typography>
-              </Box>
+                character={ch}
+                iconSize={iconSize}
+                nameVariant={nameVariant}
+                nameMaxWidth={nameMaxWidth}
+                testId={`player-show-bluff-${ch.id}`}
+              />
             ))}
           </Box>
         </>
@@ -219,33 +262,13 @@ export function PlayerShowScreen({
 
           {/* Source character icon (e.g. the Cerenovus/Harpy token) */}
           {sourceCharacter && (
-            <Box
-              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}
-              data-testid={`source-character-${sourceCharacter.id}`}
-            >
-              <Avatar
-                src={getCharacterIconPath(sourceCharacter.id)}
-                alt={sourceCharacter.name}
-                sx={{
-                  width: iconSize,
-                  height: iconSize,
-                  border: `3px solid ${getCharacterTypeColor(sourceCharacter.type)}`,
-                  bgcolor: '#fff',
-                }}
-              />
-              <Typography
-                variant={nameVariant}
-                sx={{
-                  color: getCharacterTypeColor(sourceCharacter.type),
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  maxWidth: nameMaxWidth,
-                  lineHeight: 1.2,
-                }}
-              >
-                {sourceCharacter.name}
-              </Typography>
-            </Box>
+            <CharacterShowIcon
+              character={sourceCharacter}
+              iconSize={iconSize}
+              nameVariant={nameVariant}
+              nameMaxWidth={nameMaxWidth}
+              testId={`source-character-${sourceCharacter.id}`}
+            />
           )}
 
           {/* Additional label (e.g. "You are now MAD that you are:") */}
@@ -265,73 +288,100 @@ export function PlayerShowScreen({
             </Typography>
           )}
 
+          {/* Instruction text (e.g. madness consequences) */}
+          {instructionText && (
+            <Typography
+              variant={instructionVariant}
+              data-testid="token-instruction-text"
+              sx={{
+                color: 'rgba(255,255,255,0.78)',
+                fontStyle: 'italic',
+                textAlign: 'center',
+                px: 2,
+                maxWidth: isLargeViewport ? 640 : 420,
+                lineHeight: 1.45,
+              }}
+            >
+              {instructionText}
+            </Typography>
+          )}
+
           {/* Additional character icon (e.g. the madness character for Cerenovus) */}
           {additionalCharacter && (
-            <Box
-              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}
-              data-testid={`additional-character-${additionalCharacter.id}`}
-            >
-              <Avatar
-                src={getCharacterIconPath(additionalCharacter.id)}
-                alt={additionalCharacter.name}
-                sx={{
-                  width: iconSize,
-                  height: iconSize,
-                  border: `3px solid ${getCharacterTypeColor(additionalCharacter.type)}`,
-                  bgcolor: '#fff',
-                }}
-              />
-              <Typography
-                variant={nameVariant}
-                sx={{
-                  color: getCharacterTypeColor(additionalCharacter.type),
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  maxWidth: nameMaxWidth,
-                  lineHeight: 1.2,
-                }}
-              >
-                {additionalCharacter.name}
-              </Typography>
+            <CharacterShowIcon
+              character={additionalCharacter}
+              iconSize={iconSize}
+              nameVariant={nameVariant}
+              nameMaxWidth={nameMaxWidth}
+              testId={`additional-character-${additionalCharacter.id}`}
+            />
+          )}
+
+          {/* Character icon list (e.g. not-in-play characters) */}
+          {characterList && characterList.length > 0 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, flexWrap: 'wrap' }}>
+              {characterList.map((character) => (
+                <CharacterShowIcon
+                  key={character.id}
+                  character={character}
+                  iconSize={Math.round(iconSize * 0.75)}
+                  nameVariant={nameVariant}
+                  nameMaxWidth={nameMaxWidth}
+                  testId={`token-character-list-${character.id}`}
+                />
+              ))}
             </Box>
           )}
 
           {/* Selected character display from picker (large icon) */}
           {selectedCharacter && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.5 }}>
-              <Avatar
-                src={getCharacterIconPath(selectedCharacter.id)}
-                alt={selectedCharacter.name}
-                sx={{
-                  width: iconSize,
-                  height: iconSize,
-                  border: `3px solid ${getCharacterTypeColor(selectedCharacter.type)}`,
-                  bgcolor: '#fff',
+            <CharacterShowIcon
+              character={selectedCharacter}
+              iconSize={iconSize}
+              nameVariant={nameVariant}
+              nameMaxWidth={nameMaxWidth}
+              testId={`selected-character-${selectedCharacter.id}`}
+            />
+          )}
+
+          {showCharacterPicker && showAlignmentPicker && (
+            <FormControl size="small" sx={{ width: isLargeViewport ? 350 : 280 }}>
+              <InputLabel id="token-alignment-picker-label" sx={{ color: 'rgba(255,255,255,0.5)' }}>
+                Select alignment to show
+              </InputLabel>
+              <Select
+                labelId="token-alignment-picker-label"
+                label="Select alignment to show"
+                value={alignmentValue}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  if (value === 'Good' || value === 'Evil') onAlignmentChange?.(value);
                 }}
-              />
-              <Typography
-                variant={nameVariant}
+                data-testid="token-alignment-picker"
                 sx={{
-                  color: getCharacterTypeColor(selectedCharacter.type),
-                  fontWeight: 600,
-                  textAlign: 'center',
-                  maxWidth: nameMaxWidth,
-                  lineHeight: 1.2,
+                  color: '#fff',
+                  '& .MuiOutlinedInput-notchedOutline': { borderColor: 'rgba(255,255,255,0.3)' },
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: 'rgba(255,255,255,0.5)',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': { borderColor: '#90caf9' },
+                  '& .MuiSvgIcon-root': { color: 'rgba(255,255,255,0.5)' },
                 }}
               >
-                {selectedCharacter.name}
-              </Typography>
-            </Box>
+                <MenuItem value="Good">Good</MenuItem>
+                <MenuItem value="Evil">Evil</MenuItem>
+              </Select>
+            </FormControl>
           )}
 
           {/* Character picker — display-only, does NOT change game state */}
-          {showCharacterPicker && scriptCharacters.length > 0 && (
+          {showCharacterPicker && !showAlignmentPicker && scriptCharacters.length > 0 && (
             <Autocomplete
               options={scriptCharacters}
               getOptionLabel={(opt) => opt.name}
               groupBy={(opt) => opt.type}
               value={selectedCharacter}
-              onChange={(_, val) => setSelectedCharacter(val)}
+              onChange={(_, val) => setSelectedCharacterId(val?.id ?? '')}
               renderOption={(props, opt) => {
                 const { key, ...rest } = props;
                 return (
@@ -375,31 +425,12 @@ export function PlayerShowScreen({
           )}
 
           {/* Prompt to select when picker is shown but nothing selected */}
-          {showCharacterPicker && !selectedCharacter && (
+          {showCharacterPicker && !showAlignmentPicker && !selectedCharacter && (
             <Typography
               variant="body1"
               sx={{ color: 'rgba(255,255,255,0.4)', fontStyle: 'italic', mt: 1 }}
             >
               Select a character above to display
-            </Typography>
-          )}
-
-          {/* Instruction text (e.g. madness consequences) */}
-          {instructionText && (
-            <Typography
-              variant="body1"
-              data-testid="token-instruction-text"
-              sx={{
-                color: 'rgba(255,255,255,0.7)',
-                fontStyle: 'italic',
-                textAlign: 'center',
-                px: 2,
-                mt: 1,
-                maxWidth: isLargeViewport ? 600 : 400,
-                lineHeight: 1.5,
-              }}
-            >
-              {instructionText}
             </Typography>
           )}
         </Box>

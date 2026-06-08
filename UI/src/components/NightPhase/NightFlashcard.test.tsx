@@ -260,7 +260,14 @@ describe('NightFlashcard', () => {
       seat: 1,
       playerName: 'Alice',
       characterId: 'noble',
-      activeReminders: ['ft-red-herring'],
+      tokens: [
+        {
+          id: 'ft-red-herring',
+          type: 'custom',
+          label: 'Red Herring',
+          sourceCharacterId: 'fortuneteller',
+        },
+      ],
     };
     const charLookup = (id: string) =>
       id === 'noble'
@@ -316,6 +323,109 @@ describe('NightFlashcard', () => {
     );
   });
 
+  it('passes reminder picker scope through token clicks', () => {
+    const onTokenClick = vi.fn();
+    const charWithScopedReminder: CharacterDef = {
+      ...mockCharacterDef,
+      reminders: [
+        {
+          id: 'stormcatcher-stormcaught',
+          text: 'Stormcaught',
+          sourceCharacterId: 'stormcatcher',
+          pickerScope: 'goodCharacters',
+        },
+      ],
+    };
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        characterDef={charWithScopedReminder}
+        onReminderTokenClick={onTokenClick}
+      />,
+    );
+    fireEvent.click(screen.getByText('Stormcaught'));
+    expect(onTokenClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'stormcatcher-stormcaught',
+        pickerScope: 'goodCharacters',
+      }),
+      expect.any(Object),
+    );
+  });
+
+  it('reads placed reminder status from player tokens', () => {
+    const nobleDef: CharacterDef = {
+      ...mockCharacterDef,
+      id: 'noble',
+      name: 'Noble',
+      reminders: [
+        { id: 'noble-know-1', text: 'Know', sourceCharacterId: 'noble' },
+        { id: 'noble-know-2', text: 'Know', sourceCharacterId: 'noble' },
+        { id: 'noble-know-3', text: 'Know', sourceCharacterId: 'noble' },
+      ],
+    };
+    const aliceWithNobleToken: PlayerSeat = {
+      ...mockPlayerSeat,
+      seat: 1,
+      playerName: 'Alice',
+      characterId: 'washerwoman',
+      tokens: [{ id: 'noble-know-1', type: 'custom', label: 'Know', sourceCharacterId: 'noble' }],
+    };
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        characterDef={nobleDef}
+        players={[aliceWithNobleToken]}
+        characterLookup={(id) => (id === 'washerwoman' ? mockCharacterDef : undefined)}
+      />,
+    );
+    expect(screen.getByText(/Alice/)).toBeInTheDocument();
+  });
+
+  it('does not show setup power reminders on unrelated player night cards', () => {
+    const stormcatcherDef: CharacterDef = {
+      ...mockCharacterDef,
+      id: 'stormcatcher',
+      name: 'Storm Catcher',
+      type: CharacterType.Loric,
+      reminders: [
+        {
+          id: 'stormcatcher-stormcaught',
+          text: 'Stormcaught',
+          sourceCharacterId: 'stormcatcher',
+          pickerScope: 'goodCharacters',
+        },
+      ],
+    };
+    render(<NightFlashcard {...defaultProps} activeSetupPowers={[stormcatcherDef]} />);
+    expect(screen.queryByText('Stormcaught')).not.toBeInTheDocument();
+  });
+
+  it('deduplicates setup power reminders already shown on their own card', () => {
+    const stormcatcherDef: CharacterDef = {
+      ...mockCharacterDef,
+      id: 'stormcatcher',
+      name: 'Storm Catcher',
+      type: CharacterType.Loric,
+      reminders: [
+        {
+          id: 'stormcatcher-stormcaught',
+          text: 'Stormcaught',
+          sourceCharacterId: 'stormcatcher',
+          pickerScope: 'goodCharacters',
+        },
+      ],
+    };
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        characterDef={stormcatcherDef}
+        activeSetupPowers={[stormcatcherDef]}
+      />,
+    );
+    expect(screen.getAllByText('Stormcaught')).toHaveLength(1);
+  });
+
   // Phase 4: Affecting tokens displayed next to icon
   it('shows affecting tokens (from other characters) next to the icon', () => {
     const playerWithTokens: PlayerSeat = {
@@ -356,6 +466,42 @@ describe('NightFlashcard', () => {
     expect(screen.getByTestId('signal-controls')).toBeInTheDocument();
     expect(screen.getByText(/👍/)).toBeInTheDocument();
     expect(screen.getByText(/👎/)).toBeInTheDocument();
+  });
+
+  it('preserves selected players when recording a thumbs up/down signal', () => {
+    const signalEntry: NightOrderEntry = {
+      ...mockEntry,
+      subActions: [
+        { id: 'sig-1', description: 'Choose 2 players.', isConditional: false },
+        { id: 'sig-2', description: 'Give a Thumbs Up or Thumbs Down', isConditional: false },
+      ],
+    };
+    const charWithChoices: CharacterDef = {
+      ...mockCharacterDef,
+      firstNight: {
+        ...mockCharacterDef.firstNight!,
+        choices: [{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }],
+      },
+    };
+    const onSelectionChange = vi.fn();
+    render(
+      <NightFlashcard
+        {...defaultProps}
+        entry={signalEntry}
+        characterDef={charWithChoices}
+        checkedStates={[false, false]}
+        players={[
+          { ...mockPlayerSeat, playerName: 'Alice' },
+          { ...mockPlayerSeat, seat: 4, playerName: 'Bob' },
+        ]}
+        selectionValue={['Alice', 'Bob']}
+        onSelectionChange={onSelectionChange}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /yes/i }));
+
+    expect(onSelectionChange).toHaveBeenCalledWith(['Alice', 'Bob', 'signal:thumbsUp']);
   });
 
   it('shows finger signal dropdown for finger signal sub-actions', () => {

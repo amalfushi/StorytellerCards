@@ -122,6 +122,23 @@ describe('PlayerShowDrawer', () => {
     expect(screen.getByText('Your bluffs are:')).toBeInTheDocument();
   });
 
+  it('shows a once-per-game ability prompt when the character is flagged', () => {
+    render(
+      <PlayerShowDrawer
+        open
+        onClose={vi.fn()}
+        seat={1}
+        characterDef={makeChar({ oncePerGame: true })}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('show-once-per-game-prompt-btn'));
+
+    expect(screen.getByTestId('player-show-message')).toHaveTextContent(
+      'Would you like to use your ability?',
+    );
+  });
+
   it('auto-clones the last shown message when no active message exists', () => {
     const onAddMessage = vi.fn();
     render(

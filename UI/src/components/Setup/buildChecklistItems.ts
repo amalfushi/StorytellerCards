@@ -20,6 +20,10 @@ export interface SetupChecklistItem {
   description?: string;
   /** Whether this item blocks starting Night 1. */
   critical: boolean;
+  /** Character that owns this setup item, when it maps to character data. */
+  characterId?: string;
+  /** Reminder token IDs to place for data-driven first-night reminder setup. */
+  reminderTokenIds?: string[];
   /** Category for grouping. */
   category: 'setup' | 'modifier' | 'required' | 'reminder' | 'prompt';
 }
@@ -48,6 +52,7 @@ export function buildChecklistItems(
         items.push({
           id: `setup-${char.id}-${step.id}`,
           label: `${char.name}: ${step.description}`,
+          characterId: char.id,
           critical: true,
           category: 'setup',
         });
@@ -64,6 +69,8 @@ export function buildChecklistItems(
       items.push({
         id: `reminder-first-night-${char.id}-${step.id}`,
         label: `${char.name}: ${step.description}`,
+        characterId: char.id,
+        reminderTokenIds: step.reminderTokenIds,
         description: tokenNames.length
           ? `Prepare reminder tokens: ${tokenNames.join(', ')}`
           : 'Prepare first-night reminder tokens before Night 1 starts',
@@ -90,7 +97,7 @@ export function buildChecklistItems(
   const modifiers = getSetupModifiers(inPlayCharacterIds);
   for (const mod of modifiers) {
     items.push({
-      id: `modifier-${mod.characterId}`,
+      id: `modifier-${mod.characterId}-${mod.type}`,
       label: `${mod.characterName}: ${mod.description}`,
       description: 'Confirm distribution has been adjusted',
       critical: false,

@@ -22,7 +22,9 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import type { PlayerSeat } from '@/types/index.ts';
+import type { PlayerSeat, PlayerToken, ReminderToken } from '@/types/index.ts';
+import { getCharacter } from '@/data/characters/index.ts';
+import { NightChoiceSelector } from '@/components/NightPhase/NightChoiceSelector.tsx';
 import { buildChecklistItems, type SetupChecklistItem } from './buildChecklistItems.ts';
 
 // ── Types ──
@@ -40,6 +42,10 @@ export interface SetupChecklistProps {
   onStartNight: () => void;
   /** Callback when the Storyteller opens the quick reseat tool. */
   onReseat?: () => void;
+  /** Place a reminder token on a player using the canonical game token store. */
+  onAddToken?: (seat: number, token: PlayerToken) => void;
+  /** Remove a reminder token from a player using the canonical game token store. */
+  onRemoveToken?: (seat: number, tokenId: string) => void;
 }
 
 // ── Helpers ──
@@ -67,6 +73,16 @@ function saveCheckedState(gameId: string, state: Record<string, boolean>): void 
 // ── Item generation ──
 // `buildChecklistItems` lives in `./buildChecklistItems.ts` and is re-imported above.
 
+function reminderToPlayerToken(reminder: ReminderToken): PlayerToken {
+  return {
+    id: reminder.id,
+    type: 'custom',
+    label: reminder.text,
+    ...(reminder.pickerScope ? { pickerScope: reminder.pickerScope } : {}),
+    sourceCharacterId: reminder.sourceCharacterId,
+  };
+}
+
 // ── Component ──
 
 export function SetupChecklist({
@@ -76,6 +92,8 @@ export function SetupChecklist({
   scriptCharacterIds,
   onStartNight,
   onReseat,
+  onAddToken,
+  onRemoveToken,
 }: SetupChecklistProps) {
   const [checkedState, setCheckedState] = useState<Record<string, boolean>>(() =>
     loadCheckedState(gameId),
@@ -103,6 +121,43 @@ export function SetupChecklist({
   const allCriticalChecked = criticalItems.every((item) => checkedState[item.id]);
   const allChecked = items.every((item) => checkedState[item.id]);
   const checkedCount = items.filter((item) => checkedState[item.id]).length;
+
+  const reminderLookup = useMemo(() => {
+    const lookup = new Map<string, ReminderToken>();
+    for (const item of items) {
+      if (!item.characterId) continue;
+      const character = getCharacter(item.characterId);
+      for (const reminder of character?.reminders ?? []) {
+        lookup.set(reminder.id, reminder);
+      }
+    }
+    return lookup;
+  }, [items]);
+
+  const tokenPlacements = useMemo(() => {
+    const placements = new Map<string, PlayerSeat>();
+    for (const player of players) {
+      for (const token of player.tokens ?? []) {
+        placements.set(token.id, player);
+      }
+    }
+    return placements;
+  }, [players]);
+
+  const handleReminderPlacement = useCallback(
+    (tokenId: string, playerName: string) => {
+      const currentPlayer = tokenPlacements.get(tokenId);
+      if (!playerName) {
+        if (currentPlayer) onRemoveToken?.(currentPlayer.seat, tokenId);
+        return;
+      }
+      const reminder = reminderLookup.get(tokenId);
+      const selectedPlayer = players.find((player) => player.playerName === playerName);
+      if (!reminder || !selectedPlayer) return;
+      onAddToken?.(selectedPlayer.seat, reminderToPlayerToken(reminder));
+    },
+    [onAddToken, onRemoveToken, players, reminderLookup, tokenPlacements],
+  );
 
   if (items.length === 0) {
     return (
@@ -199,6 +254,38 @@ export function SetupChecklist({
                       >
                         {item.description}
                       </Typography>
+                    )}
+                    {item.reminderTokenIds && item.reminderTokenIds.length > 0 && (
+                      <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          {
+                            item.reminderTokenIds.filter((tokenId) => tokenPlacements.has(tokenId))
+                              .length
+                          }
+                          /{item.reminderTokenIds.length} placed
+                        </Typography>
+                        {item.reminderTokenIds.map((tokenId) => {
+                          const reminder = reminderLookup.get(tokenId);
+                          const placedPlayer = tokenPlacements.get(tokenId);
+                          if (!reminder) return null;
+                          return (
+                            <NightChoiceSelector
+                              key={tokenId}
+                              type="player"
+                              value={placedPlayer?.playerName ?? ''}
+                              onChange={(value) => {
+                                if (Array.isArray(value)) return;
+                                handleReminderPlacement(tokenId, value);
+                              }}
+                              players={players}
+                              label={reminder.text}
+                              readOnly={!onAddToken && !onRemoveToken}
+                              emptyOptionLabel="Unassigned"
+                              characterLookup={getCharacter}
+                            />
+                          );
+                        })}
+                      </Box>
                     )}
                   </Box>
                 }

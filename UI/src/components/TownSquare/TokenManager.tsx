@@ -353,11 +353,12 @@ export function TokenManager({
     if (customTokenCount >= MAX_CUSTOM_TOKENS) return;
     const props = tokenPropsForReminder(reminder);
     onAddToken(player.seat, {
-      id: generateId(),
+      id: reminder.id,
       type: props.type,
       label: reminder.text,
       color: props.color,
       sourceCharacterId: props.sourceCharacterId,
+      ...(reminder.pickerScope ? { pickerScope: reminder.pickerScope } : {}),
     });
   };
 

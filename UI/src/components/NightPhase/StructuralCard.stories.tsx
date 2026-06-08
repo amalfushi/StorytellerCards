@@ -1,11 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { StructuralCard } from './StructuralCard';
-import {
-  duskFirstNightEntry,
-  dawnFirstNightEntry,
-  minionInfoEntry,
-  demonInfoEntry,
-} from '../../stories/mockData';
+import { minionInfoEntry, demonInfoEntry } from '../../stories/mockData';
 
 const noop = () => {};
 
@@ -26,22 +21,6 @@ const meta = {
 
 export default meta;
 type Story = StoryObj<typeof meta>;
-
-/** Dusk structural card — signals the start of the night phase. */
-export const Dusk: Story = {
-  args: {
-    entry: duskFirstNightEntry,
-    checkedStates: [false],
-  },
-};
-
-/** Dawn structural card — signals the end of the night phase. */
-export const Dawn: Story = {
-  args: {
-    entry: dawnFirstNightEntry,
-    checkedStates: [false, false],
-  },
-};
 
 /** Minion Info structural card with multi-step sub-actions. */
 export const MinionInfo: Story = {

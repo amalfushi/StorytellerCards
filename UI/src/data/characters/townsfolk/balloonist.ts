@@ -25,6 +25,7 @@ export const balloonist: CharacterDef = {
         isConditional: false,
       },
     ],
+    choices: [{ type: 'player', maxSelections: 1, label: 'Choose this night’s player' }],
   },
   otherNights: {
     order: 78,
@@ -37,6 +38,7 @@ export const balloonist: CharacterDef = {
         isConditional: false,
       },
     ],
+    choices: [{ type: 'player', maxSelections: 1, label: 'Choose this night’s player' }],
   },
   icon: {
     small: '/icons/characters/balloonistIcon.webp',

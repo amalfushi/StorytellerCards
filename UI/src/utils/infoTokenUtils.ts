@@ -12,7 +12,8 @@ export function extractInfoTokens(description: string): string[] {
   const tokens: string[] = [];
   let match;
   while ((match = regex.exec(description)) !== null) {
-    tokens.push(match[1]);
+    const phrase = match[1];
+    if (phrase.includes(' ') || phrase === 'KNOW') tokens.push(phrase);
   }
   return tokens;
 }
@@ -26,6 +27,7 @@ const TOKEN_DISPLAY_TEXT: Record<string, string> = {
   'THESE CHARACTERS ARE NOT IN PLAY': 'These characters are not in play:',
   'THIS IS THE DEMON': 'This is the Demon',
   'THIS PLAYER IS': 'This player is:',
+  KNOW: '1 and only 1 of these 3 players is evil.',
 };
 
 /**

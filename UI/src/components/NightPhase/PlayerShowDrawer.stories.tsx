@@ -52,7 +52,8 @@ type Story = StoryObj<typeof meta>;
 export const MultiSlotWorkflow: Story = {
   play: async ({ args }) => {
     const canvas = within(document.body);
-    await expect(canvas.getByText('Quietly stand up and go to the basement')).toBeInTheDocument();
+    const matches = await canvas.findAllByText('Quietly stand up and go to the basement');
+    await expect(matches.length).toBeGreaterThan(0);
     const composeInput = canvas.getByTestId('show-message-compose').querySelector('textarea');
     if (!composeInput) {
       throw new Error('Compose textarea was not rendered');

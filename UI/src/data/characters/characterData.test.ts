@@ -135,6 +135,9 @@ describe.each(allCharacters)('Character: $name ($id)', (char) => {
       expect(reminder.text.length).toBeGreaterThan(0);
       // M23: every reminder must track its source character
       expect(reminder.sourceCharacterId).toBe(char.id);
+      if (reminder.pickerScope) {
+        expect(['players', 'goodCharacters']).toContain(reminder.pickerScope);
+      }
     }
 
     // No duplicate reminder IDs within a single character

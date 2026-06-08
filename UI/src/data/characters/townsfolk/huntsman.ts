@@ -77,6 +77,7 @@ export const huntsman: CharacterDef = {
     large: '/icons/characters/huntsmanIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [{ id: 'huntsman-noability', text: 'No Ability', sourceCharacterId: 'huntsman' }],
   flavor:
     'My cabin is warm and sturdy. My axe by the door, my boots drying by the fire, and elk stew a-simmering… Hark! A scream echoes through the valley! The rain and the mud and the cold, cold wind mask the scent of the wolves, but I know the path and my pace is steady. I am coming.',

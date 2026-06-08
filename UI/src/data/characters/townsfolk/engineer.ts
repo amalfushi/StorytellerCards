@@ -74,6 +74,7 @@ export const engineer: CharacterDef = {
     large: '/icons/characters/engineerIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [{ id: 'engineer-noability', text: 'No Ability', sourceCharacterId: 'engineer' }],
   jinxes: [
     {

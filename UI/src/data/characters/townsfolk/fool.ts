@@ -18,6 +18,7 @@ export const fool: CharacterDef = {
     large: '/icons/characters/foolIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [{ id: 'fool-noability', text: 'No Ability', sourceCharacterId: 'fool' }],
   flavor:
     "...and the King said 'What?! I've never even owned a pair of rubber pantaloons, let alone a custard cannon!' Ho-ho! Jolly day!",

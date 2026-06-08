@@ -45,6 +45,13 @@ export const bountyhunter: CharacterDef = {
     placeholder: '#1976d2',
   },
   reminders: [{ id: 'bountyhunter-know', text: 'Know', sourceCharacterId: 'bountyhunter' }],
+  firstNightReminderSetup: [
+    {
+      id: 'know-token',
+      description: 'Place the Know reminder on the evil player the Bounty Hunter will learn.',
+      reminderTokenIds: ['bountyhunter-know'],
+    },
+  ],
   jinxes: [
     {
       characterId: 'kazali',

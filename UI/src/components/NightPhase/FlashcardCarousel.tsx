@@ -326,6 +326,8 @@ export function FlashcardCarousel({
       .filter((c): c is CharacterDef => c !== undefined);
   }, [currentBluffIds, characterLookup]);
   const currentBluffLabel = currentEntry?.id === 'lunatic' ? 'Lunatic Bluffs' : 'Demon Bluffs';
+  const currentCharacterDef =
+    currentEntry?.type === 'character' ? characterLookup(currentEntry.id) : undefined;
 
   return (
     <Box
@@ -432,6 +434,7 @@ export function FlashcardCarousel({
         templates={showTemplates}
         bluffCharacters={currentBluffChars}
         bluffLabel={currentBluffLabel}
+        characterDef={currentCharacterDef}
         onAddMessage={onAddShowMessage}
         onMarkMessageShown={onMarkShowMessageShown}
         onEditMessage={onEditShowMessage}

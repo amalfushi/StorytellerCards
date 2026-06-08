@@ -75,6 +75,7 @@ export const nightwatchman: CharacterDef = {
     large: '/icons/characters/nightwatchmanIcon.webp',
     placeholder: '#1976d2',
   },
+  oncePerGame: true,
   reminders: [
     { id: 'nightwatchman-noability', text: 'No Ability', sourceCharacterId: 'nightwatchman' },
   ],

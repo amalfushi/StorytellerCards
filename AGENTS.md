@@ -28,7 +28,7 @@ The app manages a hierarchy: **Sessions** (containers) → **Games** → **Playe
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------- |
 | UI           | React 19 + TypeScript + Vite 6 + MUI Core (free tier)                                                                           |
 | State        | React Context + `useReducer` + `localStorage` (primary), Go API (secondary sync)                                                |
-| Testing      | Vitest (4053 tests across 82 files), Storybook 8 (~105+ stories with `play()` interaction tests), Playwright E2E (2 spec files) |
+| Testing      | Vitest (4260 tests across 84 files), Storybook 8 (~105+ stories with `play()` interaction tests), Playwright E2E (2 spec files) |
 | Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests + coverage)                                            |
 | API          | Go + Chi router, JSON file storage, 90-day auto-cleanup                                                                         |
 | PWA          | `manifest.json`, icons, mobile meta tags                                                                                        |
@@ -108,6 +108,19 @@ This applies to all files in all languages across the entire repository.
 | [`docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md`](docs/milestones/3 - tokens, breadcrumbs, characterModal, errorCheckpoints/milestone3.md) | Current pending feedback items              |
 
 ## Testing Requirements
+
+### Test Suites Catalog (read first!)
+
+This project has **six** distinct test suites covering different layers (UI unit, Storybook interaction, Go unit, JSON roundtrip, Playwright lifecycle, Playwright sync, Playwright journey). The pre-push hook only runs the fast ones — **you are responsible for running the E2E suite that matches what you touched** before opening a PR.
+
+📖 **Full catalog with commands, coverage, and "when to run" guidance: [`docs/testing.md`](docs/testing.md#test-suites-catalog)**
+
+Quick reference:
+- Touched a component? → `npm run test:ui` + `npm run test:storybook`
+- Touched a Go handler or model? → `npm run test:api` (includes roundtrip)
+- Touched session lifecycle / persistence? → also `npm run test:e2e`
+- Touched SSE / cross-device sync? → also `npm run test:e2e:sync`
+- Before merging a milestone? → `npm run test:all` (everything except slow journey suite) + `npm run test:e2e:journey`
 
 ### Policy: Every File Gets Tests
 
@@ -201,9 +214,9 @@ Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
 
 See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 
-### Current Test Stats (as of M37 setup flow rework complete)
+### Current Test Stats (as of M38 live game polish complete)
 
-- **4053 tests** across **82 test files** — all passing
+- **4260 tests** across **84 test files** — all passing
 - **21 story files** with **~105+ stories** including `play()` interaction tests
 - **0 TypeScript errors**, **0 ESLint errors**
 - **Playwright E2E**: 2 spec files (game-lifecycle, cross-device-sync)

@@ -18,6 +18,10 @@ Completed: 2026-06-01
 
 Pre-game checklist reminder setup is now data-driven from character definitions. Characters such as Noble declare first-night reminder placements directly in their character data, and the checklist builder automatically includes those setup-token prompts before Night 1 begins.
 
+## Post-merge fixes (M39)
+
+The pre-game checklist now places first-night reminder tokens into the same `PlayerSeat.tokens` store used by Town Square and night flashcards. Pixie, Bounty Hunter, and Widow now declare data-driven first-night reminder setup entries.
+
 ### Decision
 
 Option B was selected because it is the lowest-risk change that directly targets the reported pain: seats changing at setup time or during play. It preserves the current setup flow, avoids a larger data-model/UI rewrite, and does not preclude Option C later if the visual seating canvas becomes worthwhile.

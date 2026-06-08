@@ -43,6 +43,18 @@ vi.mock('@/data/characters/index.ts', () => {
       setup: true,
       setupModification: { description: '+2 Outsiders' },
     },
+    lordoftyphon: {
+      id: 'lordoftyphon',
+      name: 'Lord of Typhon',
+      type: 'Demon' as const,
+      defaultAlignment: 'Evil' as const,
+      abilityShort: '+1 Minion. Outsiders may vary.',
+      firstNight: null,
+      otherNights: null,
+      reminders: [],
+      setup: true,
+      setupModification: { description: '+1 Minion and variable Outsiders' },
+    },
     marionette: {
       id: 'marionette',
       name: 'Marionette',
@@ -118,7 +130,11 @@ vi.mock('@/data/characters/index.ts', () => {
 // ── Test helpers ──
 
 function makePlayer(seat: number, characterId: string): PlayerSeat {
-  const isEvil = characterId === 'baron' || characterId === 'marionette' || characterId === 'imp';
+  const isEvil =
+    characterId === 'baron' ||
+    characterId === 'lordoftyphon' ||
+    characterId === 'marionette' ||
+    characterId === 'imp';
   return {
     seat,
     playerName: `Player ${seat}`,
@@ -154,6 +170,17 @@ describe('buildChecklistItems', () => {
     expect(modItems.length).toBe(1);
     expect(modItems[0].label).toContain('Baron');
     expect(modItems[0].label).toContain('+2 Outsiders');
+  });
+
+  it('generates unique distribution modifier item IDs for multi-modifier characters', () => {
+    const players = [makePlayer(1, 'lordoftyphon')];
+    const items = buildChecklistItems(players, ['lordoftyphon'], ['lordoftyphon']);
+    const modItems = items.filter((i) => i.category === 'modifier');
+    const modIds = modItems.map((item) => item.id);
+
+    expect(modItems).toHaveLength(2);
+    expect(new Set(modIds).size).toBe(modIds.length);
+    expect(modIds).toEqual(['modifier-lordoftyphon-minion', 'modifier-lordoftyphon-outsider']);
   });
 
   it('generates global reminder items', () => {
@@ -262,6 +289,64 @@ describe('SetupChecklist', () => {
     render(<SetupChecklist {...defaultProps} onReseat={onReseat} />);
     fireEvent.click(screen.getByRole('button', { name: /Reseat/i }));
     expect(onReseat).toHaveBeenCalledTimes(1);
+  });
+
+  it('places first-night reminder tokens through the canonical token callbacks', () => {
+    const onAddToken = vi.fn();
+    render(
+      <SetupChecklist
+        {...defaultProps}
+        players={[makePlayer(1, 'noble'), makePlayer(2, 'imp')]}
+        inPlayCharacterIds={['noble']}
+        scriptCharacterIds={['noble', 'imp']}
+        onAddToken={onAddToken}
+      />,
+    );
+    fireEvent.mouseDown(screen.getAllByRole('combobox')[0]);
+    fireEvent.click(screen.getByRole('option', { name: /Player 2 \(Imp\)/ }));
+    expect(onAddToken).toHaveBeenCalledWith(
+      2,
+      expect.objectContaining({
+        id: 'noble-know-1',
+        label: 'Know',
+        sourceCharacterId: 'noble',
+      }),
+    );
+  });
+
+  it('updates first-night reminder placement count from player token state', () => {
+    const players = [
+      {
+        ...makePlayer(1, 'noble'),
+        tokens: [
+          {
+            id: 'noble-know-1',
+            type: 'custom' as const,
+            label: 'Know',
+            sourceCharacterId: 'noble',
+          },
+        ],
+      },
+      makePlayer(2, 'imp'),
+    ];
+    const { rerender } = render(
+      <SetupChecklist
+        {...defaultProps}
+        players={players}
+        inPlayCharacterIds={['noble']}
+        scriptCharacterIds={['noble', 'imp']}
+      />,
+    );
+    expect(screen.getByText('1/3 placed')).toBeInTheDocument();
+    rerender(
+      <SetupChecklist
+        {...defaultProps}
+        players={[makePlayer(1, 'noble'), makePlayer(2, 'imp')]}
+        inPlayCharacterIds={['noble']}
+        scriptCharacterIds={['noble', 'imp']}
+      />,
+    );
+    expect(screen.getByText('0/3 placed')).toBeInTheDocument();
   });
 
   it('shows "ready to start" when no items needed', () => {

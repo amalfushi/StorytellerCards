@@ -138,8 +138,8 @@ export function CharacterIconImage({
           onError={handleError}
           style={{
             display: 'block',
-            width: 58,
-            height: 58,
+            width: innerSize,
+            height: innerSize,
             objectFit: 'cover',
             borderRadius: '50%',
           }}
