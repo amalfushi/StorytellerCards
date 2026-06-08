@@ -79,14 +79,6 @@ export const nobleFirstNightEntry: NightOrderEntry = mockNightOrder.firstNight.f
 )!;
 
 /** Structural entries */
-export const duskFirstNightEntry: NightOrderEntry = mockNightOrder.firstNight.find(
-  (e) => e.id === 'dusk',
-)!;
-
-export const dawnFirstNightEntry: NightOrderEntry = mockNightOrder.firstNight.find(
-  (e) => e.id === 'dawn',
-)!;
-
 export const minionInfoEntry: NightOrderEntry = mockNightOrder.firstNight.find(
   (e) => e.id === 'minioninfo',
 )!;

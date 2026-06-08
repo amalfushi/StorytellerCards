@@ -41,14 +41,20 @@ export function GameLoader({
     }
   }, [state.game, setPhase]);
 
+  const showCharactersAppliedRef = useRef(false);
   useEffect(() => {
     const showCharactersOverride = overridesRef.current.showCharacters;
     if (
       state.game &&
+      !showCharactersAppliedRef.current &&
       showCharactersOverride !== undefined &&
       showCharactersOverride !== state.showCharacters
     ) {
       toggleShowCharacters();
+      showCharactersAppliedRef.current = true;
+    } else if (state.game && showCharactersOverride !== undefined) {
+      // Override matches initial state — mark as applied so user toggles aren't reverted.
+      showCharactersAppliedRef.current = true;
     }
   }, [state.game, state.showCharacters, toggleShowCharacters]);
 

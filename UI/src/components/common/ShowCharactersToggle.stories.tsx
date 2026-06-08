@@ -49,8 +49,8 @@ export const ToggleClick: Story = {
     const toggleButton = canvas.getByRole('button', { name: /show character info/i });
     await expect(toggleButton).toBeInTheDocument();
     await userEvent.click(toggleButton);
-    // After click, label changes to "Hide character info"
-    const hiddenButton = canvas.getByRole('button', { name: /hide character info/i });
+    // After click, label changes to "Hide character info" (async — wait for re-render)
+    const hiddenButton = await canvas.findByRole('button', { name: /hide character info/i });
     await expect(hiddenButton).toBeInTheDocument();
   },
 };
