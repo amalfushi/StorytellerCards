@@ -516,7 +516,8 @@ export interface GainedAbility {
 
 export type ShowToPlayerMessage = {
   id: string;
-  seat: number;
+  /** PlayerId the message is targeted at (M41: was seat: number). */
+  playerId: PlayerId;
   text: string;
   templateId?: string;
   createdAt: string;
