@@ -113,6 +113,67 @@ describe('playgroundReducer — template slots', () => {
     expect(seat1?.kind === 'seat' && seat1.playerId).toBeNull();
     expect(seat3?.kind === 'seat' && seat3.playerId).toBe(P1);
   });
+
+  it('ADD_TEMPLATE_SEAT with gameSlotIds also appends a seat to listed games', () => {
+    let s = withThreeSeats();
+    s = playgroundReducer(s, {
+      type: 'CREATE_GAME',
+      gameId: G1,
+      name: 'G1',
+      slotIdMap: { [S1]: 'a1', [S2]: 'a2', [S3]: 'a3' },
+    });
+    s = playgroundReducer(s, {
+      type: 'CREATE_GAME',
+      gameId: G2,
+      name: 'G2',
+      slotIdMap: { [S1]: 'b1', [S2]: 'b2', [S3]: 'b3' },
+    });
+    s = playgroundReducer(s, {
+      type: 'ADD_TEMPLATE_SEAT',
+      slotId: 'tnew',
+      gameSlotIds: { [G1]: 'gnew1', [G2]: 'gnew2' },
+    });
+    expect(s.template.slots.at(-1)?.id).toBe('tnew');
+    expect(s.games[0]!.slots.at(-1)?.id).toBe('gnew1');
+    expect(s.games[1]!.slots.at(-1)?.id).toBe('gnew2');
+  });
+
+  it('ADD_TEMPLATE_SPACER with gameSlotIds appends a spacer only to listed games', () => {
+    let s = withThreeSeats();
+    s = playgroundReducer(s, {
+      type: 'CREATE_GAME',
+      gameId: G1,
+      name: 'G1',
+      slotIdMap: { [S1]: 'a1', [S2]: 'a2', [S3]: 'a3' },
+    });
+    s = playgroundReducer(s, {
+      type: 'CREATE_GAME',
+      gameId: G2,
+      name: 'G2',
+      slotIdMap: { [S1]: 'b1', [S2]: 'b2', [S3]: 'b3' },
+    });
+    s = playgroundReducer(s, {
+      type: 'ADD_TEMPLATE_SPACER',
+      slotId: 'tsp',
+      gameSlotIds: { [G1]: 'gsp1' },
+    });
+    expect(s.template.slots.at(-1)).toMatchObject({ kind: 'spacer', id: 'tsp' });
+    expect(s.games[0]!.slots.at(-1)).toMatchObject({ kind: 'spacer', id: 'gsp1' });
+    expect(s.games[1]!.slots.at(-1)?.id).toBe('b3');
+  });
+
+  it('ADD_TEMPLATE_SEAT without gameSlotIds leaves games untouched', () => {
+    let s = withThreeSeats();
+    s = playgroundReducer(s, {
+      type: 'CREATE_GAME',
+      gameId: G1,
+      name: 'G1',
+      slotIdMap: { [S1]: 'a1', [S2]: 'a2', [S3]: 'a3' },
+    });
+    s = playgroundReducer(s, { type: 'ADD_TEMPLATE_SEAT', slotId: 'tnew' });
+    expect(s.template.slots).toHaveLength(4);
+    expect(s.games[0]!.slots).toHaveLength(3);
+  });
 });
 
 describe('playgroundReducer — games', () => {

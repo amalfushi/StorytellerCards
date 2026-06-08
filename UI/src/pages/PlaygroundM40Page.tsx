@@ -316,16 +316,49 @@ function DraggablePlayerRow({
 }
 
 function TemplatePanel({ state, dispatch }: DispatchProp) {
+  const [applyToAll, setApplyToAll] = useState(false);
+  const buildGameSlotIds = (): Record<string, string> | undefined => {
+    if (!applyToAll || state.games.length === 0) return undefined;
+    const map: Record<string, string> = {};
+    for (const g of state.games) map[g.id] = newId();
+    return map;
+  };
   return (
     <Paper variant="outlined" sx={{ p: 2, flex: 2, minWidth: 360 }}>
-      <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-        Template ({state.template.slots.length} slots)
-      </Typography>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+        <Typography variant="subtitle1" fontWeight="bold">
+          Template ({state.template.slots.length} slots)
+        </Typography>
+        <FormControlLabel
+          control={
+            <Checkbox
+              size="small"
+              checked={applyToAll}
+              onChange={(e) => setApplyToAll(e.target.checked)}
+              disabled={state.games.length === 0}
+            />
+          }
+          label={`Apply new slots to all games (${state.games.length})`}
+          slotProps={{ typography: { variant: 'caption' } }}
+        />
+      </Stack>
       <TemplateCircle
         slots={state.template.slots}
         players={state.players}
-        onAddSeat={() => dispatch({ type: 'ADD_TEMPLATE_SEAT', slotId: newId() })}
-        onAddSpacer={() => dispatch({ type: 'ADD_TEMPLATE_SPACER', slotId: newId() })}
+        onAddSeat={() =>
+          dispatch({
+            type: 'ADD_TEMPLATE_SEAT',
+            slotId: newId(),
+            gameSlotIds: buildGameSlotIds(),
+          })
+        }
+        onAddSpacer={() =>
+          dispatch({
+            type: 'ADD_TEMPLATE_SPACER',
+            slotId: newId(),
+            gameSlotIds: buildGameSlotIds(),
+          })
+        }
         onRemoveSlot={(slotId) => dispatch({ type: 'REMOVE_TEMPLATE_SLOT', slotId })}
         onAssignSeat={(slotId, playerId) =>
           dispatch({ type: 'ASSIGN_TEMPLATE_SEAT', slotId, playerId })

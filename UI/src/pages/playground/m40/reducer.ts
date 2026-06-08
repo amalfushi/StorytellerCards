@@ -18,8 +18,18 @@ export type PgAction =
   | { type: 'RENAME_PLAYER'; playerId: PlayerId; name: string }
   | { type: 'REMOVE_PLAYER'; playerId: PlayerId }
   // -- template ----------------------------------------------------------------
-  | { type: 'ADD_TEMPLATE_SEAT'; slotId: SlotId }
-  | { type: 'ADD_TEMPLATE_SPACER'; slotId: SlotId }
+  | {
+      type: 'ADD_TEMPLATE_SEAT';
+      slotId: SlotId;
+      /** When provided, also append a seat slot to each existing game using the
+       * supplied fresh ids (one per gameId). */
+      gameSlotIds?: Record<GameId, SlotId>;
+    }
+  | {
+      type: 'ADD_TEMPLATE_SPACER';
+      slotId: SlotId;
+      gameSlotIds?: Record<GameId, SlotId>;
+    }
   | { type: 'REMOVE_TEMPLATE_SLOT'; slotId: SlotId }
   | { type: 'MOVE_TEMPLATE_SLOT'; slotId: SlotId; toIndex: number }
   | {
@@ -147,20 +157,42 @@ export function playgroundReducer(state: PgSession, action: PgAction): PgSession
 
     // -- template -----------------------------------------------------------
     case 'ADD_TEMPLATE_SEAT': {
+      const gameSlotIds = action.gameSlotIds;
       return {
         ...state,
         template: {
           slots: [...state.template.slots, { kind: 'seat', id: action.slotId, playerId: null }],
         },
+        games: gameSlotIds
+          ? state.games.map((g) =>
+              gameSlotIds[g.id]
+                ? {
+                    ...g,
+                    slots: [...g.slots, { kind: 'seat', id: gameSlotIds[g.id], playerId: null }],
+                  }
+                : g,
+            )
+          : state.games,
       };
     }
 
     case 'ADD_TEMPLATE_SPACER': {
+      const gameSlotIds = action.gameSlotIds;
       return {
         ...state,
         template: {
           slots: [...state.template.slots, { kind: 'spacer', id: action.slotId }],
         },
+        games: gameSlotIds
+          ? state.games.map((g) =>
+              gameSlotIds[g.id]
+                ? {
+                    ...g,
+                    slots: [...g.slots, { kind: 'spacer', id: gameSlotIds[g.id] }],
+                  }
+                : g,
+            )
+          : state.games,
       };
     }
 
