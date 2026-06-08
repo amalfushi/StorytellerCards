@@ -525,7 +525,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       if (!session) return;
 
       const gameId = generateId();
-      const slots = snapshotTemplateSlots(session.template.slots, () => generateId());
+      const slotIdMap: Record<string, string> = {};
+      for (const s of session.template.slots) slotIdMap[s.id] = generateId();
+      const slots = snapshotTemplateSlots(session.template.slots, slotIdMap);
       const participants = initialParticipantsFromSlots(slots);
       const playerState: Record<PlayerId, ReturnType<typeof makeDefaultPlayerGameState>> = {};
       for (const p of participants) {
