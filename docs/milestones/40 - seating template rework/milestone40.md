@@ -121,7 +121,8 @@ Key insight: `participants` (who's in the game) is distinct from seated slots
       `TownSquareLayout`" idea — see the component's JSDoc for the rationale: the
       production `PlayerSeat` shape is too heavy for a stateless playground slot).
       Drag-to-reorder is deferred to Phase 8 (DnD polish).
-- [ ] **Phase 4 — Player roster panel + parking lot** for unseated players.
+- [x] **Phase 4 — Player roster panel + parking lot** for unseated players (in
+      `PlaygroundM40Page` itself, since it's a tiny sectioned list).
 - [ ] **Phase 5 — Game list:** create-game copies the template snapshot; select active
       game; rename / delete.
 - [ ] **Phase 6 — Seat assignment in a game** with the sticky propagation checkbox

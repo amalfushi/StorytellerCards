@@ -95,6 +95,46 @@ function PlayersPanel({ state, dispatch }: DispatchProp) {
     dispatch({ type: 'ADD_PLAYER', playerId: newId(), name: trimmed });
     setName('');
   };
+
+  // Build a playerId -> { seatIndex } map for template assignments.
+  const templateSeatByPlayer = new Map<string, number>();
+  let seatIdx = 0;
+  for (const slot of state.template.slots) {
+    if (slot.kind === 'seat') {
+      seatIdx += 1;
+      if (slot.playerId) templateSeatByPlayer.set(slot.playerId, seatIdx);
+    }
+  }
+
+  const seated = state.players.filter((p) => templateSeatByPlayer.has(p.id));
+  const unseated = state.players.filter((p) => !templateSeatByPlayer.has(p.id));
+
+  const renderRow = (p: { id: string; name: string }) => {
+    const seatNum = templateSeatByPlayer.get(p.id);
+    return (
+      <ListItem
+        key={p.id}
+        disableGutters
+        data-testid={`player-row-${p.id}`}
+        secondaryAction={
+          <IconButton
+            edge="end"
+            size="small"
+            aria-label={`remove ${p.name}`}
+            onClick={() => dispatch({ type: 'REMOVE_PLAYER', playerId: p.id })}
+          >
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        }
+      >
+        <ListItemText
+          primary={p.name}
+          secondary={seatNum ? `Template seat ${seatNum}` : 'Unseated'}
+        />
+      </ListItem>
+    );
+  };
+
   return (
     <Paper variant="outlined" sx={{ p: 2, flex: 1, minWidth: 240 }}>
       <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
@@ -113,25 +153,37 @@ function PlayersPanel({ state, dispatch }: DispatchProp) {
           Add
         </Button>
       </Stack>
-      <List dense disablePadding>
-        {state.players.map((p) => (
-          <ListItem
-            key={p.id}
-            disableGutters
-            secondaryAction={
-              <IconButton
-                edge="end"
-                size="small"
-                aria-label={`remove ${p.name}`}
-                onClick={() => dispatch({ type: 'REMOVE_PLAYER', playerId: p.id })}
-              >
-                <DeleteIcon fontSize="small" />
-              </IconButton>
-            }
-          >
-            <ListItemText primary={p.name} secondary={p.id.slice(0, 8)} />
+
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+        Parking lot ({unseated.length})
+      </Typography>
+      <List dense disablePadding data-testid="parking-lot">
+        {unseated.length === 0 ? (
+          <ListItem disableGutters>
+            <ListItemText
+              primary={<em>(no unseated players)</em>}
+              primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
+            />
           </ListItem>
-        ))}
+        ) : (
+          unseated.map(renderRow)
+        )}
+      </List>
+
+      <Typography variant="caption" color="text.secondary" sx={{ mt: 2, display: 'block' }}>
+        Seated in template ({seated.length})
+      </Typography>
+      <List dense disablePadding data-testid="seated-list">
+        {seated.length === 0 ? (
+          <ListItem disableGutters>
+            <ListItemText
+              primary={<em>(none seated yet)</em>}
+              primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
+            />
+          </ListItem>
+        ) : (
+          seated.map(renderRow)
+        )}
       </List>
     </Paper>
   );
