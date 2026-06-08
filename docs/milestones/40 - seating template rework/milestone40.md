@@ -1,0 +1,224 @@
+# Milestone 40 — Seating Template + Player + Game Rework (Playground)
+
+## Status: 🚧 In Progress
+
+> **Scope note:** M40 ships a **disposable playground UI** at `/playground/m40` that
+> iterates the data model and storyteller flow in isolation from the production
+> `SessionContext` / `GameContext`. Production integration is a deliberate follow-up
+> milestone, not part of M40.
+
+---
+
+## 1. Problem Statement
+
+The current Game + Player + Seating + Character-Assignment flow is clunky between games
+and has lingering bugs. M37 (Seat Lock + Quick Reseat) and M38/M39 follow-ups improved
+the in-game experience but did not address the root cause: **the data model conflates
+three different concepts**.
+
+- `Session.defaultPlayers` is a flat list of `{ seat, playerName }` — a seat slot **is**
+  a player slot. There is no way to express a gap, a parking lot, or a player who is
+  not yet seated.
+- `Game.players: PlayerSeat[]` is a snapshot copy of that list. A "player" in Game 1 and
+  the same-named "player" in Game 2 are independent strings, so propagating a rename or
+  seat change between games requires fragile string-matching heuristics.
+- Character assignment role counts are derived from `players.length`, forcing player
+  count == seat count. Travellers and pre-game planning don't fit.
+
+Live feedback (continuing from the M37 problem statement): setup is still cumbersome
+between back-to-back games, late arrivals require cascading edits, and storytellers
+cannot pre-plan a script + character set for a session before the IRL table is settled.
+
+---
+
+## 2. Approach
+
+Build a **disposable playground UI** at `/playground/m40` with:
+
+- A local `useReducer` and its own playground-only types (no coupling to
+  `SessionContext`, `GameContext`, or `Session.defaultPlayers`).
+- A discoverable button on `HomePage` so the playground is easy to reach for iteration.
+- Reuse of existing visual components (`TownSquareLayout`, `PlayerToken`, MUI) so the
+  feel matches production.
+- No localStorage persistence — the playground is in-memory only and may reset on
+  reload. (User is the sole user; no migration concern.)
+
+Once the data model and flow feel right, a separate follow-up milestone integrates the
+result into production and deletes the legacy code (`Session.defaultPlayers`,
+`ReseatTool`, `ShiftSeatsDialog`).
+
+---
+
+## 3. Decisions (locked)
+
+1. **First-class players** at session level — `players: { id, name }[]`. Seats and games
+   reference `playerId`, never name strings.
+2. **No localStorage / migration concern** during M40 — sole user, fresh start when
+   production integration lands.
+3. **Route:** `/playground/m40` with a discoverable button on `HomePage`.
+4. **Visual fidelity:** reuse existing visual components (`TownSquareLayout`,
+   `PlayerToken`, MUI) so the playground reflects how the real app will feel.
+5. **Spacer sizing:** fixed — one spacer = one seat-worth of arc.
+6. **Propagation default:** sticky session preference (defaults to *template + all
+   games*) with a per-action checkbox that updates the preference.
+7. **Worktree convention:** fresh `m40` worktree from `main` per
+   [AGENTS.md](../../../AGENTS.md); branch `m40/seating-rework-playground`.
+
+---
+
+## 4. Playground Data Model
+
+```ts
+type PlayerId = string;   // uuid
+type SlotId   = string;   // uuid
+type GameId   = string;   // uuid
+
+interface PgPlayer { id: PlayerId; name: string }
+
+type PgSlot =
+  | { kind: "seat";   id: SlotId; playerId: PlayerId | null }
+  | { kind: "spacer"; id: SlotId };
+
+interface PgSeatingTemplate { slots: PgSlot[] }
+
+interface PgGame {
+  id: GameId;
+  name: string;
+  slots: PgSlot[];                            // copied from template at creation
+  participants: { playerId: PlayerId; isTraveller: boolean }[];
+  playerCountOverride: number | null;         // null = derive from participants
+  characterAssignments: Record<PlayerId, string /* charId */>;
+}
+
+interface PgSession {
+  players: PgPlayer[];
+  template: PgSeatingTemplate;
+  games: PgGame[];
+  propagationDefault: { toTemplate: boolean; toOtherGames: boolean };
+}
+```
+
+Key insight: `participants` (who's in the game) is distinct from seated slots
+(`slots[i].playerId`). This is what makes vision points #6, #8, and #9 work cleanly:
+
+- **#6** — Storyteller can assign characters to participants before any seat is filled.
+- **#8** — A traveller participant doesn't need a seat (no 1:1 seat-to-player match
+  required).
+- **#9** — `playerCountOverride` decouples role-count math from seat count, supporting
+  pre-planning for travellers.
+
+---
+
+## 5. Task List
+
+- [x] **Phase 0 — Milestone doc** (this file) before any code.
+- [x] **Phase 1 — Worktree + route scaffold:** `/playground/m40` route added in
+      `App.tsx`; HomePage button links to it.
+- [x] **Phase 2 — Playground reducer + types:** local `useReducer` covering the data
+      model above; unit tests for reducer actions.
+- [x] **Phase 3 — Seating template editor:** `Add Seat` / `Add Spacer` center buttons
+      in a dedicated `TemplateCircle` component (deviates from the original "reuse
+      `TownSquareLayout`" idea — see the component's JSDoc for the rationale: the
+      production `PlayerSeat` shape is too heavy for a stateless playground slot).
+      Drag-to-reorder is deferred to Phase 8 (DnD polish).
+- [x] **Phase 4 — Player roster panel + parking lot** for unseated players (in
+      `PlaygroundM40Page` itself, since it's a tiny sectioned list).
+- [x] **Phase 5 — Game list:** create-game (snapshot template), select-active (now a
+      dedicated "Make active" button so the name itself becomes editable via the new
+      shared `EditableText` helper), rename via `EditableText`, and delete already
+      worked from Phase 2. Players are also renamable now.
+- [x] **Phase 6 — Seat assignment in a game** with the sticky propagation checkbox
+      (template + other games).
+- [x] **Phase 7 — Character assignment with `playerCountOverride`:** Player Count input
+      decoupled from seat count; randomize-character only seated participants.
+- [x] **Phase 8 — DnD polish:** drag a player from roster onto a seat; drag spacers to
+      reposition.
+- [x] **Phase 9 — Apply-to-all-games toggle** for template seat additions made *after*
+      games already exist.
+- [x] **Phase 10 — Integration writeup:** notes for the follow-up milestone that will
+      migrate this into production. See `integration-plan.md` in this folder.
+
+---
+
+## 6. Testing
+
+- **Unit tests** for the playground reducer (Vitest) — every action covered, including
+  the propagation matrix.
+- **Component tests** for the template editor and game seat assignment with stubbed
+  reducer state.
+- **No new Playwright E2E** during M40 — the playground is intentionally throwaway.
+- Production test suites must remain green (`cd UI; npm test` shows the M39 baseline of
+  4260 tests across 84 files).
+
+---
+
+## 7. Acceptance Criteria
+
+- Visiting `/playground/m40` (or clicking the HomePage button) opens the playground
+  with no impact on existing session/game state.
+- Storyteller can build a seating template with seats + spacers, with at least one
+  reorder interaction.
+- Storyteller can add players to the session roster independently of the seating
+  template.
+- Creating a new game inside the playground snapshots the current template and
+  inherits assigned players where present.
+- Storyteller can change a seat assignment from inside a game and have the change
+  propagate to template + other games when the sticky checkbox is on (and stay local
+  when off).
+- Storyteller can assign characters to participants whose seat is `null`.
+- `playerCountOverride` decouples the role-count math from seat count, with the input
+  defaulting to seat count.
+- All M39 production tests still pass.
+- No lint suppressions added.
+
+---
+
+## 8. Out of Scope (deferred)
+
+- Production integration of the playground data model — separate follow-up milestone.
+- localStorage migration of existing sessions/games.
+- Deletion of `defaultPlayers`, `ReseatTool`, `ShiftSeatsDialog`, related actions.
+- Visual polish beyond reusing existing components.
+- Bulk actions ("clear all assignments", "copy seating from game X") — revisit during
+  build if the base flow needs them.
+- Mid-game seat changes inside the playground (the production tools already cover this
+  case; the playground focuses on setup).
+
+
+---
+
+## 9. Phase 11 — Round-1 Feedback
+
+After the initial walkthrough, the user requested four refinements:
+
+1. **Seat numbering excludes spacers.** A template with 9 seats + 2 spacers must
+   number the actual seats 1-9 (not 1-11) so seat numbers match how a storyteller
+   thinks about the table irl. `TemplateCircle` now computes `seatNumber` as the
+   1-based index of `kind === 'seat'` slots only.
+
+2. **Storyteller marker.** A new slot kind `{ kind: 'storyteller'; id }` renders an
+   arrow always pointing to the center of the circle so the storyteller can orient
+   themselves to the real-world table (typically placed at the bottom of the circle).
+   It is a singleton — the "+ Storyteller" button in the template center disables
+   itself when one already exists. Like other slots, it contributes 0 to seat count
+   and the participant count.
+
+3. **Drag-to-reorder slots.** Each slot in the template circle now has a drag handle
+   (`DragIndicator` icon, top-left of the cell). Drop targets are the slot
+   positions themselves so the dropped slot takes the target's place. Reorder works
+   in both the template and inside a game. Custom collision detection filters
+   droppables by active-id prefix so player-drags and slot-reorder-drags do not
+   interfere with each other.
+
+   Reorders inside a game honor the same sticky propagation default as seat
+   assignment (`toTemplate` / `toOtherGames`). The originating game's slot moves
+   to `toIndex`; when propagation is enabled, the template slot at the original
+   index and the corresponding slot in each other game are moved to the same
+   `toIndex` (matched positionally, the same matching strategy
+   `REMOVE_GAME_SLOT` uses).
+
+4. **Delete slot from a game.** `ActiveGamePanel` now allows per-slot removal
+   (×-button on each cell) and dispatches the new `REMOVE_GAME_SLOT` action. The
+   sticky propagation default applies — by default the slot is also removed from the
+   template and other games. The same per-action checkboxes that govern seat
+   assignment govern removals.

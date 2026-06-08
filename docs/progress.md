@@ -46,6 +46,7 @@
 | M37       | Pre-Game Setup Flow Rework — Option B seat lock, quick reseat, shift/insert seats, reuse last seating                              | ✅ Complete                           | [details](milestones/37%20-%20setup%20flow%20rework/milestone37.md)                                   |
 | M38       | Live Game Polish — Whose Cult Is It Anyway? follow-ups: Stormcatcher / Stormcaught, unified `PlayerSeat.tokens`, madness icons, deterministic show-player, once-per-game prompt, Lord of Typhon Outsider stepper | ✅ Complete                           | [details](milestones/38%20-%20live%20game%20polish/milestone38.md)                                    |
 | M39       | Test Suite Hygiene — restored all 6 suites (4 broken storybook tests fixed, a11y noise quieted, GameLoader feedback loop fixed), broadened pre-push hook, added root npm scripts, Test Suites Catalog in `docs/testing.md` + `AGENTS.md` | ✅ Complete                           | [details](milestones/39%20-%20test%20suite%20hygiene/milestone39.md)                                  |
+| M40       | Seating Template + Player + Game Rework (Playground) — disposable `/playground/m40` UI iterating a first-class player + seating-template data model with spacers, propagation toggle, participant vs seat split, traveller-aware role counts | 🚧 In Progress                        | [details](milestones/40%20-%20seating%20template%20rework/milestone40.md)                             |
 
 ## Key Design Decisions
 
