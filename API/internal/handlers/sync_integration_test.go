@@ -201,7 +201,9 @@ func TestIntegrationMultiClientGame(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	})
 
@@ -280,7 +282,9 @@ func TestIntegrationEndToEndScenario(t *testing.T) {
 			CurrentDay:   1,
 			CurrentPhase: models.Night,
 			IsFirstNight: true,
-			Players:      []models.PlayerSeat{},
+			Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 			NightHistory: []models.NightHistoryEntry{},
 		})
 

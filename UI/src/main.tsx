@@ -6,7 +6,10 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from '@/theme';
 import { SessionProvider } from '@/context/SessionContext.tsx';
 import { GameProvider } from '@/context/GameContext.tsx';
+import { applyM41StorageMigration } from '@/utils/storageMigration.ts';
 import { App } from './App.tsx';
+
+applyM41StorageMigration();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

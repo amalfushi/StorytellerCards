@@ -42,7 +42,7 @@ func setupRoundtripRouter(t *testing.T) *chi.Mux {
 }
 
 // ──────────────────────────────────────────────
-// Test 1: Session roundtrip — every field populated
+// Session roundtrip — every field populated (new M41 shape)
 // ──────────────────────────────────────────────
 
 func TestSessionRoundtrip(t *testing.T) {
@@ -53,16 +53,25 @@ func TestSessionRoundtrip(t *testing.T) {
 		Name:            "Friday Night BotC",
 		CreatedAt:       "2025-06-15T19:30:00Z",
 		DefaultScriptID: "trouble-brewing",
-		DefaultPlayers: []models.PlayerTemplate{
-			{Seat: 1, PlayerName: "Alice"},
-			{Seat: 2, PlayerName: "Bob"},
-			{Seat: 3, PlayerName: "Charlie"},
+		Players: []models.Player{
+			{ID: "p-alice", Name: "Alice"},
+			{ID: "p-bob", Name: "Bob"},
+			{ID: "p-charlie", Name: "Charlie"},
 		},
-		GameIDs: []string{"game-1", "game-2", "game-3"},
-		Version: 5,
+		Template: models.SeatingTemplate{
+			Slots: []models.Slot{
+				{Kind: models.SlotSeat, ID: "s-1", PlayerID: "p-alice"},
+				{Kind: models.SlotSpacer, ID: "s-2"},
+				{Kind: models.SlotSeat, ID: "s-3", PlayerID: "p-bob"},
+				{Kind: models.SlotStoryteller, ID: "s-4"},
+				{Kind: models.SlotSeat, ID: "s-5", PlayerID: "p-charlie"},
+			},
+		},
+		PropagationDefault: models.PropagationPreference{ToTemplate: true, ToOtherGames: false},
+		GameIDs:            []string{"game-1", "game-2", "game-3"},
+		Version:            5,
 	}
 
-	// PUT creates via upsert; version becomes sent.Version+1 = 6
 	body, _ := json.Marshal(sent)
 	req := httptest.NewRequest("PUT", "/api/sessions/roundtrip-sess", bytes.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
@@ -73,7 +82,6 @@ func TestSessionRoundtrip(t *testing.T) {
 		t.Fatalf("PUT status = %d; body = %s", w.Code, w.Body.String())
 	}
 
-	// GET it back
 	req = httptest.NewRequest("GET", "/api/sessions/roundtrip-sess", nil)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -87,38 +95,49 @@ func TestSessionRoundtrip(t *testing.T) {
 		t.Fatalf("decode: %v", err)
 	}
 
-	// ── Field-by-field assertions ──
 	assertEq(t, "session.id", got.ID, "roundtrip-sess")
 	assertEq(t, "session.name", got.Name, "Friday Night BotC")
 	assertEq(t, "session.createdAt", got.CreatedAt, "2025-06-15T19:30:00Z")
 	assertEq(t, "session.defaultScriptId", got.DefaultScriptID, "trouble-brewing")
-	assertEq(t, "session.version", got.Version, 6) // 5 + 1
+	assertEq(t, "session.version", got.Version, 6)
 
 	if got.UpdatedAt == "" {
 		t.Error("session.updatedAt should be set by server")
 	}
 
-	// defaultPlayers
-	if len(got.DefaultPlayers) != 3 {
-		t.Fatalf("session.defaultPlayers length = %d, want 3", len(got.DefaultPlayers))
+	if len(got.Players) != 3 {
+		t.Fatalf("session.players length = %d, want 3", len(got.Players))
 	}
-	for i, want := range sent.DefaultPlayers {
-		p := fmt.Sprintf("session.defaultPlayers[%d]", i)
-		assertEq(t, p+".seat", got.DefaultPlayers[i].Seat, want.Seat)
-		assertEq(t, p+".playerName", got.DefaultPlayers[i].PlayerName, want.PlayerName)
+	for i, want := range sent.Players {
+		p := fmt.Sprintf("session.players[%d]", i)
+		assertEq(t, p+".id", got.Players[i].ID, want.ID)
+		assertEq(t, p+".name", got.Players[i].Name, want.Name)
 	}
 
-	// gameIds
+	if len(got.Template.Slots) != 5 {
+		t.Fatalf("session.template.slots length = %d, want 5", len(got.Template.Slots))
+	}
+	for i, want := range sent.Template.Slots {
+		p := fmt.Sprintf("session.template.slots[%d]", i)
+		assertEq(t, p+".kind", string(got.Template.Slots[i].Kind), string(want.Kind))
+		assertEq(t, p+".id", got.Template.Slots[i].ID, want.ID)
+		assertEq(t, p+".playerId", got.Template.Slots[i].PlayerID, want.PlayerID)
+	}
+
+	assertEq(t, "session.propagationDefault.toTemplate", got.PropagationDefault.ToTemplate, true)
+	assertEq(t, "session.propagationDefault.toOtherGames", got.PropagationDefault.ToOtherGames, false)
+
 	assertStrSlice(t, "session.gameIds", got.GameIDs, sent.GameIDs)
 }
 
 // ──────────────────────────────────────────────
-// Test 2: Game roundtrip — ALL fields populated
+// Game roundtrip — ALL fields populated (new M41 shape)
 // ──────────────────────────────────────────────
 
-func TestGameRoundtripFullPlayerSeat(t *testing.T) {
+func TestGameRoundtripFull(t *testing.T) {
 	r := setupRoundtripRouter(t)
 
+	override := 8
 	sent := models.Game{
 		ID:           "roundtrip-game",
 		SessionID:    "sess-rt",
@@ -126,10 +145,17 @@ func TestGameRoundtripFullPlayerSeat(t *testing.T) {
 		CurrentDay:   3,
 		CurrentPhase: models.Night,
 		IsFirstNight: false,
-		Players: []models.PlayerSeat{
-			{
-				Seat:              1,
-				PlayerName:        "Alice",
+		Slots: []models.Slot{
+			{Kind: models.SlotSeat, ID: "g-s1", PlayerID: "p-alice"},
+			{Kind: models.SlotSeat, ID: "g-s2", PlayerID: "p-bob"},
+			{Kind: models.SlotSpacer, ID: "g-s3"},
+		},
+		Participants: []models.Participant{
+			{PlayerID: "p-alice", IsTraveller: false},
+			{PlayerID: "p-bob", IsTraveller: true},
+		},
+		PlayerState: map[string]models.PlayerGameState{
+			"p-alice": {
 				CharacterID:       "washerwoman",
 				Alive:             true,
 				GhostVoteUsed:     false,
@@ -137,26 +163,13 @@ func TestGameRoundtripFullPlayerSeat(t *testing.T) {
 				ActualAlignment:   models.Good,
 				StartingAlignment: models.Good,
 				ActiveReminders:   []string{"reminder-1", "reminder-2"},
-				IsTraveller:       false,
 				Tokens: []models.PlayerToken{
-					{
-						ID:                "token-1",
-						Type:              "drunk",
-						Label:             "Drunk",
-						SourceCharacterID: "imp",
-						Color:             "#d32f2f",
-					},
-					{
-						ID:    "token-2",
-						Type:  "poisoned",
-						Label: "Poisoned",
-					},
+					{ID: "token-1", Type: "drunk", Label: "Drunk", SourceCharacterID: "imp", Color: "#d32f2f"},
+					{ID: "token-2", Type: "poisoned", Label: "Poisoned"},
 				},
 				ApparentCharacterID: "drunk",
 			},
-			{
-				Seat:              2,
-				PlayerName:        "Bob",
+			"p-bob": {
 				CharacterID:       "imp",
 				Alive:             false,
 				GhostVoteUsed:     true,
@@ -164,10 +177,10 @@ func TestGameRoundtripFullPlayerSeat(t *testing.T) {
 				ActualAlignment:   models.Evil,
 				StartingAlignment: models.Evil,
 				ActiveReminders:   []string{},
-				IsTraveller:       true,
 				Tokens:            []models.PlayerToken{},
 			},
 		},
+		PlayerCountOverride: &override,
 		NightHistory: []models.NightHistoryEntry{
 			{
 				DayNumber:    1,
@@ -178,33 +191,18 @@ func TestGameRoundtripFullPlayerSeat(t *testing.T) {
 					"imp":         {true, true},
 				},
 				Notes: map[string]string{
-					"washerwoman": "Pointed at seat 3",
-					"imp":         "Killed seat 5",
+					"washerwoman": "Pointed at p-charlie",
+					"imp":         "Killed p-bob",
 				},
 				Selections: map[string]any{
-					"washerwoman": "seat-3",
-					"imp":         []any{"seat-5", "seat-6"},
+					"washerwoman": "p-charlie",
+					"imp":         []any{"p-bob", "p-alice"},
 				},
 				TokenSnapshot: map[string][]models.PlayerToken{
 					"washerwoman": {
 						{ID: "snap-1", Type: "drunk", Label: "Drunk", SourceCharacterID: "imp", Color: "#d32f2f"},
 					},
 				},
-			},
-			{
-				DayNumber:    2,
-				IsFirstNight: false,
-				CompletedAt:  "2025-06-15T21:00:00Z",
-				SubActionStates: map[string][]bool{
-					"imp": {true},
-				},
-				Notes: map[string]string{
-					"imp": "Killed seat 1",
-				},
-				Selections: map[string]any{
-					"imp": "seat-1",
-				},
-				TokenSnapshot: map[string][]models.PlayerToken{},
 			},
 		},
 		ActiveFabled:       []string{"stormcatcher", "spiritofivory"},
@@ -213,8 +211,8 @@ func TestGameRoundtripFullPlayerSeat(t *testing.T) {
 		DemonBluffs:        []string{"monk", "chef", "empath"},
 		LunaticBluffs:      []string{"fortuneteller", "undertaker", "ravenkeeper"},
 		PlayerBluffs: map[string][]string{
-			"1": {"monk", "chef", "empath"},
-			"5": {"fortuneteller", "undertaker"},
+			"p-alice": {"monk", "chef", "empath"},
+			"p-bob":   {"fortuneteller", "undertaker"},
 		},
 		CustomPlayerMessages: map[string]string{
 			"imp":   "You are the Imp. Kill wisely.",
@@ -233,7 +231,6 @@ func TestGameRoundtripFullPlayerSeat(t *testing.T) {
 		t.Fatalf("POST status = %d, want %d; body = %s", w.Code, http.StatusCreated, w.Body.String())
 	}
 
-	// GET it back
 	req = httptest.NewRequest("GET", "/api/sessions/sess-rt/games/roundtrip-game", nil)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -247,173 +244,82 @@ func TestGameRoundtripFullPlayerSeat(t *testing.T) {
 		t.Fatalf("decode: %v", err)
 	}
 
-	// ── Basic fields ──
 	assertEq(t, "game.id", got.ID, "roundtrip-game")
 	assertEq(t, "game.sessionId", got.SessionID, "sess-rt")
 	assertEq(t, "game.scriptId", got.ScriptID, "boozling")
 	assertEq(t, "game.currentDay", got.CurrentDay, 3)
 	assertEq(t, "game.currentPhase", string(got.CurrentPhase), "Night")
 	assertEq(t, "game.isFirstNight", got.IsFirstNight, false)
-	assertEq(t, "game.version", got.Version, 1) // Create sets version=1
+	assertEq(t, "game.version", got.Version, 1)
 	if got.UpdatedAt == "" {
 		t.Error("game.updatedAt should be set by server")
 	}
 
-	// ── Players ──
-	if len(got.Players) != 2 {
-		t.Fatalf("game.players length = %d, want 2", len(got.Players))
+	// Slots
+	if len(got.Slots) != 3 {
+		t.Fatalf("game.slots length = %d, want 3", len(got.Slots))
 	}
+	assertEq(t, "slots[0].kind", string(got.Slots[0].Kind), "seat")
+	assertEq(t, "slots[0].playerId", got.Slots[0].PlayerID, "p-alice")
+	assertEq(t, "slots[2].kind", string(got.Slots[2].Kind), "spacer")
+	assertEq(t, "slots[2].playerId", got.Slots[2].PlayerID, "")
 
-	// Player 0 — full fields
-	p0 := got.Players[0]
-	assertEq(t, "players[0].seat", p0.Seat, 1)
-	assertEq(t, "players[0].playerName", p0.PlayerName, "Alice")
-	assertEq(t, "players[0].characterId", p0.CharacterID, "washerwoman")
-	assertEq(t, "players[0].alive", p0.Alive, true)
-	assertEq(t, "players[0].ghostVoteUsed", p0.GhostVoteUsed, false)
-	assertEq(t, "players[0].visibleAlignment", string(p0.VisibleAlignment), "Good")
-	assertEq(t, "players[0].actualAlignment", string(p0.ActualAlignment), "Good")
-	assertEq(t, "players[0].startingAlignment", string(p0.StartingAlignment), "Good")
-	assertStrSlice(t, "players[0].activeReminders", p0.ActiveReminders, []string{"reminder-1", "reminder-2"})
-	assertEq(t, "players[0].isTraveller", p0.IsTraveller, false)
-	assertEq(t, "players[0].apparentCharacterId", p0.ApparentCharacterID, "drunk")
-
-	// Player 0 tokens
-	if len(p0.Tokens) != 2 {
-		t.Fatalf("players[0].tokens length = %d, want 2", len(p0.Tokens))
+	// Participants
+	if len(got.Participants) != 2 {
+		t.Fatalf("game.participants length = %d, want 2", len(got.Participants))
 	}
-	assertEq(t, "players[0].tokens[0].id", p0.Tokens[0].ID, "token-1")
-	assertEq(t, "players[0].tokens[0].type", p0.Tokens[0].Type, "drunk")
-	assertEq(t, "players[0].tokens[0].label", p0.Tokens[0].Label, "Drunk")
-	assertEq(t, "players[0].tokens[0].sourceCharacterId", p0.Tokens[0].SourceCharacterID, "imp")
-	assertEq(t, "players[0].tokens[0].color", p0.Tokens[0].Color, "#d32f2f")
-	assertEq(t, "players[0].tokens[1].id", p0.Tokens[1].ID, "token-2")
-	assertEq(t, "players[0].tokens[1].type", p0.Tokens[1].Type, "poisoned")
-	assertEq(t, "players[0].tokens[1].label", p0.Tokens[1].Label, "Poisoned")
-	assertEq(t, "players[0].tokens[1].sourceCharacterId", p0.Tokens[1].SourceCharacterID, "")
-	assertEq(t, "players[0].tokens[1].color", p0.Tokens[1].Color, "")
+	assertEq(t, "participants[0].playerId", got.Participants[0].PlayerID, "p-alice")
+	assertEq(t, "participants[0].isTraveller", got.Participants[0].IsTraveller, false)
+	assertEq(t, "participants[1].playerId", got.Participants[1].PlayerID, "p-bob")
+	assertEq(t, "participants[1].isTraveller", got.Participants[1].IsTraveller, true)
 
-	// Player 1 — dead, ghost vote used, traveller, evil
-	p1 := got.Players[1]
-	assertEq(t, "players[1].seat", p1.Seat, 2)
-	assertEq(t, "players[1].playerName", p1.PlayerName, "Bob")
-	assertEq(t, "players[1].characterId", p1.CharacterID, "imp")
-	assertEq(t, "players[1].alive", p1.Alive, false)
-	assertEq(t, "players[1].ghostVoteUsed", p1.GhostVoteUsed, true)
-	assertEq(t, "players[1].visibleAlignment", string(p1.VisibleAlignment), "Evil")
-	assertEq(t, "players[1].actualAlignment", string(p1.ActualAlignment), "Evil")
-	assertEq(t, "players[1].startingAlignment", string(p1.StartingAlignment), "Evil")
-	assertEq(t, "players[1].isTraveller", p1.IsTraveller, true)
-	assertEq(t, "players[1].apparentCharacterId", p1.ApparentCharacterID, "")
-
-	// ── Night History ──
-	if len(got.NightHistory) != 2 {
-		t.Fatalf("game.nightHistory length = %d, want 2", len(got.NightHistory))
+	// PlayerState
+	if len(got.PlayerState) != 2 {
+		t.Fatalf("game.playerState length = %d, want 2", len(got.PlayerState))
 	}
+	psA := got.PlayerState["p-alice"]
+	assertEq(t, "playerState[p-alice].characterId", psA.CharacterID, "washerwoman")
+	assertEq(t, "playerState[p-alice].alive", psA.Alive, true)
+	assertEq(t, "playerState[p-alice].ghostVoteUsed", psA.GhostVoteUsed, false)
+	assertEq(t, "playerState[p-alice].visibleAlignment", string(psA.VisibleAlignment), "Good")
+	assertStrSlice(t, "playerState[p-alice].activeReminders", psA.ActiveReminders, []string{"reminder-1", "reminder-2"})
+	assertEq(t, "playerState[p-alice].apparentCharacterId", psA.ApparentCharacterID, "drunk")
+	if len(psA.Tokens) != 2 {
+		t.Fatalf("playerState[p-alice].tokens length = %d, want 2", len(psA.Tokens))
+	}
+	assertEq(t, "playerState[p-alice].tokens[0].id", psA.Tokens[0].ID, "token-1")
+	assertEq(t, "playerState[p-alice].tokens[0].sourceCharacterId", psA.Tokens[0].SourceCharacterID, "imp")
 
-	// Night history entry 0 — first night, full data
+	psB := got.PlayerState["p-bob"]
+	assertEq(t, "playerState[p-bob].alive", psB.Alive, false)
+	assertEq(t, "playerState[p-bob].ghostVoteUsed", psB.GhostVoteUsed, true)
+
+	// PlayerCountOverride
+	if got.PlayerCountOverride == nil {
+		t.Fatal("game.playerCountOverride should not be nil")
+	}
+	assertEq(t, "game.playerCountOverride", *got.PlayerCountOverride, 8)
+
+	// Night History
+	if len(got.NightHistory) != 1 {
+		t.Fatalf("game.nightHistory length = %d, want 1", len(got.NightHistory))
+	}
 	nh0 := got.NightHistory[0]
 	assertEq(t, "nightHistory[0].dayNumber", nh0.DayNumber, 1)
 	assertEq(t, "nightHistory[0].isFirstNight", nh0.IsFirstNight, true)
-	assertEq(t, "nightHistory[0].completedAt", nh0.CompletedAt, "2025-06-15T20:00:00Z")
-
-	// subActionStates
-	if len(nh0.SubActionStates) != 2 {
-		t.Fatalf("nightHistory[0].subActionStates map length = %d, want 2", len(nh0.SubActionStates))
-	}
 	assertBoolSlice(t, "nightHistory[0].subActionStates['washerwoman']",
 		nh0.SubActionStates["washerwoman"], []bool{true, false, true})
-	assertBoolSlice(t, "nightHistory[0].subActionStates['imp']",
-		nh0.SubActionStates["imp"], []bool{true, true})
+	assertEq(t, "nightHistory[0].notes['imp']", nh0.Notes["imp"], "Killed p-bob")
 
-	// notes
-	assertEq(t, "nightHistory[0].notes['washerwoman']", nh0.Notes["washerwoman"], "Pointed at seat 3")
-	assertEq(t, "nightHistory[0].notes['imp']", nh0.Notes["imp"], "Killed seat 5")
-
-	// selections — string value
-	if nh0.Selections == nil {
-		t.Fatal("nightHistory[0].selections should not be nil")
-	}
-	washSel, ok := nh0.Selections["washerwoman"]
-	if !ok {
-		t.Fatal("nightHistory[0].selections['washerwoman'] missing")
-	}
-	assertEq(t, "nightHistory[0].selections['washerwoman']", fmt.Sprint(washSel), "seat-3")
-
-	// selections — array value
-	impSel, ok := nh0.Selections["imp"]
-	if !ok {
-		t.Fatal("nightHistory[0].selections['imp'] missing")
-	}
-	impSelArr, ok := impSel.([]any)
-	if !ok {
-		t.Fatalf("nightHistory[0].selections['imp'] type = %T, want []any", impSel)
-	}
-	if len(impSelArr) != 2 {
-		t.Fatalf("nightHistory[0].selections['imp'] length = %d, want 2", len(impSelArr))
-	}
-	assertEq(t, "nightHistory[0].selections['imp'][0]", fmt.Sprint(impSelArr[0]), "seat-5")
-	assertEq(t, "nightHistory[0].selections['imp'][1]", fmt.Sprint(impSelArr[1]), "seat-6")
-
-	// tokenSnapshot
-	if nh0.TokenSnapshot == nil {
-		t.Fatal("nightHistory[0].tokenSnapshot should not be nil")
-	}
-	washSnap, ok := nh0.TokenSnapshot["washerwoman"]
-	if !ok {
-		t.Fatal("nightHistory[0].tokenSnapshot['washerwoman'] missing")
-	}
-	if len(washSnap) != 1 {
-		t.Fatalf("nightHistory[0].tokenSnapshot['washerwoman'] length = %d, want 1", len(washSnap))
-	}
-	assertEq(t, "tokenSnapshot['washerwoman'][0].id", washSnap[0].ID, "snap-1")
-	assertEq(t, "tokenSnapshot['washerwoman'][0].type", washSnap[0].Type, "drunk")
-	assertEq(t, "tokenSnapshot['washerwoman'][0].label", washSnap[0].Label, "Drunk")
-	assertEq(t, "tokenSnapshot['washerwoman'][0].sourceCharacterId", washSnap[0].SourceCharacterID, "imp")
-	assertEq(t, "tokenSnapshot['washerwoman'][0].color", washSnap[0].Color, "#d32f2f")
-
-	// Night history entry 1 — other night, string selection
-	nh1 := got.NightHistory[1]
-	assertEq(t, "nightHistory[1].dayNumber", nh1.DayNumber, 2)
-	assertEq(t, "nightHistory[1].isFirstNight", nh1.IsFirstNight, false)
-	assertEq(t, "nightHistory[1].completedAt", nh1.CompletedAt, "2025-06-15T21:00:00Z")
-	assertBoolSlice(t, "nightHistory[1].subActionStates['imp']",
-		nh1.SubActionStates["imp"], []bool{true})
-	assertEq(t, "nightHistory[1].notes['imp']", nh1.Notes["imp"], "Killed seat 1")
-	nh1ImpSel, ok := nh1.Selections["imp"]
-	if !ok {
-		t.Fatal("nightHistory[1].selections['imp'] missing")
-	}
-	assertEq(t, "nightHistory[1].selections['imp']", fmt.Sprint(nh1ImpSel), "seat-1")
-
-	// ── Game-level optional arrays ──
+	// Game-level optional arrays
 	assertStrSlice(t, "game.activeFabled", got.ActiveFabled, []string{"stormcatcher", "spiritofivory"})
-	assertStrSlice(t, "game.activeLoric", got.ActiveLoric, []string{"archmage"})
-	assertStrSlice(t, "game.inPlayCharacterIds", got.InPlayCharacterIds,
-		[]string{"washerwoman", "imp", "baron", "drunk"})
 	assertStrSlice(t, "game.demonBluffs", got.DemonBluffs, []string{"monk", "chef", "empath"})
-	assertStrSlice(t, "game.lunaticBluffs", got.LunaticBluffs,
-		[]string{"fortuneteller", "undertaker", "ravenkeeper"})
-
-	// playerBluffs
-	if got.PlayerBluffs == nil {
-		t.Fatal("game.playerBluffs should not be nil")
-	}
-	assertStrSlice(t, "game.playerBluffs['1']", got.PlayerBluffs["1"], []string{"monk", "chef", "empath"})
-	assertStrSlice(t, "game.playerBluffs['5']", got.PlayerBluffs["5"], []string{"fortuneteller", "undertaker"})
-
-	// customPlayerMessages
-	if got.CustomPlayerMessages == nil {
-		t.Fatal("game.customPlayerMessages should not be nil")
-	}
-	assertEq(t, "game.customPlayerMessages['imp']",
-		got.CustomPlayerMessages["imp"], "You are the Imp. Kill wisely.")
-	assertEq(t, "game.customPlayerMessages['drunk']",
-		got.CustomPlayerMessages["drunk"], "You think you are the Empath.")
+	assertStrSlice(t, "game.playerBluffs['p-alice']", got.PlayerBluffs["p-alice"], []string{"monk", "chef", "empath"})
+	assertEq(t, "game.customPlayerMessages['imp']", got.CustomPlayerMessages["imp"], "You are the Imp. Kill wisely.")
 }
 
 // ──────────────────────────────────────────────
-// Test 3: Game roundtrip — empty optional fields
+// Game roundtrip — empty optional fields
 // ──────────────────────────────────────────────
 
 func TestGameRoundtripEmptyOptionals(t *testing.T) {
@@ -425,10 +331,14 @@ func TestGameRoundtripEmptyOptionals(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Day,
 		IsFirstNight: true,
-		Players: []models.PlayerSeat{
-			{
-				Seat:              1,
-				PlayerName:        "Alice",
+		Slots: []models.Slot{
+			{Kind: models.SlotSeat, ID: "es-1", PlayerID: "p-alice"},
+		},
+		Participants: []models.Participant{
+			{PlayerID: "p-alice", IsTraveller: false},
+		},
+		PlayerState: map[string]models.PlayerGameState{
+			"p-alice": {
 				CharacterID:       "washerwoman",
 				Alive:             true,
 				VisibleAlignment:  models.Good,
@@ -449,7 +359,6 @@ func TestGameRoundtripEmptyOptionals(t *testing.T) {
 		t.Fatalf("POST status = %d, want %d; body = %s", w.Code, http.StatusCreated, w.Body.String())
 	}
 
-	// GET it back
 	req = httptest.NewRequest("GET", "/api/sessions/sess-empty/games/empty-opts-game", nil)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -463,55 +372,36 @@ func TestGameRoundtripEmptyOptionals(t *testing.T) {
 		t.Fatalf("decode: %v", err)
 	}
 
-	// Required fields survive
 	assertEq(t, "game.id", got.ID, "empty-opts-game")
 	assertEq(t, "game.scriptId", got.ScriptID, "trouble-brewing")
-	assertEq(t, "game.currentDay", got.CurrentDay, 1)
-	assertEq(t, "game.currentPhase", string(got.CurrentPhase), "Day")
-	assertEq(t, "game.isFirstNight", got.IsFirstNight, true)
 
-	// Optional slice fields should be nil (omitted from JSON)
 	if got.ActiveFabled != nil {
 		t.Errorf("game.activeFabled = %v, want nil", got.ActiveFabled)
-	}
-	if got.ActiveLoric != nil {
-		t.Errorf("game.activeLoric = %v, want nil", got.ActiveLoric)
-	}
-	if got.InPlayCharacterIds != nil {
-		t.Errorf("game.inPlayCharacterIds = %v, want nil", got.InPlayCharacterIds)
-	}
-	if got.DemonBluffs != nil {
-		t.Errorf("game.demonBluffs = %v, want nil", got.DemonBluffs)
-	}
-	if got.LunaticBluffs != nil {
-		t.Errorf("game.lunaticBluffs = %v, want nil", got.LunaticBluffs)
 	}
 	if got.PlayerBluffs != nil {
 		t.Errorf("game.playerBluffs = %v, want nil", got.PlayerBluffs)
 	}
-	if got.CustomPlayerMessages != nil {
-		t.Errorf("game.customPlayerMessages = %v, want nil", got.CustomPlayerMessages)
+	if got.PlayerCountOverride != nil {
+		t.Errorf("game.playerCountOverride = %v, want nil", got.PlayerCountOverride)
 	}
 
-	// Player optional fields should also be absent
-	p := got.Players[0]
-	if p.Tokens != nil {
-		t.Errorf("players[0].tokens = %v, want nil", p.Tokens)
+	psA := got.PlayerState["p-alice"]
+	if psA.Tokens != nil {
+		t.Errorf("playerState[p-alice].tokens = %v, want nil", psA.Tokens)
 	}
-	if p.ApparentCharacterID != "" {
-		t.Errorf("players[0].apparentCharacterId = %q, want empty", p.ApparentCharacterID)
+	if psA.ApparentCharacterID != "" {
+		t.Errorf("playerState[p-alice].apparentCharacterId = %q, want empty", psA.ApparentCharacterID)
 	}
 }
 
 // ──────────────────────────────────────────────
-// Test 4: Raw JSON key verification — ensures JSON
-// tag names match what the TS client expects
+// Raw JSON key verification — ensures JSON tag
+// names match what the TS client expects
 // ──────────────────────────────────────────────
 
 func TestGameRoundtripJSONKeys(t *testing.T) {
 	r := setupRoundtripRouter(t)
 
-	// Send a game with all fields via POST
 	rawJSON := `{
 		"id": "json-keys-game",
 		"sessionId": "sess-keys",
@@ -519,27 +409,34 @@ func TestGameRoundtripJSONKeys(t *testing.T) {
 		"currentDay": 2,
 		"currentPhase": "Night",
 		"isFirstNight": false,
-		"players": [{
-			"seat": 1,
-			"playerName": "Alice",
-			"characterId": "washerwoman",
-			"alive": true,
-			"ghostVoteUsed": false,
-			"visibleAlignment": "Good",
-			"actualAlignment": "Good",
-			"startingAlignment": "Good",
-			"activeReminders": ["r1"],
-			"isTraveller": false,
-			"tokens": [{"id":"t1","type":"drunk","label":"Drunk","sourceCharacterId":"imp","color":"#f00"}],
-			"apparentCharacterId": "drunk"
-		}],
+		"slots": [
+			{"kind": "seat", "id": "k-s1", "playerId": "p-alice"},
+			{"kind": "spacer", "id": "k-s2"}
+		],
+		"participants": [
+			{"playerId": "p-alice", "isTraveller": false}
+		],
+		"playerState": {
+			"p-alice": {
+				"characterId": "washerwoman",
+				"alive": true,
+				"ghostVoteUsed": false,
+				"visibleAlignment": "Good",
+				"actualAlignment": "Good",
+				"startingAlignment": "Good",
+				"activeReminders": ["r1"],
+				"tokens": [{"id":"t1","type":"drunk","label":"Drunk","sourceCharacterId":"imp","color":"#f00"}],
+				"apparentCharacterId": "drunk"
+			}
+		},
+		"playerCountOverride": 7,
 		"nightHistory": [{
 			"dayNumber": 1,
 			"isFirstNight": true,
 			"completedAt": "2025-01-01T00:00:00Z",
 			"subActionStates": {"washerwoman": [true]},
 			"notes": {"washerwoman": "test"},
-			"selections": {"washerwoman": "seat-1", "imp": ["a","b"]},
+			"selections": {"washerwoman": "p-alice"},
 			"tokenSnapshot": {"washerwoman": [{"id":"s1","type":"drunk","label":"D","sourceCharacterId":"imp","color":"#f00"}]}
 		}],
 		"activeFabled": ["stormcatcher"],
@@ -547,7 +444,7 @@ func TestGameRoundtripJSONKeys(t *testing.T) {
 		"inPlayCharacterIds": ["washerwoman"],
 		"demonBluffs": ["monk"],
 		"lunaticBluffs": ["chef"],
-		"playerBluffs": {"1": ["monk"]},
+		"playerBluffs": {"p-alice": ["monk"]},
 		"customPlayerMessages": {"imp": "hello"},
 		"version": 0
 	}`
@@ -562,7 +459,6 @@ func TestGameRoundtripJSONKeys(t *testing.T) {
 		t.Fatalf("POST status = %d; body = %s", w.Code, w.Body.String())
 	}
 
-	// GET and decode into raw map to check key names
 	req = httptest.NewRequest("GET", "/api/sessions/sess-keys/games/json-keys-game", nil)
 	w = httptest.NewRecorder()
 	r.ServeHTTP(w, req)
@@ -572,10 +468,10 @@ func TestGameRoundtripJSONKeys(t *testing.T) {
 		t.Fatalf("decode raw: %v", err)
 	}
 
-	// Top-level game keys the TS client expects
 	gameKeys := []string{
 		"id", "sessionId", "scriptId", "currentDay", "currentPhase",
-		"isFirstNight", "players", "nightHistory",
+		"isFirstNight", "slots", "participants", "playerState",
+		"playerCountOverride", "nightHistory",
 		"activeFabled", "activeLoric", "inPlayCharacterIds",
 		"demonBluffs", "lunaticBluffs", "playerBluffs",
 		"customPlayerMessages", "version", "updatedAt",
@@ -586,77 +482,53 @@ func TestGameRoundtripJSONKeys(t *testing.T) {
 		}
 	}
 
-	// Player keys
-	players, ok := raw["players"].([]any)
-	if !ok || len(players) == 0 {
-		t.Fatal("players not found or empty")
+	// Slot keys
+	slots, ok := raw["slots"].([]any)
+	if !ok || len(slots) == 0 {
+		t.Fatal("slots not found or empty")
 	}
-	player, ok := players[0].(map[string]any)
+	slot0, ok := slots[0].(map[string]any)
 	if !ok {
-		t.Fatal("players[0] not a JSON object")
+		t.Fatal("slots[0] not a JSON object")
 	}
-	playerKeys := []string{
-		"seat", "playerName", "characterId", "alive", "ghostVoteUsed",
+	for _, k := range []string{"kind", "id", "playerId"} {
+		if _, ok := slot0[k]; !ok {
+			t.Errorf("response JSON slots[0] missing key %q", k)
+		}
+	}
+
+	// Participant keys
+	parts, ok := raw["participants"].([]any)
+	if !ok || len(parts) == 0 {
+		t.Fatal("participants not found or empty")
+	}
+	part0, ok := parts[0].(map[string]any)
+	if !ok {
+		t.Fatal("participants[0] not a JSON object")
+	}
+	for _, k := range []string{"playerId", "isTraveller"} {
+		if _, ok := part0[k]; !ok {
+			t.Errorf("response JSON participants[0] missing key %q", k)
+		}
+	}
+
+	// PlayerState keys
+	psMap, ok := raw["playerState"].(map[string]any)
+	if !ok {
+		t.Fatal("playerState not a JSON object")
+	}
+	psAlice, ok := psMap["p-alice"].(map[string]any)
+	if !ok {
+		t.Fatal("playerState['p-alice'] not a JSON object")
+	}
+	psKeys := []string{
+		"characterId", "alive", "ghostVoteUsed",
 		"visibleAlignment", "actualAlignment", "startingAlignment",
-		"activeReminders", "isTraveller", "tokens", "apparentCharacterId",
+		"activeReminders", "tokens", "apparentCharacterId",
 	}
-	for _, k := range playerKeys {
-		if _, ok := player[k]; !ok {
-			t.Errorf("response JSON players[0] missing key %q", k)
-		}
-	}
-
-	// Token keys
-	tokens, ok := player["tokens"].([]any)
-	if !ok || len(tokens) == 0 {
-		t.Fatal("tokens not found or empty")
-	}
-	token, ok := tokens[0].(map[string]any)
-	if !ok {
-		t.Fatal("tokens[0] not a JSON object")
-	}
-	tokenKeys := []string{"id", "type", "label", "sourceCharacterId", "color"}
-	for _, k := range tokenKeys {
-		if _, ok := token[k]; !ok {
-			t.Errorf("response JSON tokens[0] missing key %q", k)
-		}
-	}
-
-	// Night history keys
-	nightHist, ok := raw["nightHistory"].([]any)
-	if !ok || len(nightHist) == 0 {
-		t.Fatal("nightHistory not found or empty")
-	}
-	nh, ok := nightHist[0].(map[string]any)
-	if !ok {
-		t.Fatal("nightHistory[0] not a JSON object")
-	}
-	nhKeys := []string{
-		"dayNumber", "isFirstNight", "completedAt",
-		"subActionStates", "notes", "selections", "tokenSnapshot",
-	}
-	for _, k := range nhKeys {
-		if _, ok := nh[k]; !ok {
-			t.Errorf("response JSON nightHistory[0] missing key %q", k)
-		}
-	}
-
-	// Token snapshot nested token keys
-	snap, ok := nh["tokenSnapshot"].(map[string]any)
-	if !ok {
-		t.Fatal("tokenSnapshot not a JSON object")
-	}
-	washSnap, ok := snap["washerwoman"].([]any)
-	if !ok || len(washSnap) == 0 {
-		t.Fatal("tokenSnapshot['washerwoman'] not found or empty")
-	}
-	snapToken, ok := washSnap[0].(map[string]any)
-	if !ok {
-		t.Fatal("tokenSnapshot token not a JSON object")
-	}
-	for _, k := range tokenKeys {
-		if _, ok := snapToken[k]; !ok {
-			t.Errorf("response JSON tokenSnapshot token missing key %q", k)
+	for _, k := range psKeys {
+		if _, ok := psAlice[k]; !ok {
+			t.Errorf("response JSON playerState['p-alice'] missing key %q", k)
 		}
 	}
 }
