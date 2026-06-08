@@ -12,10 +12,13 @@
     "test": "concurrently --names UI,API \"cd UI && npm test\" \"cd API && go test ./...\"",
     "test:ui": "cd UI && npm test",
     "test:api": "cd API && go test ./...",
+    "test:storybook": "cd UI && npm run test:storybook",
     "test:e2e": "cd UI && npx playwright test --config=e2e/playwright.config.ts --project=lifecycle",
     "test:e2e:sync": "cd UI && npx playwright test --config=e2e/playwright.config.ts --project=sync",
+    "test:e2e:journey": "cd UI && npx playwright test --config=e2e/playwright.config.ts --project=journey",
     "test:e2e:all": "cd UI && npx playwright test --config=e2e/playwright.config.ts",
-    "test:integration": "cd API && go test ./internal/handlers/ -run Roundtrip -v && cd ../UI && npx playwright test --config=e2e/playwright.config.ts"
+    "test:integration": "cd API && go test ./internal/handlers/ -run Roundtrip -v && cd ../UI && npx playwright test --config=e2e/playwright.config.ts",
+    "test:all": "npm run test:ui && npm run test:api && npm run test:storybook && npm run test:e2e && npm run test:e2e:sync"
   },
   "devDependencies": {
     "concurrently": "^9.0.0"

@@ -7,10 +7,18 @@ API_CHANGED=$(git diff --name-only @{push}.. -- API/ 2>/dev/null || git diff --n
 FAILED=0
 
 if [ -n "$UI_CHANGED" ]; then
-  echo "🧪 UI changes detected — running tests with coverage..."
+  echo "🧪 UI changes detected — running unit tests with coverage..."
   cd UI && npm run test:coverage
   if [ $? -ne 0 ]; then
-    echo "❌ Tests/coverage failed"
+    echo "❌ Unit tests/coverage failed"
+    FAILED=1
+  fi
+  cd ..
+
+  echo "📚 UI changes detected — running Storybook interaction tests..."
+  cd UI && npm run test:storybook
+  if [ $? -ne 0 ]; then
+    echo "❌ Storybook tests failed"
     FAILED=1
   fi
   cd ..
@@ -41,11 +49,24 @@ if [ -n "$UI_CHANGED" ]; then
 fi
 
 if [ -n "$API_CHANGED" ]; then
-  echo "🧪 API changes detected — running Go tests..."
+  echo "🧪 API changes detected — running Go unit tests..."
   cd API && go test ./...
   if [ $? -ne 0 ]; then FAILED=1; fi
   cd ..
+
+  echo "🔄 API changes detected — running JSON roundtrip tests..."
+  cd API && go test ./internal/handlers/ -run Roundtrip
+  if [ $? -ne 0 ]; then
+    echo "❌ Roundtrip tests failed"
+    FAILED=1
+  fi
+  cd ..
 fi
+
+# Note: Playwright E2E suites (lifecycle, sync, journey) are NOT run by this hook —
+# they take 30s–3min and require booting UI+API. Run manually with `npm run test:e2e`
+# before opening a PR or after touching session lifecycle, SSE sync, or full-game flows.
+# See docs/testing.md for the full Test Suites Catalog.
 
 if [ -z "$UI_CHANGED" ] && [ -z "$API_CHANGED" ]; then
   echo "ℹ️  No UI or API changes to test"
