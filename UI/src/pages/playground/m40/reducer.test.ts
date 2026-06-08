@@ -390,3 +390,168 @@ describe('playgroundReducer — preferences', () => {
     expect(s.propagationDefault).toEqual({ toTemplate: false, toOtherGames: false });
   });
 });
+
+describe('playgroundReducer — round-1 feedback additions', () => {
+  it('ADD_TEMPLATE_STORYTELLER appends a storyteller slot to template', () => {
+    const s = playgroundReducer(initialPgSession, {
+      type: 'ADD_TEMPLATE_STORYTELLER',
+      slotId: 'st1',
+    });
+    expect(s.template.slots).toEqual([{ kind: 'storyteller', id: 'st1' }]);
+  });
+
+  it('ADD_TEMPLATE_STORYTELLER with gameSlotIds appends to specified games', () => {
+    let s = withThreeSeats(withPlayers(P1));
+    s = playgroundReducer(s, {
+      type: 'CREATE_GAME',
+      gameId: G1,
+      name: 'G1',
+      slotIdMap: { [S1]: 'g1s1', [S2]: 'g1s2', [S3]: 'g1s3' },
+    });
+    s = playgroundReducer(s, {
+      type: 'ADD_TEMPLATE_STORYTELLER',
+      slotId: 'st1',
+      gameSlotIds: { [G1]: 'g1st1' },
+    });
+    expect(s.template.slots.at(-1)).toEqual({ kind: 'storyteller', id: 'st1' });
+    const g1 = s.games.find((g) => g.id === G1)!;
+    expect(g1.slots.at(-1)).toEqual({ kind: 'storyteller', id: 'g1st1' });
+  });
+
+  it('CREATE_GAME snapshots storyteller slots from template', () => {
+    let s = playgroundReducer(initialPgSession, {
+      type: 'ADD_TEMPLATE_SEAT',
+      slotId: S1,
+    });
+    s = playgroundReducer(s, { type: 'ADD_TEMPLATE_STORYTELLER', slotId: 'st1' });
+    s = playgroundReducer(s, {
+      type: 'CREATE_GAME',
+      gameId: G1,
+      name: 'G1',
+      slotIdMap: { [S1]: 'g1s1', st1: 'g1st1' },
+    });
+    expect(s.games[0]!.slots).toEqual([
+      { kind: 'seat', id: 'g1s1', playerId: null },
+      { kind: 'storyteller', id: 'g1st1' },
+    ]);
+  });
+
+  it('MOVE_GAME_SLOT reorders within a single game only', () => {
+    let s = withThreeSeats();
+    s = playgroundReducer(s, {
+      type: 'CREATE_GAME',
+      gameId: G1,
+      name: 'G1',
+      slotIdMap: { [S1]: 'g1s1', [S2]: 'g1s2', [S3]: 'g1s3' },
+    });
+    s = playgroundReducer(s, {
+      type: 'CREATE_GAME',
+      gameId: G2,
+      name: 'G2',
+      slotIdMap: { [S1]: 'g2s1', [S2]: 'g2s2', [S3]: 'g2s3' },
+    });
+    s = playgroundReducer(s, { type: 'MOVE_GAME_SLOT', gameId: G1, slotId: 'g1s1', toIndex: 2 });
+    expect(s.games.find((g) => g.id === G1)!.slots.map((x) => x.id)).toEqual([
+      'g1s2',
+      'g1s3',
+      'g1s1',
+    ]);
+    // G2 untouched
+    expect(s.games.find((g) => g.id === G2)!.slots.map((x) => x.id)).toEqual([
+      'g2s1',
+      'g2s2',
+      'g2s3',
+    ]);
+    // Template untouched
+    expect(s.template.slots.map((x) => x.id)).toEqual([S1, S2, S3]);
+  });
+
+  describe('REMOVE_GAME_SLOT propagation', () => {
+    function setupTwoGames(): PgSession {
+      let s = withThreeSeats(withPlayers(P1, P2, P3));
+      s = playgroundReducer(s, {
+        type: 'CREATE_GAME',
+        gameId: G1,
+        name: 'G1',
+        slotIdMap: { [S1]: 'g1s1', [S2]: 'g1s2', [S3]: 'g1s3' },
+      });
+      s = playgroundReducer(s, {
+        type: 'CREATE_GAME',
+        gameId: G2,
+        name: 'G2',
+        slotIdMap: { [S1]: 'g2s1', [S2]: 'g2s2', [S3]: 'g2s3' },
+      });
+      return s;
+    }
+
+    it('removes only from the target game when both flags false', () => {
+      let s = setupTwoGames();
+      s = playgroundReducer(s, {
+        type: 'REMOVE_GAME_SLOT',
+        gameId: G1,
+        slotId: 'g1s2',
+        propagation: { toTemplate: false, toOtherGames: false },
+      });
+      expect(s.games.find((g) => g.id === G1)!.slots.map((x) => x.id)).toEqual(['g1s1', 'g1s3']);
+      expect(s.games.find((g) => g.id === G2)!.slots.map((x) => x.id)).toEqual([
+        'g2s1',
+        'g2s2',
+        'g2s3',
+      ]);
+      expect(s.template.slots.map((x) => x.id)).toEqual([S1, S2, S3]);
+    });
+
+    it('removes from template at same index when toTemplate=true', () => {
+      let s = setupTwoGames();
+      s = playgroundReducer(s, {
+        type: 'REMOVE_GAME_SLOT',
+        gameId: G1,
+        slotId: 'g1s2',
+        propagation: { toTemplate: true, toOtherGames: false },
+      });
+      expect(s.template.slots.map((x) => x.id)).toEqual([S1, S3]);
+      expect(s.games.find((g) => g.id === G2)!.slots.map((x) => x.id)).toEqual([
+        'g2s1',
+        'g2s2',
+        'g2s3',
+      ]);
+    });
+
+    it('removes from other games at same index when toOtherGames=true', () => {
+      let s = setupTwoGames();
+      s = playgroundReducer(s, {
+        type: 'REMOVE_GAME_SLOT',
+        gameId: G1,
+        slotId: 'g1s2',
+        propagation: { toTemplate: false, toOtherGames: true },
+      });
+      expect(s.template.slots.map((x) => x.id)).toEqual([S1, S2, S3]);
+      expect(s.games.find((g) => g.id === G2)!.slots.map((x) => x.id)).toEqual(['g2s1', 'g2s3']);
+    });
+
+    it('removes everywhere when both flags true', () => {
+      let s = setupTwoGames();
+      s = playgroundReducer(s, {
+        type: 'REMOVE_GAME_SLOT',
+        gameId: G1,
+        slotId: 'g1s2',
+        propagation: { toTemplate: true, toOtherGames: true },
+      });
+      expect(s.template.slots.map((x) => x.id)).toEqual([S1, S3]);
+      expect(s.games.find((g) => g.id === G1)!.slots.map((x) => x.id)).toEqual(['g1s1', 'g1s3']);
+      expect(s.games.find((g) => g.id === G2)!.slots.map((x) => x.id)).toEqual(['g2s1', 'g2s3']);
+    });
+
+    it('uses sticky propagationDefault when propagation omitted', () => {
+      let s = setupTwoGames();
+      s = playgroundReducer(s, {
+        type: 'SET_PROPAGATION_DEFAULT',
+        pref: { toTemplate: false, toOtherGames: false },
+      });
+      s = playgroundReducer(s, { type: 'REMOVE_GAME_SLOT', gameId: G1, slotId: 'g1s2' });
+      expect(s.template.slots.map((x) => x.id)).toEqual([S1, S2, S3]);
+      expect(s.games.find((g) => g.id === G2)!.slots).toHaveLength(3);
+      expect(s.games.find((g) => g.id === G1)!.slots).toHaveLength(2);
+    });
+  });
+});

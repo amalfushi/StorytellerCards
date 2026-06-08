@@ -3,10 +3,12 @@ import { Link as RouterLink } from 'react-router-dom';
 import {
   DndContext,
   PointerSensor,
+  pointerWithin,
   useDraggable,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type CollisionDetection,
 } from '@dnd-kit/core';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -46,16 +48,36 @@ export function PlaygroundM40Page() {
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
 
+  /**
+   * Custom collision detection: filter droppables by active-id prefix so
+   * player-drags don't accidentally hit slot-reorder targets and vice versa.
+   */
+  const collisionDetection: CollisionDetection = (args) => {
+    const activeId = String(args.active?.id ?? '');
+    const filtered = args.droppableContainers.filter((c) => {
+      const id = String(c.id);
+      if (activeId.startsWith('player:')) {
+        return id.startsWith('tseat:') || id.startsWith('gseat:');
+      }
+      if (activeId.startsWith('tslot:') || activeId.startsWith('gslot:')) {
+        return id.startsWith('tslotpos:') || id.startsWith('gslotpos:');
+      }
+      return true;
+    });
+    return pointerWithin({ ...args, droppableContainers: filtered });
+  };
+
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
     if (!over) return;
     const activeId = String(active.id);
     const overId = String(over.id);
-    // player:{playerId} → seat:{slotId}  (template seat assignment)
+    // player:{playerId} → tseat:{slotId}  (template seat assignment)
     if (activeId.startsWith('player:') && overId.startsWith('tseat:')) {
       const playerId = activeId.slice('player:'.length);
       const slotId = overId.slice('tseat:'.length);
       dispatch({ type: 'ASSIGN_TEMPLATE_SEAT', slotId, playerId });
+      return;
     }
     // player:{playerId} → gseat:{gameId}:{slotId}  (game seat assignment, uses sticky propagation)
     if (activeId.startsWith('player:') && overId.startsWith('gseat:')) {
@@ -67,11 +89,45 @@ export function PlaygroundM40Page() {
         const slotId = rest.slice(colon + 1);
         dispatch({ type: 'ASSIGN_GAME_SEAT', gameId, slotId, playerId });
       }
+      return;
+    }
+    // tslot:{slotId} → tslotpos:{targetSlotId}  (reorder template slot to target's position)
+    if (activeId.startsWith('tslot:') && overId.startsWith('tslotpos:')) {
+      const slotId = activeId.slice('tslot:'.length);
+      const targetSlotId = overId.slice('tslotpos:'.length);
+      if (slotId === targetSlotId) return;
+      const toIndex = state.template.slots.findIndex((s) => s.id === targetSlotId);
+      if (toIndex >= 0) {
+        dispatch({ type: 'MOVE_TEMPLATE_SLOT', slotId, toIndex });
+      }
+      return;
+    }
+    // gslot:{gameId}:{slotId} → gslotpos:{gameId}:{targetSlotId}  (reorder within a game)
+    if (activeId.startsWith('gslot:') && overId.startsWith('gslotpos:')) {
+      const aRest = activeId.slice('gslot:'.length);
+      const aColon = aRest.indexOf(':');
+      const oRest = overId.slice('gslotpos:'.length);
+      const oColon = oRest.indexOf(':');
+      if (aColon > 0 && oColon > 0) {
+        const gameId = aRest.slice(0, aColon);
+        const overGameId = oRest.slice(0, oColon);
+        if (gameId !== overGameId) return;
+        const slotId = aRest.slice(aColon + 1);
+        const targetSlotId = oRest.slice(oColon + 1);
+        if (slotId === targetSlotId) return;
+        const game = state.games.find((g) => g.id === gameId);
+        if (!game) return;
+        const toIndex = game.slots.findIndex((s) => s.id === targetSlotId);
+        if (toIndex >= 0) {
+          dispatch({ type: 'MOVE_GAME_SLOT', gameId, slotId, toIndex });
+        }
+      }
+      return;
     }
   };
 
   return (
-    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+    <DndContext sensors={sensors} collisionDetection={collisionDetection} onDragEnd={handleDragEnd}>
       <Box>
         <AppBar position="static" elevation={1}>
           <Toolbar>
@@ -345,6 +401,8 @@ function TemplatePanel({ state, dispatch }: DispatchProp) {
       <TemplateCircle
         slots={state.template.slots}
         players={state.players}
+        draggableSlotPrefix="tslot:"
+        droppableSlotPosPrefix="tslotpos:"
         onAddSeat={() =>
           dispatch({
             type: 'ADD_TEMPLATE_SEAT',
@@ -355,6 +413,13 @@ function TemplatePanel({ state, dispatch }: DispatchProp) {
         onAddSpacer={() =>
           dispatch({
             type: 'ADD_TEMPLATE_SPACER',
+            slotId: newId(),
+            gameSlotIds: buildGameSlotIds(),
+          })
+        }
+        onAddStoryteller={() =>
+          dispatch({
+            type: 'ADD_TEMPLATE_STORYTELLER',
             slotId: newId(),
             gameSlotIds: buildGameSlotIds(),
           })
@@ -509,18 +574,20 @@ function ActiveGamePanel({ state, dispatch }: DispatchProp) {
       <TemplateCircle
         slots={activeGame.slots}
         players={state.players}
-        readOnlySlots
+        hideAddControls
         centerLabel={activeGame.name}
         droppableSeatPrefix={`gseat:${activeGame.id}:`}
+        draggableSlotPrefix={`gslot:${activeGame.id}:`}
+        droppableSlotPosPrefix={`gslotpos:${activeGame.id}:`}
         onAddSeat={() => {
-          /* no-op when readOnlySlots */
+          /* no-op when hideAddControls */
         }}
         onAddSpacer={() => {
-          /* no-op when readOnlySlots */
+          /* no-op when hideAddControls */
         }}
-        onRemoveSlot={() => {
-          /* no-op when readOnlySlots */
-        }}
+        onRemoveSlot={(slotId) =>
+          dispatch({ type: 'REMOVE_GAME_SLOT', gameId: activeGame.id, slotId })
+        }
         onAssignSeat={(slotId, playerId) =>
           dispatch({
             type: 'ASSIGN_GAME_SEAT',

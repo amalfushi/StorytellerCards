@@ -14,7 +14,8 @@ export interface PgPlayer {
 
 export type PgSlot =
   | { kind: 'seat'; id: SlotId; playerId: PlayerId | null }
-  | { kind: 'spacer'; id: SlotId };
+  | { kind: 'spacer'; id: SlotId }
+  | { kind: 'storyteller'; id: SlotId };
 
 export interface PgSeatingTemplate {
   slots: PgSlot[];

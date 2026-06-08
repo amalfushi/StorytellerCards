@@ -30,8 +30,21 @@ export type PgAction =
       slotId: SlotId;
       gameSlotIds?: Record<GameId, SlotId>;
     }
+  | {
+      type: 'ADD_TEMPLATE_STORYTELLER';
+      slotId: SlotId;
+      gameSlotIds?: Record<GameId, SlotId>;
+    }
   | { type: 'REMOVE_TEMPLATE_SLOT'; slotId: SlotId }
   | { type: 'MOVE_TEMPLATE_SLOT'; slotId: SlotId; toIndex: number }
+  | { type: 'MOVE_GAME_SLOT'; gameId: GameId; slotId: SlotId; toIndex: number }
+  | {
+      type: 'REMOVE_GAME_SLOT';
+      gameId: GameId;
+      slotId: SlotId;
+      /** Defaults to session.propagationDefault when omitted. */
+      propagation?: Partial<PgPropagationPreference>;
+    }
   | {
       type: 'ASSIGN_TEMPLATE_SEAT';
       slotId: SlotId;
@@ -196,6 +209,28 @@ export function playgroundReducer(state: PgSession, action: PgAction): PgSession
       };
     }
 
+    case 'ADD_TEMPLATE_STORYTELLER': {
+      // UI gates this to a singleton, but the reducer is permissive — duplicate
+      // calls just append; callers can guard if they need to.
+      const gameSlotIds = action.gameSlotIds;
+      return {
+        ...state,
+        template: {
+          slots: [...state.template.slots, { kind: 'storyteller', id: action.slotId }],
+        },
+        games: gameSlotIds
+          ? state.games.map((g) =>
+              gameSlotIds[g.id]
+                ? {
+                    ...g,
+                    slots: [...g.slots, { kind: 'storyteller', id: gameSlotIds[g.id] }],
+                  }
+                : g,
+            )
+          : state.games,
+      };
+    }
+
     case 'REMOVE_TEMPLATE_SLOT': {
       return {
         ...state,
@@ -214,6 +249,59 @@ export function playgroundReducer(state: PgSession, action: PgAction): PgSession
       };
     }
 
+    case 'MOVE_GAME_SLOT': {
+      return updateGame(state, action.gameId, (g) => ({
+        ...g,
+        slots: moveSlot(g.slots, action.slotId, action.toIndex),
+      }));
+    }
+
+    case 'REMOVE_GAME_SLOT': {
+      const pref: PgPropagationPreference = {
+        toTemplate: action.propagation?.toTemplate ?? state.propagationDefault.toTemplate,
+        toOtherGames: action.propagation?.toOtherGames ?? state.propagationDefault.toOtherGames,
+      };
+      const game = state.games.find((g) => g.id === action.gameId);
+      if (!game) return state;
+      const slotIndex = game.slots.findIndex((s) => s.id === action.slotId);
+      if (slotIndex === -1) return state;
+
+      let nextState: PgSession = {
+        ...state,
+        games: state.games.map((g) =>
+          g.id === action.gameId
+            ? { ...g, slots: g.slots.filter((s) => s.id !== action.slotId) }
+            : g,
+        ),
+      };
+
+      if (pref.toTemplate) {
+        const tplSlot = nextState.template.slots[slotIndex];
+        if (tplSlot) {
+          nextState = {
+            ...nextState,
+            template: {
+              slots: nextState.template.slots.filter((s) => s.id !== tplSlot.id),
+            },
+          };
+        }
+      }
+
+      if (pref.toOtherGames) {
+        nextState = {
+          ...nextState,
+          games: nextState.games.map((g) => {
+            if (g.id === action.gameId) return g;
+            const target = g.slots[slotIndex];
+            if (!target) return g;
+            return { ...g, slots: g.slots.filter((s) => s.id !== target.id) };
+          }),
+        };
+      }
+
+      return nextState;
+    }
+
     case 'ASSIGN_TEMPLATE_SEAT': {
       return {
         ...state,
@@ -228,9 +316,9 @@ export function playgroundReducer(state: PgSession, action: PgAction): PgSession
       if (state.games.some((g) => g.id === action.gameId)) return state;
       const snapshotSlots: PgSlot[] = state.template.slots.map((s) => {
         const newId = action.slotIdMap[s.id] ?? s.id;
-        return s.kind === 'seat'
-          ? { kind: 'seat', id: newId, playerId: s.playerId }
-          : { kind: 'spacer', id: newId };
+        if (s.kind === 'seat') return { kind: 'seat', id: newId, playerId: s.playerId };
+        if (s.kind === 'spacer') return { kind: 'spacer', id: newId };
+        return { kind: 'storyteller', id: newId };
       });
       // Initial participants = currently seated players (sensible default).
       const seatedIds = new Set<PlayerId>();

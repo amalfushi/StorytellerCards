@@ -183,3 +183,36 @@ Key insight: `participants` (who's in the game) is distinct from seated slots
   build if the base flow needs them.
 - Mid-game seat changes inside the playground (the production tools already cover this
   case; the playground focuses on setup).
+
+
+---
+
+## 9. Phase 11 — Round-1 Feedback
+
+After the initial walkthrough, the user requested four refinements:
+
+1. **Seat numbering excludes spacers.** A template with 9 seats + 2 spacers must
+   number the actual seats 1-9 (not 1-11) so seat numbers match how a storyteller
+   thinks about the table irl. `TemplateCircle` now computes `seatNumber` as the
+   1-based index of `kind === 'seat'` slots only.
+
+2. **Storyteller marker.** A new slot kind `{ kind: 'storyteller'; id }` renders an
+   arrow always pointing to the center of the circle so the storyteller can orient
+   themselves to the real-world table (typically placed at the bottom of the circle).
+   It is a singleton — the "+ Storyteller" button in the template center disables
+   itself when one already exists. Like other slots, it contributes 0 to seat count
+   and the participant count.
+
+3. **Drag-to-reorder slots.** Each slot in the template circle now has a drag handle
+   (`DragIndicator` icon, top-left of the cell). Drop targets are the slot
+   positions themselves so the dropped slot takes the target's place. Reorder works
+   in both the template and inside a game (independently — no propagation on reorder
+   in v1, deliberately scoped to the surface dragged). Custom collision detection
+   filters droppables by active-id prefix so player-drags and slot-reorder-drags do
+   not interfere with each other.
+
+4. **Delete slot from a game.** `ActiveGamePanel` now allows per-slot removal
+   (×-button on each cell) and dispatches the new `REMOVE_GAME_SLOT` action. The
+   sticky propagation default applies — by default the slot is also removed from the
+   template and other games. The same per-action checkboxes that govern seat
+   assignment govern removals.

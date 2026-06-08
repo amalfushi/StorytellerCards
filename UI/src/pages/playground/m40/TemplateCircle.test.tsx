@@ -37,9 +37,10 @@ describe('TemplateCircle', () => {
     expect(h.onAddSpacer).toHaveBeenCalledTimes(1);
   });
 
-  it('renders seats and spacers via test ids', () => {
+  it('renders seats and spacers via test ids (seat numbers exclude spacers)', () => {
     setup();
-    expect(screen.getByTestId('template-seat-0')).toBeInTheDocument();
+    // slots = [seat, spacer, seat] → seats numbered 1 and 2; spacer keeps its slot-index id
+    expect(screen.getByTestId('template-seat-1')).toBeInTheDocument();
     expect(screen.getByTestId('template-spacer-1')).toBeInTheDocument();
     expect(screen.getByTestId('template-seat-2')).toBeInTheDocument();
   });
