@@ -23,7 +23,15 @@ import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
-import type { CharacterDef, Game, Phase, PlayerGameState, PlayerToken, Script } from '@/types/index.ts';
+import type {
+  CharacterDef,
+  Game,
+  Phase,
+  PlayerGameState,
+  PlayerId,
+  PlayerToken,
+  Script,
+} from '@/types/index.ts';
 import { useSession } from '@/context/useSession.ts';
 import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -83,6 +91,8 @@ export function GameViewPage() {
     setDemonBluffs,
     setLunaticBluffs,
     setPlayerBluffs,
+    setApparentCharacter,
+    setPlayerCountOverride,
     addToken,
     removeToken,
   } = useGame();
@@ -252,7 +262,9 @@ export function GameViewPage() {
   const players = useMemo<GameViewPlayer[]>(() => {
     if (!game) return [];
     const sessionPlayers = new Map((session?.players ?? []).map((player) => [player.id, player]));
-    const participants = new Map(game.participants.map((participant) => [participant.playerId, participant]));
+    const participants = new Map(
+      game.participants.map((participant) => [participant.playerId, participant]),
+    );
     const displayMap = buildDisplaySeatNumberMap(game.slots);
     const rows: GameViewPlayer[] = [];
     const seatedPlayerIds = new Set<string>();
@@ -289,11 +301,6 @@ export function GameViewPage() {
 
     return rows.sort((a, b) => a.seat - b.seat);
   }, [game, session?.players]);
-
-  const playerIdForSeat = useCallback(
-    (seat: number) => players.find((player) => player.seat === seat)?.playerId ?? null,
-    [players],
-  );
 
   const nightEntries = useNightOrder(
     scriptCharacterIds,
@@ -380,28 +387,28 @@ export function GameViewPage() {
 
   // Handle confirming character assignments
   const handleConfirmAssignments = useCallback(
-    (updatedPlayers: GameViewPlayer[]) => {
-      for (const p of updatedPlayers) {
-        if (p.characterId) {
-          updatePlayerState(p.playerId, {
-            characterId: p.characterId,
-            actualAlignment: p.actualAlignment,
-            startingAlignment: p.startingAlignment,
-          });
+    (updatedPlayerState: Record<PlayerId, PlayerGameState>) => {
+      for (const [playerId, state] of Object.entries(updatedPlayerState)) {
+        updatePlayerState(playerId, {
+          characterId: state.characterId,
+          actualAlignment: state.actualAlignment,
+          startingAlignment: state.startingAlignment,
+        });
 
-          // Distribute template bluffs to the assigned player.
-          const charDef = getCharacter(p.characterId);
-          if (charDef?.type === 'Demon' && templateDemonBluffs?.length) {
-            setPlayerBluffs(p.playerId, templateDemonBluffs);
-          } else if (p.characterId === 'lunatic' && templateLunaticBluffs?.length) {
-            setPlayerBluffs(p.playerId, templateLunaticBluffs);
-          }
+        setApparentCharacter(playerId, state.apparentCharacterId ?? '');
+
+        const charDef = getCharacter(state.characterId);
+        if (charDef?.type === 'Demon' && templateDemonBluffs?.length) {
+          setPlayerBluffs(playerId, templateDemonBluffs);
+        } else if (state.characterId === 'lunatic' && templateLunaticBluffs?.length) {
+          setPlayerBluffs(playerId, templateLunaticBluffs);
         }
       }
       saveGame();
     },
     [
       updatePlayerState,
+      setApparentCharacter,
       saveGame,
       getCharacter,
       templateDemonBluffs,
@@ -466,19 +473,17 @@ export function GameViewPage() {
   }, [currentReminderPlayer, getCharacter]);
 
   const handleSetupAddToken = useCallback(
-    (seat: number, token: PlayerToken) => {
-      const playerId = playerIdForSeat(seat);
-      if (playerId) addToken(playerId, token);
+    (playerId: PlayerId, token: PlayerToken) => {
+      addToken(playerId, token);
     },
-    [addToken, playerIdForSeat],
+    [addToken],
   );
 
   const handleSetupRemoveToken = useCallback(
-    (seat: number, tokenId: string) => {
-      const playerId = playerIdForSeat(seat);
-      if (playerId) removeToken(playerId, tokenId);
+    (playerId: PlayerId, tokenId: string) => {
+      removeToken(playerId, tokenId);
     },
-    [playerIdForSeat, removeToken],
+    [removeToken],
   );
 
   const handleReminderPlayerChange = useCallback(
@@ -701,7 +706,9 @@ export function GameViewPage() {
           <Box sx={{ overflow: 'auto', flex: 1 }}>
             <SetupChecklist
               gameId={game.id}
-              players={players}
+              participants={game.participants}
+              playerState={game.playerState}
+              sessionPlayers={session?.players ?? []}
               inPlayCharacterIds={game.inPlayCharacterIds}
               scriptCharacterIds={scriptCharacterIds}
               onStartNight={() => {
@@ -857,10 +864,15 @@ export function GameViewPage() {
         <CharacterAssignmentDialog
           open={assignDialogOpen}
           onClose={() => setAssignDialogOpen(false)}
-          players={players}
+          slots={game.slots}
+          participants={game.participants}
+          playerState={game.playerState}
+          sessionPlayers={session?.players ?? []}
+          playerCountOverride={game.playerCountOverride}
           scriptCharacters={scriptCharacterDefs}
           inPlayCharacterIds={game.inPlayCharacterIds}
           onConfirm={handleConfirmAssignments}
+          onPlayerCountChange={setPlayerCountOverride}
         />
       )}
 

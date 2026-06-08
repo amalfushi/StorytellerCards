@@ -1,4 +1,8 @@
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+/**
+ * Character assignment utilities.
+ */
+
+import type { CharacterDef, Participant, PlayerGameState, PlayerId } from '@/types/index.ts';
 import { Alignment, CharacterType } from '@/types/index.ts';
 import type { Distribution } from '@/data/playerCountRules.ts';
 
@@ -30,34 +34,25 @@ function shuffle<T>(arr: T[]): T[] {
   return arr;
 }
 
-/**
- * Determines alignment from character type.
- */
-function alignmentForType(type: string): 'Good' | 'Evil' {
-  if (type === 'Minion' || type === 'Demon') return Alignment.Evil;
+function alignmentForType(type: CharacterDef['type']): Alignment {
+  if (type === CharacterType.Minion || type === CharacterType.Demon) return Alignment.Evil;
   return Alignment.Good;
 }
 
 /**
- * Randomly assign characters to players based on the script's character pool
- * and the given distribution.
- *
- * - Picks the right number of each type from the script's character pool
- * - Shuffles and assigns to players randomly
- * - Sets starting alignment based on character type
- *
- * @throws {Error} if there aren't enough characters in the pool
+ * Randomly assign characters to game participants based on the script pool and distribution.
  */
 export function randomlyAssignCharacters(
-  players: PlayerSeat[],
+  participants: Participant[],
+  playerState: Record<PlayerId, PlayerGameState>,
   scriptCharacters: CharacterDef[],
   distribution: Distribution,
-): PlayerSeat[] {
+): Record<PlayerId, PlayerGameState> {
   const assignableCharacters = filterPlayerAssignableCharacters(scriptCharacters);
-  const townsfolk = assignableCharacters.filter((c) => c.type === 'Townsfolk');
-  const outsiders = assignableCharacters.filter((c) => c.type === 'Outsider');
-  const minions = assignableCharacters.filter((c) => c.type === 'Minion');
-  const demons = assignableCharacters.filter((c) => c.type === 'Demon');
+  const townsfolk = assignableCharacters.filter((c) => c.type === CharacterType.Townsfolk);
+  const outsiders = assignableCharacters.filter((c) => c.type === CharacterType.Outsider);
+  const minions = assignableCharacters.filter((c) => c.type === CharacterType.Minion);
+  const demons = assignableCharacters.filter((c) => c.type === CharacterType.Demon);
 
   if (townsfolk.length < distribution.townsfolk) {
     throw new Error(
@@ -76,7 +71,6 @@ export function randomlyAssignCharacters(
     throw new Error(`Not enough Demons: need ${distribution.demons}, have ${demons.length}`);
   }
 
-  // Pick random characters of each type
   const selected: CharacterDef[] = [
     ...shuffle([...townsfolk]).slice(0, distribution.townsfolk),
     ...shuffle([...outsiders]).slice(0, distribution.outsiders),
@@ -84,26 +78,25 @@ export function randomlyAssignCharacters(
     ...shuffle([...demons]).slice(0, distribution.demons),
   ];
 
-  // Shuffle the full selection so types are randomly distributed among players
   shuffle(selected);
 
-  // Assign to non-traveller players
-  const nonTravellers = players.filter((p) => !p.isTraveller);
+  const nextState: Record<PlayerId, PlayerGameState> = { ...playerState };
+  const nonTravellers = participants.filter((participant) => !participant.isTraveller);
 
-  return players.map((p) => {
-    if (p.isTraveller) return p;
-
-    const idx = nonTravellers.indexOf(p);
-    if (idx < 0 || idx >= selected.length) return p;
-
-    const char = selected[idx];
-    const alignment = alignmentForType(char.type);
-    return {
-      ...p,
-      characterId: char.id,
+  nonTravellers.forEach((participant, index) => {
+    const current = playerState[participant.playerId];
+    const character = selected[index];
+    if (!current || !character) return;
+    const alignment = alignmentForType(character.type);
+    nextState[participant.playerId] = {
+      ...current,
+      characterId: character.id,
       actualAlignment: alignment,
       startingAlignment: alignment,
       visibleAlignment: Alignment.Unknown,
+      apparentCharacterId: '',
     };
   });
+
+  return nextState;
 }
