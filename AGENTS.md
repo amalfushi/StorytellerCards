@@ -109,6 +109,19 @@ This applies to all files in all languages across the entire repository.
 
 ## Testing Requirements
 
+### Test Suites Catalog (read first!)
+
+This project has **six** distinct test suites covering different layers (UI unit, Storybook interaction, Go unit, JSON roundtrip, Playwright lifecycle, Playwright sync, Playwright journey). The pre-push hook only runs the fast ones — **you are responsible for running the E2E suite that matches what you touched** before opening a PR.
+
+📖 **Full catalog with commands, coverage, and "when to run" guidance: [`docs/testing.md`](docs/testing.md#test-suites-catalog)**
+
+Quick reference:
+- Touched a component? → `npm run test:ui` + `npm run test:storybook`
+- Touched a Go handler or model? → `npm run test:api` (includes roundtrip)
+- Touched session lifecycle / persistence? → also `npm run test:e2e`
+- Touched SSE / cross-device sync? → also `npm run test:e2e:sync`
+- Before merging a milestone? → `npm run test:all` (everything except slow journey suite) + `npm run test:e2e:journey`
+
 ### Policy: Every File Gets Tests
 
 - Every new `.ts` or `.tsx` file must have a corresponding `.test.ts` or `.test.tsx` file with meaningful tests
