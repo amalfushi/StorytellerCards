@@ -37,6 +37,10 @@ Cult Leader's player-facing alignment change screen now offers a Good/Evil dropd
 
 Stormcaught is no longer shown on unrelated player night-card reminder sections.
 
+Batch 3 follow-ups tightened setup and show-player flows: Lord of Typhon now has a variable Outsider stepper and randomizer support; stale character assignments are cleared when the in-play pool changes; setup reminder dropdowns reuse NightChoiceSelector player rows with character context; Stormcatcher's picker lists every script Townsfolk/Outsider and its show-player views render character icons; King first-night `THIS PLAYER IS` shows the King icon and player name; Seamstress-style signal controls preserve chosen players; Noble `KNOW` shows the clearer “1 and only 1” wording; Balloonist cards track current and previous picks; and flagged once-per-game characters (Slayer, Virgin, Fool, Professor, Huntsman, Seamstress, Philosopher, Engineer, Courtier, Artist, Fisherman, Nightwatchman, Assassin, Bone Collector, Judge) get a one-tap “Would you like to use your ability?” show-player prompt.
+
+Batch 3 regression fixes sanitize stale character assignments before the first assignment-dialog render so removed in-play choices such as Cannibal cannot be passed to MUI selects; give multi-rule setup modifiers (Lord of Typhon) unique checklist IDs; and use React/MUI camelCase for the disabled notes `WebkitTextFillColor` style.
+
 ### Summary
 
 Make the app ready to storytell the **Whose Cult Is It Anyway?** script (Aero, 31 characters) in a live game, plus land the most-requested QoL fix from the last live game (the night-flashcard reminder-token flow).
