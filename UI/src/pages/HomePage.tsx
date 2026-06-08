@@ -20,6 +20,7 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ScienceIcon from '@mui/icons-material/Science';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
 import { useSession } from '@/context/useSession.ts';
 
@@ -55,6 +56,15 @@ export function HomePage() {
           <Typography variant="h6" component="h1" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
             Storyteller Cards
           </Typography>
+          <Button
+            color="inherit"
+            size="small"
+            startIcon={<ScienceIcon />}
+            onClick={() => navigate('/playground/m40')}
+            aria-label="open m40 playground"
+          >
+            M40 Playground
+          </Button>
         </Toolbar>
       </AppBar>
 
