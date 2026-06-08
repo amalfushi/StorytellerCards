@@ -7,6 +7,7 @@ import Select from '@mui/material/Select';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
+import { useDroppable } from '@dnd-kit/core';
 
 import type { PgPlayer, PgSlot } from './types.ts';
 
@@ -29,6 +30,12 @@ interface Props {
   readOnlySlots?: boolean;
   /** Optional caption to render in the center (default: "Seating Template"). */
   centerLabel?: string;
+  /**
+   * dnd-kit droppable ID prefix for each seat. Page-level DndContext should
+   * match on `${droppableSeatPrefix}${slot.id}`. Defaults to "tseat:" so the
+   * template view drops into ASSIGN_TEMPLATE_SEAT.
+   */
+  droppableSeatPrefix?: string;
 }
 
 const TOKEN_RADIUS = 36;
@@ -52,6 +59,7 @@ export function TemplateCircle({
   onAssignSeat,
   readOnlySlots = false,
   centerLabel,
+  droppableSeatPrefix = 'tseat:',
 }: Props) {
   const cx = size / 2;
   const cy = size / 2;
@@ -128,6 +136,7 @@ export function TemplateCircle({
                 onRemove={() => onRemoveSlot(slot.id)}
                 onAssign={(pid) => onAssignSeat(slot.id, pid)}
                 showRemove={!readOnlySlots}
+                droppableId={`${droppableSeatPrefix}${slot.id}`}
               />
             )}
           </Box>
@@ -182,6 +191,7 @@ interface SeatCellProps {
   onRemove: () => void;
   onAssign: (playerId: string | null) => void;
   showRemove: boolean;
+  droppableId: string;
 }
 
 function SeatCell({
@@ -192,13 +202,16 @@ function SeatCell({
   onRemove,
   onAssign,
   showRemove,
+  droppableId,
 }: SeatCellProps) {
+  const { isOver, setNodeRef } = useDroppable({ id: droppableId });
   return (
     <Box
+      ref={setNodeRef}
       sx={{
-        bgcolor: 'background.paper',
+        bgcolor: isOver ? 'success.light' : 'background.paper',
         border: '2px solid',
-        borderColor: playerId ? 'primary.main' : 'divider',
+        borderColor: isOver ? 'success.main' : playerId ? 'primary.main' : 'divider',
         borderRadius: 1,
         textAlign: 'center',
         position: 'relative',

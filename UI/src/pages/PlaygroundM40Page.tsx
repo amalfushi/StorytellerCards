@@ -1,5 +1,13 @@
 import { useReducer, useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
+import {
+  DndContext,
+  PointerSensor,
+  useDraggable,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -36,49 +44,77 @@ import { initialPgSession, type PgSession } from './playground/m40/types.ts';
 export function PlaygroundM40Page() {
   const [state, dispatch] = useReducer(playgroundReducer, initialPgSession);
 
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }));
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+    const activeId = String(active.id);
+    const overId = String(over.id);
+    // player:{playerId} → seat:{slotId}  (template seat assignment)
+    if (activeId.startsWith('player:') && overId.startsWith('tseat:')) {
+      const playerId = activeId.slice('player:'.length);
+      const slotId = overId.slice('tseat:'.length);
+      dispatch({ type: 'ASSIGN_TEMPLATE_SEAT', slotId, playerId });
+    }
+    // player:{playerId} → gseat:{gameId}:{slotId}  (game seat assignment, uses sticky propagation)
+    if (activeId.startsWith('player:') && overId.startsWith('gseat:')) {
+      const playerId = activeId.slice('player:'.length);
+      const rest = overId.slice('gseat:'.length);
+      const colon = rest.indexOf(':');
+      if (colon > 0) {
+        const gameId = rest.slice(0, colon);
+        const slotId = rest.slice(colon + 1);
+        dispatch({ type: 'ASSIGN_GAME_SEAT', gameId, slotId, playerId });
+      }
+    }
+  };
+
   return (
-    <Box>
-      <AppBar position="static" elevation={1}>
-        <Toolbar>
-          <Typography variant="h6" component="h1" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
-            M40 Playground — Seating Rework
+    <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
+      <Box>
+        <AppBar position="static" elevation={1}>
+          <Toolbar>
+            <Typography variant="h6" component="h1" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
+              M40 Playground — Seating Rework
+            </Typography>
+            <Button component={RouterLink} to="/" color="inherit" size="small">
+              Back to Home
+            </Button>
+          </Toolbar>
+        </AppBar>
+
+        <Container maxWidth="lg" sx={{ pt: 3, pb: 6 }}>
+          <Typography variant="h5" gutterBottom>
+            Playground scaffold
           </Typography>
-          <Button component={RouterLink} to="/" color="inherit" size="small">
-            Back to Home
-          </Button>
-        </Toolbar>
-      </AppBar>
+          <Typography variant="body2" color="text.secondary" paragraph>
+            Phase 2: reducer + types wired. The editor below is throwaway scaffolding; the proper
+            template / roster / game UIs land in Phases 3-7. See{' '}
+            <code>docs/milestones/40 - seating template rework/milestone40.md</code>.
+          </Typography>
 
-      <Container maxWidth="lg" sx={{ pt: 3, pb: 6 }}>
-        <Typography variant="h5" gutterBottom>
-          Playground scaffold
-        </Typography>
-        <Typography variant="body2" color="text.secondary" paragraph>
-          Phase 2: reducer + types wired. The editor below is throwaway scaffolding; the proper
-          template / roster / game UIs land in Phases 3-7. See{' '}
-          <code>docs/milestones/40 - seating template rework/milestone40.md</code>.
-        </Typography>
+          <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 2 }}>
+            <PlayersPanel state={state} dispatch={dispatch} />
+            <TemplatePanel state={state} dispatch={dispatch} />
+            <GamesPanel state={state} dispatch={dispatch} />
+          </Stack>
 
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} sx={{ mt: 2 }}>
-          <PlayersPanel state={state} dispatch={dispatch} />
-          <TemplatePanel state={state} dispatch={dispatch} />
-          <GamesPanel state={state} dispatch={dispatch} />
-        </Stack>
+          <Divider sx={{ my: 3 }} />
+          <ActiveGamePanel state={state} dispatch={dispatch} />
 
-        <Divider sx={{ my: 3 }} />
-        <ActiveGamePanel state={state} dispatch={dispatch} />
+          <Divider sx={{ my: 3 }} />
+          <CharacterAssignmentPanel state={state} dispatch={dispatch} />
 
-        <Divider sx={{ my: 3 }} />
-        <CharacterAssignmentPanel state={state} dispatch={dispatch} />
-
-        <Divider sx={{ my: 3 }} />
-        <Typography variant="caption" color="text.secondary">
-          Active game: <code>{state.activeGameId ?? 'none'}</code> · Propagation default → template:{' '}
-          {String(state.propagationDefault.toTemplate)}, other games:{' '}
-          {String(state.propagationDefault.toOtherGames)}
-        </Typography>
-      </Container>
-    </Box>
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="caption" color="text.secondary">
+            Active game: <code>{state.activeGameId ?? 'none'}</code> · Propagation default →
+            template: {String(state.propagationDefault.toTemplate)}, other games:{' '}
+            {String(state.propagationDefault.toOtherGames)}
+          </Typography>
+        </Container>
+      </Box>
+    </DndContext>
   );
 }
 
@@ -176,32 +212,14 @@ function PlayersPanel({ state, dispatch }: DispatchProp) {
   const renderRow = (p: { id: string; name: string }) => {
     const seatNum = templateSeatByPlayer.get(p.id);
     return (
-      <ListItem
+      <DraggablePlayerRow
         key={p.id}
-        disableGutters
-        data-testid={`player-row-${p.id}`}
-        secondaryAction={
-          <IconButton
-            edge="end"
-            size="small"
-            aria-label={`remove ${p.name}`}
-            onClick={() => dispatch({ type: 'REMOVE_PLAYER', playerId: p.id })}
-          >
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        }
-      >
-        <ListItemText
-          primary={
-            <EditableText
-              value={p.name}
-              onChange={(next) => dispatch({ type: 'RENAME_PLAYER', playerId: p.id, name: next })}
-              ariaLabel={`player ${p.name}`}
-            />
-          }
-          secondary={seatNum ? `Template seat ${seatNum}` : 'Unseated'}
-        />
-      </ListItem>
+        playerId={p.id}
+        name={p.name}
+        seatNum={seatNum}
+        onRemove={() => dispatch({ type: 'REMOVE_PLAYER', playerId: p.id })}
+        onRename={(next) => dispatch({ type: 'RENAME_PLAYER', playerId: p.id, name: next })}
+      />
     );
   };
 
@@ -256,6 +274,44 @@ function PlayersPanel({ state, dispatch }: DispatchProp) {
         )}
       </List>
     </Paper>
+  );
+}
+
+function DraggablePlayerRow({
+  playerId,
+  name,
+  seatNum,
+  onRemove,
+  onRename,
+}: {
+  playerId: string;
+  name: string;
+  seatNum: number | undefined;
+  onRemove: () => void;
+  onRename: (next: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `player:${playerId}`,
+  });
+  return (
+    <ListItem
+      ref={setNodeRef}
+      disableGutters
+      data-testid={`player-row-${playerId}`}
+      sx={{ opacity: isDragging ? 0.4 : 1, cursor: 'grab' }}
+      secondaryAction={
+        <IconButton edge="end" size="small" aria-label={`remove ${name}`} onClick={onRemove}>
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      }
+    >
+      <Box {...listeners} {...attributes} sx={{ display: 'flex', flex: 1, alignItems: 'center' }}>
+        <ListItemText
+          primary={<EditableText value={name} onChange={onRename} ariaLabel={`player ${name}`} />}
+          secondary={seatNum ? `Template seat ${seatNum}` : 'Unseated'}
+        />
+      </Box>
+    </ListItem>
   );
 }
 
@@ -422,6 +478,7 @@ function ActiveGamePanel({ state, dispatch }: DispatchProp) {
         players={state.players}
         readOnlySlots
         centerLabel={activeGame.name}
+        droppableSeatPrefix={`gseat:${activeGame.id}:`}
         onAddSeat={() => {
           /* no-op when readOnlySlots */
         }}
