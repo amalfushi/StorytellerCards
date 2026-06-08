@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PlayerActionsModal } from '@/components/TownSquare/PlayerActionsModal.tsx';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type { CharacterDef } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 import { Alignment, CharacterType } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -30,7 +31,9 @@ const impCharacter: CharacterDef = {
   reminders: [],
 };
 
-const alivePlayer: PlayerSeat = {
+const alivePlayer: TownSquarePlayer = {
+  playerId: 'player-1',
+  slotId: 'slot-1',
   seat: 1,
   playerName: 'Alice',
   characterId: 'noble',
@@ -44,7 +47,9 @@ const alivePlayer: PlayerSeat = {
   tokens: [],
 };
 
-const deadPlayer: PlayerSeat = {
+const deadPlayer: TownSquarePlayer = {
+  playerId: 'player-3',
+  slotId: 'slot-3',
   seat: 3,
   playerName: 'Charlie',
   characterId: 'noble',
@@ -58,7 +63,9 @@ const deadPlayer: PlayerSeat = {
   tokens: [],
 };
 
-const deadPlayerGhostVoteUsed: PlayerSeat = {
+const deadPlayerGhostVoteUsed: TownSquarePlayer = {
+  playerId: 'player-5',
+  slotId: 'slot-5',
   seat: 5,
   playerName: 'Eve',
   characterId: 'noble',
@@ -72,7 +79,9 @@ const deadPlayerGhostVoteUsed: PlayerSeat = {
   tokens: [],
 };
 
-const travellerPlayer: PlayerSeat = {
+const travellerPlayer: TownSquarePlayer = {
+  playerId: 'traveller-10',
+  slotId: 'slot-10',
   seat: 10,
   playerName: 'TravJack',
   characterId: 'spiritofivory',
@@ -150,23 +159,7 @@ describe('PlayerActionsModal', () => {
     expect(screen.getByText(/Alice — Seat 1/)).toBeInTheDocument();
   });
 
-  it('calls onReseat with the selected player seat', () => {
-    const handlers = defaultHandlers();
-    const onReseat = vi.fn();
-    render(
-      <PlayerActionsModal
-        open={true}
-        player={alivePlayer}
-        showCharacters={false}
-        scriptCharacters={scriptCharacters}
-        onReseat={onReseat}
-        {...handlers}
-      />,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /Reseat/i }));
-    expect(onReseat).toHaveBeenCalledWith(1);
-    expect(handlers.onClose).toHaveBeenCalledTimes(1);
-  });
+  // Reseat button behavior was removed with the M41 seating model; seat movement now lives in swap/drag workflows.
 
   // ── Hidden mode tests (showCharacters=false) ──
 
@@ -565,7 +558,9 @@ describe('PlayerActionsModal', () => {
       },
     ];
 
-    const demonPlayer: PlayerSeat = {
+    const demonPlayer: TownSquarePlayer = {
+      playerId: 'player-2',
+      slotId: 'slot-2',
       seat: 2,
       playerName: 'Bob',
       characterId: 'imp',

@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { PlayerEditDialog } from '@/components/PlayerList/PlayerEditDialog.tsx';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type { CharacterDef } from '@/types/index.ts';
 import { CharacterType, Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -44,23 +44,27 @@ const fortuneTellerCharacter: CharacterDef = {
 
 const scriptCharacters: CharacterDef[] = [nobleCharacter, impCharacter, fortuneTellerCharacter];
 
-const alicePlayer: PlayerSeat = {
+const alicePlayer = {
+  playerId: 'alice',
+  slotId: 'slot1',
   seat: 1,
   playerName: 'Alice',
+  isTraveller: false,
   characterId: 'noble',
   alive: true,
   ghostVoteUsed: false,
-  visibleAlignment: Alignment.Unknown,
+  visibleAlignment: Alignment.Good,
   actualAlignment: Alignment.Good,
   startingAlignment: Alignment.Good,
   activeReminders: [],
-  isTraveller: false,
-  tokens: [],
 };
 
-const unassignedPlayer: PlayerSeat = {
+const unassignedPlayer = {
+  playerId: 'iris',
+  slotId: 'slot9',
   seat: 9,
   playerName: 'Iris',
+  isTraveller: false,
   characterId: '',
   alive: true,
   ghostVoteUsed: false,
@@ -68,8 +72,6 @@ const unassignedPlayer: PlayerSeat = {
   actualAlignment: Alignment.Unknown,
   startingAlignment: Alignment.Unknown,
   activeReminders: [],
-  isTraveller: false,
-  tokens: [],
 };
 
 // ──────────────────────────────────────────────

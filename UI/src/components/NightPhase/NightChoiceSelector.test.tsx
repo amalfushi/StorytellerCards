@@ -1,52 +1,38 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import { NightChoiceSelector } from '@/components/NightPhase/NightChoiceSelector.tsx';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type { CharacterDef } from '@/types/index.ts';
 import { Alignment, CharacterType } from '@/types/index.ts';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 
 // ──────────────────────────────────────────────
 // Mock data
 // ──────────────────────────────────────────────
 
-const mockPlayers: PlayerSeat[] = [
+const mockPlayers = [
   {
-    seat: 1,
+    playerId: 'alice',
     playerName: 'Alice',
+    seat: 1,
     characterId: 'noble',
     alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
     actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
   },
   {
-    seat: 2,
+    playerId: 'bob',
     playerName: 'Bob',
+    seat: 2,
     characterId: 'imp',
     alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
     actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
   },
   {
-    seat: 3,
+    playerId: 'charlie',
     playerName: 'Charlie',
-    characterId: 'fortuneteller',
+    seat: 3,
+    characterId: 'saint',
     alive: false,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
     actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
   },
 ];
 
@@ -181,7 +167,7 @@ describe('NightChoiceSelector', () => {
   });
 
   it('handles player with no character assigned', () => {
-    const unassignedPlayer: PlayerSeat = {
+    const unassignedPlayer: NightOrderPlayer = {
       ...mockPlayers[0],
       characterId: '',
       seat: 4,
@@ -321,7 +307,7 @@ describe('NightChoiceSelector', () => {
     fireEvent.mouseDown(combobox);
     const listbox = screen.getByRole('listbox');
     expect(within(listbox).getByText('Noble (Alice)')).toBeInTheDocument();
-    expect(within(listbox).getByText('Saint')).toBeInTheDocument();
+    expect(within(listbox).getByText('Saint (Charlie)')).toBeInTheDocument();
     expect(within(listbox).queryByText('Saint (Outsider)')).not.toBeInTheDocument();
   });
 

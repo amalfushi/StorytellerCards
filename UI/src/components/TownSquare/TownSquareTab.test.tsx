@@ -1,13 +1,10 @@
+import React from 'react';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import { TownSquareTab } from '@/components/TownSquare/TownSquareTab.tsx';
-import { GameProvider } from '@/context/GameContext.tsx';
-import type { Game, PlayerSeat } from '@/types/index.ts';
-import { Phase, Alignment } from '@/types/index.ts';
-
-// ──────────────────────────────────────────────
-// Mock heavy child components
-// ──────────────────────────────────────────────
+import type { Game, Player, PlayerGameState, PlayerId, Slot } from '@/types/index.ts';
+import { Alignment, Phase } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 
 vi.mock('@/components/TownSquare/PlayerToken.tsx', () => ({
   PlayerToken: ({
@@ -15,17 +12,17 @@ vi.mock('@/components/TownSquare/PlayerToken.tsx', () => ({
     showCharacters,
     onClick,
   }: {
-    player: PlayerSeat;
+    player: TownSquarePlayer;
     showCharacters: boolean;
-    onClick: (e: React.MouseEvent<HTMLElement>) => void;
+    onClick: (event: React.MouseEvent<HTMLElement>) => void;
   }) => (
-    <div
-      data-testid={`player-token-${player.seat}`}
+    <button
+      data-testid={`player-token-${player.seatNumber}`}
       data-show-characters={showCharacters}
       onClick={onClick}
     >
-      {player.playerName}
-    </div>
+      {player.name}
+    </button>
   ),
   SIZE_MAP: {
     large: { width: 80, height: 120, icon: 56, nameFont: '0.91rem', metaFont: '0.78rem' },
@@ -36,30 +33,32 @@ vi.mock('@/components/TownSquare/PlayerToken.tsx', () => ({
 
 vi.mock('@/components/TownSquare/TownSquareLayout.tsx', () => ({
   TownSquareLayout: ({
-    players,
+    slots,
+    playersBySlotId,
     renderToken,
-    containerWidth: _containerWidth,
-    containerHeight: _containerHeight,
   }: {
-    players: PlayerSeat[];
+    slots: Slot[];
+    playersBySlotId: Map<string, TownSquarePlayer>;
     renderToken: (
-      player: PlayerSeat,
+      player: TownSquarePlayer,
       pos: { x: number; y: number; angle: number },
     ) => React.ReactNode;
-    containerWidth: number;
-    containerHeight: number;
   }) => (
     <div data-testid="town-square-layout">
-      {players.map((p) => (
-        <div key={p.seat}>{renderToken(p, { x: 100, y: 100, angle: 0 })}</div>
-      ))}
+      {slots.map((slot) =>
+        slot.kind === 'seat' && playersBySlotId.has(slot.id) ? (
+          <div key={slot.id}>
+            {renderToken(playersBySlotId.get(slot.id)!, { x: 100, y: 100, angle: 0 })}
+          </div>
+        ) : null,
+      )}
     </div>
   ),
 }));
 
 vi.mock('@/components/TownSquare/PlayerActionsModal.tsx', () => ({
-  PlayerActionsModal: ({ open, player }: { open: boolean; player: PlayerSeat | null }) =>
-    open && player ? <div data-testid="player-actions-modal">{player.playerName}</div> : null,
+  PlayerActionsModal: ({ open, player }: { open: boolean; player: TownSquarePlayer | null }) =>
+    open && player ? <div data-testid="player-actions-modal">{player.name}</div> : null,
 }));
 
 vi.mock('@/components/TownSquare/TokenManager.tsx', () => ({
@@ -68,20 +67,11 @@ vi.mock('@/components/TownSquare/TokenManager.tsx', () => ({
   TokenBadges: () => null,
 }));
 
-vi.mock('@/utils/audioAlarm.ts', () => ({
-  playAlarmBeeps: vi.fn(() => ({ stop: vi.fn() })),
-}));
-
+vi.mock('@/utils/audioAlarm.ts', () => ({ playAlarmBeeps: vi.fn(() => ({ stop: vi.fn() })) }));
 vi.mock('@/utils/buildAvailableTokens.ts', () => ({
-  buildAvailableTokens: vi.fn(() => [
-    { id: 'basic-poisoned', text: 'Poisoned' },
-    { id: 'basic-drunk', text: 'Drunk' },
-  ]),
+  buildAvailableTokens: vi.fn(() => [{ id: 'basic-poisoned', text: 'Poisoned' }]),
 }));
-
-// ──────────────────────────────────────────────
-// Mock ResizeObserver
-// ──────────────────────────────────────────────
+vi.mock('@mui/material/useMediaQuery', () => ({ default: () => false }));
 
 const mockResizeObserver = vi.fn().mockImplementation(function MockResizeObserver(
   this: {
@@ -92,7 +82,6 @@ const mockResizeObserver = vi.fn().mockImplementation(function MockResizeObserve
   callback: ResizeObserverCallback,
 ) {
   this.observe = vi.fn((element: Element) => {
-    // Immediately call with fake dimensions
     callback(
       [
         {
@@ -120,52 +109,33 @@ const mockResizeObserver = vi.fn().mockImplementation(function MockResizeObserve
   this.disconnect = vi.fn();
 });
 
-// ──────────────────────────────────────────────
-// Mock data
-// ──────────────────────────────────────────────
-
-const mockPlayers: PlayerSeat[] = [
-  {
-    seat: 1,
-    playerName: 'Alice',
-    characterId: 'noble',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 2,
-    playerName: 'Bob',
-    characterId: 'imp',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 3,
-    playerName: 'Charlie',
-    characterId: 'fortuneteller',
-    alive: false,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
+const sessionPlayers: Player[] = [
+  { id: 'player-1', name: 'Alice' },
+  { id: 'player-2', name: 'Bob' },
+  { id: 'player-3', name: 'Charlie' },
 ];
-
+const slots: Slot[] = [
+  { kind: 'seat', id: 'slot-1', playerId: 'player-1' },
+  { kind: 'seat', id: 'slot-2', playerId: 'player-2' },
+  { kind: 'seat', id: 'slot-3', playerId: 'player-3' },
+];
+function makeState(characterId: string, alignment: Alignment, alive = true): PlayerGameState {
+  return {
+    characterId,
+    alive,
+    ghostVoteUsed: false,
+    visibleAlignment: Alignment.Unknown,
+    actualAlignment: alignment,
+    startingAlignment: alignment,
+    activeReminders: [],
+    tokens: [],
+  };
+}
+const playerState: Record<PlayerId, PlayerGameState> = {
+  'player-1': makeState('noble', Alignment.Good),
+  'player-2': makeState('imp', Alignment.Evil),
+  'player-3': makeState('fortuneteller', Alignment.Good, false),
+};
 const mockGame: Game = {
   id: 'game-1',
   sessionId: 'session-1',
@@ -173,57 +143,122 @@ const mockGame: Game = {
   currentDay: 1,
   currentPhase: Phase.Day,
   isFirstNight: false,
-  players: mockPlayers,
+  slots,
+  participants: sessionPlayers.map((player) => ({ playerId: player.id, isTraveller: false })),
+  playerState,
+  playerCountOverride: null,
   nightHistory: [],
 };
 
-// ──────────────────────────────────────────────
-// Helper
-// ──────────────────────────────────────────────
+let currentGame: Game | null = mockGame;
+let showCharacters = false;
+const updatePlayerState = vi.fn();
+const removeParticipant = vi.fn();
+const addToken = vi.fn();
+const removeToken = vi.fn();
+const assignGameSeat = vi.fn();
+const setPlayerBluffs = vi.fn();
 
-function renderWithGameContext(ui: React.ReactElement, _game: Game = mockGame) {
-  return render(
-    <GameProvider>
-      {/* We need to load the game into context — done via preloading localStorage */}
-      {ui}
-    </GameProvider>,
-  );
-}
+vi.mock('@/context/useGame.ts', () => ({
+  useGame: () => ({
+    state: { game: currentGame, showCharacters, nightProgress: null },
+    updatePlayerState,
+    removeParticipant,
+    addToken,
+    removeToken,
+    assignGameSeat,
+    setPlayerBluffs,
+  }),
+}));
 
-// ──────────────────────────────────────────────
-// Tests
-// ──────────────────────────────────────────────
+vi.mock('@/context/useSession.ts', () => ({
+  useSession: () => ({
+    state: {
+      sessions: [
+        {
+          id: 'session-1',
+          name: 'Test Session',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          defaultScriptId: 'boozling',
+          players: sessionPlayers,
+          template: { slots },
+          propagationDefault: { toTemplate: true, toOtherGames: true },
+          gameIds: ['game-1'],
+        },
+      ],
+      activeSessionId: 'session-1',
+      activeGameId: 'game-1',
+    },
+  }),
+}));
+
+vi.mock('@/hooks/useCharacterLookup.ts', () => ({
+  useCharacterLookup: () => ({
+    getCharacter: (id: string) => ({
+      id,
+      name: id,
+      type: id === 'imp' ? 'Demon' : 'Townsfolk',
+      defaultAlignment: id === 'imp' ? 'Evil' : 'Good',
+      abilityShort: 'Test ability.',
+      firstNight: null,
+      otherNights: null,
+      reminders: [],
+    }),
+    getCharactersByIds: (ids: string[]) =>
+      ids.map((id) => ({
+        id,
+        name: id,
+        type: id === 'imp' ? 'Demon' : 'Townsfolk',
+        defaultAlignment: id === 'imp' ? 'Evil' : 'Good',
+        abilityShort: 'Test ability.',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      })),
+    allCharacters: [],
+  }),
+}));
 
 describe('TownSquareTab', () => {
   beforeEach(() => {
     vi.stubGlobal('ResizeObserver', mockResizeObserver);
-    // Preload game into localStorage
-    localStorage.setItem(`storyteller-game-${mockGame.id}`, JSON.stringify(mockGame));
+    vi.clearAllMocks();
+    currentGame = mockGame;
+    showCharacters = false;
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
-    localStorage.clear();
   });
 
   it('renders without crashing', () => {
-    const { container } = renderWithGameContext(
+    const { container } = render(
       <TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />,
     );
     expect(container).toBeTruthy();
   });
 
   it('renders with no players when game is null', () => {
-    const { container } = render(
-      <GameProvider>
-        <TownSquareTab scriptCharacterIds={[]} />
-      </GameProvider>,
-    );
+    currentGame = null;
+    const { container } = render(<TownSquareTab scriptCharacterIds={[]} />);
     expect(container).toBeTruthy();
   });
 
   it('has layout toggle button', () => {
-    renderWithGameContext(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    render(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     expect(screen.getByLabelText('toggle token layout')).toBeInTheDocument();
+  });
+
+  it('renders player tokens from Session.players plus Game.slots/playerState', () => {
+    render(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    expect(screen.getByTestId('player-token-1')).toHaveTextContent('Alice');
+    expect(screen.getByTestId('player-token-2')).toHaveTextContent('Bob');
+    expect(screen.getByTestId('player-token-3')).toHaveTextContent('Charlie');
+  });
+
+  it('opens player actions for a clicked token', () => {
+    render(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
+    fireEvent.click(screen.getByTestId('player-token-1'));
+    expect(screen.getByTestId('player-actions-modal')).toHaveTextContent('Alice');
   });
 });

@@ -113,6 +113,7 @@ export function NightOrderEntry({ entry, character, assignedPlayer }: NightOrder
           {assignedPlayer && (
             <Typography
               variant="caption"
+              data-testid="assigned-player"
               sx={{
                 bgcolor: 'grey.100',
                 px: 0.75,

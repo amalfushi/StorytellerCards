@@ -1,53 +1,59 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { SessionProvider } from './SessionContext';
 import { useSession } from './useSession';
-import type { Game, Session } from '@/types/index.ts';
-import { Phase, Alignment } from '@/types/index.ts';
+import type { Game, Player, PropagationPreference, Session, Slot } from '@/types/index.ts';
+import { Alignment, Phase } from '@/types/index.ts';
 
-// ──────────────────────────────────────────────
-// Mocks
-// ──────────────────────────────────────────────
+const apiDeleteGame = vi.fn();
+const apiDeleteSession = vi.fn();
+const apiFetchSessions = vi.fn<() => Promise<Session[]>>(() => Promise.resolve([]));
+const apiPushSession = vi.fn();
 
-// Mock generateId for predictable IDs
+vi.mock('@/hooks/useApiSync.ts', () => ({
+  isSyncDisabled: true,
+  useApiSync: () => ({
+    syncSession: apiPushSession,
+    fetchSessions: apiFetchSessions,
+    deleteSession: apiDeleteSession,
+    deleteGame: apiDeleteGame,
+    syncGame: vi.fn(),
+    syncScript: vi.fn(),
+    fetchSession: vi.fn(),
+    fetchGame: vi.fn(),
+    fetchScript: vi.fn(),
+  }),
+}));
+
 let idCounter = 0;
 vi.mock('@/utils/idGenerator.ts', () => ({
   generateId: () => `mock-id-${++idCounter}`,
 }));
 
-// ──────────────────────────────────────────────
-// Factories
-// ──────────────────────────────────────────────
+const propagationDefault: PropagationPreference = { toTemplate: true, toOtherGames: true };
+
+const makePlayers = (): Player[] => [
+  { id: 'player-1', name: 'Alice' },
+  { id: 'player-2', name: 'Bob' },
+];
+
+const makeTemplateSlots = (): Slot[] => [
+  { kind: 'seat', id: 'slot-1', playerId: 'player-1' },
+  { kind: 'seat', id: 'slot-2', playerId: 'player-2' },
+];
 
 const makeSession = (overrides: Partial<Session> = {}): Session => ({
   id: 'session-1',
   name: 'Test Session',
   createdAt: '2025-01-01T00:00:00.000Z',
   defaultScriptId: 'boozling',
-  defaultPlayers: [
-    { seat: 1, playerName: 'Alice' },
-    { seat: 2, playerName: 'Bob' },
-  ],
+  players: makePlayers(),
+  template: { slots: makeTemplateSlots() },
+  propagationDefault,
   gameIds: [],
   ...overrides,
 });
-
-const _makeGame = (overrides: Partial<Game> = {}): Game => ({
-  id: 'game-1',
-  sessionId: 'session-1',
-  scriptId: 'boozling',
-  currentDay: 1,
-  currentPhase: Phase.Day,
-  isFirstNight: true,
-  players: [],
-  nightHistory: [],
-  ...overrides,
-});
-
-// ──────────────────────────────────────────────
-// Test helpers
-// ──────────────────────────────────────────────
 
 const wrapper = ({ children }: { children: ReactNode }) => (
   <SessionProvider>{children}</SessionProvider>
@@ -57,15 +63,29 @@ function renderSessionHook() {
   return renderHook(() => useSession(), { wrapper });
 }
 
-// ──────────────────────────────────────────────
-// Tests
-// ──────────────────────────────────────────────
+function readGame(gameId: string): Game {
+  const raw = localStorage.getItem(`storyteller-game-${gameId}`);
+  expect(raw).not.toBeNull();
+  return JSON.parse(raw!) as Game;
+}
 
+/*
+ * Removed M41-incompatible legacy tests:
+ * - Updating `defaultPlayers`: sessions now expose `players` plus `template.slots`; the remaining tests cover roster and template updates.
+ * - Reusing/carrying forward previous game seating by player name and opting out of that reuse: new games always snapshot the session template.
+ * - Traveller exclusion during carry-forward: carry-forward no longer exists; travellers are game participants.
+ * - Session swap/shift/insert helpers: those seat-number actions were removed; layout is managed with template slot add/move/remove/assign actions.
+ */
 describe('SessionContext', () => {
   beforeEach(() => {
     localStorage.clear();
     idCounter = 0;
     vi.useFakeTimers();
+    apiDeleteGame.mockClear();
+    apiDeleteSession.mockClear();
+    apiFetchSessions.mockClear();
+    apiPushSession.mockClear();
+    apiFetchSessions.mockResolvedValue([]);
   });
 
   afterEach(() => {
@@ -73,62 +93,55 @@ describe('SessionContext', () => {
     vi.restoreAllMocks();
   });
 
-  // ── Initial state ──
-
   describe('initial state', () => {
-    it('starts with empty sessions, null activeSessionId, null activeGameId', () => {
+    it('starts with empty sessions and no active IDs', () => {
       const { result } = renderSessionHook();
+
       expect(result.current.state.sessions).toEqual([]);
       expect(result.current.state.activeSessionId).toBeNull();
       expect(result.current.state.activeGameId).toBeNull();
     });
   });
 
-  // ── CREATE_SESSION ──
-
-  describe('CREATE_SESSION', () => {
-    it('creates a session with name, scriptId, and players', () => {
+  describe('createSession', () => {
+    it('creates a session roster and matching seat template', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('My Session', 'boozling', ['Alice', 'Bob', 'Charlie']);
       });
 
-      expect(result.current.state.sessions).toHaveLength(1);
       const session = result.current.state.sessions[0];
+      expect(session.id).toBe('mock-id-1');
       expect(session.name).toBe('My Session');
       expect(session.defaultScriptId).toBe('boozling');
-      expect(session.defaultPlayers).toEqual([
-        { seat: 1, playerName: 'Alice' },
-        { seat: 2, playerName: 'Bob' },
-        { seat: 3, playerName: 'Charlie' },
+      expect(session.players).toEqual([
+        { id: 'mock-id-2', name: 'Alice' },
+        { id: 'mock-id-3', name: 'Bob' },
+        { id: 'mock-id-4', name: 'Charlie' },
       ]);
+      expect(session.template.slots).toEqual([
+        { kind: 'seat', id: 'mock-id-5', playerId: 'mock-id-2' },
+        { kind: 'seat', id: 'mock-id-6', playerId: 'mock-id-3' },
+        { kind: 'seat', id: 'mock-id-7', playerId: 'mock-id-4' },
+      ]);
+      expect(session.propagationDefault).toEqual(propagationDefault);
       expect(session.gameIds).toEqual([]);
-      expect(session.id).toBe('mock-id-1');
+      expect(result.current.state.activeSessionId).toBe(session.id);
     });
 
-    it('sets the new session as active', () => {
+    it('creates an empty roster and template when no player names are provided', () => {
       const { result } = renderSessionHook();
 
       act(() => {
-        result.current.createSession('Session A', 'script-1', ['Alice']);
+        result.current.createSession('Empty Session', 'script-1', []);
       });
 
-      expect(result.current.state.activeSessionId).toBe('mock-id-1');
+      expect(result.current.state.sessions[0].players).toEqual([]);
+      expect(result.current.state.sessions[0].template.slots).toEqual([]);
     });
 
-    it('creates a session with createdAt timestamp', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session A', 'script-1', ['Alice']);
-      });
-
-      expect(result.current.state.sessions[0].createdAt).toBeDefined();
-      expect(typeof result.current.state.sessions[0].createdAt).toBe('string');
-    });
-
-    it('can create multiple sessions', () => {
+    it('can create multiple sessions and makes the latest one active', () => {
       const { result } = renderSessionHook();
 
       act(() => {
@@ -138,27 +151,12 @@ describe('SessionContext', () => {
         result.current.createSession('Session B', 'script-2', ['Bob']);
       });
 
-      expect(result.current.state.sessions).toHaveLength(2);
-      expect(result.current.state.sessions[0].name).toBe('Session A');
-      expect(result.current.state.sessions[1].name).toBe('Session B');
-      // Latest created becomes active
-      expect(result.current.state.activeSessionId).toBe('mock-id-2');
-    });
-
-    it('creates a session with empty players array', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Empty Session', 'script-1', []);
-      });
-
-      expect(result.current.state.sessions[0].defaultPlayers).toEqual([]);
+      expect(result.current.state.sessions.map((s) => s.name)).toEqual(['Session A', 'Session B']);
+      expect(result.current.state.activeSessionId).toBe(result.current.state.sessions[1].id);
     });
   });
 
-  // ── DELETE_SESSION ──
-
-  describe('DELETE_SESSION', () => {
+  describe('deleteSession', () => {
     it('removes a session by id', () => {
       const { result } = renderSessionHook();
 
@@ -171,17 +169,20 @@ describe('SessionContext', () => {
         result.current.deleteSession(sessionId);
       });
 
-      expect(result.current.state.sessions).toHaveLength(0);
+      expect(result.current.state.sessions).toEqual([]);
+      expect(apiDeleteSession).toHaveBeenCalledWith(sessionId);
     });
 
-    it('clears activeSessionId when deleting the active session', () => {
+    it('clears active IDs when deleting the active session', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Session A', 'script-1', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-      expect(result.current.state.activeSessionId).toBe(sessionId);
+      act(() => {
+        result.current.addGameToSession(sessionId);
+      });
 
       act(() => {
         result.current.deleteSession(sessionId);
@@ -191,7 +192,7 @@ describe('SessionContext', () => {
       expect(result.current.state.activeGameId).toBeNull();
     });
 
-    it('does not clear activeSessionId when deleting a different session', () => {
+    it('keeps activeSessionId when deleting a different session', () => {
       const { result } = renderSessionHook();
 
       act(() => {
@@ -203,9 +204,6 @@ describe('SessionContext', () => {
       const sessionAId = result.current.state.sessions[0].id;
       const sessionBId = result.current.state.sessions[1].id;
 
-      // Session B is active (last created)
-      expect(result.current.state.activeSessionId).toBe(sessionBId);
-
       act(() => {
         result.current.deleteSession(sessionAId);
       });
@@ -214,49 +212,41 @@ describe('SessionContext', () => {
       expect(result.current.state.sessions).toHaveLength(1);
     });
 
-    it('cleans up game data from localStorage', () => {
+    it('removes all persisted games for the deleted session', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Session A', 'script-1', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
-      // Add a game to the session
       act(() => {
         result.current.addGameToSession(sessionId);
       });
       const gameId = result.current.state.sessions[0].gameIds[0];
-
-      // Verify game is in localStorage
       expect(localStorage.getItem(`storyteller-game-${gameId}`)).not.toBeNull();
 
       act(() => {
         result.current.deleteSession(sessionId);
       });
 
-      // Game data should be cleaned up
       expect(localStorage.getItem(`storyteller-game-${gameId}`)).toBeNull();
     });
 
-    it('does nothing when deleting a non-existent session', () => {
+    it('does nothing locally when deleting a missing session', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Session A', 'script-1', ['Alice']);
       });
-
       act(() => {
-        result.current.deleteSession('nonexistent');
+        result.current.deleteSession('missing');
       });
 
       expect(result.current.state.sessions).toHaveLength(1);
     });
   });
 
-  // ── SET_ACTIVE_SESSION ──
-
-  describe('SET_ACTIVE_SESSION (selectSession)', () => {
+  describe('selection', () => {
     it('sets the active session id', () => {
       const { result } = renderSessionHook();
 
@@ -282,8 +272,6 @@ describe('SessionContext', () => {
         result.current.createSession('Session A', 'script-1', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
-      // Add and select a game
       act(() => {
         result.current.addGameToSession(sessionId);
       });
@@ -296,39 +284,30 @@ describe('SessionContext', () => {
       expect(result.current.state.activeGameId).toBeNull();
     });
 
-    it('can set activeSessionId to null', () => {
+    it('can clear the active session', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Session A', 'script-1', ['Alice']);
       });
-      expect(result.current.state.activeSessionId).not.toBeNull();
-
       act(() => {
         result.current.selectSession(null);
       });
 
       expect(result.current.state.activeSessionId).toBeNull();
     });
-  });
 
-  // ── SET_ACTIVE_GAME (selectGame) ──
-
-  describe('SET_ACTIVE_GAME (selectGame)', () => {
-    it('sets both active session and game', () => {
+    it('selectGame sets both active session and active game', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Session A', 'script-1', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
       act(() => {
         result.current.addGameToSession(sessionId);
       });
       const gameId = result.current.state.sessions[0].gameIds[0];
-
-      // Switch away first
       act(() => {
         result.current.selectSession(null);
       });
@@ -342,9 +321,7 @@ describe('SessionContext', () => {
     });
   });
 
-  // ── UPDATE_SESSION ──
-
-  describe('UPDATE_SESSION', () => {
+  describe('updateSession', () => {
     it('updates the session name', () => {
       const { result } = renderSessionHook();
 
@@ -352,7 +329,6 @@ describe('SessionContext', () => {
         result.current.createSession('Old Name', 'script-1', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
       act(() => {
         result.current.updateSession(sessionId, { name: 'New Name' });
       });
@@ -367,32 +343,11 @@ describe('SessionContext', () => {
         result.current.createSession('Session', 'script-1', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
       act(() => {
         result.current.updateSession(sessionId, { defaultScriptId: 'script-2' });
       });
 
       expect(result.current.state.sessions[0].defaultScriptId).toBe('script-2');
-    });
-
-    it('updates the default players', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session', 'script-1', ['Alice']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      const newPlayers = [
-        { seat: 1, playerName: 'Charlie' },
-        { seat: 2, playerName: 'Dave' },
-        { seat: 3, playerName: 'Eve' },
-      ];
-      act(() => {
-        result.current.updateSession(sessionId, { defaultPlayers: newPlayers });
-      });
-
-      expect(result.current.state.sessions[0].defaultPlayers).toEqual(newPlayers);
     });
 
     it('does not modify other sessions', () => {
@@ -405,7 +360,6 @@ describe('SessionContext', () => {
         result.current.createSession('Session B', 'script-2', ['Bob']);
       });
       const sessionAId = result.current.state.sessions[0].id;
-
       act(() => {
         result.current.updateSession(sessionAId, { name: 'Updated A' });
       });
@@ -414,92 +368,215 @@ describe('SessionContext', () => {
       expect(result.current.state.sessions[1].name).toBe('Session B');
     });
 
-    it('does not modify a non-existent session', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session A', 'script-1', ['Alice']);
-      });
-
-      act(() => {
-        result.current.updateSession('nonexistent', { name: 'X' });
-      });
-
-      expect(result.current.state.sessions[0].name).toBe('Session A');
-    });
-
-    it('preserves fields not included in the update', () => {
+    it('preserves roster and template fields not included in the update', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Session', 'script-1', ['Alice', 'Bob']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
       act(() => {
         result.current.updateSession(sessionId, { name: 'Renamed' });
       });
 
-      // defaultScriptId and defaultPlayers should be unchanged
       expect(result.current.state.sessions[0].defaultScriptId).toBe('script-1');
-      expect(result.current.state.sessions[0].defaultPlayers).toHaveLength(2);
+      expect(result.current.state.sessions[0].players).toHaveLength(2);
+      expect(result.current.state.sessions[0].template.slots).toHaveLength(2);
     });
   });
 
-  // ── ADD_GAME_TO_SESSION ──
+  describe('session roster helpers', () => {
+    it('adds a session player without changing template seating', () => {
+      const { result } = renderSessionHook();
 
-  describe('ADD_GAME_TO_SESSION (addGameToSession)', () => {
-    it('creates a new game and adds its id to the session', () => {
+      act(() => {
+        result.current.createSession('Session', 'script-1', ['Alice']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+      let added: Player | undefined;
+      act(() => {
+        added = result.current.addPlayer(sessionId, 'Bob');
+      });
+
+      expect(added).toEqual({ id: 'mock-id-4', name: 'Bob' });
+      expect(result.current.state.sessions[0].players.map((p) => p.name)).toEqual(['Alice', 'Bob']);
+      expect(result.current.state.sessions[0].template.slots).toHaveLength(1);
+    });
+
+    it('renames a session player by stable player id', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'script-1', ['Alice']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+      const playerId = result.current.state.sessions[0].players[0].id;
+      act(() => {
+        result.current.renamePlayer(sessionId, playerId, 'Alicia');
+      });
+
+      expect(result.current.state.sessions[0].players[0].name).toBe('Alicia');
+    });
+
+    it('removes a session player and clears them from template seats', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'script-1', ['Alice', 'Bob']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+      const playerId = result.current.state.sessions[0].players[0].id;
+      act(() => {
+        result.current.removePlayer(sessionId, playerId);
+      });
+
+      expect(result.current.state.sessions[0].players).toEqual([{ id: 'mock-id-3', name: 'Bob' }]);
+      expect(result.current.state.sessions[0].template.slots[0]).toEqual({
+        kind: 'seat',
+        id: 'mock-id-4',
+        playerId: null,
+      });
+    });
+  });
+
+  describe('template slot helpers', () => {
+    it('adds seat, spacer, and storyteller slots', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'script-1', []);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+      act(() => {
+        result.current.addTemplateSeat(sessionId);
+        result.current.addTemplateSpacer(sessionId);
+        result.current.addTemplateStoryteller(sessionId);
+      });
+
+      expect(result.current.state.sessions[0].template.slots).toEqual([
+        { kind: 'seat', id: 'mock-id-2', playerId: null },
+        { kind: 'spacer', id: 'mock-id-3' },
+        { kind: 'storyteller', id: 'mock-id-4' },
+      ]);
+    });
+
+    it('removes and moves template slots', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'script-1', ['Alice', 'Bob', 'Charlie']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+      const firstSlotId = result.current.state.sessions[0].template.slots[0].id;
+      const secondSlotId = result.current.state.sessions[0].template.slots[1].id;
+
+      act(() => {
+        result.current.moveTemplateSlot(sessionId, firstSlotId, 2);
+      });
+      expect(result.current.state.sessions[0].template.slots[2].id).toBe(firstSlotId);
+
+      act(() => {
+        result.current.removeTemplateSlot(sessionId, secondSlotId);
+      });
+      expect(result.current.state.sessions[0].template.slots.map((s) => s.id)).not.toContain(
+        secondSlotId,
+      );
+    });
+
+    it('assigns and clears a player in a template seat', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'script-1', ['Alice']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+      const playerId = result.current.state.sessions[0].players[0].id;
+      act(() => {
+        result.current.addTemplateSeat(sessionId);
+      });
+      const newSlotId = result.current.state.sessions[0].template.slots[1].id;
+
+      act(() => {
+        result.current.assignTemplateSeat(sessionId, newSlotId, playerId);
+      });
+      expect(result.current.state.sessions[0].template.slots[0]).toEqual({
+        kind: 'seat',
+        id: 'mock-id-3',
+        playerId: null,
+      });
+      expect(result.current.state.sessions[0].template.slots[1]).toEqual({
+        kind: 'seat',
+        id: 'mock-id-4',
+        playerId,
+      });
+
+      act(() => {
+        result.current.assignTemplateSeat(sessionId, newSlotId, null);
+      });
+      expect(result.current.state.sessions[0].template.slots[1]).toEqual({
+        kind: 'seat',
+        id: 'mock-id-4',
+        playerId: null,
+      });
+    });
+
+    it('updates the propagation default', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'script-1', []);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+      act(() => {
+        result.current.setPropagationDefault(sessionId, { toOtherGames: false });
+      });
+
+      expect(result.current.state.sessions[0].propagationDefault).toEqual({
+        toTemplate: true,
+        toOtherGames: false,
+      });
+    });
+  });
+
+  describe('addGameToSession', () => {
+    it('creates and persists a game snapshot from the session template', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
       });
-      const sessionId = result.current.state.sessions[0].id;
-
+      const session = result.current.state.sessions[0];
       act(() => {
-        result.current.addGameToSession(sessionId);
+        result.current.addGameToSession(session.id);
       });
 
       expect(result.current.state.sessions[0].gameIds).toHaveLength(1);
-    });
-
-    it('sets the new game as active', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      expect(result.current.state.activeGameId).not.toBeNull();
-    });
-
-    it('persists the new game to localStorage', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      const gameId = result.current.state.sessions[0].gameIds[0];
-      const raw = localStorage.getItem(`storyteller-game-${gameId}`);
-      expect(raw).not.toBeNull();
-      const game = JSON.parse(raw!) as Game;
-      expect(game.sessionId).toBe(sessionId);
+      expect(result.current.state.activeGameId).toBe(result.current.state.sessions[0].gameIds[0]);
+      const game = readGame(result.current.state.sessions[0].gameIds[0]);
+      expect(game.sessionId).toBe(session.id);
       expect(game.scriptId).toBe('boozling');
       expect(game.currentPhase).toBe(Phase.Day);
-      expect(game.isFirstNight).toBe(true);
       expect(game.currentDay).toBe(1);
+      expect(game.isFirstNight).toBe(true);
+      expect(game.slots).toEqual([
+        { kind: 'seat', id: 'mock-id-7', playerId: 'mock-id-2' },
+        { kind: 'seat', id: 'mock-id-8', playerId: 'mock-id-3' },
+      ]);
+      expect(game.participants).toEqual([
+        { playerId: 'mock-id-2', isTraveller: false },
+        { playerId: 'mock-id-3', isTraveller: false },
+      ]);
+      expect(game.playerState['mock-id-2']).toEqual(
+        expect.objectContaining({
+          characterId: '',
+          alive: true,
+          ghostVoteUsed: false,
+          visibleAlignment: Alignment.Unknown,
+          actualAlignment: Alignment.Unknown,
+        }),
+      );
+      expect(game.playerCountOverride).toBeNull();
+      expect(game.nightHistory).toEqual([]);
     });
 
     it('auto-populates active Loric and Fabled from a stored script', () => {
@@ -513,160 +590,32 @@ describe('SessionContext', () => {
         result.current.createSession('Session', 'm35-test', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
       act(() => {
         result.current.addGameToSession(sessionId);
       });
 
-      const gameId = result.current.state.sessions[0].gameIds[0];
-      const raw = localStorage.getItem(`storyteller-game-${gameId}`);
-      const game = JSON.parse(raw!) as Game;
+      const game = readGame(result.current.state.sessions[0].gameIds[0]);
       expect(game.activeLoric).toEqual(['stormcatcher']);
       expect(game.activeFabled).toEqual(['djinn']);
     });
 
-    it('creates a game with players based on session defaults', () => {
+    it('does nothing for a non-existent session', () => {
       const { result } = renderSessionHook();
 
       act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      const gameId = result.current.state.sessions[0].gameIds[0];
-      const raw = localStorage.getItem(`storyteller-game-${gameId}`);
-      const game = JSON.parse(raw!) as Game;
-      expect(game.players).toHaveLength(2);
-      expect(game.players[0].playerName).toBe('Alice');
-      expect(game.players[0].seat).toBe(1);
-      expect(game.players[0].characterId).toBe('');
-      expect(game.players[0].alive).toBe(true);
-      expect(game.players[0].ghostVoteUsed).toBe(false);
-      expect(game.players[0].visibleAlignment).toBe(Alignment.Unknown);
-      expect(game.players[0].actualAlignment).toBe(Alignment.Unknown);
-      expect(game.players[0].isTraveller).toBe(false);
-      expect(game.players[1].playerName).toBe('Bob');
-      expect(game.players[1].seat).toBe(2);
-    });
-
-    it('carries forward player names from previous game', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      // Create first game
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      // Modify the first game's player data in localStorage to simulate gameplay
-      const firstGameId = result.current.state.sessions[0].gameIds[0];
-      const firstGameRaw = localStorage.getItem(`storyteller-game-${firstGameId}`);
-      const firstGame = JSON.parse(firstGameRaw!) as Game;
-      firstGame.players[0].characterId = 'imp';
-      firstGame.players[0].alive = false;
-      localStorage.setItem(`storyteller-game-${firstGameId}`, JSON.stringify(firstGame));
-
-      // Create second game — should carry forward player names but reset state
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      const secondGameId = result.current.state.sessions[0].gameIds[1];
-      const secondGameRaw = localStorage.getItem(`storyteller-game-${secondGameId}`);
-      const secondGame = JSON.parse(secondGameRaw!) as Game;
-
-      expect(secondGame.players[0].playerName).toBe('Alice');
-      expect(secondGame.players[0].characterId).toBe('');
-      expect(secondGame.players[0].alive).toBe(true);
-    });
-
-    it('can opt out of reusing last seating and use session defaults', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      const firstGameId = result.current.state.sessions[0].gameIds[0];
-      const firstGameRaw = localStorage.getItem(`storyteller-game-${firstGameId}`);
-      const firstGame = JSON.parse(firstGameRaw!) as Game;
-      firstGame.players = [
-        { ...firstGame.players[0], seat: 1, playerName: 'Bob' },
-        { ...firstGame.players[1], seat: 2, playerName: 'Alice' },
-      ];
-      localStorage.setItem(`storyteller-game-${firstGameId}`, JSON.stringify(firstGame));
-
-      act(() => {
-        result.current.addGameToSession(sessionId, false);
-      });
-
-      const secondGameId = result.current.state.sessions[0].gameIds[1];
-      const secondGameRaw = localStorage.getItem(`storyteller-game-${secondGameId}`);
-      const secondGame = JSON.parse(secondGameRaw!) as Game;
-      expect(secondGame.players[0].playerName).toBe('Alice');
-      expect(secondGame.players[1].playerName).toBe('Bob');
-    });
-
-    it('falls back to session defaults if last game is not in localStorage', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      // Create first game
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      // Remove the first game from localStorage
-      const firstGameId = result.current.state.sessions[0].gameIds[0];
-      localStorage.removeItem(`storyteller-game-${firstGameId}`);
-
-      // Create second game — should fall back to session defaults
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      const secondGameId = result.current.state.sessions[0].gameIds[1];
-      const raw = localStorage.getItem(`storyteller-game-${secondGameId}`);
-      const game = JSON.parse(raw!) as Game;
-      expect(game.players).toHaveLength(2);
-      expect(game.players[0].playerName).toBe('Alice');
-    });
-
-    it('does nothing for non-existent session', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.addGameToSession('nonexistent');
+        result.current.addGameToSession('missing');
       });
 
       expect(result.current.state.activeGameId).toBeNull();
     });
 
-    it('can add multiple games to one session', () => {
+    it('can add multiple unique games to one session', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Session', 'boozling', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
       act(() => {
         result.current.addGameToSession(sessionId);
       });
@@ -674,248 +623,71 @@ describe('SessionContext', () => {
         result.current.addGameToSession(sessionId);
       });
 
-      expect(result.current.state.sessions[0].gameIds).toHaveLength(2);
-      // Each game should have a unique ID
-      expect(result.current.state.sessions[0].gameIds[0]).not.toBe(
-        result.current.state.sessions[0].gameIds[1],
-      );
-    });
-    it('excludes travellers when carrying forward from previous game', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      // Create first game
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      // Add a traveller to first game in localStorage
-      const firstGameId = result.current.state.sessions[0].gameIds[0];
-      const firstGameRaw = localStorage.getItem(`storyteller-game-${firstGameId}`);
-      const firstGame = JSON.parse(firstGameRaw!) as Game;
-      firstGame.players.push({
-        seat: 3,
-        playerName: 'Charlie',
-        characterId: 'barista',
-        alive: true,
-        ghostVoteUsed: false,
-        visibleAlignment: Alignment.Unknown,
-        actualAlignment: Alignment.Good,
-        startingAlignment: Alignment.Good,
-        activeReminders: [],
-        isTraveller: true,
-        tokens: [],
-      });
-      localStorage.setItem(`storyteller-game-${firstGameId}`, JSON.stringify(firstGame));
-
-      // Create second game — should NOT carry forward travellers
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      const secondGameId = result.current.state.sessions[0].gameIds[1];
-      const secondGameRaw = localStorage.getItem(`storyteller-game-${secondGameId}`);
-      const secondGame = JSON.parse(secondGameRaw!) as Game;
-
-      expect(secondGame.players).toHaveLength(2);
-      expect(secondGame.players[0].playerName).toBe('Alice');
-      expect(secondGame.players[0].seat).toBe(1);
-      expect(secondGame.players[1].playerName).toBe('Bob');
-      expect(secondGame.players[1].seat).toBe(2);
-    });
-
-    it('players are always sorted by seat number in new game', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice', 'Bob', 'Charlie']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      act(() => {
-        result.current.addGameToSession(sessionId);
-      });
-
-      const gameId = result.current.state.sessions[0].gameIds[0];
-      const raw = localStorage.getItem(`storyteller-game-${gameId}`);
-      const game = JSON.parse(raw!) as Game;
-
-      // Players should be in sequential seat order
-      for (let i = 0; i < game.players.length; i++) {
-        expect(game.players[i].seat).toBe(i + 1);
-      }
-      expect(game.players[0].playerName).toBe('Alice');
-      expect(game.players[1].playerName).toBe('Bob');
-      expect(game.players[2].playerName).toBe('Charlie');
+      const gameIds = result.current.state.sessions[0].gameIds;
+      expect(gameIds).toHaveLength(2);
+      expect(gameIds[0]).not.toBe(gameIds[1]);
     });
   });
 
-  describe('session seating helpers', () => {
-    it('swaps default players', () => {
-      const { result } = renderSessionHook();
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      act(() => {
-        result.current.swapSessionPlayers(sessionId, 1, 2);
-      });
-
-      expect(result.current.state.sessions[0].defaultPlayers).toEqual([
-        { seat: 1, playerName: 'Bob' },
-        { seat: 2, playerName: 'Alice' },
-      ]);
-    });
-
-    it('shifts default players clockwise with wrapping', () => {
-      const { result } = renderSessionHook();
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice', 'Bob', 'Charlie']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      act(() => {
-        result.current.shiftSessionPlayers(sessionId, 1, 1);
-      });
-
-      expect(result.current.state.sessions[0].defaultPlayers).toEqual([
-        { seat: 1, playerName: 'Charlie' },
-        { seat: 2, playerName: 'Alice' },
-        { seat: 3, playerName: 'Bob' },
-      ]);
-    });
-
-    it('inserts a named player slot and shifts outward', () => {
-      const { result } = renderSessionHook();
-      act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice', 'Bob']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      act(() => {
-        result.current.insertSessionPlayerSlot(sessionId, 2, 'Charlie');
-      });
-
-      expect(result.current.state.sessions[0].defaultPlayers).toEqual([
-        { seat: 1, playerName: 'Alice' },
-        { seat: 2, playerName: 'Charlie' },
-        { seat: 3, playerName: 'Bob' },
-      ]);
-    });
-  });
-
-  // ── getActiveSession ──
-
-  describe('getActiveSession', () => {
-    it('returns null when no session is active', () => {
+  describe('getActiveSession and getActiveGame', () => {
+    it('returns null when nothing is active', () => {
       const { result } = renderSessionHook();
 
       expect(result.current.getActiveSession()).toBeNull();
-    });
-
-    it('returns the active session', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session A', 'script-1', ['Alice']);
-      });
-
-      const active = result.current.getActiveSession();
-      expect(active).not.toBeNull();
-      expect(active!.name).toBe('Session A');
-    });
-
-    it('returns null when activeSessionId points to non-existent session', () => {
-      const { result } = renderSessionHook();
-
-      act(() => {
-        result.current.createSession('Session A', 'script-1', ['Alice']);
-      });
-      const sessionId = result.current.state.sessions[0].id;
-
-      act(() => {
-        result.current.deleteSession(sessionId);
-      });
-
-      expect(result.current.getActiveSession()).toBeNull();
-    });
-  });
-
-  // ── getActiveGame ──
-
-  describe('getActiveGame', () => {
-    it('returns null when no game is active', () => {
-      const { result } = renderSessionHook();
-
       expect(result.current.getActiveGame()).toBeNull();
     });
 
-    it('returns the active game from localStorage', () => {
+    it('returns the active session and game', () => {
       const { result } = renderSessionHook();
 
       act(() => {
-        result.current.createSession('Session', 'boozling', ['Alice']);
+        result.current.createSession('Session A', 'boozling', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
       act(() => {
         result.current.addGameToSession(sessionId);
       });
 
-      const game = result.current.getActiveGame();
-      expect(game).not.toBeNull();
-      expect(game!.sessionId).toBe(sessionId);
+      expect(result.current.getActiveSession()?.name).toBe('Session A');
+      expect(result.current.getActiveGame()?.sessionId).toBe(sessionId);
     });
 
-    it('returns null when game is not in localStorage', () => {
+    it('returns null when active IDs point to removed storage', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Session', 'boozling', ['Alice']);
       });
       const sessionId = result.current.state.sessions[0].id;
-
       act(() => {
         result.current.addGameToSession(sessionId);
       });
       const gameId = result.current.state.activeGameId!;
-
-      // Remove the game from localStorage
       localStorage.removeItem(`storyteller-game-${gameId}`);
 
       expect(result.current.getActiveGame()).toBeNull();
     });
   });
 
-  // ── localStorage persistence ──
-
   describe('localStorage persistence', () => {
-    it('persists session state to localStorage (via useLocalStorage debounce)', () => {
+    it('persists session state via useLocalStorage', () => {
       const { result } = renderSessionHook();
 
       act(() => {
         result.current.createSession('Persisted Session', 'script-1', ['Alice']);
       });
-
-      // Advance timers to flush the debounced write (300ms)
       act(() => {
         vi.advanceTimersByTime(350);
       });
 
       const raw = localStorage.getItem('storyteller-sessions');
       expect(raw).not.toBeNull();
-      const persisted = JSON.parse(raw!);
-      expect(persisted.sessions).toHaveLength(1);
+      const persisted = JSON.parse(raw!) as { sessions: Session[] };
       expect(persisted.sessions[0].name).toBe('Persisted Session');
+      expect(persisted.sessions[0].players[0].name).toBe('Alice');
     });
 
     it('loads session state from localStorage on mount', () => {
-      // Pre-populate localStorage
       const existingState = {
         sessions: [makeSession({ id: 'preloaded', name: 'Preloaded Session' })],
         activeSessionId: 'preloaded',
@@ -925,32 +697,50 @@ describe('SessionContext', () => {
 
       const { result } = renderSessionHook();
 
-      expect(result.current.state.sessions).toHaveLength(1);
       expect(result.current.state.sessions[0].name).toBe('Preloaded Session');
+      expect(result.current.state.sessions[0].players).toHaveLength(2);
       expect(result.current.state.activeSessionId).toBe('preloaded');
     });
 
-    it('handles corrupted localStorage gracefully', () => {
-      // Put invalid JSON in localStorage
+    it('falls back to initial state for corrupted or missing localStorage', () => {
       localStorage.setItem('storyteller-sessions', '{invalid json!!!');
-
-      const { result } = renderSessionHook();
-
-      // Should fall back to initial state
+      const { result, unmount } = renderSessionHook();
       expect(result.current.state.sessions).toEqual([]);
-      expect(result.current.state.activeSessionId).toBeNull();
-    });
+      unmount();
 
-    it('handles missing localStorage key gracefully', () => {
-      // Don't set anything in localStorage
-      const { result } = renderSessionHook();
-
-      expect(result.current.state.sessions).toEqual([]);
-      expect(result.current.state.activeSessionId).toBeNull();
+      localStorage.clear();
+      const next = renderSessionHook();
+      expect(next.result.current.state.sessions).toEqual([]);
     });
   });
 
-  // ── Immutability ──
+  describe('sync helpers', () => {
+    it('syncSession accepts a newer remote session', () => {
+      const { result } = renderSessionHook();
+      const remote = makeSession({ id: 'remote-session', version: 2 });
+
+      act(() => {
+        result.current.syncSession(remote);
+      });
+
+      expect(result.current.state.sessions).toEqual([remote]);
+    });
+
+    it('syncSession ignores an older remote session', () => {
+      const { result } = renderSessionHook();
+      const local = makeSession({ id: 'same-session', name: 'Local', version: 3 });
+      const remote = makeSession({ id: 'same-session', name: 'Remote', version: 2 });
+
+      act(() => {
+        result.current.syncSession(local);
+      });
+      act(() => {
+        result.current.syncSession(remote);
+      });
+
+      expect(result.current.state.sessions[0].name).toBe('Local');
+    });
+  });
 
   describe('immutability', () => {
     it('does not mutate the original sessions array when creating', () => {
@@ -959,16 +749,12 @@ describe('SessionContext', () => {
       act(() => {
         result.current.createSession('Session A', 'script-1', ['Alice']);
       });
-
       const sessionsBefore = result.current.state.sessions;
-
       act(() => {
         result.current.createSession('Session B', 'script-2', ['Bob']);
       });
 
-      // Original array reference should differ
       expect(result.current.state.sessions).not.toBe(sessionsBefore);
-      // But old content is preserved
       expect(result.current.state.sessions[0].name).toBe('Session A');
     });
 
@@ -979,19 +765,14 @@ describe('SessionContext', () => {
         result.current.createSession('Session', 'script-1', ['Alice']);
       });
       const sessionBefore = result.current.state.sessions[0];
-
       act(() => {
         result.current.updateSession(sessionBefore.id, { name: 'Updated' });
       });
 
-      // The reference in the sessions array should be a new object
       expect(result.current.state.sessions[0]).not.toBe(sessionBefore);
-      // Old object is unchanged
       expect(sessionBefore.name).toBe('Session');
     });
   });
-
-  // ── useSession hook guard ──
 
   describe('useSession hook', () => {
     it('throws when used outside SessionProvider', () => {

@@ -2,8 +2,6 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { AddPlayerDialog } from '@/components/TownSquare/AddPlayerDialog.tsx';
 import { buildGroupedOptions } from '@/components/TownSquare/addPlayerOptions.ts';
-import type { PlayerSeat } from '@/types/index.ts';
-import { Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
 // Mock CharacterIconImage to avoid image loading
@@ -18,32 +16,12 @@ vi.mock('@/components/common/CharacterIconImage.tsx', () => ({
 // Mock data
 // ──────────────────────────────────────────────
 
-const existingPlayers: PlayerSeat[] = [
+const existingPlayers = [
   {
-    seat: 1,
-    playerName: 'Alice',
-    characterId: 'noble',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
+    seatNumber: 1,
   },
   {
-    seat: 2,
-    playerName: 'Bob',
-    characterId: 'imp',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
+    seatNumber: 2,
   },
 ];
 

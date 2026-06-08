@@ -3,7 +3,6 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary.tsx';
 import { HomePage } from '@/pages/HomePage.tsx';
 import { SessionSetupPage } from '@/pages/SessionSetupPage.tsx';
 import { GameViewPage } from '@/pages/GameViewPage.tsx';
-import { PlaygroundM40Page } from '@/pages/PlaygroundM40Page.tsx';
 
 /** Wrapper that remounts GameViewPage when gameId changes via key prop. */
 function GameViewPageWrapper() {
@@ -35,14 +34,6 @@ export function App() {
         element={
           <ErrorBoundary>
             <GameViewPageWrapper />
-          </ErrorBoundary>
-        }
-      />
-      <Route
-        path="/playground/m40"
-        element={
-          <ErrorBoundary>
-            <PlaygroundM40Page />
           </ErrorBoundary>
         }
       />

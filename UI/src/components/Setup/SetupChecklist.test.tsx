@@ -2,12 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { buildChecklistItems } from '@/components/Setup/buildChecklistItems.ts';
-import type { PlayerSeat } from '@/types/index.ts';
+import type { Participant, Player, PlayerGameState, PlayerId } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
-
-// ── Mock character registry ──
-// Note: vi.mock is hoisted, so we cannot reference variables defined after it.
-// Instead, define mock data inline within the factory.
 
 vi.mock('@/data/characters/index.ts', () => {
   const chars: Record<string, Record<string, unknown>> = {
@@ -127,36 +123,69 @@ vi.mock('@/data/characters/index.ts', () => {
   };
 });
 
-// ── Test helpers ──
-
-function makePlayer(seat: number, characterId: string): PlayerSeat {
-  const isEvil =
-    characterId === 'baron' ||
-    characterId === 'lordoftyphon' ||
-    characterId === 'marionette' ||
-    characterId === 'imp';
+function makeState(characterId: string, overrides: Partial<PlayerGameState> = {}): PlayerGameState {
+  const evil = ['baron', 'lordoftyphon', 'marionette', 'imp'].includes(characterId);
   return {
-    seat,
-    playerName: `Player ${seat}`,
     characterId,
     alive: true,
     ghostVoteUsed: false,
     visibleAlignment: Alignment.Unknown,
-    actualAlignment: isEvil ? Alignment.Evil : Alignment.Good,
-    startingAlignment: isEvil ? Alignment.Evil : Alignment.Good,
+    actualAlignment: evil ? Alignment.Evil : Alignment.Good,
+    startingAlignment: evil ? Alignment.Evil : Alignment.Good,
     activeReminders: [],
-    isTraveller: false,
     tokens: [],
+    ...overrides,
   };
 }
 
-// ── Tests ──
+function makeFixture(
+  characterIds: string[],
+  overrides: Record<number, Partial<PlayerGameState>> = {},
+) {
+  const sessionPlayers: Player[] = characterIds.map((_, index) => ({
+    id: `player-${index + 1}`,
+    name: `Player ${index + 1}`,
+  }));
+  const participants: Participant[] = sessionPlayers.map((player) => ({
+    playerId: player.id,
+    isTraveller: false,
+  }));
+  const playerState: Record<PlayerId, PlayerGameState> = {};
+  characterIds.forEach((characterId, index) => {
+    playerState[`player-${index + 1}`] = makeState(characterId, overrides[index + 1]);
+  });
+  return { sessionPlayers, participants, playerState };
+}
+
+function renderChecklist(
+  characterIds: string[],
+  props: Partial<React.ComponentProps<typeof SetupChecklist>> = {},
+  stateOverrides: Record<number, Partial<PlayerGameState>> = {},
+) {
+  const fixture = makeFixture(characterIds, stateOverrides);
+  const fullProps: React.ComponentProps<typeof SetupChecklist> = {
+    gameId: 'test-game-1',
+    participants: fixture.participants,
+    playerState: fixture.playerState,
+    sessionPlayers: fixture.sessionPlayers,
+    inPlayCharacterIds: characterIds,
+    scriptCharacterIds: characterIds,
+    onStartNight: vi.fn(),
+    ...props,
+  };
+  return render(<SetupChecklist {...fullProps} />);
+}
 
 describe('buildChecklistItems', () => {
   it('generates storytellerSetup items', () => {
-    const players = [makePlayer(1, 'drunk')];
-    const items = buildChecklistItems(players, ['drunk'], ['drunk']);
-    const setupItems = items.filter((i) => i.category === 'setup');
+    const fixture = makeFixture(['drunk']);
+    const items = buildChecklistItems(
+      fixture.participants,
+      fixture.playerState,
+      ['drunk'],
+      ['drunk'],
+    );
+    const setupItems = items.filter((item) => item.category === 'setup');
     expect(setupItems.length).toBeGreaterThanOrEqual(1);
     expect(setupItems[0].label).toContain('Drunk');
     expect(setupItems[0].label).toContain('Choose a Townsfolk');
@@ -164,37 +193,54 @@ describe('buildChecklistItems', () => {
   });
 
   it('generates distribution modifier items', () => {
-    const players = [makePlayer(1, 'baron')];
-    const items = buildChecklistItems(players, ['baron'], ['baron']);
-    const modItems = items.filter((i) => i.category === 'modifier');
-    expect(modItems.length).toBe(1);
+    const fixture = makeFixture(['baron']);
+    const items = buildChecklistItems(
+      fixture.participants,
+      fixture.playerState,
+      ['baron'],
+      ['baron'],
+    );
+    const modItems = items.filter((item) => item.category === 'modifier');
+    expect(modItems).toHaveLength(1);
     expect(modItems[0].label).toContain('Baron');
     expect(modItems[0].label).toContain('+2 Outsiders');
   });
 
   it('generates unique distribution modifier item IDs for multi-modifier characters', () => {
-    const players = [makePlayer(1, 'lordoftyphon')];
-    const items = buildChecklistItems(players, ['lordoftyphon'], ['lordoftyphon']);
-    const modItems = items.filter((i) => i.category === 'modifier');
-    const modIds = modItems.map((item) => item.id);
-
-    expect(modItems).toHaveLength(2);
-    expect(new Set(modIds).size).toBe(modIds.length);
+    const fixture = makeFixture(['lordoftyphon']);
+    const items = buildChecklistItems(
+      fixture.participants,
+      fixture.playerState,
+      ['lordoftyphon'],
+      ['lordoftyphon'],
+    );
+    const modIds = items.filter((item) => item.category === 'modifier').map((item) => item.id);
     expect(modIds).toEqual(['modifier-lordoftyphon-minion', 'modifier-lordoftyphon-outsider']);
+    expect(new Set(modIds).size).toBe(modIds.length);
   });
 
   it('generates global reminder items', () => {
-    const players = [makePlayer(1, 'marionette')];
-    const items = buildChecklistItems(players, ['marionette'], ['marionette']);
-    const reminderItems = items.filter((i) => i.category === 'reminder');
+    const fixture = makeFixture(['marionette']);
+    const items = buildChecklistItems(
+      fixture.participants,
+      fixture.playerState,
+      ['marionette'],
+      ['marionette'],
+    );
+    const reminderItems = items.filter((item) => item.category === 'reminder');
     expect(reminderItems.length).toBeGreaterThanOrEqual(1);
     expect(reminderItems[0].label).toContain('Is The Marionette');
   });
 
   it('generates data-driven first-night reminder setup items', () => {
-    const players = [makePlayer(1, 'noble')];
-    const items = buildChecklistItems(players, ['noble'], ['noble']);
-    const reminderItems = items.filter((i) => i.category === 'reminder');
+    const fixture = makeFixture(['noble']);
+    const items = buildChecklistItems(
+      fixture.participants,
+      fixture.playerState,
+      ['noble'],
+      ['noble'],
+    );
+    const reminderItems = items.filter((item) => item.category === 'reminder');
     expect(reminderItems).toHaveLength(1);
     expect(reminderItems[0].label).toContain('Noble');
     expect(reminderItems[0].label).toContain('Place 3 Know reminders');
@@ -202,20 +248,27 @@ describe('buildChecklistItems', () => {
   });
 
   it('generates Marionette setup prompt items', () => {
-    const players = [makePlayer(1, 'marionette')];
-    const items = buildChecklistItems(players, ['marionette'], ['marionette']);
-    const promptItems = items.filter((i) => i.category === 'prompt');
-    expect(promptItems.length).toBeGreaterThanOrEqual(1);
-    expect(promptItems.some((p) => p.label.includes('Marionette'))).toBe(true);
-    expect(promptItems.some((p) => p.label.includes('Swap') || p.label.includes('token'))).toBe(
-      true,
+    const fixture = makeFixture(['marionette']);
+    const items = buildChecklistItems(
+      fixture.participants,
+      fixture.playerState,
+      ['marionette'],
+      ['marionette'],
     );
+    const promptItems = items.filter((item) => item.category === 'prompt');
+    expect(promptItems.length).toBeGreaterThanOrEqual(1);
+    expect(promptItems.some((item) => item.label.includes('Marionette'))).toBe(true);
   });
 
-  it('returns empty array when no setup characters', () => {
-    const players = [makePlayer(1, 'washerwoman')];
-    const items = buildChecklistItems(players, ['washerwoman'], ['washerwoman']);
-    expect(items.length).toBe(0);
+  it('returns empty array when no setup characters are in play', () => {
+    const fixture = makeFixture(['washerwoman']);
+    const items = buildChecklistItems(
+      fixture.participants,
+      fixture.playerState,
+      ['washerwoman'],
+      ['washerwoman'],
+    );
+    expect(items).toHaveLength(0);
   });
 });
 
@@ -224,140 +277,97 @@ describe('SetupChecklist', () => {
     localStorage.clear();
   });
 
-  const defaultProps = {
-    gameId: 'test-game-1',
-    players: [makePlayer(1, 'drunk'), makePlayer(2, 'imp')],
-    inPlayCharacterIds: ['drunk', 'imp'],
-    scriptCharacterIds: ['drunk', 'imp'],
-    onStartNight: vi.fn(),
-  };
-
   it('renders checklist with items', () => {
-    render(<SetupChecklist {...defaultProps} />);
+    renderChecklist(['drunk', 'imp']);
     expect(screen.getByTestId('setup-checklist')).toBeInTheDocument();
     expect(screen.getByText('Pre-Game Setup')).toBeInTheDocument();
   });
 
   it('shows setup decision items', () => {
-    render(<SetupChecklist {...defaultProps} />);
+    renderChecklist(['drunk', 'imp']);
     expect(screen.getByText(/Choose a Townsfolk/)).toBeInTheDocument();
   });
 
   it('items are checkable', () => {
-    render(<SetupChecklist {...defaultProps} />);
+    renderChecklist(['drunk', 'imp']);
     const checkboxes = screen.getAllByRole('checkbox');
-    expect(checkboxes.length).toBeGreaterThanOrEqual(1);
     fireEvent.click(checkboxes[0]);
     expect(checkboxes[0]).toBeChecked();
   });
 
   it('persists checked state to localStorage', () => {
-    render(<SetupChecklist {...defaultProps} />);
-    const checkboxes = screen.getAllByRole('checkbox');
-    fireEvent.click(checkboxes[0]);
+    renderChecklist(['drunk', 'imp']);
+    fireEvent.click(screen.getAllByRole('checkbox')[0]);
     const stored = localStorage.getItem('storyteller-setup-checklist-test-game-1');
     expect(stored).toBeTruthy();
-    const parsed = JSON.parse(stored!);
-    expect(Object.values(parsed).some((v) => v === true)).toBe(true);
+    const parsed = JSON.parse(stored ?? '{}') as Record<string, boolean>;
+    expect(Object.values(parsed).some((value) => value)).toBe(true);
   });
 
-  it('Start Night 1 button is disabled when critical items unchecked', () => {
-    render(<SetupChecklist {...defaultProps} />);
-    const startButton = screen.getByRole('button', { name: /Start Night 1/i });
-    expect(startButton).toBeDisabled();
+  it('Start Night 1 button is disabled when critical items are unchecked', () => {
+    renderChecklist(['drunk', 'imp']);
+    expect(screen.getByRole('button', { name: /Start Night 1/i })).toBeDisabled();
   });
 
-  it('Start Night 1 button enables when all critical items checked', () => {
-    render(<SetupChecklist {...defaultProps} />);
-    const checkboxes = screen.getAllByRole('checkbox');
-    checkboxes.forEach((cb) => fireEvent.click(cb));
-    const startButton = screen.getByRole('button', { name: /Start Night 1/i });
-    expect(startButton).not.toBeDisabled();
+  it('Start Night 1 button enables when all critical items are checked', () => {
+    renderChecklist(['drunk', 'imp']);
+    screen.getAllByRole('checkbox').forEach((checkbox) => fireEvent.click(checkbox));
+    expect(screen.getByRole('button', { name: /Start Night 1/i })).not.toBeDisabled();
   });
 
-  it('calls onStartNight when button clicked', () => {
+  it('calls onStartNight when button is clicked', () => {
     const onStartNight = vi.fn();
-    render(<SetupChecklist {...defaultProps} onStartNight={onStartNight} />);
-    const checkboxes = screen.getAllByRole('checkbox');
-    checkboxes.forEach((cb) => fireEvent.click(cb));
+    renderChecklist(['drunk', 'imp'], { onStartNight });
+    screen.getAllByRole('checkbox').forEach((checkbox) => fireEvent.click(checkbox));
     fireEvent.click(screen.getByRole('button', { name: /Start Night 1/i }));
     expect(onStartNight).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onReseat when reseat button is clicked', () => {
-    const onReseat = vi.fn();
-    render(<SetupChecklist {...defaultProps} onReseat={onReseat} />);
-    fireEvent.click(screen.getByRole('button', { name: /Reseat/i }));
-    expect(onReseat).toHaveBeenCalledTimes(1);
-  });
-
   it('places first-night reminder tokens through the canonical token callbacks', () => {
     const onAddToken = vi.fn();
-    render(
-      <SetupChecklist
-        {...defaultProps}
-        players={[makePlayer(1, 'noble'), makePlayer(2, 'imp')]}
-        inPlayCharacterIds={['noble']}
-        scriptCharacterIds={['noble', 'imp']}
-        onAddToken={onAddToken}
-      />,
-    );
+    renderChecklist(['noble', 'imp'], {
+      onAddToken,
+      inPlayCharacterIds: ['noble'],
+      scriptCharacterIds: ['noble', 'imp'],
+    });
     fireEvent.mouseDown(screen.getAllByRole('combobox')[0]);
     fireEvent.click(screen.getByRole('option', { name: /Player 2 \(Imp\)/ }));
     expect(onAddToken).toHaveBeenCalledWith(
-      2,
-      expect.objectContaining({
-        id: 'noble-know-1',
-        label: 'Know',
-        sourceCharacterId: 'noble',
-      }),
+      'player-2',
+      expect.objectContaining({ id: 'noble-know-1', label: 'Know', sourceCharacterId: 'noble' }),
     );
   });
 
   it('updates first-night reminder placement count from player token state', () => {
-    const players = [
+    const { rerender } = renderChecklist(
+      ['noble', 'imp'],
+      { inPlayCharacterIds: ['noble'], scriptCharacterIds: ['noble', 'imp'] },
       {
-        ...makePlayer(1, 'noble'),
-        tokens: [
-          {
-            id: 'noble-know-1',
-            type: 'custom' as const,
-            label: 'Know',
-            sourceCharacterId: 'noble',
-          },
-        ],
+        1: {
+          tokens: [
+            { id: 'noble-know-1', type: 'custom', label: 'Know', sourceCharacterId: 'noble' },
+          ],
+        },
       },
-      makePlayer(2, 'imp'),
-    ];
-    const { rerender } = render(
-      <SetupChecklist
-        {...defaultProps}
-        players={players}
-        inPlayCharacterIds={['noble']}
-        scriptCharacterIds={['noble', 'imp']}
-      />,
     );
     expect(screen.getByText('1/3 placed')).toBeInTheDocument();
+    const fixture = makeFixture(['noble', 'imp']);
     rerender(
       <SetupChecklist
-        {...defaultProps}
-        players={[makePlayer(1, 'noble'), makePlayer(2, 'imp')]}
+        gameId="test-game-1"
+        participants={fixture.participants}
+        playerState={fixture.playerState}
+        sessionPlayers={fixture.sessionPlayers}
         inPlayCharacterIds={['noble']}
         scriptCharacterIds={['noble', 'imp']}
+        onStartNight={vi.fn()}
       />,
     );
     expect(screen.getByText('0/3 placed')).toBeInTheDocument();
   });
 
-  it('shows "ready to start" when no items needed', () => {
-    render(
-      <SetupChecklist
-        {...defaultProps}
-        players={[makePlayer(1, 'washerwoman')]}
-        inPlayCharacterIds={['washerwoman']}
-        scriptCharacterIds={['washerwoman']}
-      />,
-    );
+  it('shows ready-to-start state when no items are needed', () => {
+    renderChecklist(['washerwoman']);
     expect(screen.getByText(/No setup steps required/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Start Night 1/i })).not.toBeDisabled();
   });

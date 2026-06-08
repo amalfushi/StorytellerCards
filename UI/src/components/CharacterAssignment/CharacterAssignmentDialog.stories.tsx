@@ -1,8 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { fn } from 'storybook/test';
 import { CharacterAssignmentDialog } from './CharacterAssignmentDialog';
-import { mockCharacters, mockPlayers } from '../../stories/mockData';
-import type { PlayerSeat, CharacterDef } from '../../types';
+import {
+  mockCharacters,
+  mockPlayers,
+  storyPlayersToParticipants,
+  storyPlayersToPlayerState,
+  storyPlayersToSessionPlayers,
+  storyPlayersToSlots,
+} from '../../stories/mockData';
+import type { CharacterDef } from '../../types';
+import type { StoryPlayer } from '../../stories/mockData';
 
 /** Boozling script characters used as the assignable pool. */
 const boozlingIds = [
@@ -26,20 +34,30 @@ const scriptCharacters: CharacterDef[] = boozlingIds
   .filter((c): c is CharacterDef => c !== undefined);
 
 /** 7 non-traveller players for a standard game. */
-const sevenPlayers: PlayerSeat[] = mockPlayers.filter((p) => !p.isTraveller).slice(0, 7);
+const sevenPlayers: StoryPlayer[] = mockPlayers.filter((p) => !p.isTraveller).slice(0, 7);
 
 /** Players with some already assigned (partial state). */
-const partiallyAssigned: PlayerSeat[] = sevenPlayers.map((p, i) =>
+const partiallyAssigned: StoryPlayer[] = sevenPlayers.map((p, i) =>
   i < 3 ? p : { ...p, characterId: '' },
 );
 
 /** Empty players — no characters assigned yet. */
-const emptyPlayers: PlayerSeat[] = sevenPlayers.map((p) => ({
+const emptyPlayers: StoryPlayer[] = sevenPlayers.map((p) => ({
   ...p,
   characterId: '',
 }));
 
 const noop = () => {};
+
+function assignmentArgs(players: StoryPlayer[]) {
+  return {
+    slots: storyPlayersToSlots(players),
+    participants: storyPlayersToParticipants(players),
+    playerState: storyPlayersToPlayerState(players),
+    sessionPlayers: storyPlayersToSessionPlayers(players),
+    playerCountOverride: null,
+  };
+}
 
 const meta = {
   title: 'CharacterAssignment/CharacterAssignmentDialog',
@@ -48,7 +66,8 @@ const meta = {
     open: true,
     onClose: noop,
     onConfirm: fn(),
-    players: sevenPlayers,
+    onPlayerCountChange: fn(),
+    ...assignmentArgs(sevenPlayers),
     scriptCharacters,
   },
   parameters: {
@@ -71,7 +90,7 @@ export const AllAssigned: Story = {};
  */
 export const NoAssignments: Story = {
   args: {
-    players: emptyPlayers,
+    ...assignmentArgs(emptyPlayers),
   },
 };
 
@@ -81,7 +100,7 @@ export const NoAssignments: Story = {
  */
 export const PartiallyAssigned: Story = {
   args: {
-    players: partiallyAssigned,
+    ...assignmentArgs(partiallyAssigned),
   },
 };
 
@@ -91,7 +110,7 @@ export const PartiallyAssigned: Story = {
  */
 export const WithInPlayFilter: Story = {
   args: {
-    players: emptyPlayers,
+    ...assignmentArgs(emptyPlayers),
     inPlayCharacterIds: ['noble', 'fortuneteller', 'drunk', 'baron', 'cerenovus', 'imp', 'slayer'],
   },
 };
@@ -102,7 +121,7 @@ export const WithInPlayFilter: Story = {
  */
 export const WithMarionette: Story = {
   args: {
-    players: emptyPlayers,
+    ...assignmentArgs(emptyPlayers),
     inPlayCharacterIds: [
       'noble',
       'fortuneteller',

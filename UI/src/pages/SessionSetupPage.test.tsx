@@ -6,35 +6,48 @@ import type { Session } from '@/types/index.ts';
 // Mock data
 // ──────────────────────────────────────────────
 
-const mockSession: Session = {
-  id: 'session-1',
-  name: 'Friday Night Game',
-  createdAt: '2026-02-15T20:00:00.000Z',
-  defaultScriptId: 'boozling',
-  defaultPlayers: [
-    { seat: 1, playerName: 'Alice' },
-    { seat: 2, playerName: 'Bob' },
-    { seat: 3, playerName: 'Charlie' },
-    { seat: 4, playerName: 'Diana' },
-    { seat: 5, playerName: 'Eve' },
-  ],
-  gameIds: ['game-1', 'game-2'],
-};
+function makeSession(
+  id: string,
+  name: string,
+  playerNames: string[],
+  gameIds: string[],
+  scriptId = 'boozling',
+): Session {
+  const players = playerNames.map((playerName, index) => ({
+    id: `${id}-player-${index + 1}`,
+    name: playerName,
+  }));
+  const slots = players.map((player, index) => ({
+    kind: 'seat' as const,
+    id: `${id}-slot-${index + 1}`,
+    playerId: player.id,
+  }));
+  return {
+    id,
+    name,
+    createdAt: '2026-02-15T20:00:00.000Z',
+    defaultScriptId: scriptId,
+    players,
+    template: { slots },
+    propagationDefault: { toTemplate: true, toOtherGames: true },
+    gameIds,
+  };
+}
 
-const emptySession: Session = {
-  id: 'session-2',
-  name: 'Empty Session',
-  createdAt: '2026-02-16T14:00:00.000Z',
-  defaultScriptId: '',
-  defaultPlayers: [
-    { seat: 1, playerName: 'Player 1' },
-    { seat: 2, playerName: 'Player 2' },
-    { seat: 3, playerName: 'Player 3' },
-    { seat: 4, playerName: 'Player 4' },
-    { seat: 5, playerName: 'Player 5' },
-  ],
-  gameIds: [],
-};
+const mockSession: Session = makeSession(
+  'session-1',
+  'Friday Night Game',
+  ['Alice', 'Bob', 'Charlie', 'Diana', 'Eve'],
+  ['game-1', 'game-2'],
+);
+
+const emptySession: Session = makeSession(
+  'session-2',
+  'Empty Session',
+  ['Player 1', 'Player 2', 'Player 3', 'Player 4', 'Player 5'],
+  [],
+  '',
+);
 
 // ──────────────────────────────────────────────
 // Mocks
@@ -45,8 +58,16 @@ const mockAddGameToSession = vi.fn();
 const mockSelectGame = vi.fn();
 const mockNavigate = vi.fn();
 const mockDeleteGame = vi.fn();
-const mockShiftSessionPlayers = vi.fn();
-const mockInsertSessionPlayerSlot = vi.fn();
+const mockAddPlayer = vi.fn();
+const mockRenamePlayer = vi.fn();
+const mockRemovePlayer = vi.fn();
+const mockAddTemplateSeat = vi.fn();
+const mockAddTemplateSpacer = vi.fn();
+const mockAddTemplateStoryteller = vi.fn();
+const mockRemoveTemplateSlot = vi.fn();
+const mockMoveTemplateSlot = vi.fn();
+const mockAssignTemplateSeat = vi.fn();
+const mockSetPropagationDefault = vi.fn();
 
 let mockSessions: Session[];
 let mockSessionId: string;
@@ -60,11 +81,19 @@ vi.mock('@/context/useSession.ts', () => ({
   useSession: () => ({
     state: { sessions: mockSessions },
     updateSession: mockUpdateSession,
+    addPlayer: mockAddPlayer,
+    renamePlayer: mockRenamePlayer,
+    removePlayer: mockRemovePlayer,
+    addTemplateSeat: mockAddTemplateSeat,
+    addTemplateSpacer: mockAddTemplateSpacer,
+    addTemplateStoryteller: mockAddTemplateStoryteller,
+    removeTemplateSlot: mockRemoveTemplateSlot,
+    moveTemplateSlot: mockMoveTemplateSlot,
+    assignTemplateSeat: mockAssignTemplateSeat,
+    setPropagationDefault: mockSetPropagationDefault,
     addGameToSession: mockAddGameToSession,
     selectGame: mockSelectGame,
     deleteGame: mockDeleteGame,
-    shiftSessionPlayers: mockShiftSessionPlayers,
-    insertSessionPlayerSlot: mockInsertSessionPlayerSlot,
   }),
 }));
 
@@ -132,7 +161,7 @@ describe('SessionSetupPage', () => {
 
   it('shows Default Players section with player count', () => {
     render(<SessionSetupPage />);
-    expect(screen.getByText('Default Players (5)')).toBeInTheDocument();
+    expect(screen.getByText('Seating Template (5 seats)')).toBeInTheDocument();
   });
 
   it('shows player name inputs for all default players', () => {
@@ -144,14 +173,9 @@ describe('SessionSetupPage', () => {
     expect(screen.getByDisplayValue('Eve')).toBeInTheDocument();
   });
 
-  it('shows Add Player button', () => {
+  it('shows Add Seat button', () => {
     render(<SessionSetupPage />);
-    expect(screen.getByRole('button', { name: /add player/i })).toBeInTheDocument();
-  });
-
-  it('shows Shift / Insert button', () => {
-    render(<SessionSetupPage />);
-    expect(screen.getByRole('button', { name: /shift \/ insert/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add seat/i })).toBeInTheDocument();
   });
 
   it('shows Games section with New Game button', () => {
@@ -159,17 +183,10 @@ describe('SessionSetupPage', () => {
     expect(screen.getByRole('button', { name: /new game/i })).toBeInTheDocument();
   });
 
-  it('creates a game with reuse last seating enabled by default', () => {
+  it('creates a new game for the active session', () => {
     render(<SessionSetupPage />);
     fireEvent.click(screen.getByRole('button', { name: /new game/i }));
-    expect(mockAddGameToSession).toHaveBeenCalledWith('session-1', true);
-  });
-
-  it('can turn off reuse last seating before creating a game', () => {
-    render(<SessionSetupPage />);
-    fireEvent.click(screen.getByRole('switch', { name: /reuse last seating/i }));
-    fireEvent.click(screen.getByRole('button', { name: /new game/i }));
-    expect(mockAddGameToSession).toHaveBeenCalledWith('session-1', false);
+    expect(mockAddGameToSession).toHaveBeenCalledWith('session-1');
   });
 
   it('shows game count in Games section heading', () => {
@@ -203,29 +220,29 @@ describe('SessionSetupPage', () => {
 
   it('shows remove player buttons', () => {
     render(<SessionSetupPage />);
-    const removeButtons = screen.getAllByRole('button', { name: /remove player/i });
+    const removeButtons = screen.getAllByRole('button', { name: /remove seat/i });
     expect(removeButtons.length).toBe(5);
   });
 
   it('shows drag handles for each player', () => {
     render(<SessionSetupPage />);
-    const dragHandles = screen.getAllByLabelText(/reorder player/i);
+    const dragHandles = screen.getAllByLabelText(/reorder seat/i);
     expect(dragHandles).toHaveLength(5);
   });
 
   it('renders drag handle before each player name input', () => {
     render(<SessionSetupPage />);
     // Verify the drag indicator SVG icons are present
-    const dragHandles = screen.getAllByLabelText(/reorder player/i);
-    expect(dragHandles[0]).toHaveAttribute('aria-label', 'reorder player 1');
-    expect(dragHandles[4]).toHaveAttribute('aria-label', 'reorder player 5');
+    const dragHandles = screen.getAllByLabelText(/reorder seat/i);
+    expect(dragHandles[0]).toHaveAttribute('aria-label', 'reorder Seat 1');
+    expect(dragHandles[4]).toHaveAttribute('aria-label', 'reorder Seat 5');
   });
 
-  it('disables remove player buttons when at minimum player count (5)', () => {
+  it('keeps seating slot remove buttons enabled at the minimum player count', () => {
     render(<SessionSetupPage />);
-    const removeButtons = screen.getAllByRole('button', { name: /remove player/i });
+    const removeButtons = screen.getAllByRole('button', { name: /remove seat/i });
     removeButtons.forEach((btn) => {
-      expect(btn).toBeDisabled();
+      expect(btn).toBeEnabled();
     });
   });
 });

@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { NightFlashcard } from '@/components/NightPhase/NightFlashcard.tsx';
-import type { NightOrderEntry, PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type { NightOrderEntry, CharacterDef } from '@/types/index.ts';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 import { Alignment, CharacterType } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -42,28 +43,24 @@ const mockCharacterDef: CharacterDef = {
   reminders: [],
 };
 
-const mockPlayerSeat: PlayerSeat = {
+const mockNightOrderPlayer: NightOrderPlayer = {
+  playerId: 'player-3',
   seat: 3,
   playerName: 'Charlie',
   characterId: 'fortuneteller',
   alive: true,
-  ghostVoteUsed: false,
-  visibleAlignment: Alignment.Unknown,
   actualAlignment: Alignment.Good,
-  startingAlignment: Alignment.Good,
-  activeReminders: [],
-  isTraveller: false,
   tokens: [],
 };
 
-const deadPlayerSeat: PlayerSeat = {
-  ...mockPlayerSeat,
+const deadNightOrderPlayer: NightOrderPlayer = {
+  ...mockNightOrderPlayer,
   alive: false,
 };
 
 const defaultProps = {
   entry: mockEntry,
-  playerSeat: mockPlayerSeat,
+  playerSeat: mockNightOrderPlayer,
   characterDef: mockCharacterDef,
   checkedStates: [false, false, false],
   notes: '',
@@ -120,7 +117,7 @@ describe('NightFlashcard', () => {
   });
 
   it('shows ghost badge when player is dead', () => {
-    render(<NightFlashcard {...defaultProps} isDead playerSeat={deadPlayerSeat} />);
+    render(<NightFlashcard {...defaultProps} isDead playerSeat={deadNightOrderPlayer} />);
     expect(screen.getByText('👻')).toBeInTheDocument();
   });
 
@@ -230,7 +227,7 @@ describe('NightFlashcard', () => {
         {...defaultProps}
         characterDef={charWithChoices}
         onSelectionChange={vi.fn()}
-        players={[mockPlayerSeat]}
+        players={[mockNightOrderPlayer]}
       />,
     );
     const matches = screen.getAllByText('Choose 2 players');
@@ -255,8 +252,8 @@ describe('NightFlashcard', () => {
         { id: 'ft-red-herring', text: 'Red Herring', sourceCharacterId: 'fortuneteller' },
       ],
     };
-    const playerWithReminder: PlayerSeat = {
-      ...mockPlayerSeat,
+    const playerWithReminder: NightOrderPlayer = {
+      ...mockNightOrderPlayer,
       seat: 1,
       playerName: 'Alice',
       characterId: 'noble',
@@ -274,7 +271,7 @@ describe('NightFlashcard', () => {
         ? {
             id: 'noble',
             name: 'Noble',
-            type: CharacterType.Townsfolk as const,
+            type: CharacterType.Townsfolk,
             defaultAlignment: Alignment.Good,
             abilityShort: '',
             firstNight: null,
@@ -364,8 +361,8 @@ describe('NightFlashcard', () => {
         { id: 'noble-know-3', text: 'Know', sourceCharacterId: 'noble' },
       ],
     };
-    const aliceWithNobleToken: PlayerSeat = {
-      ...mockPlayerSeat,
+    const aliceWithNobleToken: NightOrderPlayer = {
+      ...mockNightOrderPlayer,
       seat: 1,
       playerName: 'Alice',
       characterId: 'washerwoman',
@@ -428,8 +425,8 @@ describe('NightFlashcard', () => {
 
   // Phase 4: Affecting tokens displayed next to icon
   it('shows affecting tokens (from other characters) next to the icon', () => {
-    const playerWithTokens: PlayerSeat = {
-      ...mockPlayerSeat,
+    const playerWithTokens: NightOrderPlayer = {
+      ...mockNightOrderPlayer,
       tokens: [{ id: 'drunk-1', type: 'drunk', label: 'Drunk', sourceCharacterId: 'poisoner' }],
     };
     render(<NightFlashcard {...defaultProps} playerSeat={playerWithTokens} />);
@@ -437,8 +434,8 @@ describe('NightFlashcard', () => {
   });
 
   it('does not show affecting tokens when token is from same character', () => {
-    const playerWithSelfToken: PlayerSeat = {
-      ...mockPlayerSeat,
+    const playerWithSelfToken: NightOrderPlayer = {
+      ...mockNightOrderPlayer,
       tokens: [
         { id: 'ft-own', type: 'custom', label: 'Own Token', sourceCharacterId: 'fortuneteller' },
       ],
@@ -491,8 +488,8 @@ describe('NightFlashcard', () => {
         characterDef={charWithChoices}
         checkedStates={[false, false]}
         players={[
-          { ...mockPlayerSeat, playerName: 'Alice' },
-          { ...mockPlayerSeat, seat: 4, playerName: 'Bob' },
+          { ...mockNightOrderPlayer, playerName: 'Alice' },
+          { ...mockNightOrderPlayer, seat: 4, playerName: 'Bob' },
         ]}
         selectionValue={['Alice', 'Bob']}
         onSelectionChange={onSelectionChange}

@@ -17,7 +17,7 @@ const makeChar = (overrides: Partial<CharacterDef> = {}): CharacterDef => ({
 
 const makeMessage = (overrides: Partial<ShowToPlayerMessage> = {}): ShowToPlayerMessage => ({
   id: 'message-1',
-  seat: 1,
+  playerId: 'player-1',
   text: 'Open your eyes',
   createdAt: '2026-06-01T00:00:00.000Z',
   ...overrides,
@@ -45,7 +45,8 @@ describe('PlayerShowDrawer', () => {
       <PlayerShowDrawer
         open
         onClose={vi.fn()}
-        seat={1}
+        playerId="player-1"
+        displaySeat={1}
         messages={[makeMessage(), makeMessage({ id: 'message-2', text: 'Go to the basement' })]}
       />,
     );
@@ -56,14 +57,22 @@ describe('PlayerShowDrawer', () => {
 
   it('creates a new message from the compose box', () => {
     const onAddMessage = vi.fn();
-    render(<PlayerShowDrawer open onClose={vi.fn()} seat={1} onAddMessage={onAddMessage} />);
+    render(
+      <PlayerShowDrawer
+        open
+        onClose={vi.fn()}
+        playerId="player-1"
+        displaySeat={1}
+        onAddMessage={onAddMessage}
+      />,
+    );
 
     fireEvent.change(screen.getByTestId('show-message-compose').querySelector('textarea')!, {
       target: { value: 'Quietly stand up' },
     });
     fireEvent.click(screen.getByTestId('add-show-message-btn'));
 
-    expect(onAddMessage).toHaveBeenCalledWith(1, 'Quietly stand up');
+    expect(onAddMessage).toHaveBeenCalledWith('player-1', 'Quietly stand up');
   });
 
   it('pins an active message as a template', () => {
@@ -72,7 +81,8 @@ describe('PlayerShowDrawer', () => {
       <PlayerShowDrawer
         open
         onClose={vi.fn()}
-        seat={1}
+        playerId="player-1"
+        displaySeat={1}
         scriptId="carousel"
         messages={[makeMessage({ text: 'Go to the basement' })]}
         onPinTemplate={onPinTemplate}
@@ -91,7 +101,8 @@ describe('PlayerShowDrawer', () => {
       <PlayerShowDrawer
         open
         onClose={vi.fn()}
-        seat={1}
+        playerId="player-1"
+        displaySeat={1}
         scriptId="carousel"
         templates={[makeTemplate()]}
         onAddMessage={onAddMessage}
@@ -101,7 +112,11 @@ describe('PlayerShowDrawer', () => {
 
     fireEvent.click(screen.getAllByText('Choose a player by pointing')[0]);
 
-    expect(onAddMessage).toHaveBeenCalledWith(1, 'Choose a player by pointing', 'template-1');
+    expect(onAddMessage).toHaveBeenCalledWith(
+      'player-1',
+      'Choose a player by pointing',
+      'template-1',
+    );
     expect(onBumpTemplateUsage).toHaveBeenCalledWith('template-1');
     expect(screen.getByTestId('player-show-screen')).toBeInTheDocument();
   });
@@ -111,7 +126,8 @@ describe('PlayerShowDrawer', () => {
       <PlayerShowDrawer
         open
         onClose={vi.fn()}
-        seat={1}
+        playerId="player-1"
+        displaySeat={1}
         bluffCharacters={bluffCharacters}
         bluffLabel="Demon Bluffs"
       />,
@@ -127,7 +143,8 @@ describe('PlayerShowDrawer', () => {
       <PlayerShowDrawer
         open
         onClose={vi.fn()}
-        seat={1}
+        playerId="player-1"
+        displaySeat={1}
         characterDef={makeChar({ oncePerGame: true })}
       />,
     );
@@ -145,7 +162,8 @@ describe('PlayerShowDrawer', () => {
       <PlayerShowDrawer
         open
         onClose={vi.fn()}
-        seat={1}
+        playerId="player-1"
+        displaySeat={1}
         messages={[
           makeMessage({
             id: 'shown-message',
@@ -157,6 +175,6 @@ describe('PlayerShowDrawer', () => {
       />,
     );
 
-    expect(onAddMessage).toHaveBeenCalledWith(1, 'Previously shown', undefined);
+    expect(onAddMessage).toHaveBeenCalledWith('player-1', 'Previously shown', undefined);
   });
 });

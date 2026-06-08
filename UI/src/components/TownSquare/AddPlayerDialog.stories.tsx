@@ -30,7 +30,9 @@ export const Open: Story = {
 /** Dialog with existing players — auto-suggests the next available seat number. */
 export const WithSeatsAvailable: Story = {
   args: {
-    existingPlayers: mockPlayers,
+    existingPlayers: mockPlayers.map((player) => ({
+      seatNumber: player.seatNumber ?? player.seat,
+    })),
   },
 };
 

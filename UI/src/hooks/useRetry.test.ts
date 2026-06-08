@@ -43,7 +43,7 @@ describe('useRetry', () => {
 
     let value: string | null = null;
     const promise = act(async () => {
-      const executePromise = result.current.execute(fn);
+      const executePromise = result.current.execute<string>(fn);
 
       // First retry: 100ms delay
       await vi.advanceTimersByTimeAsync(150);

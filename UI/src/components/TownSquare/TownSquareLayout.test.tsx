@@ -2,19 +2,27 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TownSquareLayout } from '@/components/TownSquare/TownSquareLayout.tsx';
 import type { TokenPosition, CornerCharacter } from '@/components/TownSquare/TownSquareLayout.tsx';
-import type { PlayerSeat } from '@/types/index.ts';
+import type { Slot } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 
-// ──────────────────────────────────────────────
-// Helper: generate N mock players
-// ──────────────────────────────────────────────
-
-function makePlayers(count: number): PlayerSeat[] {
-  return Array.from(
-    { length: count },
-    (_, i): PlayerSeat => ({
-      seat: i + 1,
-      playerName: `Player ${i + 1}`,
+function makeLayoutFixture(count: number): {
+  slots: Slot[];
+  playersBySlotId: Map<string, TownSquarePlayer>;
+} {
+  const slots: Slot[] = Array.from({ length: count }, (_, index) => ({
+    kind: 'seat',
+    id: `slot-${index + 1}`,
+    playerId: `player-${index + 1}`,
+  }));
+  const playersBySlotId = new Map<string, TownSquarePlayer>();
+  slots.forEach((slot, index) => {
+    if (slot.kind !== 'seat' || !slot.playerId) return;
+    playersBySlotId.set(slot.id, {
+      playerId: slot.playerId,
+      slotId: slot.id,
+      seatNumber: index + 1,
+      name: `Player ${index + 1}`,
       characterId: 'noble',
       alive: true,
       ghostVoteUsed: false,
@@ -24,166 +32,93 @@ function makePlayers(count: number): PlayerSeat[] {
       activeReminders: [],
       isTraveller: false,
       tokens: [],
-    }),
-  );
+    });
+  });
+  return { slots, playersBySlotId };
 }
 
-// ──────────────────────────────────────────────
-// Tests
-// ──────────────────────────────────────────────
-
-describe('TownSquareLayout', () => {
-  const renderToken = vi.fn((player: PlayerSeat, _position: TokenPosition) => (
-    <div data-testid={`token-${player.seat}`}>{player.playerName}</div>
-  ));
-
-  it('renders without crashing', () => {
-    const { container } = render(
+function renderLayout(
+  count: number,
+  overrides: Partial<React.ComponentProps<typeof TownSquareLayout>> = {},
+) {
+  const fixture = makeLayoutFixture(count);
+  const renderToken =
+    overrides.renderToken ??
+    vi.fn((player: TownSquarePlayer, _position: TokenPosition) => (
+      <div data-testid={`token-${player.seatNumber}`}>{player.name}</div>
+    ));
+  return {
+    ...render(
       <TownSquareLayout
-        players={makePlayers(5)}
+        slots={fixture.slots}
+        playersBySlotId={fixture.playersBySlotId}
         renderToken={renderToken}
         shape="circle"
         containerWidth={400}
         containerHeight={400}
+        {...overrides}
       />,
-    );
+    ),
+    renderToken,
+    ...fixture,
+  };
+}
+
+describe('TownSquareLayout', () => {
+  it('renders without crashing', () => {
+    const { container } = renderLayout(5);
     expect(container).toBeTruthy();
   });
 
-  it('renders correct number of player tokens for 5 players', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-      />,
-    );
-    for (let i = 1; i <= 5; i++) {
+  it.each([5, 10, 15])('renders player tokens for %i occupied seats', (count) => {
+    renderLayout(count, {
+      shape: count > 10 ? 'ovoid' : 'circle',
+      containerHeight: count > 10 ? 600 : 400,
+    });
+    for (let i = 1; i <= count; i++) {
       expect(screen.getByTestId(`token-${i}`)).toBeInTheDocument();
     }
   });
 
-  it('renders correct number of player tokens for 10 players', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(10)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-      />,
-    );
-    for (let i = 1; i <= 10; i++) {
-      expect(screen.getByTestId(`token-${i}`)).toBeInTheDocument();
-    }
-  });
-
-  it('renders correct number of player tokens for 15 players', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(15)}
-        renderToken={renderToken}
-        shape="ovoid"
-        containerWidth={360}
-        containerHeight={600}
-      />,
-    );
-    for (let i = 1; i <= 15; i++) {
-      expect(screen.getByTestId(`token-${i}`)).toBeInTheDocument();
-    }
-  });
-
-  it('handles empty players array', () => {
-    render(
-      <TownSquareLayout
-        players={[]}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-      />,
-    );
-    // Should still render the container with "Town Square" label
+  it('handles an empty slot list', () => {
+    renderLayout(0);
     expect(screen.getByText('Town Square')).toBeInTheDocument();
   });
 
-  it('shows "Town Square" label in the centre', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-      />,
-    );
+  it('shows the Town Square label in the centre', () => {
+    renderLayout(5);
     expect(screen.getByText('Town Square')).toBeInTheDocument();
   });
 
-  it('renders all tokens from the renderToken callback', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-      />,
-    );
-    // Each player should produce a token element from the renderToken callback
+  it('renders all tokens returned by the renderToken callback', () => {
+    renderLayout(5);
     for (let i = 1; i <= 5; i++) {
       expect(screen.getByText(`Player ${i}`)).toBeInTheDocument();
     }
   });
 
   it('returns null when container dimensions are zero', () => {
-    const { container } = render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={0}
-        containerHeight={0}
-      />,
-    );
+    const { container } = renderLayout(5, { containerWidth: 0, containerHeight: 0 });
     expect(container.innerHTML).toBe('');
   });
 
-  it('calls renderToken for each player', () => {
-    const mockRenderToken = vi.fn((player: PlayerSeat) => (
-      <div data-testid={`token-${player.seat}`}>{player.playerName}</div>
+  it('calls renderToken for each occupied player slot', () => {
+    const mockRenderToken = vi.fn((player: TownSquarePlayer) => (
+      <div data-testid={`token-${player.seatNumber}`}>{player.name}</div>
     ));
-    render(
-      <TownSquareLayout
-        players={makePlayers(7)}
-        renderToken={mockRenderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-      />,
-    );
+    renderLayout(7, { renderToken: mockRenderToken });
     expect(mockRenderToken).toHaveBeenCalledTimes(7);
   });
 
   it('passes position data to renderToken', () => {
-    const mockRenderToken = vi.fn((_player: PlayerSeat, position: TokenPosition) => (
+    const mockRenderToken = vi.fn((_player: TownSquarePlayer, position: TokenPosition) => (
       <div data-testid="positioned-token">
         {position.x.toFixed(0)},{position.y.toFixed(0)}
       </div>
     ));
-    render(
-      <TownSquareLayout
-        players={makePlayers(1)}
-        renderToken={mockRenderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-      />,
-    );
+    renderLayout(1, { renderToken: mockRenderToken });
     expect(mockRenderToken).toHaveBeenCalledWith(
-      expect.objectContaining({ seat: 1 }),
+      expect.objectContaining({ playerId: 'player-1', seatNumber: 1 }),
       expect.objectContaining({
         x: expect.any(Number),
         y: expect.any(Number),
@@ -192,30 +127,82 @@ describe('TownSquareLayout', () => {
     );
   });
 
-  it('sorts players by seat number', () => {
-    const unsortedPlayers = [
-      { ...makePlayers(1)[0], seat: 3, playerName: 'Third' },
-      { ...makePlayers(1)[0], seat: 1, playerName: 'First' },
-      { ...makePlayers(1)[0], seat: 2, playerName: 'Second' },
+  it('uses slot order when rendering tokens', () => {
+    const slots: Slot[] = [
+      { kind: 'seat', id: 'slot-3', playerId: 'player-3' },
+      { kind: 'seat', id: 'slot-1', playerId: 'player-1' },
+      { kind: 'seat', id: 'slot-2', playerId: 'player-2' },
     ];
+    const playersBySlotId = new Map<string, TownSquarePlayer>([
+      [
+        'slot-3',
+        {
+          ...makeLayoutFixture(1).playersBySlotId.get('slot-1')!,
+          playerId: 'player-3',
+          slotId: 'slot-3',
+          seatNumber: 3,
+          name: 'Third',
+        },
+      ],
+      [
+        'slot-1',
+        {
+          ...makeLayoutFixture(1).playersBySlotId.get('slot-1')!,
+          playerId: 'player-1',
+          slotId: 'slot-1',
+          seatNumber: 1,
+          name: 'First',
+        },
+      ],
+      [
+        'slot-2',
+        {
+          ...makeLayoutFixture(1).playersBySlotId.get('slot-1')!,
+          playerId: 'player-2',
+          slotId: 'slot-2',
+          seatNumber: 2,
+          name: 'Second',
+        },
+      ],
+    ]);
     const callOrder: string[] = [];
-    const mockRenderToken = vi.fn((player: PlayerSeat) => {
-      callOrder.push(player.playerName);
-      return <div>{player.playerName}</div>;
+    const renderToken = vi.fn((player: TownSquarePlayer) => {
+      callOrder.push(player.name ?? '');
+      return <div>{player.name}</div>;
     });
     render(
       <TownSquareLayout
-        players={unsortedPlayers}
-        renderToken={mockRenderToken}
+        slots={slots}
+        playersBySlotId={playersBySlotId}
+        renderToken={renderToken}
         shape="circle"
         containerWidth={400}
         containerHeight={400}
       />,
     );
-    expect(callOrder).toEqual(['First', 'Second', 'Third']);
+    expect(callOrder).toEqual(['Third', 'First', 'Second']);
   });
 
-  // ── Corner display tests ──
+  it('renders spacer and storyteller markers while reserving layout positions', () => {
+    const slots: Slot[] = [
+      { kind: 'seat', id: 'slot-1', playerId: 'player-1' },
+      { kind: 'spacer', id: 'gap-1' },
+      { kind: 'storyteller', id: 'st-1' },
+    ];
+    const player = makeLayoutFixture(1).playersBySlotId.get('slot-1')!;
+    render(
+      <TownSquareLayout
+        slots={slots}
+        playersBySlotId={new Map([['slot-1', player]])}
+        renderToken={(p) => <div>{p.name}</div>}
+        shape="circle"
+        containerWidth={400}
+        containerHeight={400}
+      />,
+    );
+    expect(screen.getByTestId('spacer-marker-gap-1')).toBeInTheDocument();
+    expect(screen.getByTestId('storyteller-marker-st-1')).toBeInTheDocument();
+  });
 
   const mockFabled: CornerCharacter[] = [
     { id: 'angel', name: 'Angel', abilityShort: 'Protects new players.' },
@@ -227,126 +214,68 @@ describe('TownSquareLayout', () => {
   ];
 
   it('renders Fabled chips in setup powers corner', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-        activeFabled={mockFabled}
-      />,
-    );
+    renderLayout(5, { activeFabled: mockFabled });
     expect(screen.getByTestId('setup-powers-corner')).toBeInTheDocument();
     expect(screen.getByTestId('fabled-chip-angel')).toBeInTheDocument();
     expect(screen.getByTestId('fabled-chip-djinn')).toBeInTheDocument();
   });
 
   it('renders Loric chips in setup powers corner', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-        activeLoric={mockLoric}
-      />,
-    );
+    renderLayout(5, { activeLoric: mockLoric });
     expect(screen.getByTestId('setup-powers-corner')).toBeInTheDocument();
     expect(screen.getByTestId('loric-chip-bigwig')).toBeInTheDocument();
   });
 
-  it('does not render corners when no Fabled or Loric are active', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-      />,
-    );
-    expect(screen.queryByTestId('fabled-corner')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('loric-corner')).not.toBeInTheDocument();
+  it('does not render setup powers when no Fabled or Loric are active', () => {
+    renderLayout(5);
+    expect(screen.queryByTestId('setup-powers-corner')).not.toBeInTheDocument();
   });
 
   it('renders Fabled and Loric in the unified setup powers corner', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-        activeFabled={mockFabled}
-        activeLoric={mockLoric}
-      />,
-    );
+    renderLayout(5, { activeFabled: mockFabled, activeLoric: mockLoric });
     expect(screen.getByTestId('setup-powers-corner')).toBeInTheDocument();
-    expect(screen.getByTestId('setup-powers-corner')).toBeInTheDocument();
+    expect(screen.getByTestId('fabled-chip-angel')).toBeInTheDocument();
+    expect(screen.getByTestId('loric-chip-bigwig')).toBeInTheDocument();
   });
 
   it('shows ability dialog when Fabled chip is clicked', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-        activeFabled={mockFabled}
-      />,
-    );
+    renderLayout(5, { activeFabled: mockFabled });
     fireEvent.click(screen.getByTestId('fabled-chip-angel'));
     expect(screen.getByText('Protects new players.')).toBeInTheDocument();
   });
 
   it('shows ability dialog when Loric chip is clicked', () => {
-    render(
-      <TownSquareLayout
-        players={makePlayers(5)}
-        renderToken={renderToken}
-        shape="circle"
-        containerWidth={400}
-        containerHeight={400}
-        activeLoric={mockLoric}
-      />,
-    );
+    renderLayout(5, { activeLoric: mockLoric });
     fireEvent.click(screen.getByTestId('loric-chip-bigwig'));
     expect(screen.getByText('Gives defence lawyer.')).toBeInTheDocument();
   });
 
-  // ── Token layout mode tests ──
-
   it('positions tokens closer to centre in linear layout mode', () => {
     const radialPositions: TokenPosition[] = [];
     const linearPositions: TokenPosition[] = [];
-
-    const captureRadial = vi.fn((_: PlayerSeat, pos: TokenPosition) => {
+    const captureRadial = vi.fn((_player: TownSquarePlayer, pos: TokenPosition) => {
       radialPositions.push(pos);
       return <div />;
     });
-    const captureLinear = vi.fn((_: PlayerSeat, pos: TokenPosition) => {
+    const captureLinear = vi.fn((_player: TownSquarePlayer, pos: TokenPosition) => {
       linearPositions.push(pos);
       return <div />;
     });
-
-    const players = makePlayers(4);
-    const props = { players, shape: 'circle' as const, containerWidth: 400, containerHeight: 400 };
-
+    const fixture = makeLayoutFixture(4);
+    const props = {
+      slots: fixture.slots,
+      playersBySlotId: fixture.playersBySlotId,
+      shape: 'circle' as const,
+      containerWidth: 400,
+      containerHeight: 400,
+    };
     const { unmount } = render(
       <TownSquareLayout {...props} renderToken={captureRadial} tokenLayout="radial" />,
     );
     unmount();
-
     render(<TownSquareLayout {...props} renderToken={captureLinear} tokenLayout="linear" />);
-
-    const cx = 200;
-    const cy = 200;
-    const radialDist = Math.hypot(radialPositions[0].x - cx, radialPositions[0].y - cy);
-    const linearDist = Math.hypot(linearPositions[0].x - cx, linearPositions[0].y - cy);
-
+    const radialDist = Math.hypot(radialPositions[0].x - 200, radialPositions[0].y - 200);
+    const linearDist = Math.hypot(linearPositions[0].x - 200, linearPositions[0].y - 200);
     expect(linearDist).toBeLessThan(radialDist);
   });
 });

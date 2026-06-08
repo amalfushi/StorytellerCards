@@ -2,23 +2,23 @@ import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useNightOrder } from './useNightOrder.ts';
 import { allCharacters } from '@/data/characters/index.ts';
-import type { PlayerSeat } from '@/types/index.ts';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 import { Alignment } from '@/types/index.ts';
 
-/** Helper to create a minimal PlayerSeat for testing. */
-function makePlayerSeat(overrides: Partial<PlayerSeat> & { characterId: string }): PlayerSeat {
+/** Helper to create a minimal night-order player for testing. */
+function makePlayerSeat(
+  overrides: Partial<NightOrderPlayer> & { characterId: string },
+): NightOrderPlayer {
+  const seat = overrides.seat ?? 1;
   return {
-    seat: 1,
-    playerName: 'TestPlayer',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Good,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-    ...overrides,
+    playerId: overrides.playerId ?? `player-${seat}`,
+    seat,
+    playerName: overrides.playerName ?? 'TestPlayer',
+    characterId: overrides.characterId,
+    alive: overrides.alive ?? true,
+    actualAlignment: overrides.actualAlignment ?? Alignment.Good,
+    tokens: overrides.tokens ?? [],
+    gainedAbility: overrides.gainedAbility,
   };
 }
 

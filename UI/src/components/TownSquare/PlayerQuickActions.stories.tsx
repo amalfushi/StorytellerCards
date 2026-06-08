@@ -4,7 +4,7 @@ import { within, userEvent, expect } from 'storybook/test';
 import Button from '@mui/material/Button';
 import { PlayerQuickActions } from './PlayerQuickActions';
 import { alicePlayer, charliePlayer, evePlayer, travJackPlayer } from '../../stories/mockData';
-import type { PlayerSeat } from '../../types';
+import type { StoryPlayer } from '../../stories/mockData';
 
 const noop = () => {};
 
@@ -16,7 +16,7 @@ function AnchoredQuickActions({
   player,
   showCharacters,
 }: {
-  player: PlayerSeat;
+  player: StoryPlayer;
   showCharacters: boolean;
 }) {
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -42,7 +42,7 @@ function AnchoredQuickActions({
         onToggleAlive={noop}
         onToggleGhostVote={noop}
         onEditCharacter={noop}
-        onRemoveTraveller={noop}
+        onRemoveParticipant={noop}
       />
     </>
   );
@@ -59,7 +59,7 @@ const meta = {
     onToggleAlive: noop,
     onToggleGhostVote: noop,
     onEditCharacter: noop,
-    onRemoveTraveller: noop,
+    onRemoveParticipant: noop,
   },
   parameters: {
     layout: 'centered',

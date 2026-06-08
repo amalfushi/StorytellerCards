@@ -9,8 +9,11 @@ import {
   mockCharacters,
   spiritOfIvory,
 } from '../../stories/mockData';
-import type { PlayerSeat, CharacterDef } from '../../types';
+import type { CharacterDef } from '../../types';
+import type { StoryPlayer } from '../../stories/mockData';
+import type { SlotId } from '../../types';
 import type { TokenPosition } from './TownSquareLayout';
+import type { TownSquarePlayer } from './PlayerToken';
 
 /**
  * Simple coloured placeholder for a player token.
@@ -25,7 +28,7 @@ characterMap.set(spiritOfIvory.id, spiritOfIvory);
  * Simple coloured placeholder for a player token.
  * Shows the seat number inside a small circle.
  */
-function TokenPlaceholder({ player }: { player: PlayerSeat }) {
+function TokenPlaceholder({ player }: { player: TownSquarePlayer }) {
   return (
     <Box
       sx={{
@@ -57,7 +60,7 @@ function TokenPlaceholder({ player }: { player: PlayerSeat }) {
  * Richer token that shows character name + alignment colour.
  * Used by worst-case stories for the "visible info" (night view) variant.
  */
-function RichTokenPlaceholder({ player }: { player: PlayerSeat }) {
+function RichTokenPlaceholder({ player }: { player: TownSquarePlayer }) {
   const ch = characterMap.get(player.characterId);
   const isDead = !player.alive;
   const borderColor =
@@ -98,8 +101,21 @@ function RichTokenPlaceholder({ player }: { player: PlayerSeat }) {
   );
 }
 
+function layoutArgs(players: StoryPlayer[]) {
+  return {
+    slots: players.map((player) => ({
+      kind: 'seat' as const,
+      id: player.slotId,
+      playerId: player.playerId,
+    })),
+    playersBySlotId: new Map<SlotId, TownSquarePlayer>(
+      players.map((player) => [player.slotId, player]),
+    ),
+  };
+}
+
 /** Default renderToken callback using TokenPlaceholder. */
-const renderToken = (player: PlayerSeat, _position: TokenPosition) => (
+const renderToken = (player: TownSquarePlayer, _position: TokenPosition) => (
   <TokenPlaceholder player={player} />
 );
 
@@ -120,7 +136,7 @@ function createRichTokenWithBadges(
   const centerX = containerWidth / 2;
   const centerY = containerHeight / 2;
 
-  return (player: PlayerSeat, position: TokenPosition) => (
+  return (player: TownSquarePlayer, position: TokenPosition) => (
     <Box sx={{ position: 'relative' }}>
       <RichTokenPlaceholder player={player} />
       {(player.tokens ?? []).length > 0 && (
@@ -182,7 +198,7 @@ type Story = StoryObj<typeof meta>;
 /** Circle layout with 5 players — small game. */
 export const CircleFivePlayers: Story = {
   args: {
-    players: generateMockPlayers(5),
+    ...layoutArgs(generateMockPlayers(5)),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,
@@ -192,7 +208,7 @@ export const CircleFivePlayers: Story = {
 /** Circle layout with 10 players — medium game. */
 export const CircleTenPlayers: Story = {
   args: {
-    players: generateMockPlayers(10),
+    ...layoutArgs(generateMockPlayers(10)),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,
@@ -202,7 +218,7 @@ export const CircleTenPlayers: Story = {
 /** Circle layout with 20 players — stress test. */
 export const CircleTwentyPlayers: Story = {
   args: {
-    players: generateMockPlayers(20),
+    ...layoutArgs(generateMockPlayers(20)),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,
@@ -216,7 +232,7 @@ export const CircleTwentyPlayers: Story = {
 /** Ovoid layout with 5 players — small game on phone. */
 export const OvoidFivePlayers: Story = {
   args: {
-    players: generateMockPlayers(5),
+    ...layoutArgs(generateMockPlayers(5)),
     shape: 'ovoid',
     containerWidth: 375,
     containerHeight: 500,
@@ -226,7 +242,7 @@ export const OvoidFivePlayers: Story = {
 /** Ovoid layout with 10 players — medium game on phone. */
 export const OvoidTenPlayers: Story = {
   args: {
-    players: generateMockPlayers(10),
+    ...layoutArgs(generateMockPlayers(10)),
     shape: 'ovoid',
     containerWidth: 375,
     containerHeight: 500,
@@ -236,7 +252,7 @@ export const OvoidTenPlayers: Story = {
 /** Ovoid layout with 20 players — stress test on phone. */
 export const OvoidTwentyPlayers: Story = {
   args: {
-    players: generateMockPlayers(20),
+    ...layoutArgs(generateMockPlayers(20)),
     shape: 'ovoid',
     containerWidth: 375,
     containerHeight: 500,
@@ -253,7 +269,7 @@ export const OvoidTwentyPlayers: Story = {
  */
 export const WorstCaseCircleHidden: Story = {
   args: {
-    players: worstCase20Players,
+    ...layoutArgs(worstCase20Players),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,
@@ -267,7 +283,7 @@ export const WorstCaseCircleHidden: Story = {
  */
 export const WorstCaseCircleVisible: Story = {
   args: {
-    players: worstCase20Players,
+    ...layoutArgs(worstCase20Players),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,
@@ -281,7 +297,7 @@ export const WorstCaseCircleVisible: Story = {
  */
 export const WorstCaseOvoidHidden: Story = {
   args: {
-    players: worstCase20Players,
+    ...layoutArgs(worstCase20Players),
     shape: 'ovoid',
     containerWidth: 375,
     containerHeight: 500,
@@ -295,7 +311,7 @@ export const WorstCaseOvoidHidden: Story = {
  */
 export const WorstCaseOvoidVisible: Story = {
   args: {
-    players: worstCase20Players,
+    ...layoutArgs(worstCase20Players),
     shape: 'ovoid',
     containerWidth: 800,
     containerHeight: 400,
@@ -314,7 +330,7 @@ export const WorstCaseOvoidVisible: Story = {
  */
 export const RadialTokenBadges: Story = {
   args: {
-    players: worstCase20Players,
+    ...layoutArgs(worstCase20Players),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,
@@ -329,7 +345,7 @@ export const RadialTokenBadges: Story = {
  */
 export const LinearTokenBadges: Story = {
   args: {
-    players: worstCase20Players,
+    ...layoutArgs(worstCase20Players),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,
@@ -364,7 +380,7 @@ export const DesktopViewport: Story = {
 /** TownSquare with Fabled characters in the upper-left corner. */
 export const WithFabledCorner: Story = {
   args: {
-    players: generateMockPlayers(8),
+    ...layoutArgs(generateMockPlayers(8)),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,
@@ -383,7 +399,7 @@ export const WithFabledCorner: Story = {
 /** TownSquare with Loric characters in the upper-right corner. */
 export const WithLoricCorner: Story = {
   args: {
-    players: generateMockPlayers(8),
+    ...layoutArgs(generateMockPlayers(8)),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,
@@ -400,7 +416,7 @@ export const WithLoricCorner: Story = {
 /** TownSquare with both Fabled and Loric corners active. */
 export const WithBothCorners: Story = {
   args: {
-    players: generateMockPlayers(10),
+    ...layoutArgs(generateMockPlayers(10)),
     shape: 'circle',
     containerWidth: 600,
     containerHeight: 600,

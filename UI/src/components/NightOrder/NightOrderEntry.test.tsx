@@ -2,11 +2,7 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { NightOrderEntry } from '@/components/NightOrder/NightOrderEntry.tsx';
-import type {
-  NightOrderEntry as NightOrderEntryType,
-  CharacterDef,
-  PlayerSeat,
-} from '@/types/index.ts';
+import type { NightOrderEntry as NightOrderEntryType, CharacterDef } from '@/types/index.ts';
 import { CharacterType, Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -105,32 +101,22 @@ const duskEntry: NightOrderEntryType = {
   subActions: [],
 };
 
-const alivePlayer: PlayerSeat = {
-  seat: 1,
+const alivePlayer = {
+  playerId: 'alice',
   playerName: 'Alice',
+  seat: 1,
   characterId: 'fortuneteller',
   alive: true,
-  ghostVoteUsed: false,
-  visibleAlignment: Alignment.Unknown,
   actualAlignment: Alignment.Good,
-  startingAlignment: Alignment.Good,
-  activeReminders: [],
-  isTraveller: false,
-  tokens: [],
 };
 
-const deadPlayer: PlayerSeat = {
-  seat: 2,
+const deadPlayer = {
+  playerId: 'bob',
   playerName: 'Bob',
+  seat: 2,
   characterId: 'imp',
   alive: false,
-  ghostVoteUsed: false,
-  visibleAlignment: Alignment.Unknown,
   actualAlignment: Alignment.Evil,
-  startingAlignment: Alignment.Evil,
-  activeReminders: [],
-  isTraveller: false,
-  tokens: [],
 };
 
 // ──────────────────────────────────────────────

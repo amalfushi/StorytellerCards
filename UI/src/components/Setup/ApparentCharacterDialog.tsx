@@ -6,7 +6,7 @@
  * - Marionette: pick any good character (they think they are this character)
  */
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -50,9 +50,9 @@ export function ApparentCharacterDialog({
 }: ApparentCharacterDialogProps) {
   const [selected, setSelected] = useState<string>(currentApparentCharacterId ?? '');
 
-  useEffect(() => {
+  const handleEnter = useCallback(() => {
     setSelected(currentApparentCharacterId ?? '');
-  }, [currentApparentCharacterId, playerId]);
+  }, [currentApparentCharacterId]);
 
   const candidates = useMemo(() => {
     if (actualCharacter.id === 'drunk') {
@@ -78,7 +78,13 @@ export function ApparentCharacterDialog({
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="xs"
+      slotProps={{ transition: { onEnter: handleEnter } }}
+    >
       <DialogTitle>
         <Typography variant="h6" component="span">
           Identity Concealment — {playerName}

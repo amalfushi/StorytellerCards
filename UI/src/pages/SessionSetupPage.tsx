@@ -155,7 +155,8 @@ export function SessionSetupPage() {
   };
 
   const handleAddRosterPlayer = () => {
-    if (!sessionId || !newPlayerName.trim() || (session?.players.length ?? 0) >= MAX_PLAYERS) return;
+    if (!sessionId || !newPlayerName.trim() || (session?.players.length ?? 0) >= MAX_PLAYERS)
+      return;
     addPlayer(sessionId, newPlayerName.trim());
     setNewPlayerName('');
   };
@@ -360,13 +361,21 @@ export function SessionSetupPage() {
             <Typography variant="subtitle1" fontWeight="bold" sx={{ flexGrow: 1 }}>
               Seating Template ({displaySeatNumbers.size} seats)
             </Typography>
-            <Button size="small" startIcon={<AddIcon />} onClick={() => addTemplateSeat(session.id)}>
+            <Button
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={() => addTemplateSeat(session.id)}
+            >
               Add Seat
             </Button>
             <Button size="small" onClick={() => addTemplateSpacer(session.id)}>
               Add Spacer
             </Button>
-            <Button size="small" onClick={() => addTemplateStoryteller(session.id)}>
+            <Button
+              size="small"
+              onClick={() => addTemplateStoryteller(session.id)}
+              disabled={session.template.slots.some((slot) => slot.kind === 'storyteller')}
+            >
               Add Storyteller
             </Button>
           </Box>
@@ -382,7 +391,7 @@ export function SessionSetupPage() {
                   }
                 />
               }
-              label="Propagate game seating changes to template by default"
+              label="Apply game seating changes to template for future games"
             />
             <FormControlLabel
               control={
@@ -394,7 +403,7 @@ export function SessionSetupPage() {
                   }
                 />
               }
-              label="Propagate game seating changes to other games by default"
+              label="Apply game seating changes to all other existing games"
             />
           </Box>
 
@@ -502,7 +511,12 @@ function RosterPlayerItem({
           value={player.name}
           onChange={(e) => onNameChange(e.target.value)}
         />
-        <IconButton size="small" aria-label={`remove ${player.name}`} onClick={onRemove} color="error">
+        <IconButton
+          size="small"
+          aria-label={`remove ${player.name}`}
+          onClick={onRemove}
+          color="error"
+        >
           <DeleteIcon fontSize="small" />
         </IconButton>
       </Box>

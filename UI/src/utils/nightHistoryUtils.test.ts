@@ -5,8 +5,9 @@ import {
   findNightHistoryIndex,
   generateActionableNightSummary,
 } from './nightHistoryUtils';
-import type { NightHistoryEntry, PlayerToken, PlayerSeat, CharacterDef } from '../types/index';
+import type { NightHistoryEntry, PlayerToken, CharacterDef } from '../types/index';
 import { Alignment } from '../types/index';
+import type { NightOrderPlayer } from './nightOrderFilter';
 
 function makeEntry(
   subActionStates: Record<string, boolean[]>,
@@ -252,19 +253,15 @@ describe('NightHistoryEntry tokenSnapshot', () => {
 // ──────────────────────────────────────────────
 
 describe('generateActionableNightSummary', () => {
-  const makePlayerForSummary = (overrides: Partial<PlayerSeat> = {}): PlayerSeat => ({
-    seat: 1,
-    playerName: 'Alice',
-    characterId: 'imp',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-    ...overrides,
+  const makePlayerForSummary = (overrides: Partial<NightOrderPlayer> = {}): NightOrderPlayer => ({
+    playerId: overrides.playerId ?? `player-${overrides.seat ?? 1}`,
+    seat: overrides.seat ?? 1,
+    playerName: overrides.playerName ?? 'Alice',
+    characterId: overrides.characterId ?? 'imp',
+    alive: overrides.alive ?? true,
+    actualAlignment: overrides.actualAlignment ?? Alignment.Evil,
+    tokens: overrides.tokens ?? [],
+    gainedAbility: overrides.gainedAbility,
   });
 
   const makeChar = (overrides: Partial<CharacterDef> = {}): CharacterDef => ({
@@ -292,7 +289,7 @@ describe('generateActionableNightSummary', () => {
   };
   const getCharacter = (id: string) => charMap[id];
 
-  const players: PlayerSeat[] = [
+  const players: NightOrderPlayer[] = [
     makePlayerForSummary({ seat: 1, playerName: 'Alice', characterId: 'imp' }),
     makePlayerForSummary({ seat: 2, playerName: 'Bob', characterId: 'fortuneteller' }),
     makePlayerForSummary({ seat: 3, playerName: 'Charlie', characterId: 'poisoner' }),

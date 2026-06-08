@@ -1,23 +1,29 @@
 import type { Decorator } from '@storybook/react-vite';
 import { GameProvider } from '../context/GameContext';
+import { SessionProvider } from '../context/SessionContext';
 import type { GameViewState } from '../context/GameContext';
 import type { Game } from '../types';
 import { Phase } from '../types';
-import { mockPlayers } from './mockData';
+import { mockParticipants, mockPlayerState, mockSlots } from './mockData';
 import { GameLoader } from './GameLoader';
+import { SessionLoader } from './SessionLoader';
+import { STORY_GAME_ID, STORY_SESSION_ID, mockSession } from './mockSession';
 
 // ──────────────────────────────────────────────
 // Default mock game
 // ──────────────────────────────────────────────
 
 const defaultMockGame: Game = {
-  id: 'story-game-1',
-  sessionId: 'story-session-1',
+  id: STORY_GAME_ID,
+  sessionId: STORY_SESSION_ID,
   scriptId: 'boozling',
   currentDay: 1,
   currentPhase: Phase.Day,
   isFirstNight: true,
-  players: mockPlayers,
+  slots: mockSlots,
+  participants: mockParticipants,
+  playerState: mockPlayerState,
+  playerCountOverride: null,
   nightHistory: [],
 };
 
@@ -26,8 +32,9 @@ const defaultMockGame: Game = {
 // ──────────────────────────────────────────────
 
 /**
- * Creates a Storybook decorator that wraps the story with a GameProvider
- * pre-loaded with mock data and optional state overrides.
+ * Creates a Storybook decorator that wraps the story with a `SessionProvider`
+ * (seeded with a matching mock session) and a `GameProvider` pre-loaded with
+ * mock game data plus optional state overrides.
  *
  * @example
  * ```ts
@@ -42,10 +49,14 @@ export const withMockGameContext =
       ...(overrides.game ?? {}),
     } as Game;
     return (
-      <GameProvider>
-        <GameLoader game={game} overrides={overrides}>
-          <Story />
-        </GameLoader>
-      </GameProvider>
+      <SessionProvider>
+        <SessionLoader session={mockSession}>
+          <GameProvider>
+            <GameLoader game={game} overrides={overrides}>
+              <Story />
+            </GameLoader>
+          </GameProvider>
+        </SessionLoader>
+      </SessionProvider>
     );
   };

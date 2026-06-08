@@ -1,17 +1,18 @@
 import type {
   CharacterDef,
-  PlayerSeat,
-  PlayerToken,
+  NightHistoryEntry,
   NightOrderData,
   NightOrderEntry,
-  NightHistoryEntry,
+  Participant,
+  Player,
+  PlayerGameState,
+  PlayerId,
+  PlayerToken,
+  Slot,
 } from '../types';
 import { Alignment, CharacterType } from '../types';
 import { allCharacters, buildNightOrder } from '../data/characters/index.ts';
-
-// ──────────────────────────────────────────────
-// Characters
-// ──────────────────────────────────────────────
+import type { TownSquarePlayer } from '../components/TownSquare/PlayerToken.tsx';
 
 export const mockCharacters: CharacterDef[] = allCharacters;
 export const mockNightOrder: NightOrderData = {
@@ -19,7 +20,6 @@ export const mockNightOrder: NightOrderData = {
   otherNights: buildNightOrder(allCharacters, false),
 };
 
-/** Specific characters referenced in stories. */
 export const fortuneTeller = mockCharacters.find((c) => c.id === 'fortuneteller')!;
 export const imp = mockCharacters.find((c) => c.id === 'imp')!;
 export const cerenovus = mockCharacters.find((c) => c.id === 'cerenovus')!;
@@ -36,262 +36,324 @@ export const scarletWoman = mockCharacters.find((c) => c.id === 'scarletwoman')!
 export const nodashii = mockCharacters.find((c) => c.id === 'nodashii')!;
 export const oracle = mockCharacters.find((c) => c.id === 'oracle')!;
 
-/**
- * Mock Traveller character — "Spirit of Ivory".
- * Not in the character barrel; created here so stories can demonstrate
- * the split blue/red traveller border and alignment-coloured outline.
- */
 export const spiritOfIvory: CharacterDef = {
   id: 'spiritofivory',
   name: 'Spirit of Ivory',
   type: CharacterType.Traveller,
   defaultAlignment: Alignment.Good,
-  abilityShort: 'There can\u2019t be more than 1 extra death per day.',
+  abilityShort: 'There can’t be more than 1 extra death per day.',
   abilityDetailed:
-    'There can\u2019t be more than 1 extra death per day. If a player would die and this would mean more than 1 extra death this day, they don\u2019t die.',
+    'There can’t be more than 1 extra death per day. If a player would die and this would mean more than 1 extra death this day, they don’t die.',
   firstNight: null,
   otherNights: null,
   reminders: [],
 };
 
-// ──────────────────────────────────────────────
-// Night order entries (for NightFlashcard / StructuralCard stories)
-// ──────────────────────────────────────────────
-
 export const fortuneTellerFirstNightEntry: NightOrderEntry = mockNightOrder.firstNight.find(
   (e) => e.id === 'fortuneteller',
 )!;
-
 export const fortuneTellerOtherNightEntry: NightOrderEntry = mockNightOrder.otherNights.find(
   (e) => e.id === 'fortuneteller',
 )!;
-
 export const impOtherNightEntry: NightOrderEntry = mockNightOrder.otherNights.find(
   (e) => e.id === 'imp',
 )!;
-
 export const cerenovusFirstNightEntry: NightOrderEntry = mockNightOrder.firstNight.find(
   (e) => e.id === 'cerenovus',
 )!;
-
 export const nobleFirstNightEntry: NightOrderEntry = mockNightOrder.firstNight.find(
   (e) => e.id === 'noble',
 )!;
-
-/** Structural entries */
 export const minionInfoEntry: NightOrderEntry = mockNightOrder.firstNight.find(
   (e) => e.id === 'minioninfo',
 )!;
-
 export const demonInfoEntry: NightOrderEntry = mockNightOrder.firstNight.find(
   (e) => e.id === 'demoninfo',
 )!;
-
 export const pitHagOtherNightEntry: NightOrderEntry = mockNightOrder.otherNights.find(
   (e) => e.id === 'pithag',
 )!;
-
 export const lunaticFirstNightEntry: NightOrderEntry = mockNightOrder.firstNight.find(
   (e) => e.id === 'lunatic',
 )!;
-
 export const fangGuOtherNightEntry: NightOrderEntry = mockNightOrder.otherNights.find(
   (e) => e.id === 'fanggu',
 )!;
 
-// ──────────────────────────────────────────────
-// Mock Players
-// ──────────────────────────────────────────────
+export type StoryPlayer = TownSquarePlayer & { seat: number; playerName: string };
 
-export const mockPlayers: PlayerSeat[] = [
-  {
-    seat: 1,
-    playerName: 'Alice',
-    characterId: 'noble',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: 'Unknown',
-    actualAlignment: 'Good',
-    startingAlignment: 'Good',
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 2,
-    playerName: 'Bob',
-    characterId: 'imp',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: 'Unknown',
-    actualAlignment: 'Evil',
-    startingAlignment: 'Evil',
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 3,
-    playerName: 'Charlie',
-    characterId: 'fortuneteller',
-    alive: false,
-    ghostVoteUsed: false,
-    visibleAlignment: 'Unknown',
-    actualAlignment: 'Good',
-    startingAlignment: 'Good',
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 4,
-    playerName: 'Diana',
-    characterId: 'cerenovus',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: 'Unknown',
-    actualAlignment: 'Evil',
-    startingAlignment: 'Evil',
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 5,
-    playerName: 'Eve',
-    characterId: 'drunk',
-    alive: false,
-    ghostVoteUsed: true,
-    visibleAlignment: 'Unknown',
-    actualAlignment: 'Good',
-    startingAlignment: 'Good',
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 6,
-    playerName: 'Frank',
-    characterId: 'philosopher',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: 'Unknown',
-    actualAlignment: 'Good',
-    startingAlignment: 'Good',
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 7,
-    playerName: 'Grace',
-    characterId: 'slayer',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: 'Unknown',
-    actualAlignment: 'Good',
-    startingAlignment: 'Good',
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 8,
-    playerName: 'Hank',
-    characterId: 'baron',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: 'Unknown',
-    actualAlignment: 'Evil',
-    startingAlignment: 'Evil',
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 9,
-    playerName: 'Iris',
+interface StoryPlayerOptions {
+  id: string;
+  seat: number;
+  name: string;
+  characterId?: string;
+  alive?: boolean;
+  ghostVoteUsed?: boolean;
+  actualAlignment?: Alignment;
+  startingAlignment?: Alignment;
+  visibleAlignment?: Alignment;
+  isTraveller?: boolean;
+  tokens?: PlayerToken[];
+  activeReminders?: string[];
+}
+
+export function makePlayerState(overrides: Partial<PlayerGameState> = {}): PlayerGameState {
+  return {
     characterId: '',
     alive: true,
     ghostVoteUsed: false,
-    visibleAlignment: 'Unknown',
-    actualAlignment: 'Good',
-    startingAlignment: 'Good',
+    visibleAlignment: Alignment.Unknown,
+    actualAlignment: Alignment.Unknown,
+    startingAlignment: Alignment.Unknown,
     activeReminders: [],
-    isTraveller: false,
     tokens: [],
+    ...overrides,
+  };
+}
+
+export function makeStoryPlayer({
+  id,
+  seat,
+  name,
+  characterId = '',
+  alive = true,
+  ghostVoteUsed = false,
+  actualAlignment = Alignment.Unknown,
+  startingAlignment = actualAlignment,
+  visibleAlignment = Alignment.Unknown,
+  isTraveller = false,
+  tokens = [],
+  activeReminders = [],
+}: StoryPlayerOptions): StoryPlayer {
+  return {
+    ...makePlayerState({
+      characterId,
+      alive,
+      ghostVoteUsed,
+      visibleAlignment,
+      actualAlignment,
+      startingAlignment,
+      activeReminders,
+      tokens,
+    }),
+    playerId: id,
+    slotId: `slot-${seat}`,
+    name,
+    seatNumber: seat,
+    playerName: name,
+    seat,
+    isTraveller,
+  };
+}
+
+export function storyPlayersToSessionPlayers(players: StoryPlayer[]): Player[] {
+  return players.map((player) => ({ id: player.playerId, name: player.name ?? player.playerName }));
+}
+
+export function storyPlayersToSlots(players: StoryPlayer[]): Slot[] {
+  return players.map((player) => ({ kind: 'seat', id: player.slotId, playerId: player.playerId }));
+}
+
+export function storyPlayersToParticipants(players: StoryPlayer[]): Participant[] {
+  return players.map((player) => ({ playerId: player.playerId, isTraveller: player.isTraveller }));
+}
+
+export function storyPlayersToPlayerState(
+  players: StoryPlayer[],
+): Record<PlayerId, PlayerGameState> {
+  return Object.fromEntries(
+    players.map((player) => [
+      player.playerId,
+      makePlayerState({
+        characterId: player.characterId,
+        alive: player.alive,
+        ghostVoteUsed: player.ghostVoteUsed,
+        visibleAlignment: player.visibleAlignment,
+        actualAlignment: player.actualAlignment,
+        startingAlignment: player.startingAlignment,
+        activeReminders: player.activeReminders,
+        tokens: player.tokens,
+        apparentCharacterId: player.apparentCharacterId,
+        alignmentHistory: player.alignmentHistory,
+        gainedAbility: player.gainedAbility,
+      }),
+    ]),
+  );
+}
+
+export const TOKEN_COLORS = {
+  drunk: '#1976d2',
+  poisoned: '#7b1fa2',
+  custom: '#ff9800',
+} as const;
+
+export const mockDrunkToken: PlayerToken = {
+  id: 'tok-drunk-1',
+  type: 'drunk',
+  label: 'Drunk',
+  color: TOKEN_COLORS.drunk,
+};
+export const mockPoisonedToken: PlayerToken = {
+  id: 'tok-poisoned-1',
+  type: 'poisoned',
+  label: 'Poisoned',
+  color: TOKEN_COLORS.poisoned,
+};
+export const mockCustomTokens: PlayerToken[] = [
+  {
+    id: 'tok-custom-1',
+    type: 'custom',
+    label: 'Is the Drunk',
+    sourceCharacterId: 'drunk',
+    color: TOKEN_COLORS.custom,
   },
   {
-    seat: 10,
-    playerName: 'TravJack',
-    characterId: 'spiritofivory',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: 'Good',
-    actualAlignment: 'Good',
-    startingAlignment: 'Good',
-    activeReminders: [],
-    isTraveller: true,
-    tokens: [],
+    id: 'tok-custom-2',
+    type: 'custom',
+    label: 'Chosen',
+    sourceCharacterId: 'fortuneteller',
+    color: TOKEN_COLORS.custom,
   },
+  {
+    id: 'tok-custom-3',
+    type: 'custom',
+    label: 'No ability',
+    sourceCharacterId: 'philosopher',
+    color: TOKEN_COLORS.custom,
+  },
+  {
+    id: 'tok-custom-4',
+    type: 'custom',
+    label: 'Used ability',
+    sourceCharacterId: 'slayer',
+    color: TOKEN_COLORS.custom,
+  },
+  {
+    id: 'tok-custom-5',
+    type: 'custom',
+    label: 'Mad',
+    sourceCharacterId: 'cerenovus',
+    color: '#e91e63',
+  },
+  { id: 'tok-custom-6', type: 'custom', label: 'Safe', color: '#4caf50' },
+  { id: 'tok-custom-7', type: 'custom', label: 'Protected', color: '#2196f3' },
+  { id: 'tok-custom-8', type: 'custom', label: 'Target', color: '#f44336' },
+];
+export const mockDrunkTokens: PlayerToken[] = [mockDrunkToken];
+export const mockPoisonedTokens: PlayerToken[] = [mockPoisonedToken];
+export const mockMultipleTokens: PlayerToken[] = [mockDrunkToken, ...mockCustomTokens.slice(0, 3)];
+export const mockManyTokens: PlayerToken[] = [
+  mockDrunkToken,
+  mockPoisonedToken,
+  ...mockCustomTokens,
 ];
 
-/** Convenience look-ups for specific mock players. */
-export const alicePlayer = mockPlayers[0]; // Noble, alive
-export const bobPlayer = mockPlayers[1]; // Imp, alive
-export const charliePlayer = mockPlayers[2]; // Fortune Teller, dead
-export const dianaPlayer = mockPlayers[3]; // Cerenovus, alive
-export const evePlayer = mockPlayers[4]; // Drunk, dead + ghost vote used
-export const irisPlayer = mockPlayers[8]; // No character assigned
-export const travJackPlayer = mockPlayers[9]; // Traveller (Spirit of Ivory, Good)
+export const mockPlayers: StoryPlayer[] = [
+  makeStoryPlayer({
+    id: 'player-1',
+    seat: 1,
+    name: 'Alice',
+    characterId: 'noble',
+    actualAlignment: Alignment.Good,
+  }),
+  makeStoryPlayer({
+    id: 'player-2',
+    seat: 2,
+    name: 'Bob',
+    characterId: 'imp',
+    actualAlignment: Alignment.Evil,
+  }),
+  makeStoryPlayer({
+    id: 'player-3',
+    seat: 3,
+    name: 'Charlie',
+    characterId: 'fortuneteller',
+    alive: false,
+    actualAlignment: Alignment.Good,
+  }),
+  makeStoryPlayer({
+    id: 'player-4',
+    seat: 4,
+    name: 'Diana',
+    characterId: 'cerenovus',
+    actualAlignment: Alignment.Evil,
+  }),
+  makeStoryPlayer({
+    id: 'player-5',
+    seat: 5,
+    name: 'Eve',
+    characterId: 'drunk',
+    alive: false,
+    ghostVoteUsed: true,
+    actualAlignment: Alignment.Good,
+  }),
+  makeStoryPlayer({
+    id: 'player-6',
+    seat: 6,
+    name: 'Frank',
+    characterId: 'philosopher',
+    actualAlignment: Alignment.Good,
+  }),
+  makeStoryPlayer({
+    id: 'player-7',
+    seat: 7,
+    name: 'Grace',
+    characterId: 'slayer',
+    actualAlignment: Alignment.Good,
+  }),
+  makeStoryPlayer({
+    id: 'player-8',
+    seat: 8,
+    name: 'Hank',
+    characterId: 'baron',
+    actualAlignment: Alignment.Evil,
+  }),
+  makeStoryPlayer({ id: 'player-9', seat: 9, name: 'Iris', actualAlignment: Alignment.Unknown }),
+  makeStoryPlayer({
+    id: 'player-10',
+    seat: 10,
+    name: 'TravJack',
+    characterId: 'spiritofivory',
+    actualAlignment: Alignment.Good,
+    visibleAlignment: Alignment.Good,
+    isTraveller: true,
+  }),
+];
 
-/** Evil-aligned traveller for demo (assigned evil by Storyteller). */
-export const evilTravellerPlayer: PlayerSeat = {
+export const alicePlayer = mockPlayers[0];
+export const bobPlayer = mockPlayers[1];
+export const charliePlayer = mockPlayers[2];
+export const dianaPlayer = mockPlayers[3];
+export const evePlayer = mockPlayers[4];
+export const irisPlayer = mockPlayers[8];
+export const travJackPlayer = mockPlayers[9];
+
+export const evilTravellerPlayer = makeStoryPlayer({
+  id: 'player-13',
   seat: 13,
-  playerName: 'Wendy',
+  name: 'Wendy',
   characterId: 'spiritofivory',
-  alive: true,
-  ghostVoteUsed: false,
-  visibleAlignment: 'Evil',
   actualAlignment: Alignment.Evil,
   startingAlignment: Alignment.Good,
-  activeReminders: [],
+  visibleAlignment: Alignment.Evil,
   isTraveller: true,
-  tokens: [],
-};
-
-/** M3-6: Alignment-mismatch mock players for story testing. */
-export const evilTownsfolkPlayer: PlayerSeat = {
+});
+export const evilTownsfolkPlayer = makeStoryPlayer({
+  id: 'player-11',
   seat: 11,
-  playerName: 'Mallory',
+  name: 'Mallory',
   characterId: 'noble',
-  alive: true,
-  ghostVoteUsed: false,
-  visibleAlignment: 'Unknown',
   actualAlignment: Alignment.Evil,
   startingAlignment: Alignment.Good,
-  activeReminders: [],
-  isTraveller: false,
-  tokens: [],
-};
-
-export const goodDemonPlayer: PlayerSeat = {
+});
+export const goodDemonPlayer = makeStoryPlayer({
+  id: 'player-12',
   seat: 12,
-  playerName: 'Victor',
+  name: 'Victor',
   characterId: 'imp',
-  alive: true,
-  ghostVoteUsed: false,
-  visibleAlignment: 'Unknown',
   actualAlignment: Alignment.Good,
   startingAlignment: Alignment.Evil,
-  activeReminders: [],
-  isTraveller: false,
-  tokens: [],
-};
-
-// ──────────────────────────────────────────────
-// Filtered night order (simulating a Boozling script game)
-// ──────────────────────────────────────────────
+});
 
 const boozlingCharacterIds = new Set([
   'noble',
@@ -320,29 +382,19 @@ const boozlingCharacterIds = new Set([
   'fanggu',
   'imp',
 ]);
-
 export const mockFirstNightEntries: NightOrderEntry[] = mockNightOrder.firstNight.filter(
   (e) => e.type === 'structural' || boozlingCharacterIds.has(e.id),
 );
-
 export const mockOtherNightEntries: NightOrderEntry[] = mockNightOrder.otherNights.filter(
   (e) => e.type === 'structural' || boozlingCharacterIds.has(e.id),
 );
-
-// ──────────────────────────────────────────────
-// Mock Night History Entries
-// ──────────────────────────────────────────────
 
 export const mockNightHistoryEntries: NightHistoryEntry[] = [
   {
     dayNumber: 1,
     isFirstNight: true,
     completedAt: '2026-02-15T22:30:00.000Z',
-    subActionStates: {
-      noble: [true, true],
-      fortuneteller: [true, true],
-      imp: [true],
-    },
+    subActionStates: { noble: [true, true], fortuneteller: [true, true], imp: [true] },
     notes: {
       noble: 'Shown Alice, Bob, Charlie — one is evil.',
       fortuneteller: 'Chose Alice and Bob — No.',
@@ -353,14 +405,8 @@ export const mockNightHistoryEntries: NightHistoryEntry[] = [
     dayNumber: 2,
     isFirstNight: false,
     completedAt: '2026-02-15T23:15:00.000Z',
-    subActionStates: {
-      fortuneteller: [true, true],
-      philosopher: [true],
-      imp: [true],
-    },
-    notes: {
-      imp: 'Killed Diana.',
-    },
+    subActionStates: { fortuneteller: [true, true], philosopher: [true], imp: [true] },
+    notes: { imp: 'Killed Diana.' },
     selections: {},
   },
   {
@@ -377,8 +423,6 @@ export const mockNightHistoryEntries: NightHistoryEntry[] = [
     selections: {},
   },
 ];
-
-/** 8+ entries for scroll-testing the NightHistoryDrawer. */
 export const mockManyNightHistoryEntries: NightHistoryEntry[] = [
   ...mockNightHistoryEntries,
   {
@@ -422,62 +466,32 @@ export const mockManyNightHistoryEntries: NightHistoryEntry[] = [
     selections: {},
   },
 ];
-
-/** Night history entries with selections for demonstrating actionable summaries. */
 export const mockNightHistoryWithSelections: NightHistoryEntry[] = [
   {
     dayNumber: 1,
     isFirstNight: true,
     completedAt: '2026-02-15T22:30:00.000Z',
-    subActionStates: {
-      noble: [true, true],
-      fortuneteller: [true, true],
-      imp: [true],
-    },
-    notes: {
-      noble: 'Shown Alice, Bob, Charlie — one is evil.',
-    },
-    selections: {
-      fortuneteller: ['Alice', 'Bob'],
-    },
+    subActionStates: { noble: [true, true], fortuneteller: [true, true], imp: [true] },
+    notes: { noble: 'Shown Alice, Bob, Charlie — one is evil.' },
+    selections: { fortuneteller: ['Alice', 'Bob'] },
   },
   {
     dayNumber: 2,
     isFirstNight: false,
     completedAt: '2026-02-15T23:15:00.000Z',
-    subActionStates: {
-      fortuneteller: [true, true],
-      imp: [true],
-    },
-    notes: {
-      imp: 'Killed Diana.',
-    },
-    selections: {
-      imp: 'Diana',
-      fortuneteller: ['Charlie', 'Eve'],
-    },
+    subActionStates: { fortuneteller: [true, true], imp: [true] },
+    notes: { imp: 'Killed Diana.' },
+    selections: { imp: 'Diana', fortuneteller: ['Charlie', 'Eve'] },
   },
   {
     dayNumber: 3,
     isFirstNight: false,
     completedAt: '2026-02-16T00:05:00.000Z',
-    subActionStates: {
-      fortuneteller: [true, true],
-      cerenovus: [true, true],
-      imp: [true],
-    },
+    subActionStates: { fortuneteller: [true, true], cerenovus: [true, true], imp: [true] },
     notes: {},
-    selections: {
-      imp: 'Frank',
-      cerenovus: ['Grace', 'Noble'],
-      fortuneteller: ['Alice', 'Hank'],
-    },
+    selections: { imp: 'Frank', cerenovus: ['Grace', 'Noble'], fortuneteller: ['Alice', 'Hank'] },
   },
 ];
-
-// ──────────────────────────────────────────────
-// Mock Player Generator
-// ──────────────────────────────────────────────
 
 const playerNames = [
   'Alice',
@@ -501,7 +515,6 @@ const playerNames = [
   'Sam',
   'Tina',
 ];
-
 const characterPool = [
   'noble',
   'fortuneteller',
@@ -528,424 +541,74 @@ const characterPool = [
   'imp',
   'fanggu',
 ];
+const evilIds = new Set(['baron', 'cerenovus', 'scarletwoman', 'marionette', 'imp', 'fanggu']);
 
-/**
- * Generate N mock players for layout / stress-test stories.
- * Cycles through player names and character IDs.
- */
-export function generateMockPlayers(count: number): PlayerSeat[] {
-  return Array.from({ length: count }, (_, i): PlayerSeat => {
-    const charId = characterPool[i % characterPool.length];
-    // Simple heuristic: last ~3 characters in pool are evil
-    const isEvil = ['baron', 'cerenovus', 'scarletwoman', 'marionette', 'imp', 'fanggu'].includes(
-      charId,
-    );
-    return {
+export function generateMockPlayers(count: number): StoryPlayer[] {
+  return Array.from({ length: count }, (_, i) => {
+    const characterId = characterPool[i % characterPool.length];
+    const alignment = evilIds.has(characterId) ? Alignment.Evil : Alignment.Good;
+    return makeStoryPlayer({
+      id: `player-${i + 1}`,
       seat: i + 1,
-      playerName: playerNames[i % playerNames.length],
-      characterId: charId,
-      alive: true,
-      ghostVoteUsed: false,
-      visibleAlignment: Alignment.Unknown,
-      actualAlignment: isEvil ? Alignment.Evil : Alignment.Good,
-      startingAlignment: isEvil ? Alignment.Evil : Alignment.Good,
-      activeReminders: [],
-      isTraveller: false,
-      tokens: [],
-    };
+      name: playerNames[i % playerNames.length],
+      characterId,
+      actualAlignment: alignment,
+      startingAlignment: alignment,
+    });
   });
 }
 
-// ──────────────────────────────────────────────
-// Mock Token Data (F3-16)
-// ──────────────────────────────────────────────
+export const playerWithDrunk = { ...alicePlayer, tokens: mockDrunkTokens };
+export const playerWithPoisoned = { ...bobPlayer, tokens: mockPoisonedTokens };
+export const playerWithMultipleTokens = { ...dianaPlayer, tokens: mockMultipleTokens };
+export const playerWithManyTokens = { ...charliePlayer, alive: true, tokens: mockManyTokens };
 
-/** Token colour constants matching TokenManager.tsx */
-export const TOKEN_COLORS = {
-  drunk: '#1976d2',
-  poisoned: '#7b1fa2',
-  custom: '#ff9800',
-} as const;
+export const worstCase20Players: StoryPlayer[] = generateMockPlayers(20).map((player, index) => {
+  if (index === 2) return { ...player, alive: false, tokens: [mockDrunkToken] };
+  if (index === 4) return { ...player, alive: false, ghostVoteUsed: true };
+  if (index === 6)
+    return { ...player, tokens: [mockPoisonedToken, mockCustomTokens[0], mockCustomTokens[4]] };
+  if (index === 9)
+    return {
+      ...player,
+      tokens: [mockDrunkToken, mockPoisonedToken, ...mockCustomTokens.slice(0, 3)],
+    };
+  if (index === 13) return { ...player, alive: false };
+  if (index === 15) return { ...player, tokens: [mockCustomTokens[5]] };
+  if (index === 16) return { ...player, alive: false, ghostVoteUsed: true };
+  if (index === 17)
+    return makeStoryPlayer({
+      id: 'player-18',
+      seat: 18,
+      name: 'Rosa',
+      characterId: 'spiritofivory',
+      actualAlignment: Alignment.Good,
+      visibleAlignment: Alignment.Good,
+      isTraveller: true,
+    });
+  if (index === 18)
+    return makeStoryPlayer({
+      id: 'player-19',
+      seat: 19,
+      name: 'Sam',
+      characterId: 'spiritofivory',
+      actualAlignment: Alignment.Evil,
+      startingAlignment: Alignment.Good,
+      visibleAlignment: Alignment.Evil,
+      isTraveller: true,
+    });
+  if (index === 19)
+    return makeStoryPlayer({
+      id: 'player-20',
+      seat: 20,
+      name: 'Tina',
+      actualAlignment: Alignment.Unknown,
+    });
+  return player;
+});
 
-/** A single Drunk token. */
-export const mockDrunkToken: PlayerToken = {
-  id: 'tok-drunk-1',
-  type: 'drunk',
-  label: 'Drunk',
-  color: TOKEN_COLORS.drunk,
-};
-
-/** A single Poisoned token. */
-export const mockPoisonedToken: PlayerToken = {
-  id: 'tok-poisoned-1',
-  type: 'poisoned',
-  label: 'Poisoned',
-  color: TOKEN_COLORS.poisoned,
-};
-
-/** Pre-built custom token array for reuse. */
-export const mockCustomTokens: PlayerToken[] = [
-  {
-    id: 'tok-custom-1',
-    type: 'custom',
-    label: 'Is the Drunk',
-    sourceCharacterId: 'drunk',
-    color: TOKEN_COLORS.custom,
-  },
-  {
-    id: 'tok-custom-2',
-    type: 'custom',
-    label: 'Chosen',
-    sourceCharacterId: 'fortuneteller',
-    color: TOKEN_COLORS.custom,
-  },
-  {
-    id: 'tok-custom-3',
-    type: 'custom',
-    label: 'No ability',
-    sourceCharacterId: 'philosopher',
-    color: TOKEN_COLORS.custom,
-  },
-  {
-    id: 'tok-custom-4',
-    type: 'custom',
-    label: 'Used ability',
-    sourceCharacterId: 'slayer',
-    color: TOKEN_COLORS.custom,
-  },
-  {
-    id: 'tok-custom-5',
-    type: 'custom',
-    label: 'Mad',
-    sourceCharacterId: 'cerenovus',
-    color: '#e91e63',
-  },
-  { id: 'tok-custom-6', type: 'custom', label: 'Safe', color: '#4caf50' },
-  { id: 'tok-custom-7', type: 'custom', label: 'Protected', color: '#2196f3' },
-  { id: 'tok-custom-8', type: 'custom', label: 'Target', color: '#f44336' },
-];
-
-/** Drunk token list (single item). */
-export const mockDrunkTokens: PlayerToken[] = [mockDrunkToken];
-
-/** Poisoned token list (single item). */
-export const mockPoisonedTokens: PlayerToken[] = [mockPoisonedToken];
-
-/** Drunk + 3 custom tokens. */
-export const mockMultipleTokens: PlayerToken[] = [
-  mockDrunkToken,
-  mockCustomTokens[0],
-  mockCustomTokens[1],
-  mockCustomTokens[2],
-];
-
-/** Worst case: 1 drunk + 1 poisoned + 8 custom tokens (10 total). */
-export const mockManyTokens: PlayerToken[] = [
-  mockDrunkToken,
-  mockPoisonedToken,
-  ...mockCustomTokens,
-];
-
-/** Player with a Drunk token (Alice, Noble). */
-export const playerWithDrunk: PlayerSeat = {
-  ...alicePlayer,
-  tokens: mockDrunkTokens,
-};
-
-/** Player with a Poisoned token (Bob, Imp). */
-export const playerWithPoisoned: PlayerSeat = {
-  ...bobPlayer,
-  tokens: mockPoisonedTokens,
-};
-
-/** Player with Drunk + 3 custom tokens (Diana, Cerenovus). */
-export const playerWithMultipleTokens: PlayerSeat = {
-  ...dianaPlayer,
-  tokens: mockMultipleTokens,
-};
-
-/** Player with 10 tokens — worst case (Charlie, Fortune Teller). */
-export const playerWithManyTokens: PlayerSeat = {
-  ...charliePlayer,
-  alive: true,
-  tokens: mockManyTokens,
-};
-
-// ──────────────────────────────────────────────
-// Worst-case 20-player roster (F3-4)
-// ──────────────────────────────────────────────
-
-/**
- * Hand-crafted 20-player list for worst-case TownSquareLayout stories.
- *
- * Includes a realistic mix of:
- * - 12 Townsfolk/Outsiders (Good)
- * - 3 Minions + 2 Demons (Evil)
- * - 2 Travellers (one Good, one Evil-aligned)
- * - 1 unassigned seat
- * - 4 dead players (two with ghost vote used)
- * - varied long/short names
- * - F3-16: some players have tokens (seats 3, 7, 10, 16)
- */
-export const worstCase20Players: PlayerSeat[] = [
-  {
-    seat: 1,
-    playerName: 'Alice',
-    characterId: 'noble',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 2,
-    playerName: 'Bob',
-    characterId: 'fortuneteller',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 3,
-    playerName: 'Charlie',
-    characterId: 'slayer',
-    alive: false,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [mockDrunkToken],
-  },
-  {
-    seat: 4,
-    playerName: 'Diana',
-    characterId: 'philosopher',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 5,
-    playerName: 'Eve',
-    characterId: 'drunk',
-    alive: false,
-    ghostVoteUsed: true,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 6,
-    playerName: 'Frank',
-    characterId: 'oracle',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 7,
-    playerName: 'Grace',
-    characterId: 'sage',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [mockPoisonedToken, mockCustomTokens[0], mockCustomTokens[4]],
-  },
-  {
-    seat: 8,
-    playerName: 'Hank',
-    characterId: 'huntsman',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 9,
-    playerName: 'Iris',
-    characterId: 'cannibal',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 10,
-    playerName: 'Jack',
-    characterId: 'highpriestess',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [mockDrunkToken, mockPoisonedToken, ...mockCustomTokens.slice(0, 3)],
-  },
-  {
-    seat: 11,
-    playerName: 'Karen',
-    characterId: 'mutant',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 12,
-    playerName: 'Leo',
-    characterId: 'damsel',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 13,
-    playerName: 'Mia',
-    characterId: 'baron',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 14,
-    playerName: 'Nate',
-    characterId: 'cerenovus',
-    alive: false,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 15,
-    playerName: 'Olive',
-    characterId: 'scarletwoman',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 16,
-    playerName: 'Pete',
-    characterId: 'imp',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [mockCustomTokens[5]],
-  },
-  {
-    seat: 17,
-    playerName: 'Quinn',
-    characterId: 'fanggu',
-    alive: false,
-    ghostVoteUsed: true,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 18,
-    playerName: 'Rosa',
-    characterId: 'spiritofivory',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Good,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: true,
-    tokens: [],
-  },
-  {
-    seat: 19,
-    playerName: 'Sam',
-    characterId: 'spiritofivory',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Evil,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: true,
-    tokens: [],
-  },
-  {
-    seat: 20,
-    playerName: 'Tina',
-    characterId: '',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Unknown,
-    startingAlignment: Alignment.Unknown,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-];
+export const mockSessionPlayers: Player[] = storyPlayersToSessionPlayers(mockPlayers);
+export const mockSlots: Slot[] = storyPlayersToSlots(mockPlayers);
+export const mockParticipants: Participant[] = storyPlayersToParticipants(mockPlayers);
+export const mockPlayerState: Record<PlayerId, PlayerGameState> =
+  storyPlayersToPlayerState(mockPlayers);

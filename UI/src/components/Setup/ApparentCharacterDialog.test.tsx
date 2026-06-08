@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { ApparentCharacterDialog } from '@/components/Setup/ApparentCharacterDialog.tsx';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type { CharacterDef } from '@/types/index.ts';
 import { Alignment, CharacterType } from '@/types/index.ts';
 
 // ── Test data ──
@@ -63,21 +63,8 @@ const butlerDef: CharacterDef = {
 
 const scriptCharacters = [washerwomanDef, empath, butlerDef, drunkDef, marionetteDef];
 
-function makePlayer(seat: number, characterId: string): PlayerSeat {
-  return {
-    seat,
-    playerName: `Player ${seat}`,
-    characterId,
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  };
-}
+const drunkPlayer = { playerId: 'player-1', playerName: 'Player 1' };
+const marionettePlayer = { playerId: 'player-2', playerName: 'Player 2' };
 
 // ── Tests ──
 
@@ -85,7 +72,8 @@ describe('ApparentCharacterDialog', () => {
   const defaultProps = {
     open: true,
     onClose: vi.fn(),
-    player: makePlayer(1, 'drunk'),
+    playerId: drunkPlayer.playerId,
+    playerName: drunkPlayer.playerName,
     actualCharacter: drunkDef,
     scriptCharacters,
     onConfirm: vi.fn(),
@@ -105,7 +93,8 @@ describe('ApparentCharacterDialog', () => {
     render(
       <ApparentCharacterDialog
         {...defaultProps}
-        player={makePlayer(2, 'marionette')}
+        playerId={marionettePlayer.playerId}
+        playerName={marionettePlayer.playerName}
         actualCharacter={marionetteDef}
       />,
     );
@@ -126,7 +115,8 @@ describe('ApparentCharacterDialog', () => {
     render(
       <ApparentCharacterDialog
         {...defaultProps}
-        player={makePlayer(2, 'marionette')}
+        playerId={marionettePlayer.playerId}
+        playerName={marionettePlayer.playerName}
         actualCharacter={marionetteDef}
       />,
     );
@@ -154,7 +144,7 @@ describe('ApparentCharacterDialog', () => {
     render(<ApparentCharacterDialog {...defaultProps} onConfirm={onConfirm} />);
     fireEvent.click(screen.getByTestId('candidate-empath'));
     fireEvent.click(screen.getByRole('button', { name: /Confirm/i }));
-    expect(onConfirm).toHaveBeenCalledWith(1, 'empath');
+    expect(onConfirm).toHaveBeenCalledWith('player-1', 'empath');
   });
 
   it('Cancel button calls onClose', () => {

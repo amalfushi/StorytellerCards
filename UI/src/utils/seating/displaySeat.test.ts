@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Slot } from '../index.ts';
+import type { Slot } from '@/types/index.ts';
 import { buildDisplaySeatNumberMap, displaySeatNumber, seatCount } from './displaySeat.ts';
 
 const seat = (id: string): Slot => ({ kind: 'seat', id, playerId: null });

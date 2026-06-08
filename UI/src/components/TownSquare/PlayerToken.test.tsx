@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PlayerToken, SIZE_MAP } from '@/components/TownSquare/PlayerToken.tsx';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type { CharacterDef } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 import { CharacterType, Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -41,7 +42,9 @@ const nobleCharacter: CharacterDef = {
   reminders: [],
 };
 
-const alivePlayer: PlayerSeat = {
+const alivePlayer: TownSquarePlayer = {
+  playerId: 'player-1',
+  slotId: 'slot-1',
   seat: 1,
   playerName: 'Alice',
   characterId: 'noble',
@@ -55,7 +58,9 @@ const alivePlayer: PlayerSeat = {
   tokens: [],
 };
 
-const deadPlayer: PlayerSeat = {
+const deadPlayer: TownSquarePlayer = {
+  playerId: 'player-3',
+  slotId: 'slot-3',
   seat: 3,
   playerName: 'Charlie',
   characterId: 'noble',
@@ -69,7 +74,9 @@ const deadPlayer: PlayerSeat = {
   tokens: [],
 };
 
-const deadPlayerGhostVoteUsed: PlayerSeat = {
+const deadPlayerGhostVoteUsed: TownSquarePlayer = {
+  playerId: 'player-5',
+  slotId: 'slot-5',
   seat: 5,
   playerName: 'Eve',
   characterId: 'noble',
@@ -83,7 +90,9 @@ const deadPlayerGhostVoteUsed: PlayerSeat = {
   tokens: [],
 };
 
-const travellerPlayer: PlayerSeat = {
+const travellerPlayer: TownSquarePlayer = {
+  playerId: 'traveller-10',
+  slotId: 'slot-10',
   seat: 10,
   playerName: 'TravJack',
   characterId: 'spiritofivory',
@@ -318,7 +327,7 @@ describe('PlayerToken', () => {
   // ──────────────────────────────────────────────
 
   it('does not apply alignment tint in hidden mode for non-traveller', () => {
-    const goodPlayer: PlayerSeat = {
+    const goodPlayer: TownSquarePlayer = {
       ...alivePlayer,
       actualAlignment: Alignment.Good,
       visibleAlignment: Alignment.Unknown,
@@ -345,7 +354,7 @@ describe('PlayerToken', () => {
   // ──────────────────────────────────────────────
 
   it('renders Good alignment icon variant when showCharacters is true', () => {
-    const goodPlayer: PlayerSeat = {
+    const goodPlayer: TownSquarePlayer = {
       ...alivePlayer,
       actualAlignment: Alignment.Good,
     };
@@ -362,7 +371,7 @@ describe('PlayerToken', () => {
   });
 
   it('renders Evil alignment icon variant for evil player', () => {
-    const evilPlayer: PlayerSeat = {
+    const evilPlayer: TownSquarePlayer = {
       ...alivePlayer,
       characterId: 'imp',
       actualAlignment: Alignment.Evil,

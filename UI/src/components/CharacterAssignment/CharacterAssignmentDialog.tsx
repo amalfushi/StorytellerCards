@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Alert from '@mui/material/Alert';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
@@ -143,13 +143,12 @@ export function CharacterAssignmentDialog({
     return filterPlayerAssignableCharacters(scriptCharacters);
   }, [scriptCharacters, inPlayCharacterIds]);
 
-  useEffect(() => {
-    if (!open) return;
+  const handleEnter = useCallback(() => {
     setLocalPlayerState(sanitizePlayersForCharacterPool(playerState, availableCharacters));
     setError(null);
     setSelectedChipId(null);
     setApparentDialogPlayerId(null);
-  }, [open, playerState, availableCharacters]);
+  }, [playerState, availableCharacters]);
 
   const sessionPlayerById = useMemo(
     () => new Map(sessionPlayers.map((player) => [player.id, player])),
@@ -405,7 +404,13 @@ export function CharacterAssignmentDialog({
     distribution.townsfolk + distribution.outsiders + distribution.minions + distribution.demons;
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{ transition: { onEnter: handleEnter } }}
+    >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography component="span" variant="h6" sx={{ flexGrow: 1 }}>
           Assign Characters

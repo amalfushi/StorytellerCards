@@ -5,6 +5,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import EventSeatIcon from '@mui/icons-material/EventSeat';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import type { Slot, SlotId } from '@/types/index.ts';
@@ -154,10 +155,66 @@ export function TownSquareLayout({
       </Typography>
 
       {slots.map((slot, i) => {
-        if (slot.kind !== 'seat') return null;
-        const player = playersBySlotId.get(slot.id);
         const pos = positions[i];
-        if (!player || !pos) return null;
+        if (!pos) return null;
+
+        if (slot.kind === 'spacer') {
+          return (
+            <Box
+              key={slot.id}
+              data-testid={`spacer-marker-${slot.id}`}
+              aria-label="seating gap"
+              sx={{
+                position: 'absolute',
+                left: pos.x,
+                top: pos.y,
+                transform: 'translate(-50%, -50%)',
+                width: 24,
+                height: 24,
+                borderRadius: '50%',
+                border: '2px dashed',
+                borderColor: 'divider',
+                opacity: 0.55,
+                pointerEvents: 'none',
+                userSelect: 'none',
+              }}
+            />
+          );
+        }
+
+        if (slot.kind === 'storyteller') {
+          return (
+            <Box
+              key={slot.id}
+              data-testid={`storyteller-marker-${slot.id}`}
+              aria-label="storyteller position"
+              sx={{
+                position: 'absolute',
+                left: pos.x,
+                top: pos.y,
+                transform: 'translate(-50%, -50%)',
+                width: 36,
+                height: 36,
+                borderRadius: '50%',
+                bgcolor: 'background.paper',
+                border: '2px solid',
+                borderColor: 'primary.main',
+                color: 'primary.main',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+                userSelect: 'none',
+                boxShadow: 1,
+              }}
+            >
+              <EventSeatIcon fontSize="small" />
+            </Box>
+          );
+        }
+
+        const player = playersBySlotId.get(slot.id);
+        if (!player) return null;
         return (
           <Box
             key={slot.id}
@@ -217,7 +274,12 @@ export function TownSquareLayout({
       )}
 
       {/* Ability text dialog */}
-      <Dialog open={abilityDialog !== null} onClose={() => setAbilityDialog(null)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={abilityDialog !== null}
+        onClose={() => setAbilityDialog(null)}
+        maxWidth="xs"
+        fullWidth
+      >
         {abilityDialog && (
           <>
             <DialogTitle>{abilityDialog.name}</DialogTitle>

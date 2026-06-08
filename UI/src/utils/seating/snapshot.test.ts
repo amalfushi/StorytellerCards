@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Slot, SlotId } from '../index.ts';
+import type { Slot, SlotId } from '@/types/index.ts';
 import { initialParticipantsFromSlots, snapshotTemplateSlots } from './snapshot.ts';
 
 const seat = (id: string, playerId: string | null = null): Slot => ({

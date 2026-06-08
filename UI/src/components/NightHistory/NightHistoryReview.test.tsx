@@ -41,10 +41,10 @@ const baseGame: Game = {
   currentDay: 3,
   currentPhase: 'Day',
   isFirstNight: false,
-  players: [
-    {
-      seat: 1,
-      playerName: 'Alice',
+  slots: [{ kind: 'seat', id: 'slot-1', playerId: 'alice' }],
+  participants: [{ playerId: 'alice', isTraveller: false }],
+  playerState: {
+    alice: {
       characterId: 'fortuneteller',
       alive: true,
       ghostVoteUsed: false,
@@ -52,10 +52,10 @@ const baseGame: Game = {
       actualAlignment: Alignment.Good,
       startingAlignment: Alignment.Good,
       activeReminders: [],
-      isTraveller: false,
       tokens: [],
     },
-  ],
+  },
+  playerCountOverride: null,
   nightHistory: [mockHistoryEntry, mockOtherNightEntry],
 };
 
@@ -146,6 +146,17 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
 
 // Track readOnly prop passed to FlashcardCarousel
 let lastCarouselReadOnly: boolean | undefined;
+
+// Mock useSession for context access
+vi.mock('@/context/useSession.ts', () => ({
+  useSession: () => ({
+    state: {
+      sessions: [],
+      activeSessionId: null,
+      activeGameId: null,
+    },
+  }),
+}));
 
 // Mock FlashcardCarousel to avoid deep rendering
 vi.mock('@/components/NightPhase/FlashcardCarousel.tsx', () => ({

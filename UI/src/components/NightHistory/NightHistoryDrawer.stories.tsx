@@ -2,7 +2,6 @@ import type { Meta, StoryObj } from '@storybook/react-vite';
 import { NightHistoryDrawer } from './NightHistoryDrawer';
 import { withMockGameContext } from '../../stories/decorators';
 import {
-  mockPlayers,
   mockNightHistoryEntries,
   mockManyNightHistoryEntries,
   mockNightHistoryWithSelections,
@@ -28,7 +27,6 @@ export const Empty: Story = {
     withMockGameContext({
       game: {
         nightHistory: [],
-        players: mockPlayers,
       } as never,
     }),
   ],
@@ -40,7 +38,6 @@ export const WithEntries: Story = {
     withMockGameContext({
       game: {
         nightHistory: mockNightHistoryEntries,
-        players: mockPlayers,
       } as never,
     }),
   ],
@@ -52,7 +49,6 @@ export const ManyEntries: Story = {
     withMockGameContext({
       game: {
         nightHistory: mockManyNightHistoryEntries,
-        players: mockPlayers,
       } as never,
     }),
   ],
@@ -64,7 +60,6 @@ export const WithActionableSummaries: Story = {
     withMockGameContext({
       game: {
         nightHistory: mockNightHistoryWithSelections,
-        players: mockPlayers,
       } as never,
     }),
   ],

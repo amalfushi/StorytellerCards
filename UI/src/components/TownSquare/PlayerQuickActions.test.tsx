@@ -1,14 +1,16 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { PlayerQuickActions } from '@/components/TownSquare/PlayerQuickActions.tsx';
-import type { PlayerSeat } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 import { Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
 // Mock data
 // ──────────────────────────────────────────────
 
-const alivePlayer: PlayerSeat = {
+const alivePlayer: TownSquarePlayer = {
+  playerId: 'player-1',
+  slotId: 'slot-1',
   seat: 1,
   playerName: 'Alice',
   characterId: 'noble',
@@ -22,7 +24,9 @@ const alivePlayer: PlayerSeat = {
   tokens: [],
 };
 
-const deadPlayer: PlayerSeat = {
+const deadPlayer: TownSquarePlayer = {
+  playerId: 'player-3',
+  slotId: 'slot-3',
   seat: 3,
   playerName: 'Charlie',
   characterId: 'noble',
@@ -36,7 +40,9 @@ const deadPlayer: PlayerSeat = {
   tokens: [],
 };
 
-const deadPlayerGhostVoteUsed: PlayerSeat = {
+const deadPlayerGhostVoteUsed: TownSquarePlayer = {
+  playerId: 'player-5',
+  slotId: 'slot-5',
   seat: 5,
   playerName: 'Eve',
   characterId: 'noble',
@@ -50,7 +56,9 @@ const deadPlayerGhostVoteUsed: PlayerSeat = {
   tokens: [],
 };
 
-const travellerPlayer: PlayerSeat = {
+const travellerPlayer: TownSquarePlayer = {
+  playerId: 'traveller-10',
+  slotId: 'slot-10',
   seat: 10,
   playerName: 'TravJack',
   characterId: 'spiritofivory',
@@ -80,7 +88,7 @@ function defaultCallbacks() {
     onToggleAlive: vi.fn(),
     onToggleGhostVote: vi.fn(),
     onEditCharacter: vi.fn(),
-    onRemoveTraveller: vi.fn(),
+    onRemoveParticipant: vi.fn(),
     onManageTokens: vi.fn(),
   };
 }
@@ -206,7 +214,7 @@ describe('PlayerQuickActions', () => {
       />,
     );
     fireEvent.click(screen.getByText('Mark as Dead'));
-    expect(callbacks.onToggleAlive).toHaveBeenCalledWith(1);
+    expect(callbacks.onToggleAlive).toHaveBeenCalledWith('player-1');
     expect(callbacks.onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -222,7 +230,7 @@ describe('PlayerQuickActions', () => {
       />,
     );
     fireEvent.click(screen.getByText('Use Ghost Vote'));
-    expect(callbacks.onToggleGhostVote).toHaveBeenCalledWith(3);
+    expect(callbacks.onToggleGhostVote).toHaveBeenCalledWith('player-3');
     expect(callbacks.onClose).toHaveBeenCalledTimes(1);
   });
 
@@ -303,13 +311,13 @@ describe('PlayerQuickActions', () => {
         onToggleAlive={callbacks.onToggleAlive}
         onToggleGhostVote={callbacks.onToggleGhostVote}
         onEditCharacter={callbacks.onEditCharacter}
-        onRemoveTraveller={callbacks.onRemoveTraveller}
+        onRemoveParticipant={callbacks.onRemoveParticipant}
       />,
     );
     expect(screen.queryByText('Manage Tokens')).not.toBeInTheDocument();
   });
 
-  it('calls onRemoveTraveller and onClose when "Remove Traveller" is clicked', () => {
+  it('calls onRemoveParticipant and onClose when "Remove Traveller" is clicked', () => {
     const anchorEl = createAnchorEl();
     const callbacks = defaultCallbacks();
     render(
@@ -321,7 +329,7 @@ describe('PlayerQuickActions', () => {
       />,
     );
     fireEvent.click(screen.getByText('Remove Traveller'));
-    expect(callbacks.onRemoveTraveller).toHaveBeenCalledWith(10);
+    expect(callbacks.onRemoveParticipant).toHaveBeenCalledWith('traveller-10');
     expect(callbacks.onClose).toHaveBeenCalledTimes(1);
   });
 });
