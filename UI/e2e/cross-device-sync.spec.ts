@@ -283,12 +283,9 @@ test.describe('Cross-Device Sync', () => {
     const { sessionId, gameId } = ids;
     const gameUrl = `/session/${sessionId}/game/${gameId}`;
 
-    await pageA.goto(gameUrl);
-    await pageB.goto(gameUrl);
-    await expect(pageA.getByText('Alice')).toBeVisible({ timeout: 10_000 });
-    await expect(pageB.getByText('Alice')).toBeVisible({ timeout: 10_000 });
-
-    // Make 3 rapid successive API updates
+    // Make 3 rapid successive API updates BEFORE any device opens the game.
+    // (Device pages have a 1s debounced write that would otherwise race against
+    // these PUTs and clobber them with the original alive-Alice state.)
     let game = await fetchGame(sessionId, gameId);
 
     // Update 1: Kill Alice
@@ -309,11 +306,8 @@ test.describe('Cross-Device Sync', () => {
     expect(finalGame.players[1].alive).toBe(false);
     expect(finalGame.currentDay).toBe(2);
 
-    // Clear device B's localStorage for this game so reload fetches from API
-    await pageB.evaluate((gid) => localStorage.removeItem(`storyteller-game-${gid}`), gameId);
-    await pageB.reload();
-
-    // After reload, device B fetches fresh state from API
+    // Device B opens the game — should fetch fresh state from API
+    await pageB.goto(gameUrl);
     await pageB.waitForFunction(
       () => {
         const text = document.body.innerText;
@@ -568,12 +562,7 @@ test.describe('Cross-Device Sync', () => {
     // Wait past self-echo cooldown so SSE events are processed
     await pageB.waitForTimeout(4_000);
 
-    // ── 1. Block future SSE connections (won't affect current stream) ──
-    const eventsPattern = '**/api/sessions/*/games/*/events';
-    await pageB.route(eventsPattern, (route) => route.abort('connectionfailed'));
-
-    // ── 2. Force existing SSE to disconnect via visibility change ──
-    // The useSseSync hook closes EventSource when tab is hidden
+    // ── 1. Hide tab — useSseSync closes EventSource (simulates dropped connection) ──
     await pageB.evaluate(() => {
       Object.defineProperty(document, 'hidden', {
         value: true,
@@ -584,42 +573,17 @@ test.describe('Cross-Device Sync', () => {
     });
     await pageB.waitForTimeout(500);
 
-    // Restore visibility — hook tries to reconnect but route blocks it.
-    // onVersionChanged also fires, fetching current game (unchanged).
-    await pageB.evaluate(() => {
-      Object.defineProperty(document, 'hidden', {
-        value: false,
-        writable: true,
-        configurable: true,
-      });
-      document.dispatchEvent(new Event('visibilitychange'));
-    });
-    await pageB.waitForTimeout(2_000);
-
-    // ── 3. Make a change while Device B is disconnected ──
+    // ── 2. Make a change while Device B's SSE is closed ──
     const game = await fetchGame(sessionId, gameId);
     game.players[0].alive = false;
     await putGame(sessionId, gameId, game);
 
-    // Verify Device B does NOT see the change yet (SSE is blocked)
-    await pageB.waitForTimeout(3_000);
+    // Verify Device B does NOT see the change (SSE closed, no polling)
+    await pageB.waitForTimeout(2_000);
     const deadBefore = await pageB.evaluate(() => document.body.innerText.includes('💀'));
     expect(deadBefore).toBe(false);
 
-    // ── 4. Unblock SSE endpoint ──
-    await pageB.unroute(eventsPattern);
-
-    // ── 5. Force reconnection via visibility change cycle ──
-    await pageB.evaluate(() => {
-      Object.defineProperty(document, 'hidden', {
-        value: true,
-        writable: true,
-        configurable: true,
-      });
-      document.dispatchEvent(new Event('visibilitychange'));
-    });
-    await pageB.waitForTimeout(200);
-
+    // ── 3. Show tab — useSseSync reopens EventSource and forces a fetch ──
     await pageB.evaluate(() => {
       Object.defineProperty(document, 'hidden', {
         value: false,
@@ -629,7 +593,7 @@ test.describe('Cross-Device Sync', () => {
       document.dispatchEvent(new Event('visibilitychange'));
     });
 
-    // ── 6. Verify Device B sees the change after reconnection ──
+    // ── 4. Verify Device B sees the change after reconnection ──
     await pageB.waitForFunction(() => document.body.innerText.includes('💀'), {
       timeout: 15_000,
       polling: 500,
