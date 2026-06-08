@@ -479,6 +479,8 @@ export function GameViewPage() {
             component="h1"
             sx={{ flexGrow: 1, fontWeight: 'bold' }}
             noWrap
+            data-testid="game-day-header"
+            data-day={game.currentDay}
           >
             {session?.name ?? 'Game'} — Day {game.currentDay}
           </Typography>
