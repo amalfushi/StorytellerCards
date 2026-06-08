@@ -135,8 +135,8 @@ Key insight: `participants` (who's in the game) is distinct from seated slots
       reposition.
 - [x] **Phase 9 — Apply-to-all-games toggle** for template seat additions made *after*
       games already exist.
-- [ ] **Phase 10 — Integration writeup:** notes for the follow-up milestone that will
-      migrate this into production.
+- [x] **Phase 10 — Integration writeup:** notes for the follow-up milestone that will
+      migrate this into production. See `integration-plan.md` in this folder.
 
 ---
 
