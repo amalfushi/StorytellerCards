@@ -127,7 +127,7 @@ Key insight: `participants` (who's in the game) is distinct from seated slots
       dedicated "Make active" button so the name itself becomes editable via the new
       shared `EditableText` helper), rename via `EditableText`, and delete already
       worked from Phase 2. Players are also renamable now.
-- [ ] **Phase 6 — Seat assignment in a game** with the sticky propagation checkbox
+- [x] **Phase 6 — Seat assignment in a game** with the sticky propagation checkbox
       (template + other games).
 - [ ] **Phase 7 — Character assignment with `playerCountOverride`:** Player Count input
       decoupled from seat count; randomize-character only seated participants.

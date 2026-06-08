@@ -3,8 +3,10 @@ import { Link as RouterLink } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Checkbox from '@mui/material/Checkbox';
 import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
@@ -62,6 +64,9 @@ export function PlaygroundM40Page() {
           <TemplatePanel state={state} dispatch={dispatch} />
           <GamesPanel state={state} dispatch={dispatch} />
         </Stack>
+
+        <Divider sx={{ my: 3 }} />
+        <ActiveGamePanel state={state} dispatch={dispatch} />
 
         <Divider sx={{ my: 3 }} />
         <Typography variant="caption" color="text.secondary">
@@ -335,6 +340,118 @@ function GamesPanel({ state, dispatch }: DispatchProp) {
           </ListItem>
         ))}
       </List>
+    </Paper>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// ActiveGamePanel — Phase 6: seat assignment with sticky propagation
+// ---------------------------------------------------------------------------
+//
+// Renders the currently-active game as a second circle. Each seat dispatches
+// `ASSIGN_GAME_SEAT`, with an optional propagation override controlled by the
+// two checkboxes here. The checkboxes are persisted into
+// `state.propagationDefault` via `SET_PROPAGATION_DEFAULT` so the preference
+// is "sticky" across actions, per the M40 design.
+
+function ActiveGamePanel({ state, dispatch }: DispatchProp) {
+  const activeGame = state.games.find((g) => g.id === state.activeGameId) ?? null;
+  const { toTemplate, toOtherGames } = state.propagationDefault;
+
+  if (!activeGame) {
+    return (
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          Active game
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          No active game. Create one and click <strong>Make active</strong>.
+        </Typography>
+      </Paper>
+    );
+  }
+
+  return (
+    <Paper variant="outlined" sx={{ p: 2 }}>
+      <Stack direction="row" alignItems="baseline" spacing={2} sx={{ mb: 1 }}>
+        <Typography variant="subtitle1" fontWeight="bold">
+          Active game: {activeGame.name}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          {activeGame.slots.filter((s) => s.kind === 'seat').length} seats ·{' '}
+          {activeGame.participants.length} participants
+        </Typography>
+      </Stack>
+
+      <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={toTemplate}
+              onChange={(e) =>
+                dispatch({
+                  type: 'SET_PROPAGATION_DEFAULT',
+                  pref: { toTemplate: e.target.checked },
+                })
+              }
+            />
+          }
+          label="Also update template"
+        />
+        <FormControlLabel
+          control={
+            <Checkbox
+              checked={toOtherGames}
+              onChange={(e) =>
+                dispatch({
+                  type: 'SET_PROPAGATION_DEFAULT',
+                  pref: { toOtherGames: e.target.checked },
+                })
+              }
+            />
+          }
+          label="Also update other games"
+        />
+      </Stack>
+
+      <TemplateCircle
+        slots={activeGame.slots}
+        players={state.players}
+        readOnlySlots
+        centerLabel={activeGame.name}
+        onAddSeat={() => {
+          /* no-op when readOnlySlots */
+        }}
+        onAddSpacer={() => {
+          /* no-op when readOnlySlots */
+        }}
+        onRemoveSlot={() => {
+          /* no-op when readOnlySlots */
+        }}
+        onAssignSeat={(slotId, playerId) =>
+          dispatch({
+            type: 'ASSIGN_GAME_SEAT',
+            gameId: activeGame.id,
+            slotId,
+            playerId,
+            // Omitting `propagation` means the reducer applies the sticky
+            // session-level default; the checkboxes above mutate that default.
+          })
+        }
+      />
+
+      <Divider sx={{ my: 2 }} />
+      <Typography variant="caption" color="text.secondary" component="div">
+        Participants:{' '}
+        {activeGame.participants.length === 0
+          ? '(none)'
+          : activeGame.participants
+              .map((p) => {
+                const player = state.players.find((pl) => pl.id === p.playerId);
+                return `${player?.name ?? '?'}${p.isTraveller ? ' (traveller)' : ''}`;
+              })
+              .join(', ')}
+      </Typography>
     </Paper>
   );
 }

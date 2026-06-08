@@ -20,6 +20,15 @@ interface Props {
   onRemoveSlot: (slotId: string) => void;
   /** Called when a seat's assigned player changes. `playerId === null` clears. */
   onAssignSeat: (slotId: string, playerId: string | null) => void;
+  /**
+   * When true, hides the Add Seat / Add Spacer / per-slot remove (×) controls
+   * and replaces the center caption. Use for views where the slot list comes
+   * from another source (e.g., the active game inherits its slots from the
+   * template, so structural edits happen there, not here).
+   */
+  readOnlySlots?: boolean;
+  /** Optional caption to render in the center (default: "Seating Template"). */
+  centerLabel?: string;
 }
 
 const TOKEN_RADIUS = 36;
@@ -41,6 +50,8 @@ export function TemplateCircle({
   onAddSpacer,
   onRemoveSlot,
   onAssignSeat,
+  readOnlySlots = false,
+  centerLabel,
 }: Props) {
   const cx = size / 2;
   const cy = size / 2;
@@ -73,14 +84,18 @@ export function TemplateCircle({
         }}
       >
         <Typography variant="caption" color="text.secondary">
-          Seating Template
+          {centerLabel ?? 'Seating Template'}
         </Typography>
-        <Button size="small" variant="outlined" onClick={onAddSeat}>
-          + Add Seat
-        </Button>
-        <Button size="small" variant="outlined" onClick={onAddSpacer}>
-          + Add Spacer
-        </Button>
+        {!readOnlySlots && (
+          <>
+            <Button size="small" variant="outlined" onClick={onAddSeat}>
+              + Add Seat
+            </Button>
+            <Button size="small" variant="outlined" onClick={onAddSpacer}>
+              + Add Spacer
+            </Button>
+          </>
+        )}
       </Stack>
 
       {slots.map((slot, i) => {
@@ -99,7 +114,11 @@ export function TemplateCircle({
             }}
           >
             {slot.kind === 'spacer' ? (
-              <SpacerCell index={i} onRemove={() => onRemoveSlot(slot.id)} />
+              <SpacerCell
+                index={i}
+                onRemove={() => onRemoveSlot(slot.id)}
+                showRemove={!readOnlySlots}
+              />
             ) : (
               <SeatCell
                 index={i}
@@ -108,6 +127,7 @@ export function TemplateCircle({
                 players={players}
                 onRemove={() => onRemoveSlot(slot.id)}
                 onAssign={(pid) => onAssignSeat(slot.id, pid)}
+                showRemove={!readOnlySlots}
               />
             )}
           </Box>
@@ -117,7 +137,15 @@ export function TemplateCircle({
   );
 }
 
-function SpacerCell({ index, onRemove }: { index: number; onRemove: () => void }) {
+function SpacerCell({
+  index,
+  onRemove,
+  showRemove,
+}: {
+  index: number;
+  onRemove: () => void;
+  showRemove: boolean;
+}) {
   return (
     <Box
       sx={{
@@ -132,14 +160,16 @@ function SpacerCell({ index, onRemove }: { index: number; onRemove: () => void }
       data-testid={`template-spacer-${index}`}
     >
       <Chip size="small" label="spacer" />
-      <IconButton
-        size="small"
-        onClick={onRemove}
-        aria-label={`remove spacer ${index + 1}`}
-        sx={{ position: 'absolute', top: -8, right: -8, bgcolor: 'background.paper' }}
-      >
-        <CloseIcon fontSize="inherit" />
-      </IconButton>
+      {showRemove && (
+        <IconButton
+          size="small"
+          onClick={onRemove}
+          aria-label={`remove spacer ${index + 1}`}
+          sx={{ position: 'absolute', top: -8, right: -8, bgcolor: 'background.paper' }}
+        >
+          <CloseIcon fontSize="inherit" />
+        </IconButton>
+      )}
     </Box>
   );
 }
@@ -151,9 +181,18 @@ interface SeatCellProps {
   players: PgPlayer[];
   onRemove: () => void;
   onAssign: (playerId: string | null) => void;
+  showRemove: boolean;
 }
 
-function SeatCell({ index, slotId, playerId, players, onRemove, onAssign }: SeatCellProps) {
+function SeatCell({
+  index,
+  slotId,
+  playerId,
+  players,
+  onRemove,
+  onAssign,
+  showRemove,
+}: SeatCellProps) {
   return (
     <Box
       sx={{
@@ -188,15 +227,17 @@ function SeatCell({ index, slotId, playerId, players, onRemove, onAssign }: Seat
           </MenuItem>
         ))}
       </Select>
-      <IconButton
-        size="small"
-        onClick={onRemove}
-        aria-label={`remove seat ${index + 1}`}
-        sx={{ position: 'absolute', top: -8, right: -8, bgcolor: 'background.paper' }}
-        data-slot-id={slotId}
-      >
-        <CloseIcon fontSize="inherit" />
-      </IconButton>
+      {showRemove && (
+        <IconButton
+          size="small"
+          onClick={onRemove}
+          aria-label={`remove seat ${index + 1}`}
+          sx={{ position: 'absolute', top: -8, right: -8, bgcolor: 'background.paper' }}
+          data-slot-id={slotId}
+        >
+          <CloseIcon fontSize="inherit" />
+        </IconButton>
+      )}
     </Box>
   );
 }
