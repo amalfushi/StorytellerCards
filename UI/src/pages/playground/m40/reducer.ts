@@ -37,7 +37,14 @@ export type PgAction =
     }
   | { type: 'REMOVE_TEMPLATE_SLOT'; slotId: SlotId }
   | { type: 'MOVE_TEMPLATE_SLOT'; slotId: SlotId; toIndex: number }
-  | { type: 'MOVE_GAME_SLOT'; gameId: GameId; slotId: SlotId; toIndex: number }
+  | {
+      type: 'MOVE_GAME_SLOT';
+      gameId: GameId;
+      slotId: SlotId;
+      toIndex: number;
+      /** Defaults to session.propagationDefault when omitted. */
+      propagation?: Partial<PgPropagationPreference>;
+    }
   | {
       type: 'REMOVE_GAME_SLOT';
       gameId: GameId;
@@ -250,10 +257,45 @@ export function playgroundReducer(state: PgSession, action: PgAction): PgSession
     }
 
     case 'MOVE_GAME_SLOT': {
-      return updateGame(state, action.gameId, (g) => ({
+      const pref: PgPropagationPreference = {
+        toTemplate: action.propagation?.toTemplate ?? state.propagationDefault.toTemplate,
+        toOtherGames: action.propagation?.toOtherGames ?? state.propagationDefault.toOtherGames,
+      };
+      const game = state.games.find((g) => g.id === action.gameId);
+      if (!game) return state;
+      const fromIndex = game.slots.findIndex((s) => s.id === action.slotId);
+      if (fromIndex === -1) return state;
+
+      let nextState: PgSession = updateGame(state, action.gameId, (g) => ({
         ...g,
         slots: moveSlot(g.slots, action.slotId, action.toIndex),
       }));
+
+      if (pref.toTemplate) {
+        const tplSlot = nextState.template.slots[fromIndex];
+        if (tplSlot) {
+          nextState = {
+            ...nextState,
+            template: {
+              slots: moveSlot(nextState.template.slots, tplSlot.id, action.toIndex),
+            },
+          };
+        }
+      }
+
+      if (pref.toOtherGames) {
+        nextState = {
+          ...nextState,
+          games: nextState.games.map((g) => {
+            if (g.id === action.gameId) return g;
+            const target = g.slots[fromIndex];
+            if (!target) return g;
+            return { ...g, slots: moveSlot(g.slots, target.id, action.toIndex) };
+          }),
+        };
+      }
+
+      return nextState;
     }
 
     case 'REMOVE_GAME_SLOT': {

@@ -206,10 +206,16 @@ After the initial walkthrough, the user requested four refinements:
 3. **Drag-to-reorder slots.** Each slot in the template circle now has a drag handle
    (`DragIndicator` icon, top-left of the cell). Drop targets are the slot
    positions themselves so the dropped slot takes the target's place. Reorder works
-   in both the template and inside a game (independently — no propagation on reorder
-   in v1, deliberately scoped to the surface dragged). Custom collision detection
-   filters droppables by active-id prefix so player-drags and slot-reorder-drags do
-   not interfere with each other.
+   in both the template and inside a game. Custom collision detection filters
+   droppables by active-id prefix so player-drags and slot-reorder-drags do not
+   interfere with each other.
+
+   Reorders inside a game honor the same sticky propagation default as seat
+   assignment (`toTemplate` / `toOtherGames`). The originating game's slot moves
+   to `toIndex`; when propagation is enabled, the template slot at the original
+   index and the corresponding slot in each other game are moved to the same
+   `toIndex` (matched positionally, the same matching strategy
+   `REMOVE_GAME_SLOT` uses).
 
 4. **Delete slot from a game.** `ActiveGamePanel` now allows per-slot removal
    (×-button on each cell) and dispatches the new `REMOVE_GAME_SLOT` action. The

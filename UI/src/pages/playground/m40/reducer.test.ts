@@ -436,7 +436,7 @@ describe('playgroundReducer — round-1 feedback additions', () => {
     ]);
   });
 
-  it('MOVE_GAME_SLOT reorders within a single game only', () => {
+  it('MOVE_GAME_SLOT reorders within a single game when propagation disabled', () => {
     let s = withThreeSeats();
     s = playgroundReducer(s, {
       type: 'CREATE_GAME',
@@ -450,7 +450,13 @@ describe('playgroundReducer — round-1 feedback additions', () => {
       name: 'G2',
       slotIdMap: { [S1]: 'g2s1', [S2]: 'g2s2', [S3]: 'g2s3' },
     });
-    s = playgroundReducer(s, { type: 'MOVE_GAME_SLOT', gameId: G1, slotId: 'g1s1', toIndex: 2 });
+    s = playgroundReducer(s, {
+      type: 'MOVE_GAME_SLOT',
+      gameId: G1,
+      slotId: 'g1s1',
+      toIndex: 2,
+      propagation: { toTemplate: false, toOtherGames: false },
+    });
     expect(s.games.find((g) => g.id === G1)!.slots.map((x) => x.id)).toEqual([
       'g1s2',
       'g1s3',
@@ -464,6 +470,77 @@ describe('playgroundReducer — round-1 feedback additions', () => {
     ]);
     // Template untouched
     expect(s.template.slots.map((x) => x.id)).toEqual([S1, S2, S3]);
+  });
+
+  describe('MOVE_GAME_SLOT propagation', () => {
+    function setupTwoGames(): PgSession {
+      let s = withThreeSeats();
+      s = playgroundReducer(s, {
+        type: 'CREATE_GAME',
+        gameId: G1,
+        name: 'G1',
+        slotIdMap: { [S1]: 'g1s1', [S2]: 'g1s2', [S3]: 'g1s3' },
+      });
+      s = playgroundReducer(s, {
+        type: 'CREATE_GAME',
+        gameId: G2,
+        name: 'G2',
+        slotIdMap: { [S1]: 'g2s1', [S2]: 'g2s2', [S3]: 'g2s3' },
+      });
+      return s;
+    }
+
+    it('propagates to template at same toIndex when toTemplate true', () => {
+      let s = setupTwoGames();
+      s = playgroundReducer(s, {
+        type: 'MOVE_GAME_SLOT',
+        gameId: G1,
+        slotId: 'g1s1',
+        toIndex: 2,
+        propagation: { toTemplate: true, toOtherGames: false },
+      });
+      expect(s.template.slots.map((x) => x.id)).toEqual([S2, S3, S1]);
+      // G2 untouched
+      expect(s.games.find((g) => g.id === G2)!.slots.map((x) => x.id)).toEqual([
+        'g2s1',
+        'g2s2',
+        'g2s3',
+      ]);
+    });
+
+    it('propagates to other games at same toIndex when toOtherGames true', () => {
+      let s = setupTwoGames();
+      s = playgroundReducer(s, {
+        type: 'MOVE_GAME_SLOT',
+        gameId: G1,
+        slotId: 'g1s1',
+        toIndex: 2,
+        propagation: { toTemplate: false, toOtherGames: true },
+      });
+      expect(s.games.find((g) => g.id === G2)!.slots.map((x) => x.id)).toEqual([
+        'g2s2',
+        'g2s3',
+        'g2s1',
+      ]);
+      // Template untouched
+      expect(s.template.slots.map((x) => x.id)).toEqual([S1, S2, S3]);
+    });
+
+    it('uses sticky propagationDefault when propagation omitted (both true by default)', () => {
+      let s = setupTwoGames();
+      s = playgroundReducer(s, {
+        type: 'MOVE_GAME_SLOT',
+        gameId: G1,
+        slotId: 'g1s1',
+        toIndex: 2,
+      });
+      expect(s.template.slots.map((x) => x.id)).toEqual([S2, S3, S1]);
+      expect(s.games.find((g) => g.id === G2)!.slots.map((x) => x.id)).toEqual([
+        'g2s2',
+        'g2s3',
+        'g2s1',
+      ]);
+    });
   });
 
   describe('REMOVE_GAME_SLOT propagation', () => {
