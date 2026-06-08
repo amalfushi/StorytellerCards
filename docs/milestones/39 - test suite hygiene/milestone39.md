@@ -27,9 +27,9 @@ Completed: 2026-06-07
 
 ## 1. Problem Statement
 
-Going into M40 the project had six logical test suites — but only two of them were exercised on a routine basis:
+Going into M39 the project had six logical test suites — but only two of them were exercised on a routine basis:
 
-| Suite | Routine status before M40 |
+| Suite | Routine status before M39 |
 |---|---|
 | UI unit (`vitest --project=unit`) | ✅ Run by pre-push and during dev |
 | UI storybook interaction (`vitest --project=storybook`) | ❌ Not run by hooks; 131 a11y failures + 4 broken stories |
@@ -70,7 +70,7 @@ It explicitly does **not** run Playwright. Rationale: every Playwright project r
 
 ### `GameLoader` override applies once
 
-Before M40, `GameLoader` had an effect with `[state.game, state.showCharacters, toggleShowCharacters]` deps that toggled `showCharacters` whenever the live state diverged from the decorator override. This worked for the initial mount but turned interaction tests into a tug-of-war: any `play()` function that clicked the toggle would have its click reverted by the next effect run.
+Before M39, `GameLoader` had an effect with `[state.game, state.showCharacters, toggleShowCharacters]` deps that toggled `showCharacters` whenever the live state diverged from the decorator override. This worked for the initial mount but turned interaction tests into a tug-of-war: any `play()` function that clicked the toggle would have its click reverted by the next effect run.
 
 Fix: an `applied` ref so the override only fires once on mount. After that, user clicks (whether real or scripted) own the state.
 
@@ -86,7 +86,7 @@ Those structural entries were deleted from `_nightOrder.ts` in M3 but the storie
 
 ## 3. Known issues left for follow-up
 
-These are documented here rather than fixed in M40 because they require deeper investigation than "fix the test suite plumbing" warrants:
+These are documented here rather than fixed in M39 because they require deeper investigation than "fix the test suite plumbing" warrants:
 
 - **`cross-device-sync.spec.ts` — multiple-rapid-changes (line 282).** Occasional SSE-timing flake. Either needs `retries: 2` at the project level or the test should poll with a longer cap.
 - **`cross-device-sync.spec.ts` — SSE reconnection (line 560).** Same family; likely the same root cause (single SSE event lost during reconnection window).
@@ -109,8 +109,8 @@ These are now visible because the suites are runnable again; previously they hid
 - `UI/src/components/NightPhase/PlayerShowDrawer.stories.tsx` — `findAllByText` for multi-render assertion.
 - `docs/testing.md` — Test Suites Catalog at the top of the file.
 - `AGENTS.md` — pointer block to the catalog.
-- `docs/progress.md` — M40 row.
-- `docs/milestones/40 - test suite hygiene/milestone40.md` — this file.
+- `docs/progress.md` — M39 row.
+- `docs/milestones/39 - test suite hygiene/milestone39.md` — this file.
 
 ---
 
