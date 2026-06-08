@@ -69,6 +69,9 @@ export function PlaygroundM40Page() {
         <ActiveGamePanel state={state} dispatch={dispatch} />
 
         <Divider sx={{ my: 3 }} />
+        <CharacterAssignmentPanel state={state} dispatch={dispatch} />
+
+        <Divider sx={{ my: 3 }} />
         <Typography variant="caption" color="text.secondary">
           Active game: <code>{state.activeGameId ?? 'none'}</code> · Propagation default → template:{' '}
           {String(state.propagationDefault.toTemplate)}, other games:{' '}
@@ -452,6 +455,111 @@ function ActiveGamePanel({ state, dispatch }: DispatchProp) {
               })
               .join(', ')}
       </Typography>
+    </Paper>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CharacterAssignmentPanel — Phase 7: characters keyed off participants, not
+// seats. `playerCountOverride` lets the storyteller plan for travellers ahead
+// of seat assignment.
+// ---------------------------------------------------------------------------
+
+function CharacterAssignmentPanel({ state, dispatch }: DispatchProp) {
+  const activeGame = state.games.find((g) => g.id === state.activeGameId) ?? null;
+
+  if (!activeGame) {
+    return (
+      <Paper variant="outlined" sx={{ p: 2 }}>
+        <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
+          Character assignment
+        </Typography>
+        <Typography variant="body2" color="text.secondary">
+          No active game.
+        </Typography>
+      </Paper>
+    );
+  }
+
+  const seatCount = activeGame.slots.filter((s) => s.kind === 'seat').length;
+  const effectiveCount = activeGame.playerCountOverride ?? activeGame.participants.length;
+
+  return (
+    <Paper variant="outlined" sx={{ p: 2 }}>
+      <Stack direction="row" alignItems="baseline" spacing={2} sx={{ mb: 2 }}>
+        <Typography variant="subtitle1" fontWeight="bold">
+          Character assignment: {activeGame.name}
+        </Typography>
+        <Typography variant="caption" color="text.secondary">
+          seats: {seatCount} · participants: {activeGame.participants.length} · effective count:{' '}
+          {effectiveCount}
+        </Typography>
+      </Stack>
+
+      <Stack direction="row" spacing={2} sx={{ mb: 2 }} alignItems="center">
+        <TextField
+          size="small"
+          label="Player count override"
+          type="number"
+          value={activeGame.playerCountOverride ?? ''}
+          onChange={(e) => {
+            const raw = e.target.value;
+            const parsed = raw === '' ? null : Number.parseInt(raw, 10);
+            dispatch({
+              type: 'SET_PLAYER_COUNT_OVERRIDE',
+              gameId: activeGame.id,
+              count: Number.isFinite(parsed as number) ? (parsed as number) : null,
+            });
+          }}
+          inputProps={{ min: 0, 'aria-label': 'player count override' }}
+          helperText="Leave blank to derive from participants"
+          sx={{ width: 220 }}
+        />
+      </Stack>
+
+      <Typography variant="caption" color="text.secondary" component="div" sx={{ mb: 1 }}>
+        Participants ({activeGame.participants.length})
+      </Typography>
+      <List dense disablePadding data-testid="char-assignment-list">
+        {activeGame.participants.length === 0 ? (
+          <ListItem disableGutters>
+            <ListItemText
+              primary={<em>(no participants — assign players to seats or add as travellers)</em>}
+              primaryTypographyProps={{ variant: 'body2', color: 'text.secondary' }}
+            />
+          </ListItem>
+        ) : (
+          activeGame.participants.map((part) => {
+            const player = state.players.find((p) => p.id === part.playerId);
+            const assigned = activeGame.characterAssignments[part.playerId] ?? '';
+            return (
+              <ListItem key={part.playerId} disableGutters>
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%' }}>
+                  <Typography variant="body2" sx={{ minWidth: 140 }}>
+                    {player?.name ?? '?'}
+                    {part.isTraveller ? ' (traveller)' : ''}
+                  </Typography>
+                  <TextField
+                    size="small"
+                    value={assigned}
+                    placeholder="character id (free text in playground)"
+                    onChange={(e) =>
+                      dispatch({
+                        type: 'ASSIGN_CHARACTER',
+                        gameId: activeGame.id,
+                        playerId: part.playerId,
+                        characterId: e.target.value.trim() || null,
+                      })
+                    }
+                    inputProps={{ 'aria-label': `character for ${player?.name ?? part.playerId}` }}
+                    sx={{ flex: 1 }}
+                  />
+                </Stack>
+              </ListItem>
+            );
+          })
+        )}
+      </List>
     </Paper>
   );
 }

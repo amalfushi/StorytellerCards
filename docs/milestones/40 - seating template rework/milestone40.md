@@ -129,7 +129,7 @@ Key insight: `participants` (who's in the game) is distinct from seated slots
       worked from Phase 2. Players are also renamable now.
 - [x] **Phase 6 — Seat assignment in a game** with the sticky propagation checkbox
       (template + other games).
-- [ ] **Phase 7 — Character assignment with `playerCountOverride`:** Player Count input
+- [x] **Phase 7 — Character assignment with `playerCountOverride`:** Player Count input
       decoupled from seat count; randomize-character only seated participants.
 - [ ] **Phase 8 — DnD polish:** drag a player from roster onto a seat; drag spacers to
       reposition.
