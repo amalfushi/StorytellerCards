@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-06-07
+> Last updated: 2026-06-08
 
 ## Milestone Overview
 
@@ -46,7 +46,8 @@
 | M37       | Pre-Game Setup Flow Rework — Option B seat lock, quick reseat, shift/insert seats, reuse last seating                              | ✅ Complete                           | [details](milestones/37%20-%20setup%20flow%20rework/milestone37.md)                                   |
 | M38       | Live Game Polish — Whose Cult Is It Anyway? follow-ups: Stormcatcher / Stormcaught, unified `PlayerSeat.tokens`, madness icons, deterministic show-player, once-per-game prompt, Lord of Typhon Outsider stepper | ✅ Complete                           | [details](milestones/38%20-%20live%20game%20polish/milestone38.md)                                    |
 | M39       | Test Suite Hygiene — restored all 6 suites (4 broken storybook tests fixed, a11y noise quieted, GameLoader feedback loop fixed), broadened pre-push hook, added root npm scripts, Test Suites Catalog in `docs/testing.md` + `AGENTS.md` | ✅ Complete                           | [details](milestones/39%20-%20test%20suite%20hygiene/milestone39.md)                                  |
-| M40       | Seating Template + Player + Game Rework (Playground) — disposable `/playground/m40` UI iterating a first-class player + seating-template data model with spacers, propagation toggle, participant vs seat split, traveller-aware role counts | 🚧 In Progress                        | [details](milestones/40%20-%20seating%20template%20rework/milestone40.md)                             |
+| M40       | Seating Template + Player + Game Rework (Playground) — disposable `/playground/m40` UI iterating a first-class player + seating-template data model with spacers, propagation toggle, participant vs seat split, traveller-aware role counts | ✅ Complete                           | [details](milestones/40%20-%20seating%20template%20rework/milestone40.md)                             |
+| M41       | Seating Model Integration — production migration to the M40 model: `Session.template` + `Session.players`, per-game `slots`/`participants`/`playerState`/`playerCountOverride`, spacer-aware seat numbering, propagation toggles, character assignment decoupled from seat. Playground removed. | ✅ Complete                           | [details](milestones/41%20-%20seating%20model%20integration/milestone41.md)                           |
 
 ## Key Design Decisions
 
@@ -62,15 +63,16 @@
 - **Same-origin architecture in M33** — Vite proxy in dev (`/api` → `:3001`), Go static file serving in production. Eliminated all CORS configuration, `isPrivateOrigin()`, and cross-origin complexity
 - **Playwright E2E testing in M34** — three-level integration testing strategy: Go model roundtrip tests (catch field parity), Playwright game lifecycle (catch UI→API gaps), Playwright cross-device sync (catch SSE/sync bugs)
 
-## Verification (as of M38 live game polish complete)
+## Verification (as of M41 seating model integration complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 4260/4260 passing (84 test files)
-- Coverage: Stmts 81.90%, Branch 74.83%, Funcs 75.31%, Lines 81.90% (thresholds enforced)
-- Storybook: 21 story files with ~105+ stories including `play()` interaction tests
+- Tests: 4154/4154 passing (86 test files)
+- Coverage: Stmts 80.24%, Branch 70.54%, Funcs 75.73%, Lines 80.24%
+- Storybook: 27 story files, 226 stories incl. `play()` interaction tests
 - Go build: success
 - Go tests: all passing (handlers, sse, storage packages + roundtrip integration tests)
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)
 - Character icons: 179 base + 312 alignment variants (156 `_e` + 156 `_g`)
+- Playwright E2E: 2 spec files (game-lifecycle, cross-device-sync), Chromium-only, `test:e2e`/`test:e2e:sync`/`test:e2e:all`/`test:integration` scripts
 - Playwright E2E: 2 spec files (game-lifecycle, cross-device-sync), Chromium-only, `test:e2e`/`test:e2e:sync`/`test:e2e:all`/`test:integration` scripts

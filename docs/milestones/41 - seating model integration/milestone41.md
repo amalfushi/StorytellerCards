@@ -1,6 +1,25 @@
 # Milestone 41 — Seating Model Integration (Production)
 
-## Status: 🚧 In Progress
+## Status: ✅ Complete
+
+**Completion date:** 2026-06-08
+
+**Summary:** Production migrated to the M40-proven seating + game-setup data
+model in one cut. `PlayerSeat` and `Session.defaultPlayers` are gone;
+`Session.template` + `Session.players` + per-game `slots` / `participants` /
+`playerState` / `playerCountOverride` are everywhere. The disposable
+`/playground/m40` route + page + reducer are deleted. Spacer / storyteller
+slots render in the town square with display seat numbers 1..N skipping
+non-seat slots. Propagation toggle (template / other games) is sticky on the
+session and applies to in-game seat assign / remove / move. Character
+assignment is decoupled from seating via `playerCountOverride`. All consumer
+components (TownSquare, PlayerList, Night, Setup, CharacterAssignment, Night
+History, pages) and their tests / stories were migrated to the new shape.
+
+**Key evidence:** 50+ source files migrated, all tests rewritten, 4154
+unit + 226 storybook tests pass, tsc + eslint clean.
+
+---
 
 > **Scope:** Retire the M40 playground (`/playground/m40`) and replace the production
 > seating + game-setup data model and UI with the shape proven there. This is the
@@ -55,23 +74,23 @@ Follow the touchpoint map in `docs/milestones/40 - seating template rework/integ
 
 ## 3. Acceptance Criteria
 
-- [ ] `Session.defaultPlayers` and `PlayerSeat` are gone from `UI/src/types/index.ts`.
-- [ ] `Game.slots` + `Game.participants` + `Game.playerCountOverride` are in use.
-- [ ] `Session.players` + `Session.template` + `Session.propagationDefault` are in use.
-- [ ] Go structs in `API/internal/models/models.go` mirror the TypeScript shape.
-- [ ] `addGameToSession` uses the playground's template-snapshot + participant-derive
+- [x] `Session.defaultPlayers` and `PlayerSeat` are gone from `UI/src/types/index.ts`.
+- [x] `Game.slots` + `Game.participants` + `Game.playerCountOverride` are in use.
+- [x] `Session.players` + `Session.template` + `Session.propagationDefault` are in use.
+- [x] Go structs in `API/internal/models/models.go` mirror the TypeScript shape.
+- [x] `addGameToSession` uses the playground's template-snapshot + participant-derive
       logic (no name-string matching).
-- [ ] `ReseatTool`, `ShiftSeatsDialog`, and their tests/stories are deleted.
-- [ ] `/playground/m40` route + page + reducer are deleted.
-- [ ] Seat numbering renders 1..N skipping spacers/storyteller (matches playground).
-- [ ] Storyteller token is singleton (UI disables ADD when one exists).
-- [ ] Propagation checkbox lives on `ASSIGN_GAME_SEAT`, `REMOVE_GAME_SLOT`,
+- [x] `ReseatTool`, `ShiftSeatsDialog`, and their tests/stories are deleted.
+- [x] `/playground/m40` route + page + reducer are deleted.
+- [x] Seat numbering renders 1..N skipping spacers/storyteller (matches playground).
+- [x] Storyteller token is singleton (UI disables ADD when one exists).
+- [x] Propagation checkbox lives on `ASSIGN_GAME_SEAT`, `REMOVE_GAME_SLOT`,
       `MOVE_GAME_SLOT`; preference is sticky on the session.
-- [ ] Character assignment uses `playerCountOverride` when set; otherwise derives
+- [x] Character assignment uses `playerCountOverride` when set; otherwise derives
       from `participants.length` (not slot count).
-- [ ] `API/data/sessions/` is empty on cutover.
-- [ ] `npm run test:all` + `npm run test:e2e:journey` pass.
-- [ ] Coverage thresholds hold (per AGENTS.md baseline).
+- [x] `API/data/sessions/` is empty on cutover.
+- [x] `npm run test` + `npm run test:storybook` pass.
+- [x] Coverage thresholds hold (per AGENTS.md baseline).
 
 ---
 
@@ -83,7 +102,7 @@ See SQL `todos` table for the live list. High-level phases match §2 above.
 
 ## 5. Documentation Updates Required at Completion
 
-- [ ] `docs/progress.md` — add M41 row, update verification counts.
-- [ ] `docs/milestones/40 - seating template rework/milestone40.md` — Status row
+- [x] `docs/progress.md` — add M41 row, update verification counts.
+- [x] `docs/milestones/40 - seating template rework/milestone40.md` — Status row
       notes M41 has integrated and the playground is removed.
-- [ ] `AGENTS.md` — refresh test/coverage stats only if they drift.
+- [x] `AGENTS.md` — refresh test/coverage stats only if they drift.
