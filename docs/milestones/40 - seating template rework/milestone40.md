@@ -111,8 +111,8 @@ Key insight: `participants` (who's in the game) is distinct from seated slots
 
 ## 5. Task List
 
-- [ ] **Phase 0 — Milestone doc** (this file) before any code.
-- [ ] **Phase 1 — Worktree + route scaffold:** `/playground/m40` route added in
+- [x] **Phase 0 — Milestone doc** (this file) before any code.
+- [x] **Phase 1 — Worktree + route scaffold:** `/playground/m40` route added in
       `App.tsx`; HomePage button links to it.
 - [ ] **Phase 2 — Playground reducer + types:** local `useReducer` covering the data
       model above; unit tests for reducer actions.
