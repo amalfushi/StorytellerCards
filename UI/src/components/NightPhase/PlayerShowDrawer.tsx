@@ -15,7 +15,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import PushPinIcon from '@mui/icons-material/PushPin';
 import VisibilityIcon from '@mui/icons-material/Visibility';
-import type { CharacterDef, ShowToPlayerMessage, ShowToPlayerTemplate } from '@/types/index.ts';
+import type {
+  CharacterDef,
+  PlayerId,
+  ShowToPlayerMessage,
+  ShowToPlayerTemplate,
+} from '@/types/index.ts';
 import {
   getSeededShowToPlayerTemplates,
   rankShowToPlayerTemplates,
@@ -26,7 +31,8 @@ import type { PlayerShowScreenVariant } from './PlayerShowScreen.tsx';
 export interface PlayerShowDrawerProps {
   open: boolean;
   onClose: () => void;
-  seat?: number;
+  playerId?: PlayerId;
+  displaySeat?: number;
   scriptId?: string;
   playerName?: string;
   messages?: ShowToPlayerMessage[];
@@ -34,7 +40,7 @@ export interface PlayerShowDrawerProps {
   bluffCharacters?: CharacterDef[];
   bluffLabel?: string;
   characterDef?: CharacterDef;
-  onAddMessage?: (seat: number, text: string, templateId?: string) => void;
+  onAddMessage?: (playerId: PlayerId, text: string, templateId?: string) => void;
   onMarkMessageShown?: (messageId: string) => void;
   onEditMessage?: (messageId: string, text: string) => void;
   onDeleteMessage?: (messageId: string) => void;
@@ -50,7 +56,8 @@ function sortByLastShownDesc(a: ShowToPlayerMessage, b: ShowToPlayerMessage): nu
 export function PlayerShowDrawer({
   open,
   onClose,
-  seat,
+  playerId,
+  displaySeat,
   scriptId = 'carousel',
   playerName,
   messages = [],
@@ -76,8 +83,8 @@ export function PlayerShowDrawer({
 
   const hasBluffs = bluffCharacters && bluffCharacters.length > 0;
   const playerMessages = useMemo(
-    () => messages.filter((message) => message.seat === seat),
-    [messages, seat],
+    () => messages.filter((message) => message.playerId === playerId),
+    [messages, playerId],
   );
   const activeMessages = useMemo(
     () => playerMessages.filter((message) => !message.lastShownAt),
@@ -108,7 +115,7 @@ export function PlayerShowDrawer({
       return;
     }
     if (
-      seat === undefined ||
+      playerId === undefined ||
       activeMessages.length > 0 ||
       !lastShownMessage ||
       autoClonedMessageRef.current === lastShownMessage.id
@@ -116,8 +123,8 @@ export function PlayerShowDrawer({
       return;
     }
     autoClonedMessageRef.current = lastShownMessage.id;
-    onAddMessage?.(seat, lastShownMessage.text, lastShownMessage.templateId);
-  }, [activeMessages.length, lastShownMessage, onAddMessage, open, seat]);
+    onAddMessage?.(playerId, lastShownMessage.text, lastShownMessage.templateId);
+  }, [activeMessages.length, lastShownMessage, onAddMessage, open, playerId]);
 
   const handleShowBluffs = useCallback(() => {
     setShowScreenVariant('bluffs');
@@ -142,23 +149,23 @@ export function PlayerShowDrawer({
 
   const handleTemplateSelect = useCallback(
     (template: ShowToPlayerTemplate) => {
-      if (seat === undefined) return;
-      onAddMessage?.(seat, template.text, template.id);
+      if (playerId === undefined) return;
+      onAddMessage?.(playerId, template.text, template.id);
       onBumpTemplateUsage?.(template.id);
       setShowMessage(template.text);
       setShowScreenVariant('text');
       setShowScreenOpen(true);
     },
-    [onAddMessage, onBumpTemplateUsage, seat],
+    [onAddMessage, onBumpTemplateUsage, playerId],
   );
 
   const handleAddMessage = useCallback(() => {
-    if (seat === undefined) return;
+    if (playerId === undefined) return;
     const text = composeText.trim();
     if (!text) return;
-    onAddMessage?.(seat, text);
+    onAddMessage?.(playerId, text);
     setComposeText('');
-  }, [composeText, onAddMessage, seat]);
+  }, [composeText, onAddMessage, playerId]);
 
   const handleSaveEdit = useCallback(
     (messageId: string) => {
@@ -171,7 +178,11 @@ export function PlayerShowDrawer({
     [editingText, onEditMessage],
   );
 
-  const title = playerName ? `Show ${playerName}` : seat ? `Show Seat ${seat}` : 'Show Player';
+  const title = playerName
+    ? `Show ${playerName}`
+    : displaySeat
+      ? `Show Seat ${displaySeat}`
+      : 'Show Player';
 
   return (
     <>
@@ -299,7 +310,7 @@ export function PlayerShowDrawer({
                               aria-label="Clone message"
                               size="small"
                               onClick={() =>
-                                seat !== undefined && onAddMessage?.(seat, message.text)
+                                playerId !== undefined && onAddMessage?.(playerId, message.text)
                               }
                             >
                               <ContentCopyIcon fontSize="small" />
@@ -409,7 +420,7 @@ export function PlayerShowDrawer({
               fullWidth
               variant="contained"
               onClick={handleAddMessage}
-              disabled={seat === undefined || !composeText.trim()}
+              disabled={playerId === undefined || !composeText.trim()}
               data-testid="add-show-message-btn"
             >
               Add Message

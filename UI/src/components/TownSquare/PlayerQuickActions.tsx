@@ -10,18 +10,19 @@ import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import EditIcon from '@mui/icons-material/Edit';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import TokenIcon from '@mui/icons-material/Token';
-import type { PlayerSeat } from '@/types/index.ts';
+import type { PlayerId } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 
 export interface PlayerQuickActionsProps {
   anchorEl: HTMLElement | null;
-  player: PlayerSeat | null;
+  player: TownSquarePlayer | null;
   showCharacters: boolean;
   onClose: () => void;
-  onToggleAlive: (seat: number) => void;
-  onToggleGhostVote: (seat: number) => void;
-  onEditCharacter: (seat: number) => void;
-  onRemoveTraveller: (seat: number) => void;
-  onManageTokens?: (seat: number) => void;
+  onToggleAlive: (playerId: PlayerId) => void;
+  onToggleGhostVote: (playerId: PlayerId) => void;
+  onEditCharacter: (playerId: PlayerId) => void;
+  onRemoveParticipant: (playerId: PlayerId) => void;
+  onManageTokens?: (playerId: PlayerId) => void;
 }
 
 /**
@@ -41,7 +42,7 @@ export function PlayerQuickActions({
   onToggleAlive,
   onToggleGhostVote,
   onEditCharacter,
-  onRemoveTraveller,
+  onRemoveParticipant,
   onManageTokens,
 }: PlayerQuickActionsProps) {
   if (!player) return null;
@@ -49,27 +50,27 @@ export function PlayerQuickActions({
   const isDead = !player.alive;
 
   const handleToggleAlive = () => {
-    onToggleAlive(player.seat);
+    onToggleAlive(player.playerId);
     onClose();
   };
 
   const handleToggleGhostVote = () => {
-    onToggleGhostVote(player.seat);
+    onToggleGhostVote(player.playerId);
     onClose();
   };
 
   const handleEdit = () => {
-    onEditCharacter(player.seat);
+    onEditCharacter(player.playerId);
     onClose();
   };
 
-  const handleRemoveTraveller = () => {
-    onRemoveTraveller(player.seat);
+  const handleRemoveParticipant = () => {
+    onRemoveParticipant(player.playerId);
     onClose();
   };
 
   const handleManageTokens = () => {
-    onManageTokens?.(player.seat);
+    onManageTokens?.(player.playerId);
     onClose();
   };
 
@@ -99,9 +100,7 @@ export function PlayerQuickActions({
               <DoNotDisturbIcon color="warning" />
             )}
           </ListItemIcon>
-          <ListItemText>
-            {player.ghostVoteUsed ? 'Restore Ghost Vote' : 'Use Ghost Vote'}
-          </ListItemText>
+          <ListItemText>{player.ghostVoteUsed ? 'Restore Ghost Vote' : 'Use Ghost Vote'}</ListItemText>
         </MenuItem>
       )}
 
@@ -130,7 +129,7 @@ export function PlayerQuickActions({
       {/* Traveller only: remove */}
       {player.isTraveller && [
         <Divider key="div-remove" />,
-        <MenuItem key="remove" onClick={handleRemoveTraveller}>
+        <MenuItem key="remove" onClick={handleRemoveParticipant}>
           <ListItemIcon>
             <PersonRemoveIcon color="error" />
           </ListItemIcon>

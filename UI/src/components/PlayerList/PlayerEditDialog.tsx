@@ -12,11 +12,12 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
 import Typography from '@mui/material/Typography';
 import Box from '@mui/material/Box';
-import type { PlayerSeat, CharacterDef, Alignment } from '@/types/index.ts';
+import type { CharacterDef, Alignment } from '@/types/index.ts';
+import type { PlayerListRowPlayer } from '@/components/PlayerList/PlayerRow.tsx';
 
 interface PlayerEditDialogProps {
   open: boolean;
-  player: PlayerSeat | null;
+  player: PlayerListRowPlayer | null;
   scriptCharacters: CharacterDef[];
   onClose: () => void;
   onSave: (

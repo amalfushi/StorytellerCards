@@ -1,7 +1,12 @@
 import { memo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type {
+  CharacterDef,
+  PlayerGameState,
+  PlayerId,
+  SlotId,
+} from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
@@ -25,8 +30,19 @@ export const SIZE_MAP = {
 
 export type TokenSize = keyof typeof SIZE_MAP;
 
+/** Render-ready Town Square projection of Slot + Player + PlayerGameState + Participant. */
+export interface TownSquarePlayer extends PlayerGameState {
+  playerId: PlayerId;
+  slotId: SlotId;
+  name?: string;
+  seatNumber?: number;
+  playerName?: string;
+  seat?: number;
+  isTraveller: boolean;
+}
+
 export interface PlayerTokenProps {
-  player: PlayerSeat;
+  player: TownSquarePlayer;
   characterDef?: CharacterDef;
   showCharacters: boolean;
   isSelected: boolean;
@@ -92,7 +108,9 @@ export const PlayerToken = memo(function PlayerToken({
   const [detailOpen, setDetailOpen] = useState(false);
 
   const aliveStatus = player.alive ? 'alive' : 'dead';
-  const ariaLabel = `${player.playerName}, Seat ${player.seat}, ${aliveStatus}`;
+  const displayName = player.name ?? player['playerName'] ?? 'Unknown player';
+  const displaySeat = player.seatNumber ?? player['seat'] ?? 0;
+  const ariaLabel = `${displayName}, Seat ${displaySeat}, ${aliveStatus}`;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -169,15 +187,11 @@ export const PlayerToken = memo(function PlayerToken({
   const showIcon = showCharacters || isTraveller;
 
   // Identity concealment: in hidden mode, use apparent character if set
-  const displayCharacterDef = showCharacters
-    ? characterDef
-    : (apparentCharacterDef ?? characterDef);
+  const displayCharacterDef = showCharacters ? characterDef : (apparentCharacterDef ?? characterDef);
   const displayCharacterId = showCharacters
     ? player.characterId
     : (player.apparentCharacterId ?? player.characterId);
-  const displayTypeColor = displayCharacterDef
-    ? getCharacterTypeColor(displayCharacterDef.type)
-    : '#9e9e9e';
+  const displayTypeColor = displayCharacterDef ? getCharacterTypeColor(displayCharacterDef.type) : '#9e9e9e';
 
   const tokenContent = (
     <>
@@ -258,7 +272,7 @@ export const PlayerToken = memo(function PlayerToken({
           color: showCharacters ? 'text.secondary' : 'text.primary',
         }}
       >
-        {player.playerName}
+        {displayName}
       </Typography>
 
       {/* ── Seat # & status row ── */}
@@ -270,14 +284,8 @@ export const PlayerToken = memo(function PlayerToken({
           justifyContent: 'center',
         }}
       >
-        <Typography
-          sx={{
-            fontSize: s.metaFont,
-            color: 'text.secondary',
-            lineHeight: 1,
-          }}
-        >
-          {player.seat}
+        <Typography sx={{ fontSize: s.metaFont, color: 'text.secondary', lineHeight: 1 }}>
+          {displaySeat}
         </Typography>
 
         {showCharacters && (

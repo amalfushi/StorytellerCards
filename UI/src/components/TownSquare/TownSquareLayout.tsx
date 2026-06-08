@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
@@ -7,7 +7,8 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
-import type { PlayerSeat } from '@/types/index.ts';
+import type { Slot, SlotId } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 
 export interface TokenPosition {
   x: number;
@@ -24,8 +25,9 @@ export interface CornerCharacter {
 }
 
 export interface TownSquareLayoutProps {
-  players: PlayerSeat[];
-  renderToken: (player: PlayerSeat, position: TokenPosition) => React.ReactNode;
+  slots: Slot[];
+  playersBySlotId: Map<SlotId, TownSquarePlayer>;
+  renderToken: (player: TownSquarePlayer, position: TokenPosition) => React.ReactNode;
   shape: 'circle' | 'ovoid';
   containerWidth: number;
   containerHeight: number;
@@ -44,26 +46,25 @@ export interface TownSquareLayoutProps {
 }
 
 /**
- * Layout engine that positions player tokens in a circle or ovoid (ellipse).
+ * Layout engine that positions seating slots in a circle or ovoid (ellipse).
  *
  * - **Circle:** equal `rx` and `ry` radius (tablet ≥ 600 px).
  * - **Ovoid:** `ry > rx` so the ellipse is taller than wide (phone portrait).
  *
- * Players are placed clockwise starting from 12-o'clock (seat 1 at top).
- *
- * All tokens use `position: absolute` with `transform: translate(-50%, -50%)`
- * so the calculated (x, y) centre lands exactly on the ellipse.
+ * Slot positions follow `game.slots` order so spacers and storyteller markers
+ * reserve layout gaps while only occupied seats render player tokens.
  */
 /**
  * Scale factor applied to the player-token ellipse radii when using the
- * linear reminder-token layout.  Pulling the ring inward by 12 % gives
+ * linear reminder-token layout. Pulling the ring inward by 12 % gives
  * reminder tokens along card edges enough room so they aren't clipped by
  * the container boundary.
  */
 const LINEAR_RADIUS_SCALE = 0.88;
 
 export function TownSquareLayout({
-  players,
+  slots,
+  playersBySlotId,
   renderToken,
   shape,
   containerWidth,
@@ -74,10 +75,9 @@ export function TownSquareLayout({
   activeLoric = [],
 }: TownSquareLayoutProps) {
   const [abilityDialog, setAbilityDialog] = useState<CornerCharacter | null>(null);
-  const sorted = useMemo(() => [...players].sort((a, b) => a.seat - b.seat), [players]);
 
   const positions = useMemo(() => {
-    const n = sorted.length;
+    const n = slots.length;
     if (n === 0 || containerWidth === 0 || containerHeight === 0) return [];
 
     const cx = containerWidth / 2;
@@ -115,14 +115,14 @@ export function TownSquareLayout({
     rx = Math.max(rx, 30);
     ry = Math.max(ry, 30);
 
-    return sorted.map((_, i): TokenPosition => {
+    return slots.map((_, i): TokenPosition => {
       // Start at 12-o'clock (-π/2) and go clockwise
       const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
       const x = cx + rx * Math.cos(angle);
       const y = cy + ry * Math.sin(angle);
       return { x, y, angle };
     });
-  }, [sorted, containerWidth, containerHeight, shape, tokenRadius, tokenLayout]);
+  }, [slots, containerWidth, containerHeight, shape, tokenRadius, tokenLayout]);
 
   if (containerWidth === 0 || containerHeight === 0) return null;
 
@@ -153,12 +153,14 @@ export function TownSquareLayout({
         Town Square
       </Typography>
 
-      {sorted.map((player, i) => {
+      {slots.map((slot, i) => {
+        if (slot.kind !== 'seat') return null;
+        const player = playersBySlotId.get(slot.id);
         const pos = positions[i];
-        if (!pos) return null;
+        if (!player || !pos) return null;
         return (
           <Box
-            key={player.seat}
+            key={slot.id}
             sx={{
               position: 'absolute',
               left: pos.x,
@@ -215,12 +217,7 @@ export function TownSquareLayout({
       )}
 
       {/* Ability text dialog */}
-      <Dialog
-        open={abilityDialog !== null}
-        onClose={() => setAbilityDialog(null)}
-        maxWidth="xs"
-        fullWidth
-      >
+      <Dialog open={abilityDialog !== null} onClose={() => setAbilityDialog(null)} maxWidth="xs" fullWidth>
         {abilityDialog && (
           <>
             <DialogTitle>{abilityDialog.name}</DialogTitle>

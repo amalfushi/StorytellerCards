@@ -14,7 +14,8 @@ import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PersonIcon from '@mui/icons-material/Person';
-import type { NightOrderEntry, PlayerSeat, CharacterDef, ActiveJinx } from '@/types/index.ts';
+import type { CharacterDef, ActiveJinx, PlayerToken } from '@/types/index.ts';
+import type { NightOrderPlayer, NightOrderViewEntry } from '@/utils/nightOrderFilter.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
@@ -33,8 +34,8 @@ import {
 } from '@/utils/infoTokenUtils.ts';
 
 export interface NightFlashcardProps {
-  entry: NightOrderEntry;
-  playerSeat?: PlayerSeat;
+  entry: NightOrderViewEntry;
+  playerSeat?: NightOrderPlayer;
   characterDef?: CharacterDef;
   checkedStates: boolean[];
   notes: string;
@@ -43,7 +44,7 @@ export interface NightFlashcardProps {
   isDead: boolean;
   readOnly?: boolean;
   /** All players in the game (for choice dropdowns). */
-  players?: PlayerSeat[];
+  players?: NightOrderPlayer[];
   /** All script characters (for character choice dropdown). */
   scriptCharacters?: CharacterDef[];
   /** Current selection value for this character's choice. */
@@ -166,6 +167,7 @@ export function NightFlashcard({
         multiple: c.maxSelections > 1,
         maxSelections: c.maxSelections,
         label: c.label,
+        filter: c.filter,
       }));
     }
 
@@ -278,7 +280,7 @@ export function NightFlashcard({
   }, [activeSetupPowers, characterDef, entry]);
 
   const placedReminders = useMemo(() => {
-    const map = new Map<string, PlayerSeat>();
+    const map = new Map<string, NightOrderPlayer>();
     for (const player of players) {
       for (const token of player.tokens ?? []) {
         if (availableReminderTokens.some((r) => r.id === token.id)) map.set(token.id, player);
@@ -578,6 +580,7 @@ export function NightFlashcard({
                     key={`reminder-${seg.index}`}
                     token={{
                       id: seg.token.id,
+                      type: 'custom',
                       label: seg.token.text,
                       sourceCharacterId: seg.token.sourceCharacterId,
                     }}
@@ -748,40 +751,34 @@ export function NightFlashcard({
             const placedText = placedOn
               ? `${placedOn.playerName}${placedCharDef ? ` (${placedCharDef.name})` : ''}`
               : undefined;
+            const token: PlayerToken = {
+              id: r.id,
+              type: 'custom',
+              label: r.text,
+              ...(r.pickerScope ? { pickerScope: r.pickerScope } : {}),
+              sourceCharacterId: r.sourceCharacterId,
+            };
             return (
-              <Box key={r.id} sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+              <Box
+                key={r.id}
+                onClick={onReminderTokenClick ? (event) => onReminderTokenClick(token, event) : undefined}
+                sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}
+              >
                 <ReminderTokenChip
-                  token={{
-                    id: r.id,
-                    label: r.text,
-                    ...(r.pickerScope ? { pickerScope: r.pickerScope } : {}),
-                    sourceCharacterId: r.sourceCharacterId,
-                  }}
+                  token={token}
                   size="small"
                   placed={!!placedOn}
                   placedInfo={placedText}
                   sourceName={placedText ?? r.text}
-                  onClick={
-                    onReminderTokenClick
-                      ? (event) =>
-                          onReminderTokenClick(
-                            {
-                              id: r.id,
-                              type: 'custom',
-                              label: r.text,
-                              ...(r.pickerScope ? { pickerScope: r.pickerScope } : {}),
-                              sourceCharacterId: r.sourceCharacterId,
-                            },
-                            event,
-                          )
-                      : undefined
-                  }
                 />
                 {r.id === 'stormcatcher-stormcaught' && placedOn && (
                   <IconButton
                     size="small"
                     aria-label="Show Stormcaught player"
-                    onClick={() => setTokenShowPhrase('STORMCAUGHT')}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setTokenShowPhrase('STORMCAUGHT');
+                    }}
                     sx={{ color: 'rgba(255,255,255,0.55)' }}
                   >
                     <VisibilityIcon fontSize="small" />

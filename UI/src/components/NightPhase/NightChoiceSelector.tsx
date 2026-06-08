@@ -13,7 +13,8 @@ import TextField from '@mui/material/TextField';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
-import type { PlayerSeat, CharacterDef, NightChoiceType } from '@/types/index.ts';
+import type { CharacterDef, NightChoiceType } from '@/types/index.ts';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
 
@@ -27,7 +28,7 @@ export interface NightChoiceSelectorProps {
   maxSelections?: number;
   value: string | string[];
   onChange: (value: string | string[]) => void;
-  players: PlayerSeat[];
+  players: NightOrderPlayer[];
   characters?: CharacterDef[];
   previousValue?: string | string[];
   label?: string;
@@ -93,7 +94,7 @@ export function NightChoiceSelector({
 
   // Build a quick lookup: characterId → player for character dropdowns
   const playersByCharId = useMemo(() => {
-    const map = new Map<string, PlayerSeat>();
+    const map = new Map<string, NightOrderPlayer>();
     for (const p of players) {
       if (p.characterId) map.set(p.characterId, p);
     }

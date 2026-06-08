@@ -1,4 +1,27 @@
-import type { NightOrderEntry, PlayerSeat } from '../types/index.ts';
+import type {
+  Alignment,
+  GainedAbility,
+  NightOrderEntry,
+  PlayerId,
+  PlayerToken,
+} from '../types/index.ts';
+
+export interface NightOrderPlayer {
+  playerId: PlayerId;
+  playerName: string;
+  seat: number;
+  characterId: string;
+  alive: boolean;
+  actualAlignment: Alignment;
+  tokens?: PlayerToken[];
+  gainedAbility?: GainedAbility;
+}
+
+export type NightOrderViewEntry = NightOrderEntry & {
+  gainedAbilityHostSeat?: number;
+  gainedAbilityBaseCharacterId?: string;
+  gainedAbilityHostPlayerId?: PlayerId;
+};
 
 /**
  * Filter the master night order down to entries relevant for a specific script.
@@ -27,13 +50,13 @@ import type { NightOrderEntry, PlayerSeat } from '../types/index.ts';
  * @returns Filtered night order entries in their original sequence.
  */
 export function filterNightOrder(
-  nightOrder: NightOrderEntry[],
+  nightOrder: NightOrderViewEntry[],
   scriptCharacterIds: string[],
   isFirstNight: boolean,
-  players?: PlayerSeat[],
+  players?: NightOrderPlayer[],
   activeLoric: string[] = [],
   activeFabled: string[] = [],
-): NightOrderEntry[] {
+): NightOrderViewEntry[] {
   const scriptIdSet = new Set(scriptCharacterIds);
   const activeSetupPowerIds = new Set([...activeLoric, ...activeFabled]);
 
@@ -138,6 +161,6 @@ function shouldShowStructuralEntry(
  * Collect player names for a given character ID from the player list.
  * Used by night flashcards to show all players who share a character (e.g. Legion).
  */
-export function getPlayerNamesForCharacter(characterId: string, players: PlayerSeat[]): string[] {
+export function getPlayerNamesForCharacter(characterId: string, players: NightOrderPlayer[]): string[] {
   return players.filter((p) => p.characterId === characterId).map((p) => p.playerName);
 }

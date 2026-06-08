@@ -4,9 +4,12 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import ToggleButton from '@mui/material/ToggleButton';
 import Typography from '@mui/material/Typography';
 import { useGame } from '@/context/useGame.ts';
+import { useSession } from '@/context/useSession.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { useNightOrder } from '@/hooks/useNightOrder.ts';
 import { NightOrderEntry } from '@/components/NightOrder/NightOrderEntry.tsx';
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 
 interface NightOrderTabProps {
   scriptCharacterIds: string[];
@@ -19,14 +22,48 @@ interface NightOrderTabProps {
  */
 export function NightOrderTab({ scriptCharacterIds }: NightOrderTabProps) {
   const { state } = useGame();
+  const sessionState = useSession().state;
   const { getCharacter } = useCharacterLookup();
 
   // Default to first night if the game says it is, otherwise other nights
   const gameIsFirstNight = state.game?.isFirstNight ?? true;
   const [isFirstNight, setIsFirstNight] = useState(gameIsFirstNight);
 
-  const entries = useNightOrder(scriptCharacterIds, isFirstNight);
-  const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
+  const session = useMemo(
+    () => sessionState.sessions.find((candidate) => candidate.id === state.game?.sessionId),
+    [sessionState.sessions, state.game?.sessionId],
+  );
+  const players = useMemo<NightOrderPlayer[]>(() => {
+    const game = state.game;
+    if (!game || !session) return [];
+    const displaySeatBySlot = buildDisplaySeatNumberMap(game.slots);
+    return game.slots.flatMap((slot) => {
+      if (slot.kind !== 'seat' || !slot.playerId) return [];
+      const displaySeat = displaySeatBySlot.get(slot.id);
+      const player = session.players.find((candidate) => candidate.id === slot.playerId);
+      const playerState = game.playerState[slot.playerId];
+      if (!displaySeat || !player || !playerState) return [];
+      return [
+        {
+          playerId: slot.playerId,
+          playerName: player.name,
+          seat: displaySeat,
+          characterId: playerState.characterId,
+          alive: playerState.alive,
+          actualAlignment: playerState.actualAlignment,
+          tokens: playerState.tokens,
+          gainedAbility: playerState.gainedAbility,
+        },
+      ];
+    });
+  }, [session, state.game]);
+  const entries = useNightOrder(
+    scriptCharacterIds,
+    isFirstNight,
+    players,
+    state.game?.activeLoric ?? [],
+    state.game?.activeFabled ?? [],
+  );
 
   // Build a map of characterId → PlayerSeat for quick lookup
   const playerByCharacter = useMemo(() => {

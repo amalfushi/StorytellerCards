@@ -8,7 +8,13 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import HowToVoteIcon from '@mui/icons-material/HowToVote';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type {
+  CharacterDef,
+  PlayerGameState,
+  PlayerId,
+  PlayerToken,
+  SlotId,
+} from '@/types/index.ts';
 import { characterColors } from '@/theme/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
@@ -16,8 +22,17 @@ import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { ReminderTokenChips } from '@/components/common/ReminderTokenChips.tsx';
 import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
+export interface PlayerListRowPlayer extends PlayerGameState {
+  playerId: PlayerId;
+  slotId: SlotId;
+  seat: number;
+  playerName: string;
+  isTraveller: boolean;
+  tokens?: PlayerToken[];
+}
+
 interface PlayerRowProps {
-  player: PlayerSeat;
+  player: PlayerListRowPlayer;
   showCharacters: boolean;
   /** Whether the alignment column is visible. */
   showAlignment?: boolean;

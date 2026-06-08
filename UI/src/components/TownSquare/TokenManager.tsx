@@ -9,7 +9,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import TextField from '@mui/material/TextField';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
-import type { PlayerSeat, PlayerToken, CharacterDef, ReminderToken } from '@/types/index.ts';
+import type { PlayerId, PlayerToken, CharacterDef, ReminderToken } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 import { generateId } from '@/utils/idGenerator.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { getCharacter } from '@/data/characters/index.ts';
@@ -255,18 +256,56 @@ function tokenPropsForReminder(reminder: ReminderToken): {
 // TokenManagerDialog — add/remove tokens dialog
 // ──────────────────────────────────────────────
 
+type TokenPlayerKey = PlayerId | number;
+type TokenActionHandler =
+  | ((value: PlayerId, token: PlayerToken) => void)
+  | ((value: number, token: PlayerToken) => void);
+type TokenRemoveHandler =
+  | ((value: PlayerId, tokenId: string) => void)
+  | ((value: number, tokenId: string) => void);
+
+function tokenPlayerDisplayName(player: TownSquarePlayer): string {
+  return player.name ?? player['playerName'] ?? 'Unknown player';
+}
+
+function tokenPlayerDisplaySeat(player: TownSquarePlayer): number {
+  return player.seatNumber ?? player['seat'] ?? 0;
+}
+
+function tokenPlayerKey(player: TownSquarePlayer): TokenPlayerKey {
+  return player.seatNumber !== undefined ? player.playerId : player['seat'] ?? player.playerId;
+}
+
+function invokeAddToken(handler: TokenActionHandler, player: TownSquarePlayer, token: PlayerToken): void {
+  const key = tokenPlayerKey(player);
+  if (typeof key === 'number') {
+    (handler as (value: number, token: PlayerToken) => void)(key, token);
+  } else {
+    (handler as (value: PlayerId, token: PlayerToken) => void)(key, token);
+  }
+}
+
+function invokeRemoveToken(handler: TokenRemoveHandler, player: TownSquarePlayer, tokenId: string): void {
+  const key = tokenPlayerKey(player);
+  if (typeof key === 'number') {
+    (handler as (value: number, tokenId: string) => void)(key, tokenId);
+  } else {
+    (handler as (value: PlayerId, tokenId: string) => void)(key, tokenId);
+  }
+}
+
 export interface TokenManagerProps {
   open: boolean;
-  player: PlayerSeat | null;
+  player: TownSquarePlayer | null;
   onClose: () => void;
-  onAddToken: (seat: number, token: PlayerToken) => void;
-  onRemoveToken: (seat: number, tokenId: string) => void;
+  onAddToken: TokenActionHandler;
+  onRemoveToken: TokenRemoveHandler;
   /** Character definition for the player, used to show character-specific reminders. */
   characterDef?: CharacterDef;
   /** All available tokens built from active characters in the game. */
   availableTokens?: ReminderToken[];
   /** All players in the game — used to enforce global count limits on reminder tokens. */
-  allPlayers?: PlayerSeat[];
+  allPlayers?: TownSquarePlayer[];
 }
 
 /**
@@ -336,9 +375,9 @@ export function TokenManager({
     const props = tokenPropsForReminder(reminder);
     const existing = tokens.find((t) => t.type === props.type && t.label === reminder.text);
     if (existing) {
-      onRemoveToken(player.seat, existing.id);
+      invokeRemoveToken(onRemoveToken, player, existing.id);
     } else {
-      onAddToken(player.seat, {
+      invokeAddToken(onAddToken, player, {
         id: generateId(),
         type: props.type,
         label: reminder.text,
@@ -352,7 +391,7 @@ export function TokenManager({
   const handleAddCharacterReminder = (reminder: ReminderToken) => {
     if (customTokenCount >= MAX_CUSTOM_TOKENS) return;
     const props = tokenPropsForReminder(reminder);
-    onAddToken(player.seat, {
+    invokeAddToken(onAddToken, player, {
       id: reminder.id,
       type: props.type,
       label: reminder.text,
@@ -365,7 +404,7 @@ export function TokenManager({
   const handleAddCustom = () => {
     if (!customLabel.trim()) return;
     if (customTokenCount >= MAX_CUSTOM_TOKENS) return;
-    onAddToken(player.seat, {
+    invokeAddToken(onAddToken, player, {
       id: generateId(),
       type: 'custom',
       label: customLabel.trim(),
@@ -384,7 +423,7 @@ export function TokenManager({
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle>
         <Typography component="span" variant="h6">
-          Tokens — {player.playerName} (Seat {player.seat})
+          Tokens — {tokenPlayerDisplayName(player)} (Seat {tokenPlayerDisplaySeat(player)})
         </Typography>
       </DialogTitle>
       <DialogContent>
@@ -397,7 +436,7 @@ export function TokenManager({
             <ReminderTokenChips
               tokens={tokens}
               size="small"
-              onRemove={(tokenId) => onRemoveToken(player.seat, tokenId)}
+              onRemove={(tokenId) => invokeRemoveToken(onRemoveToken, player, tokenId)}
               getSourceName={getSourceCharacterName}
             />
           </Box>
@@ -453,9 +492,9 @@ export function TokenManager({
                     size="small"
                     onClick={() => {
                       if (existing) {
-                        onRemoveToken(player.seat, existing.id);
+                        invokeRemoveToken(onRemoveToken, player, existing.id);
                       } else {
-                        onAddToken(player.seat, {
+                        invokeAddToken(onAddToken, player, {
                           id: generateId(),
                           type: preset,
                           label,

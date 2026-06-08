@@ -12,27 +12,25 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
 import TextField from '@mui/material/TextField';
-import type { PlayerSeat } from '@/types/index.ts';
 import { CharacterType } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { buildGroupedOptions } from './addPlayerOptions.ts';
 import type { CharacterOption } from './addPlayerOptions.ts';
 
+interface ExistingSeat {
+  seatNumber: number;
+}
+
 export interface AddPlayerDialogProps {
   open: boolean;
-  existingPlayers: PlayerSeat[];
+  existingPlayers: ExistingSeat[];
   /** Character IDs from the current script (empty array if no script loaded). */
   scriptCharacterIds: string[];
   /** Character IDs currently in play (selected for the game). */
   inPlayCharacterIds: string[];
   onClose: () => void;
-  onAdd: (
-    seat: number,
-    playerName: string,
-    characterId: string,
-    alignment: 'Good' | 'Evil',
-  ) => void;
+  onAdd: (seatNumber: number, playerName: string, characterId: string, alignment: 'Good' | 'Evil') => void;
 }
 
 /** Derive default alignment from character type. */
@@ -57,7 +55,7 @@ export function AddPlayerDialog({
 }: AddPlayerDialogProps) {
   const nextSeat = useMemo(() => {
     if (existingPlayers.length === 0) return 1;
-    const usedSeats = new Set(existingPlayers.map((p) => p.seat));
+    const usedSeats = new Set(existingPlayers.map((p) => p.seatNumber));
     let candidate = 1;
     while (usedSeats.has(candidate)) candidate++;
     return candidate;
@@ -72,15 +70,12 @@ export function AddPlayerDialog({
     [scriptCharacterIds, inPlayCharacterIds],
   );
 
-  const handleCharacterChange = useCallback(
-    (_event: React.SyntheticEvent, value: CharacterOption | null) => {
-      setSelectedCharacter(value);
-      if (value) {
-        setAlignment(defaultAlignmentForType(value.character.type));
-      }
-    },
-    [],
-  );
+  const handleCharacterChange = useCallback((_event: React.SyntheticEvent, value: CharacterOption | null) => {
+    setSelectedCharacter(value);
+    if (value) {
+      setAlignment(defaultAlignmentForType(value.character.type));
+    }
+  }, []);
 
   const canSave = selectedCharacter !== null && playerName.trim().length > 0;
 
@@ -101,16 +96,9 @@ export function AddPlayerDialog({
           isOptionEqualToValue={(option, value) => option.character.id === value.character.id}
           value={selectedCharacter}
           onChange={handleCharacterChange}
-          renderInput={(params) => (
-            <TextField {...params} label="Character" size="small" autoFocus sx={{ mt: 1 }} />
-          )}
+          renderInput={(params) => <TextField {...params} label="Character" size="small" autoFocus sx={{ mt: 1 }} />}
           renderOption={({ key, ...props }, option) => (
-            <Box
-              component="li"
-              key={key}
-              {...props}
-              sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
-            >
+            <Box component="li" key={key} {...props} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CharacterIconImage
                 characterId={option.character.id}
                 characterName={option.character.name}

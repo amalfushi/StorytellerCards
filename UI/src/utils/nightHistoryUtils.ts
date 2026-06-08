@@ -1,9 +1,5 @@
-import type {
-  NightHistoryEntry,
-  NightSummaryLine,
-  PlayerSeat,
-  CharacterDef,
-} from '@/types/index.ts';
+import type { NightHistoryEntry, NightSummaryLine, CharacterDef } from '@/types/index.ts';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 
 /**
  * Compute a summary of completed vs total sub-actions for a night history entry,
@@ -102,7 +98,7 @@ function formatSelectionValue(value: string | string[]): string {
  */
 export function generateActionableNightSummary(
   nightEntry: NightHistoryEntry,
-  players: PlayerSeat[],
+  players: NightOrderPlayer[],
   getCharacter: (id: string) => CharacterDef | undefined,
 ): NightSummaryLine[] {
   const lines: NightSummaryLine[] = [];
