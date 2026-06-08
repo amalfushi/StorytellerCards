@@ -3,7 +3,6 @@ import { Link as RouterLink } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
-import Chip from '@mui/material/Chip';
 import Container from '@mui/material/Container';
 import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
@@ -18,6 +17,7 @@ import Typography from '@mui/material/Typography';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import { playgroundReducer } from './playground/m40/reducer.ts';
+import { TemplateCircle } from './playground/m40/TemplateCircle.tsx';
 import { initialPgSession, type PgSession } from './playground/m40/types.ts';
 
 /**
@@ -139,59 +139,20 @@ function PlayersPanel({ state, dispatch }: DispatchProp) {
 
 function TemplatePanel({ state, dispatch }: DispatchProp) {
   return (
-    <Paper variant="outlined" sx={{ p: 2, flex: 1, minWidth: 240 }}>
+    <Paper variant="outlined" sx={{ p: 2, flex: 2, minWidth: 360 }}>
       <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
         Template ({state.template.slots.length} slots)
       </Typography>
-      <Stack direction="row" spacing={1} sx={{ mb: 1 }}>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => dispatch({ type: 'ADD_TEMPLATE_SEAT', slotId: newId() })}
-        >
-          + Seat
-        </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          onClick={() => dispatch({ type: 'ADD_TEMPLATE_SPACER', slotId: newId() })}
-        >
-          + Spacer
-        </Button>
-      </Stack>
-      <List dense disablePadding>
-        {state.template.slots.map((slot, idx) => {
-          const assignedName =
-            slot.kind === 'seat' && slot.playerId
-              ? (state.players.find((p) => p.id === slot.playerId)?.name ?? '?')
-              : null;
-          return (
-            <ListItem
-              key={slot.id}
-              disableGutters
-              secondaryAction={
-                <IconButton
-                  edge="end"
-                  size="small"
-                  aria-label={`remove slot ${idx + 1}`}
-                  onClick={() => dispatch({ type: 'REMOVE_TEMPLATE_SLOT', slotId: slot.id })}
-                >
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              }
-            >
-              <ListItemText
-                primary={
-                  <>
-                    #{idx + 1} <Chip size="small" label={slot.kind} sx={{ mr: 1 }} />
-                    {assignedName ?? (slot.kind === 'seat' ? '(empty)' : '—')}
-                  </>
-                }
-              />
-            </ListItem>
-          );
-        })}
-      </List>
+      <TemplateCircle
+        slots={state.template.slots}
+        players={state.players}
+        onAddSeat={() => dispatch({ type: 'ADD_TEMPLATE_SEAT', slotId: newId() })}
+        onAddSpacer={() => dispatch({ type: 'ADD_TEMPLATE_SPACER', slotId: newId() })}
+        onRemoveSlot={(slotId) => dispatch({ type: 'REMOVE_TEMPLATE_SLOT', slotId })}
+        onAssignSeat={(slotId, playerId) =>
+          dispatch({ type: 'ASSIGN_TEMPLATE_SEAT', slotId, playerId })
+        }
+      />
     </Paper>
   );
 }

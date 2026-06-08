@@ -114,10 +114,13 @@ Key insight: `participants` (who's in the game) is distinct from seated slots
 - [x] **Phase 0 — Milestone doc** (this file) before any code.
 - [x] **Phase 1 — Worktree + route scaffold:** `/playground/m40` route added in
       `App.tsx`; HomePage button links to it.
-- [ ] **Phase 2 — Playground reducer + types:** local `useReducer` covering the data
+- [x] **Phase 2 — Playground reducer + types:** local `useReducer` covering the data
       model above; unit tests for reducer actions.
-- [ ] **Phase 3 — Seating template editor:** `Add Seat` / `Add Spacer` center buttons,
-      render through `TownSquareLayout`, drag-to-reorder slots.
+- [x] **Phase 3 — Seating template editor:** `Add Seat` / `Add Spacer` center buttons
+      in a dedicated `TemplateCircle` component (deviates from the original "reuse
+      `TownSquareLayout`" idea — see the component's JSDoc for the rationale: the
+      production `PlayerSeat` shape is too heavy for a stateless playground slot).
+      Drag-to-reorder is deferred to Phase 8 (DnD polish).
 - [ ] **Phase 4 — Player roster panel + parking lot** for unseated players.
 - [ ] **Phase 5 — Game list:** create-game copies the template snapshot; select active
       game; rename / delete.
