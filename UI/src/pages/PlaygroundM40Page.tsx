@@ -87,6 +87,62 @@ function newId(): string {
   return globalThis.crypto?.randomUUID?.() ?? Math.random().toString(36).slice(2);
 }
 
+/**
+ * Inline editable text — click to edit, Enter/blur to save, Escape to cancel.
+ * Lightweight playground helper; not for production reuse.
+ */
+function EditableText({
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+  ariaLabel: string;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(value);
+  const commit = () => {
+    const trimmed = draft.trim();
+    if (trimmed && trimmed !== value) onChange(trimmed);
+    else setDraft(value);
+    setEditing(false);
+  };
+  if (!editing) {
+    return (
+      <Button
+        size="small"
+        variant="text"
+        onClick={() => {
+          setDraft(value);
+          setEditing(true);
+        }}
+        aria-label={`rename ${ariaLabel}`}
+        sx={{ textTransform: 'none', justifyContent: 'flex-start', minWidth: 0 }}
+      >
+        {value}
+      </Button>
+    );
+  }
+  return (
+    <TextField
+      autoFocus
+      size="small"
+      value={draft}
+      onChange={(e) => setDraft(e.target.value)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') commit();
+        else if (e.key === 'Escape') {
+          setDraft(value);
+          setEditing(false);
+        }
+      }}
+      onBlur={commit}
+      inputProps={{ 'aria-label': `edit ${ariaLabel}` }}
+    />
+  );
+}
+
 function PlayersPanel({ state, dispatch }: DispatchProp) {
   const [name, setName] = useState('');
   const submit = () => {
@@ -128,7 +184,13 @@ function PlayersPanel({ state, dispatch }: DispatchProp) {
         }
       >
         <ListItemText
-          primary={p.name}
+          primary={
+            <EditableText
+              value={p.name}
+              onChange={(next) => dispatch({ type: 'RENAME_PLAYER', playerId: p.id, name: next })}
+              ariaLabel={`player ${p.name}`}
+            />
+          }
           secondary={seatNum ? `Template seat ${seatNum}` : 'Unseated'}
         />
       </ListItem>
@@ -253,13 +315,20 @@ function GamesPanel({ state, dispatch }: DispatchProp) {
           >
             <ListItemText
               primary={
-                <Button
-                  size="small"
-                  variant={state.activeGameId === g.id ? 'contained' : 'text'}
-                  onClick={() => dispatch({ type: 'SELECT_GAME', gameId: g.id })}
-                >
-                  {g.name}
-                </Button>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <EditableText
+                    value={g.name}
+                    onChange={(next) => dispatch({ type: 'RENAME_GAME', gameId: g.id, name: next })}
+                    ariaLabel={`game ${g.name}`}
+                  />
+                  <Button
+                    size="small"
+                    variant={state.activeGameId === g.id ? 'contained' : 'outlined'}
+                    onClick={() => dispatch({ type: 'SELECT_GAME', gameId: g.id })}
+                  >
+                    {state.activeGameId === g.id ? 'Active' : 'Make active'}
+                  </Button>
+                </Stack>
               }
               secondary={`${g.slots.length} slots · ${g.participants.length} participants`}
             />

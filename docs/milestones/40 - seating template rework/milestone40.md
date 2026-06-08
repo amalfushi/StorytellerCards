@@ -123,8 +123,10 @@ Key insight: `participants` (who's in the game) is distinct from seated slots
       Drag-to-reorder is deferred to Phase 8 (DnD polish).
 - [x] **Phase 4 — Player roster panel + parking lot** for unseated players (in
       `PlaygroundM40Page` itself, since it's a tiny sectioned list).
-- [ ] **Phase 5 — Game list:** create-game copies the template snapshot; select active
-      game; rename / delete.
+- [x] **Phase 5 — Game list:** create-game (snapshot template), select-active (now a
+      dedicated "Make active" button so the name itself becomes editable via the new
+      shared `EditableText` helper), rename via `EditableText`, and delete already
+      worked from Phase 2. Players are also renamable now.
 - [ ] **Phase 6 — Seat assignment in a game** with the sticky propagation checkbox
       (template + other games).
 - [ ] **Phase 7 — Character assignment with `playerCountOverride`:** Player Count input
