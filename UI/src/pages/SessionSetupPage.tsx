@@ -20,13 +20,18 @@ import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
-import Paper from '@mui/material/Paper';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import SyncIcon from '@mui/icons-material/Sync';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import {
@@ -83,7 +88,6 @@ export function SessionSetupPage() {
 
   const [sessionName, setSessionName] = useState('');
   const [newPlayerName, setNewPlayerName] = useState('');
-  const [bulkSeatCount, setBulkSeatCount] = useState('');
   const [script, setScript] = useState<Script | null>(null);
   const [scriptError, setScriptError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
@@ -94,6 +98,9 @@ export function SessionSetupPage() {
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
     useSensor(KeyboardSensor),
   );
+
+  const theme = useTheme();
+  const isSmallViewport = useMediaQuery(theme.breakpoints.down('sm'));
 
   useEffect(() => {
     if (session) {
@@ -196,18 +203,6 @@ export function SessionSetupPage() {
     [assignTemplateSeat, moveTemplateSlot, session, sessionId],
   );
 
-  const handleAddBulkSeats = () => {
-    if (!sessionId) return;
-    const n = Math.max(1, Math.min(20, Number.parseInt(bulkSeatCount, 10) || 0));
-    if (
-      !n ||
-      (session?.template.slots.filter((s) => s.kind === 'seat').length ?? 0) + n > MAX_PLAYERS
-    )
-      return;
-    for (let i = 0; i < n; i++) addTemplateSeat(sessionId);
-    setBulkSeatCount('');
-  };
-
   const handleAddSeatsForAllPlayers = () => {
     if (!sessionId || !session) return;
     const seatedCount = session.template.slots.filter((s) => s.kind === 'seat').length;
@@ -302,224 +297,239 @@ export function SessionSetupPage() {
       </AppBar>
 
       <Container maxWidth="lg" sx={{ pt: 2 }}>
-        <Paper sx={{ p: 2, mb: 3 }} elevation={1}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Session Info
-          </Typography>
-
-          <TextField
-            fullWidth
-            label="Session Name"
-            variant="outlined"
-            size="small"
-            value={sessionName}
-            onChange={(e) => handleNameChange(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
-              Script: {script ? script.name : 'None selected'}
-              {script?.author ? ` (by ${script.author})` : ''}
+        <Accordion defaultExpanded sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Session Info
             </Typography>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<UploadFileIcon />}
-              onClick={handleImportClick}
-            >
-              Import Script
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={() => setScriptBuilderOpen(true)}
-            >
-              Create Script
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              hidden
-              onChange={(e) => void handleFileUpload(e)}
-            />
-          </Box>
-
-          {importing && <LoadingState message="Importing script…" />}
-
-          {scriptError && (
-            <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-              {scriptError}
-            </Typography>
-          )}
-
-          {script && !importing && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {script.characterIds.length} characters
-            </Typography>
-          )}
-        </Paper>
-
-        <Paper sx={{ p: 2, mb: 3 }} elevation={1}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Player Roster ({session.players.length})
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+          </AccordionSummary>
+          <AccordionDetails>
             <TextField
               fullWidth
-              size="small"
-              label="New player name"
-              value={newPlayerName}
-              onChange={(e) => setNewPlayerName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleAddRosterPlayer();
-              }}
-            />
-            <Button
+              label="Session Name"
               variant="outlined"
-              startIcon={<AddIcon />}
-              onClick={handleAddRosterPlayer}
-              disabled={!newPlayerName.trim() || session.players.length >= MAX_PLAYERS}
-            >
-              Add
-            </Button>
-          </Box>
-          <Grid container spacing={1}>
-            {session.players.map((player) => (
-              <RosterPlayerItem
-                key={player.id}
-                player={player}
-                seated={seatedPlayerIds.has(player.id)}
-                rosterIds={session.players.map((p) => p.id)}
-                onNameChange={(name) => renamePlayer(session.id, player.id, name)}
-                onRemove={() => removePlayer(session.id, player.id)}
-              />
-            ))}
-          </Grid>
-          {parkedPlayers.length > 0 && (
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-              Parking lot: {parkedPlayers.map((player) => player.name).join(', ')}
-            </Typography>
-          )}
-        </Paper>
+              size="small"
+              value={sessionName}
+              onChange={(e) => handleNameChange(e.target.value)}
+              sx={{ mb: 2 }}
+            />
 
-        <Paper sx={{ p: 2, mb: 3 }} elevation={1}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, flexWrap: 'wrap' }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ flexGrow: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
+                Script: {script ? script.name : 'None selected'}
+                {script?.author ? ` (by ${script.author})` : ''}
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<UploadFileIcon />}
+                onClick={handleImportClick}
+              >
+                Import Script
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => setScriptBuilderOpen(true)}
+              >
+                Create Script
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                hidden
+                onChange={(e) => void handleFileUpload(e)}
+              />
+            </Box>
+
+            {importing && <LoadingState message="Importing script…" />}
+
+            {scriptError && (
+              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                {scriptError}
+              </Typography>
+            )}
+
+            {script && !importing && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {script.characterIds.length} characters
+              </Typography>
+            )}
+          </AccordionDetails>
+        </Accordion>
+
+        <Accordion defaultExpanded sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Player Roster ({session.players.length})
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="New player name"
+                value={newPlayerName}
+                onChange={(e) => setNewPlayerName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddRosterPlayer();
+                }}
+              />
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={handleAddRosterPlayer}
+                disabled={!newPlayerName.trim() || session.players.length >= MAX_PLAYERS}
+              >
+                Add
+              </Button>
+            </Box>
+            <Grid container spacing={1}>
+              {session.players.map((player) => (
+                <RosterPlayerItem
+                  key={player.id}
+                  player={player}
+                  seated={seatedPlayerIds.has(player.id)}
+                  rosterIds={session.players.map((p) => p.id)}
+                  onNameChange={(name) => renamePlayer(session.id, player.id, name)}
+                  onRemove={() => removePlayer(session.id, player.id)}
+                />
+              ))}
+            </Grid>
+            {parkedPlayers.length > 0 && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                Parking lot: {parkedPlayers.map((player) => player.name).join(', ')}
+              </Typography>
+            )}
+          </AccordionDetails>
+        </Accordion>
+
+        <Accordion defaultExpanded sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">
               Seating Template ({displaySeatNumbers.size} seats)
             </Typography>
-            <Button
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={() => addTemplateSeat(session.id)}
-            >
-              Add Seat
-            </Button>
-            <Button size="small" onClick={() => addTemplateSpacer(session.id)}>
-              Add Spacer
-            </Button>
-            <Button
-              size="small"
-              onClick={() => addTemplateStoryteller(session.id)}
-              disabled={session.template.slots.some((slot) => slot.kind === 'storyteller')}
-            >
-              Add Storyteller
-            </Button>
-          </Box>
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
-            <TextField
-              size="small"
-              type="number"
-              label="N"
-              value={bulkSeatCount}
-              onChange={(e) => setBulkSeatCount(e.target.value)}
-              slotProps={{ htmlInput: { min: 1, max: 20 } }}
-              sx={{ width: 80 }}
-            />
-            <Button size="small" onClick={handleAddBulkSeats} disabled={!bulkSeatCount}>
-              Add N seats
-            </Button>
-            <Button size="small" onClick={handleAddSeatsForAllPlayers}>
-              Add seats for all players
-            </Button>
-            {session.gameIds.length > 0 && (
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, flexWrap: 'wrap' }}>
               <Button
                 size="small"
-                color="primary"
-                variant="outlined"
-                onClick={handleApplyTemplateToAllGames}
-                sx={{ ml: 'auto' }}
+                startIcon={<AddIcon />}
+                onClick={() => addTemplateSeat(session.id)}
               >
-                Apply template to all games
+                Add Seat
               </Button>
+              <Button size="small" onClick={() => addTemplateSpacer(session.id)}>
+                Add Spacer
+              </Button>
+              <Button
+                size="small"
+                onClick={() => addTemplateStoryteller(session.id)}
+                disabled={session.template.slots.some((slot) => slot.kind === 'storyteller')}
+              >
+                Add Storyteller
+              </Button>
+              <Button size="small" onClick={handleAddSeatsForAllPlayers}>
+                Add seats for all players
+              </Button>
+              {session.gameIds.length > 0 && (
+                <Button
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  onClick={handleApplyTemplateToAllGames}
+                  sx={{ ml: 'auto' }}
+                >
+                  Apply template to all games
+                </Button>
+              )}
+            </Box>
+
+            {session.template.slots.length === 0 ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ py: 2, textAlign: 'center' }}
+              >
+                No seating slots yet. Add seats, spacers, or a storyteller marker.
+              </Typography>
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: { xs: 560, sm: 560, md: 640 },
+                  }}
+                >
+                  <SeatingTemplateCircle
+                    slots={session.template.slots}
+                    players={session.players}
+                    displaySeatNumbers={displaySeatNumbers}
+                    shape={isSmallViewport ? 'ovoid' : 'circle'}
+                    onAssignSeat={(slotId, playerId) =>
+                      assignTemplateSeat(session.id, slotId, playerId)
+                    }
+                    onRemoveSlot={(slotId) => removeTemplateSlot(session.id, slotId)}
+                  />
+                </Box>
+              </DndContext>
             )}
-          </Box>
+          </AccordionDetails>
+        </Accordion>
 
-          {session.template.slots.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-              No seating slots yet. Add seats, spacers, or a storyteller marker.
-            </Typography>
-          ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <Box sx={{ overflowX: 'auto', display: 'flex', justifyContent: 'center' }}>
-                <SeatingTemplateCircle
-                  slots={session.template.slots}
-                  players={session.players}
-                  displaySeatNumbers={displaySeatNumbers}
-                  onAssignSeat={(slotId, playerId) =>
-                    assignTemplateSeat(session.id, slotId, playerId)
-                  }
-                  onRemoveSlot={(slotId) => removeTemplateSlot(session.id, slotId)}
-                />
-              </Box>
-            </DndContext>
-          )}
-        </Paper>
-
-        <Paper sx={{ p: 2 }} elevation={1}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ flexGrow: 1 }}>
+        <Accordion defaultExpanded sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">
               Games ({session.gameIds.length})
             </Typography>
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={handleCreateGame}
-            >
-              New Game
-            </Button>
-          </Box>
-
-          {session.gameIds.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-              No games yet. Create your first game to start playing.
-            </Typography>
-          ) : (
-            <>
-              <Divider sx={{ mb: 1 }} />
-              <List disablePadding>
-                {session.gameIds.map((gameId, index) => (
-                  <GameListItem
-                    key={gameId}
-                    gameId={gameId}
-                    gameNumber={index + 1}
-                    onClick={() => handleOpenGame(gameId)}
-                    onDelete={() => handleDeleteGame(gameId)}
-                    onApplyTemplate={() => applyTemplateToGame(session.id, gameId)}
-                  />
-                ))}
-              </List>
-            </>
-          )}
-        </Paper>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={handleCreateGame}
+              >
+                New Game
+              </Button>
+            </Box>
+            {session.gameIds.length === 0 ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ py: 2, textAlign: 'center' }}
+              >
+                No games yet. Create your first game to start playing.
+              </Typography>
+            ) : (
+              <>
+                <Divider sx={{ mb: 1 }} />
+                <List disablePadding>
+                  {session.gameIds.map((gameId, index) => (
+                    <GameListItem
+                      key={gameId}
+                      gameId={gameId}
+                      gameNumber={index + 1}
+                      onClick={() => handleOpenGame(gameId)}
+                      onDelete={() => handleDeleteGame(gameId)}
+                      onApplyTemplate={() => applyTemplateToGame(session.id, gameId)}
+                    />
+                  ))}
+                </List>
+              </>
+            )}
+          </AccordionDetails>
+        </Accordion>
 
         <ScriptBuilder
           open={scriptBuilderOpen}

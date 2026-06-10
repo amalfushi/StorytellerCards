@@ -10,11 +10,13 @@
  *  - the player picker greys out players already seated elsewhere (the current
  *    seat's own player stays selectable as a no-op)
  *
- * Sizing: tiles are large enough to show player names + the Select dropdown
- * comfortably (default tileSize 140). The diameter auto-grows with slot count
- * so seats never overlap when there's at least one slot pair — the parent is
- * expected to allow horizontal scrolling on narrow viewports.
+ * Sizing: the component fills its parent container (the parent should give it
+ * an explicit width and height). A ResizeObserver tracks the rendered box and
+ * positions tiles on an ellipse with an 8-px inset around the outer edge. The
+ * `shape` prop selects circle (`rx === ry`) or ovoid (`ry > rx` — taller than
+ * wide, used on small viewports).
  */
+import { useEffect, useRef, useState } from 'react';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
@@ -37,8 +39,9 @@ export const SLOT_DRAGGABLE_PREFIX = 'tslot:';
 export const SLOT_POSITION_DROPPABLE_PREFIX = 'tslotpos:';
 
 const DEFAULT_TILE_SIZE = 140;
-const RING_PADDING = 16;
-const MIN_DIAMETER = 360;
+const RING_MARGIN = 8;
+const ASSIGNED_BORDER_WIDTH = 4;
+const UNASSIGNED_BORDER_WIDTH = 2;
 
 interface Props {
   slots: Slot[];
@@ -47,31 +50,17 @@ interface Props {
   displaySeatNumbers: Map<SlotId, number>;
   /**
    * Tile (token) width in pixels. Default 140 — wide enough for typical
-   * player names in the assign dropdown. Pass a smaller value on tight
-   * viewports.
+   * player names in the assign dropdown.
    */
   tileSize?: number;
   /**
-   * Optional diameter override. When omitted, the diameter auto-grows with
-   * slot count so adjacent tiles never overlap.
+   * Layout shape. `'circle'` uses equal `rx === ry`. `'ovoid'` uses
+   * `ry > rx` so the ellipse is taller than wide — preferred on narrow
+   * viewports.
    */
-  size?: number;
+  shape?: 'circle' | 'ovoid';
   onRemoveSlot: (slotId: SlotId) => void;
   onAssignSeat: (slotId: SlotId, playerId: PlayerId | null) => void;
-}
-
-/**
- * Smallest diameter that fits `n` tiles of `tileSize` width around a circle
- * with no tile-to-tile overlap. The chord between adjacent points must be
- * at least `tileSize` wide → `r ≥ tileSize / (2 sin(π/n))`. We add a half
- * tile and a small ring padding so the tile fully fits inside the outer
- * border.
- */
-function computeDiameter(n: number, tileSize: number): number {
-  if (n <= 1) return Math.max(MIN_DIAMETER, tileSize + 2 * RING_PADDING + tileSize);
-  const minRadius = tileSize / (2 * Math.sin(Math.PI / n));
-  const required = 2 * (minRadius + tileSize / 2 + RING_PADDING);
-  return Math.max(MIN_DIAMETER, Math.ceil(required));
 }
 
 export function SeatingTemplateCircle({
@@ -79,16 +68,27 @@ export function SeatingTemplateCircle({
   players,
   displaySeatNumbers,
   tileSize = DEFAULT_TILE_SIZE,
-  size,
+  shape = 'circle',
   onRemoveSlot,
   onAssignSeat,
 }: Props) {
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const update = () => {
+      const rect = el.getBoundingClientRect();
+      setSize({ w: rect.width, h: rect.height });
+    };
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const n = slots.length;
-  const diameter = size ?? computeDiameter(n, tileSize);
-  const tokenRadius = tileSize / 2;
-  const cx = diameter / 2;
-  const cy = diameter / 2;
-  const r = Math.max(diameter / 2 - tokenRadius - RING_PADDING, 30);
   const playerIdsInOrder = players.map((p) => p.id);
   const seatedIds = new Set<PlayerId>(
     slots
@@ -97,17 +97,33 @@ export function SeatingTemplateCircle({
       .filter((id): id is PlayerId => id !== null),
   );
 
+  const cx = size.w / 2;
+  const cy = size.h / 2;
+  // Inset by half a tile plus the 8-px ring margin so tiles never clip the
+  // outer dashed border.
+  const inset = tileSize / 2 + RING_MARGIN;
+  let rx = Math.max(cx - inset, 0);
+  let ry = Math.max(cy - inset, 0);
+  if (shape === 'circle') {
+    const r = Math.min(rx, ry);
+    rx = r;
+    ry = r;
+  } else if (ry < rx) {
+    // Ovoid: ensure portrait emphasis even if the container ends up square.
+    const tmp = ry;
+    ry = rx;
+    rx = tmp;
+  }
+
   return (
     <Box
+      ref={containerRef}
       sx={{
-        position: 'relative',
-        width: diameter,
-        height: diameter,
-        mx: 'auto',
-        my: 1,
+        position: 'absolute',
+        inset: `${RING_MARGIN}px`,
         border: '1px dashed',
         borderColor: 'divider',
-        borderRadius: '50%',
+        borderRadius: shape === 'circle' ? '50%' : '50% / 50%',
       }}
       data-testid="seating-template-circle"
     >
@@ -127,9 +143,9 @@ export function SeatingTemplateCircle({
       )}
 
       {slots.map((slot, i) => {
-        const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
-        const x = cx + r * Math.cos(angle);
-        const y = cy + r * Math.sin(angle);
+        const angle = -Math.PI / 2 + (2 * Math.PI * i) / Math.max(n, 1);
+        const x = cx + rx * Math.cos(angle);
+        const y = cy + ry * Math.sin(angle);
 
         return (
           <SlotPositionWrapper key={slot.id} slotId={slot.id} x={x} y={y} tileSize={tileSize}>
@@ -362,12 +378,13 @@ function SeatCell({
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: `${SEAT_DROPPABLE_PREFIX}${slot.id}` });
   const assignedColor = slot.playerId ? getPlayerColorById(slot.playerId, playerIdsInOrder) : null;
+  const borderWidth = assignedColor ? ASSIGNED_BORDER_WIDTH : UNASSIGNED_BORDER_WIDTH;
   return (
     <Box
       ref={setNodeRef}
       sx={{
         bgcolor: isOver ? 'success.light' : 'background.paper',
-        border: '2px solid',
+        border: `${borderWidth}px solid`,
         borderColor: isOver ? 'success.main' : assignedColor ? assignedColor : 'divider',
         borderRadius: 1,
         textAlign: 'center',

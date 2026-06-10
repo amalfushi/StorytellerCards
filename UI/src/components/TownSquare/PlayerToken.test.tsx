@@ -276,9 +276,9 @@ describe('PlayerToken', () => {
     }
   });
 
-  it('SIZE_MAP has portrait aspect ratio (height > width)', () => {
+  it('SIZE_MAP uses square tokens (width === height)', () => {
     for (const key of Object.keys(SIZE_MAP) as (keyof typeof SIZE_MAP)[]) {
-      expect(SIZE_MAP[key].height).toBeGreaterThan(SIZE_MAP[key].width);
+      expect(SIZE_MAP[key].height).toBe(SIZE_MAP[key].width);
     }
   });
 

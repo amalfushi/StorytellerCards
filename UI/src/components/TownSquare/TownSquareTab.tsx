@@ -42,8 +42,8 @@ function tokenSizeForCount(count: number): TokenSize {
   return 'small';
 }
 
-/** Half-height of the token card (used as padding inset for the layout). */
-const TOKEN_HALF = { large: 75, medium: 70, small: 65 } as const;
+/** Half-side of the token square (used as padding inset for the layout). */
+const TOKEN_HALF = { large: 60, medium: 55, small: 50 } as const;
 const GAME_ONLY_PROPAGATION = { toTemplate: false, toOtherGames: false } as const;
 
 /**
