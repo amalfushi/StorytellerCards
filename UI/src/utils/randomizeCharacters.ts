@@ -75,6 +75,28 @@ function getSetupAdjustments(selectedIds: Set<string>): OutsiderAdjustment {
  * @returns Array of selected character IDs (length === playerCount, or fewer if insufficient characters)
  */
 export function randomizeCharacters(scriptCharacterIds: string[], playerCount: number): string[] {
+  return randomizeCharactersWithModifiers(scriptCharacterIds, playerCount).characterIds;
+}
+
+/**
+ * Result of a full randomization: the selected character IDs plus any variable
+ * setup-modifier values the randomizer picked (e.g. Lord of Typhon outsider delta).
+ * Callers should apply `variableModifiers` to their variable-modifier state so the
+ * +/− steppers and adaptive distribution display stay in sync with the random pick.
+ */
+export interface RandomizationResult {
+  characterIds: string[];
+  variableModifiers: Record<string, number>;
+}
+
+/**
+ * Same as randomizeCharacters but also returns the variable modifier values the
+ * randomizer chose (e.g. Lord of Typhon outsider delta) so callers can sync UI state.
+ */
+export function randomizeCharactersWithModifiers(
+  scriptCharacterIds: string[],
+  playerCount: number,
+): RandomizationResult {
   // Resolve character definitions
   const characters = scriptCharacterIds
     .map((id) => getCharacter(id))
@@ -133,7 +155,7 @@ export function randomizeCharacters(scriptCharacterIds: string[], playerCount: n
       }
     }
 
-    return selected.map((c) => c.id);
+    return { characterIds: selected.map((c) => c.id), variableModifiers: {} };
   }
 
   // ── Legion: only if randomly selected as a demon ──
@@ -149,7 +171,10 @@ export function randomizeCharacters(scriptCharacterIds: string[], playerCount: n
 
     const legionIds = Array.from({ length: legionCount }, () => 'legion');
 
-    return [...selectedGood.map((c) => c.id), ...legionIds];
+    return {
+      characterIds: [...selectedGood.map((c) => c.id), ...legionIds],
+      variableModifiers: {},
+    };
   }
 
   // ── Standard distribution (continued) ──
@@ -157,11 +182,19 @@ export function randomizeCharacters(scriptCharacterIds: string[], playerCount: n
   const adjustments = getSetupAdjustments(selectedEvilIds);
 
   // Lord of Typhon: +1 Minion and Storyteller-variable Outsiders.
-  // For random setup, pick a legal Outsider count across the available good slots.
+  // For random setup, pick a conservative outsider delta (0 or +1) so the
+  // count stays within available characters and matches typical play.
+  let lordOfTyphonDelta = 0;
   if (selectedEvilIds.has('lordoftyphon')) {
     targetMinions = Math.min(base.minions + 1, minions.length);
-    const maxOutsiders = Math.min(outsiders.length, base.townsfolk + base.outsiders - 1);
-    adjustments.outsiderDelta += Math.floor(Math.random() * (maxOutsiders + 1)) - base.outsiders;
+    // Maximum legal outsiders given one extra minion took a good slot.
+    const maxOutsiders = Math.min(
+      outsiders.length,
+      Math.max(0, base.townsfolk + base.outsiders - 1),
+    );
+    const maxDelta = Math.max(0, Math.min(1, maxOutsiders - base.outsiders));
+    lordOfTyphonDelta = Math.floor(Math.random() * (maxDelta + 1));
+    adjustments.outsiderDelta += lordOfTyphonDelta;
   }
 
   let targetOutsiders = Math.max(0, base.outsiders + adjustments.outsiderDelta);
@@ -193,10 +226,18 @@ export function randomizeCharacters(scriptCharacterIds: string[], playerCount: n
   const selectedOutsiders = pickRandom(outsiders, targetOutsiders);
   const selectedTownsfolk = pickRandom(townsfolk, targetTownsfolk);
 
-  return [
-    ...selectedTownsfolk.map((c) => c.id),
-    ...selectedOutsiders.map((c) => c.id),
-    ...selectedMinions.map((c) => c.id),
-    ...selectedDemons.map((c) => c.id),
-  ];
+  const variableModifiers: Record<string, number> = {};
+  if (selectedEvilIds.has('lordoftyphon')) {
+    variableModifiers.lordoftyphon = lordOfTyphonDelta;
+  }
+
+  return {
+    characterIds: [
+      ...selectedTownsfolk.map((c) => c.id),
+      ...selectedOutsiders.map((c) => c.id),
+      ...selectedMinions.map((c) => c.id),
+      ...selectedDemons.map((c) => c.id),
+    ],
+    variableModifiers,
+  };
 }

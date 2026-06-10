@@ -198,36 +198,46 @@ describe('randomlyAssignCharacters', () => {
     expect(assignedStates(assign(participants, pool, distribution))).toHaveLength(15);
   });
 
-  it('throws when there are not enough Townsfolk in the pool', () => {
+  it('assigns best-effort and leaves players unassigned when pool lacks Townsfolk', () => {
     const smallPool = [makeChar('townsfolk1', 'Townsfolk'), makeChar('demon1', 'Demon')];
     const distribution: Distribution = { townsfolk: 3, outsiders: 0, minions: 0, demons: 1 };
     const participants = Array.from({ length: 4 }, (_, i) => makeParticipant(i + 1));
 
-    expect(() => assign(participants, smallPool, distribution)).toThrow('Not enough Townsfolk');
+    const result = assign(participants, smallPool, distribution);
+    const assigned = assignedStates(result);
+    expect(assigned.length).toBe(2);
+    expect(assigned.map((p) => p.characterId).sort()).toEqual(['demon1', 'townsfolk1']);
   });
 
-  it('throws when there are not enough Outsiders in the pool', () => {
+  it('assigns best-effort and leaves players unassigned when pool lacks Outsiders', () => {
     const smallPool = [makeChar('townsfolk1', 'Townsfolk'), makeChar('demon1', 'Demon')];
     const distribution: Distribution = { townsfolk: 1, outsiders: 2, minions: 0, demons: 1 };
     const participants = Array.from({ length: 4 }, (_, i) => makeParticipant(i + 1));
 
-    expect(() => assign(participants, smallPool, distribution)).toThrow('Not enough Outsiders');
+    const result = assign(participants, smallPool, distribution);
+    const assigned = assignedStates(result);
+    expect(assigned.length).toBe(2);
   });
 
-  it('throws when there are not enough Minions in the pool', () => {
+  it('assigns best-effort and leaves players unassigned when pool lacks Minions', () => {
     const smallPool = [makeChar('townsfolk1', 'Townsfolk'), makeChar('demon1', 'Demon')];
     const distribution: Distribution = { townsfolk: 1, outsiders: 0, minions: 2, demons: 1 };
     const participants = Array.from({ length: 4 }, (_, i) => makeParticipant(i + 1));
 
-    expect(() => assign(participants, smallPool, distribution)).toThrow('Not enough Minions');
+    const result = assign(participants, smallPool, distribution);
+    const assigned = assignedStates(result);
+    expect(assigned.length).toBe(2);
   });
 
-  it('throws when there are not enough Demons in the pool', () => {
+  it('assigns best-effort and leaves players unassigned when pool lacks Demons', () => {
     const smallPool = [makeChar('townsfolk1', 'Townsfolk')];
     const distribution: Distribution = { townsfolk: 1, outsiders: 0, minions: 0, demons: 1 };
     const participants = Array.from({ length: 2 }, (_, i) => makeParticipant(i + 1));
 
-    expect(() => assign(participants, smallPool, distribution)).toThrow('Not enough Demons');
+    const result = assign(participants, smallPool, distribution);
+    const assigned = assignedStates(result);
+    expect(assigned.length).toBe(1);
+    expect(assigned[0].characterId).toBe('townsfolk1');
   });
 
   it('produces valid distributions across multiple random runs', () => {

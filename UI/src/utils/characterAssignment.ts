@@ -70,28 +70,16 @@ export function randomlyAssignCharacters(
   const minions = assignableCharacters.filter((c) => c.type === CharacterType.Minion);
   const demons = assignableCharacters.filter((c) => c.type === CharacterType.Demon);
 
-  if (townsfolk.length < distribution.townsfolk) {
-    throw new Error(
-      `Not enough Townsfolk: need ${distribution.townsfolk}, have ${townsfolk.length}`,
-    );
-  }
-  if (outsiders.length < distribution.outsiders) {
-    throw new Error(
-      `Not enough Outsiders: need ${distribution.outsiders}, have ${outsiders.length}`,
-    );
-  }
-  if (minions.length < distribution.minions) {
-    throw new Error(`Not enough Minions: need ${distribution.minions}, have ${minions.length}`);
-  }
-  if (demons.length < distribution.demons) {
-    throw new Error(`Not enough Demons: need ${distribution.demons}, have ${demons.length}`);
-  }
+  const tfCount = Math.min(distribution.townsfolk, townsfolk.length);
+  const oCount = Math.min(distribution.outsiders, outsiders.length);
+  const mCount = Math.min(distribution.minions, minions.length);
+  const dCount = Math.min(distribution.demons, demons.length);
 
   const selected: CharacterDef[] = [
-    ...shuffle([...townsfolk]).slice(0, distribution.townsfolk),
-    ...shuffle([...outsiders]).slice(0, distribution.outsiders),
-    ...shuffle([...minions]).slice(0, distribution.minions),
-    ...shuffle([...demons]).slice(0, distribution.demons),
+    ...shuffle([...townsfolk]).slice(0, tfCount),
+    ...shuffle([...outsiders]).slice(0, oCount),
+    ...shuffle([...minions]).slice(0, mCount),
+    ...shuffle([...demons]).slice(0, dCount),
   ];
 
   shuffle(selected);

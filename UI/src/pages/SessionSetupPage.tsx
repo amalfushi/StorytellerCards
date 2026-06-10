@@ -266,7 +266,7 @@ export function SessionSetupPage() {
 
   if (!session || !sessionId) {
     return (
-      <Container maxWidth="sm" sx={{ py: 4, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ py: 4, textAlign: 'center' }}>
         <Typography variant="h6" color="error">
           Session not found
         </Typography>
@@ -296,7 +296,7 @@ export function SessionSetupPage() {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="sm" sx={{ pt: 2 }}>
+      <Container maxWidth="lg" sx={{ pt: 2 }}>
         <Paper sx={{ p: 2, mb: 3 }} elevation={1}>
           <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
             Session Info
