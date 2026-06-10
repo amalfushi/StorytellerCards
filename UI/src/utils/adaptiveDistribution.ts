@@ -299,11 +299,25 @@ export function calculateAdaptiveTargets(
     }
   }
 
-  // Lord of Typhon variable outsider component
+  // Lord of Typhon variable outsider component (+1 Minion already applied above)
   if (idSet.has('lordoftyphon')) {
-    hasVariableOutsider = true;
+    const val = options.variableModifierValues?.lordoftyphon;
     outsiderModifierIds.push('lordoftyphon');
-    // Modifier already added above for the +1 Minion
+    if (val !== undefined) {
+      outsiderDelta += val;
+      modifiers.push({
+        characterId: 'lordoftyphon',
+        characterName: charName('lordoftyphon'),
+        description: `${val > 0 ? '+' : ''}${val} Outsider${Math.abs(val) !== 1 ? 's' : ''}`,
+      });
+    } else {
+      hasVariableOutsider = true;
+      modifiers.push({
+        characterId: 'lordoftyphon',
+        characterName: charName('lordoftyphon'),
+        description: 'Variable Outsiders (ST chooses)',
+      });
+    }
   }
 
   // Sentinel: variable Outsiders (ST chooses)
