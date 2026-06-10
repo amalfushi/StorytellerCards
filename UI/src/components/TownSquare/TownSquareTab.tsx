@@ -7,7 +7,14 @@ import useMediaQuery from '@mui/material/useMediaQuery';
 import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import type { CharacterDef, Alignment, PlayerId, PlayerToken as PlayerTokenType, SlotId } from '@/types/index.ts';
+import type {
+  CharacterDef,
+  Alignment,
+  PlayerId,
+  PlayerToken as PlayerTokenType,
+  SlotId,
+} from '@/types/index.ts';
+import { CharacterType } from '@/types/index.ts';
 import { useGame } from '@/context/useGame.ts';
 import { useSession } from '@/context/useSession.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -51,13 +58,15 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
     removeToken,
     assignGameSeat,
     setPlayerBluffs,
+    setParticipantTraveller,
   } = useGame();
   const { state: sessionState } = useSession();
   const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
 
   const game = state.game;
   const session = useMemo(
-    () => (game ? sessionState.sessions.find((candidate) => candidate.id === game.sessionId) : undefined),
+    () =>
+      game ? sessionState.sessions.find((candidate) => candidate.id === game.sessionId) : undefined,
     [game, sessionState.sessions],
   );
 
@@ -80,7 +89,9 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
   const players = useMemo<TownSquarePlayer[]>(() => {
     if (!game || !session) return [];
     const roster = new Map(session.players.map((player) => [player.id, player]));
-    const participants = new Map(game.participants.map((participant) => [participant.playerId, participant]));
+    const participants = new Map(
+      game.participants.map((participant) => [participant.playerId, participant]),
+    );
     const displaySeatNumbers = buildDisplaySeatNumberMap(game.slots);
 
     return game.slots.flatMap((slot) => {
@@ -245,7 +256,12 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
     (playerId: PlayerId) => {
       const player = playersById.get(playerId);
       if (!player) return;
-      updatePlayerState(playerId, player.alive ? { alive: false, ghostVoteUsed: false } : { alive: true, ghostVoteUsed: false });
+      updatePlayerState(
+        playerId,
+        player.alive
+          ? { alive: false, ghostVoteUsed: false }
+          : { alive: true, ghostVoteUsed: false },
+      );
     },
     [playersById, updatePlayerState],
   );
@@ -267,9 +283,18 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
 
   const handleSaveCharacter = useCallback(
     (playerId: PlayerId, updates: { characterId?: string; actualAlignment?: Alignment }) => {
+      if (updates.characterId !== undefined) {
+        const character = getCharacter(updates.characterId);
+        const nextIsTraveller = character?.type === CharacterType.Traveller;
+        const participant = state.game?.participants.find((p) => p.playerId === playerId);
+        const currentIsTraveller = participant?.isTraveller ?? false;
+        if (nextIsTraveller !== currentIsTraveller) {
+          setParticipantTraveller(playerId, nextIsTraveller, updates.actualAlignment);
+        }
+      }
       updatePlayerState(playerId, updates);
     },
-    [updatePlayerState],
+    [getCharacter, setParticipantTraveller, state.game, updatePlayerState],
   );
 
   const handleSwapWith = useCallback((playerId: PlayerId) => {
@@ -332,7 +357,16 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         </Box>
       );
     },
-    [getCharacter, showCharacters, selectedPlayerId, handleTokenClick, tokenSize, centerX, centerY, effectiveLayout],
+    [
+      getCharacter,
+      showCharacters,
+      selectedPlayerId,
+      handleTokenClick,
+      tokenSize,
+      centerX,
+      centerY,
+      effectiveLayout,
+    ],
   );
 
   return (
@@ -357,7 +391,13 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
             setSelectedPlayerId(null);
           }}
           color="warning"
-          sx={{ position: 'absolute', top: 8, left: '50%', transform: 'translateX(-50%)', zIndex: 20 }}
+          sx={{
+            position: 'absolute',
+            top: 8,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 20,
+          }}
           data-testid="swap-mode-indicator"
         />
       )}
@@ -401,7 +441,9 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         onChangeBluff={handleChangeBluff}
       />
 
-      <Tooltip title={effectiveLayout === 'radial' ? 'Switch to linear tokens' : 'Switch to radial tokens'}>
+      <Tooltip
+        title={effectiveLayout === 'radial' ? 'Switch to linear tokens' : 'Switch to radial tokens'}
+      >
         <IconButton
           size="small"
           aria-label="toggle token layout"
@@ -418,7 +460,11 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
             height: 32,
           }}
         >
-          {effectiveLayout === 'radial' ? <ScatterPlotIcon fontSize="small" /> : <LinearScaleIcon fontSize="small" />}
+          {effectiveLayout === 'radial' ? (
+            <ScatterPlotIcon fontSize="small" />
+          ) : (
+            <LinearScaleIcon fontSize="small" />
+          )}
         </IconButton>
       </Tooltip>
 

@@ -222,10 +222,6 @@ vi.mock('@/components/common/LoadingState.tsx', () => ({
     <div data-testid="loading-state">{message}</div>
   ),
 }));
-vi.mock('@/components/TownSquare/AddPlayerDialog.tsx', () => ({
-  AddPlayerDialog: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="add-player-dialog">Add Player Dialog</div> : null,
-}));
 vi.mock('@/components/Timer/DayTimerFab.tsx', () => ({
   DayTimerFab: () => <div data-testid="day-timer-fab">Timer FAB</div>,
 }));

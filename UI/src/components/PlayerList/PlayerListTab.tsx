@@ -31,6 +31,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { CharacterDef, Alignment, PlayerToken as PlayerTokenType } from '@/types/index.ts';
+import { CharacterType } from '@/types/index.ts';
 import { useGame } from '@/context/useGame.ts';
 import { useSession } from '@/context/useSession.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -59,6 +60,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
     addToken,
     removeToken,
     setPlayerBluffs,
+    setParticipantTraveller,
   } = useGame();
   const { state: sessionState } = useSession();
   const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
@@ -259,9 +261,19 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   const handleSaveCharacter = useCallback(
     (seat: number, updates: { characterId?: string; actualAlignment?: Alignment }) => {
       const player = findPlayerBySeat(seat);
-      if (player) updatePlayerState(player.playerId, updates);
+      if (!player) return;
+      if (updates.characterId !== undefined) {
+        const character = getCharacter(updates.characterId);
+        const nextIsTraveller = character?.type === CharacterType.Traveller;
+        const participant = state.game?.participants.find((p) => p.playerId === player.playerId);
+        const currentIsTraveller = participant?.isTraveller ?? false;
+        if (nextIsTraveller !== currentIsTraveller) {
+          setParticipantTraveller(player.playerId, nextIsTraveller, updates.actualAlignment);
+        }
+      }
+      updatePlayerState(player.playerId, updates);
     },
-    [findPlayerBySeat, updatePlayerState],
+    [findPlayerBySeat, getCharacter, setParticipantTraveller, state.game, updatePlayerState],
   );
 
   const handleSwapWith = useCallback(

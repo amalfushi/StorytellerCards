@@ -23,6 +23,22 @@ export function filterPlayerAssignableCharacters<T extends Pick<CharacterDef, 't
 }
 
 /**
+ * Characters that can be selected via the in-game character dropdown.
+ * Includes Travellers (so late arrivals can be converted) but excludes
+ * Fabled and Loric which are meta/special types not assigned to a seat directly.
+ */
+export function isCharacterDropdownOption(character: Pick<CharacterDef, 'type'>): boolean {
+  return character.type !== CharacterType.Fabled && character.type !== CharacterType.Loric;
+}
+
+/** Filter a character list to options exposed in the player character dropdown. */
+export function filterCharacterDropdownOptions<T extends Pick<CharacterDef, 'type'>>(
+  characters: T[],
+): T[] {
+  return characters.filter(isCharacterDropdownOption);
+}
+
+/**
  * Shuffles an array in-place using the Fisher-Yates algorithm.
  * Returns the same array reference for chaining.
  */

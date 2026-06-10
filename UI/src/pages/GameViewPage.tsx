@@ -7,13 +7,11 @@ import Box from '@mui/material/Box';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import Button from '@mui/material/Button';
-import Fab from '@mui/material/Fab';
 import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
-import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import ChecklistIcon from '@mui/icons-material/Checklist';
@@ -52,8 +50,7 @@ import { DemonBluffSelection } from '@/components/Setup/DemonBluffSelection.tsx'
 import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
-import { Alignment, Phase as PhaseEnum } from '@/types/index.ts';
-import { AddPlayerDialog } from '@/components/TownSquare/AddPlayerDialog.tsx';
+import { Phase as PhaseEnum } from '@/types/index.ts';
 import { DayTimerFab } from '@/components/Timer/DayTimerFab.tsx';
 import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
 
@@ -76,15 +73,11 @@ interface GameViewPlayer extends PlayerGameState {
 export function GameViewPage() {
   const { sessionId, gameId } = useParams<{ sessionId: string; gameId: string }>();
   const navigate = useNavigate();
-  const { state: sessionState, addPlayer: addSessionPlayer } = useSession();
+  const { state: sessionState } = useSession();
   const {
     state: gameState,
     loadGame,
     updatePlayerState,
-    addParticipant,
-    setParticipantTraveller,
-    addGameSeat,
-    assignGameSeat,
     saveGame,
     setPhase,
     setInPlayCharacters,
@@ -106,7 +99,6 @@ export function GameViewPage() {
   const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
-  const [addPlayerOpen, setAddPlayerOpen] = useState(false);
   const [reminderPicker, setReminderPicker] = useState<{
     anchorEl: HTMLElement;
     token: PlayerToken;
@@ -128,35 +120,6 @@ export function GameViewPage() {
   }, [gameState.game?.currentPhase, dayTimer]);
 
   const isDayPhase = gameState.game?.currentPhase === PhaseEnum.Day;
-
-  const handleAddPlayer = useCallback(
-    (_seat: number, playerName: string, characterId: string, alignment: 'Good' | 'Evil') => {
-      if (!sessionId) return;
-      const player = addSessionPlayer(sessionId, playerName);
-      addParticipant(player.id, { isTraveller: true, characterId });
-      setParticipantTraveller(
-        player.id,
-        true,
-        alignment === 'Good' ? Alignment.Good : Alignment.Evil,
-      );
-      updatePlayerState(player.id, {
-        characterId,
-        actualAlignment: alignment === 'Good' ? Alignment.Good : Alignment.Evil,
-        startingAlignment: alignment === 'Good' ? Alignment.Good : Alignment.Evil,
-      });
-      const slotId = addGameSeat({ toTemplate: false, toOtherGames: false });
-      assignGameSeat(slotId, player.id, { toTemplate: false, toOtherGames: false });
-    },
-    [
-      addGameSeat,
-      addParticipant,
-      addSessionPlayer,
-      assignGameSeat,
-      sessionId,
-      setParticipantTraveller,
-      updatePlayerState,
-    ],
-  );
 
   // Find the session for the display name
   const session = useMemo(
@@ -750,36 +713,7 @@ export function GameViewPage() {
             </Box>
 
             {/* ── Shared FABs for Town Square & Players tabs ── */}
-            {(tabIndex === 0 || tabIndex === 1) && (
-              <>
-                <Fab
-                  color="primary"
-                  size="small"
-                  aria-label="add player"
-                  onClick={() => setAddPlayerOpen(true)}
-                  sx={{
-                    position: 'absolute',
-                    bottom: 16,
-                    right: 16,
-                    zIndex: 10,
-                  }}
-                >
-                  <AddIcon />
-                </Fab>
-                {isDayPhase && <DayTimerFab timer={dayTimer} />}
-              </>
-            )}
-
-            {/* ── Add Player Dialog ── */}
-            <AddPlayerDialog
-              key={String(addPlayerOpen)}
-              open={addPlayerOpen}
-              existingPlayers={players.map((player) => ({ seatNumber: player.seat }))}
-              scriptCharacterIds={scriptCharacterIds}
-              inPlayCharacterIds={game?.inPlayCharacterIds ?? []}
-              onClose={() => setAddPlayerOpen(false)}
-              onAdd={handleAddPlayer}
-            />
+            {(tabIndex === 0 || tabIndex === 1) && isDayPhase && <DayTimerFab timer={dayTimer} />}
           </Box>
 
           {/* ── Bottom Navigation ── */}

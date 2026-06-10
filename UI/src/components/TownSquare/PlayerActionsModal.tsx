@@ -22,7 +22,7 @@ import type { CharacterDef, Alignment, PlayerId } from '@/types/index.ts';
 import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
-import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
+import { filterCharacterDropdownOptions } from '@/utils/characterAssignment.ts';
 
 /** Type display order for grouping in the character selector. */
 const TYPE_ORDER = ['Townsfolk', 'Outsider', 'Minion', 'Demon', 'Traveller'];
@@ -43,7 +43,7 @@ function playerDisplaySeat(player: TownSquarePlayer): number {
 }
 
 function playerActionKey(player: TownSquarePlayer): PlayerActionKey {
-  return player.seatNumber !== undefined ? player.playerId : player['seat'] ?? player.playerId;
+  return player.seatNumber !== undefined ? player.playerId : (player['seat'] ?? player.playerId);
 }
 
 function invokePlayerAction(handler: PlayerActionHandler, player: TownSquarePlayer): void {
@@ -156,7 +156,7 @@ function PlayerActionsModalInner({
   );
 
   const characterOptions = useMemo(() => {
-    const assignableScriptCharacters = filterPlayerAssignableCharacters(scriptCharacters);
+    const assignableScriptCharacters = filterCharacterDropdownOptions(scriptCharacters);
     const scriptIds = new Set(assignableScriptCharacters.map((c) => c.id));
     const options: CharacterOption[] = [];
 
@@ -172,7 +172,7 @@ function PlayerActionsModalInner({
     }
 
     if (allCharacters) {
-      for (const ch of filterPlayerAssignableCharacters(allCharacters)) {
+      for (const ch of filterCharacterDropdownOptions(allCharacters)) {
         if (!scriptIds.has(ch.id)) {
           options.push({
             id: ch.id,
@@ -222,15 +222,19 @@ function PlayerActionsModalInner({
   const handleSaveCharacter = () => {
     const key = playerActionKey(player);
     if (typeof key === 'number') {
-      (onSaveCharacter as (value: number, updates: { characterId?: string; actualAlignment?: Alignment }) => void)(
-        key,
-        { characterId, actualAlignment },
-      );
+      (
+        onSaveCharacter as (
+          value: number,
+          updates: { characterId?: string; actualAlignment?: Alignment },
+        ) => void
+      )(key, { characterId, actualAlignment });
     } else {
-      (onSaveCharacter as (
-        value: PlayerId,
-        updates: { characterId?: string; actualAlignment?: Alignment },
-      ) => void)(key, { characterId, actualAlignment });
+      (
+        onSaveCharacter as (
+          value: PlayerId,
+          updates: { characterId?: string; actualAlignment?: Alignment },
+        ) => void
+      )(key, { characterId, actualAlignment });
     }
     onClose();
   };
@@ -268,7 +272,12 @@ function PlayerActionsModalInner({
         {onSwapWith && (
           <>
             <Divider />
-            <Button variant="outlined" startIcon={<SwapHorizIcon />} onClick={handleSwapWith} fullWidth>
+            <Button
+              variant="outlined"
+              startIcon={<SwapHorizIcon />}
+              onClick={handleSwapWith}
+              fullWidth
+            >
               Swap with…
             </Button>
           </>
@@ -301,19 +310,34 @@ function PlayerActionsModalInner({
                   {bluffLabel ?? 'Demon Bluffs'}
                 </Typography>
                 {bluffCharacters.map((ch) => (
-                  <Box key={ch.id} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }} data-testid={`bluff-${ch.id}`}>
-                    <Avatar src={getCharacterIconPath(ch.id)} alt={ch.name} sx={{ width: 28, height: 28 }} />
-                    <Typography variant="body2" sx={{ flexGrow: 1, color: getCharacterTypeColor(ch.type), fontWeight: 500 }}>
+                  <Box
+                    key={ch.id}
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}
+                    data-testid={`bluff-${ch.id}`}
+                  >
+                    <Avatar
+                      src={getCharacterIconPath(ch.id)}
+                      alt={ch.name}
+                      sx={{ width: 28, height: 28 }}
+                    />
+                    <Typography
+                      variant="body2"
+                      sx={{ flexGrow: 1, color: getCharacterTypeColor(ch.type), fontWeight: 500 }}
+                    >
                       {ch.name}
                     </Typography>
                     {onChangeBluff && availableBluffCharacters && (
                       <Autocomplete
-                        options={availableBluffCharacters.filter((a) => !demonBluffs.includes(a.id))}
+                        options={availableBluffCharacters.filter(
+                          (a) => !demonBluffs.includes(a.id),
+                        )}
                         getOptionLabel={(opt) => opt.name}
                         onChange={(_, newVal) => {
                           if (newVal) onChangeBluff(ch.id, newVal.id);
                         }}
-                        renderInput={(params) => <TextField {...params} label="Swap" size="small" />}
+                        renderInput={(params) => (
+                          <TextField {...params} label="Swap" size="small" />
+                        )}
                         size="small"
                         sx={{ minWidth: 120 }}
                         data-testid={`swap-bluff-${ch.id}`}
@@ -328,7 +352,12 @@ function PlayerActionsModalInner({
         {showCharacters && (
           <>
             <Divider />
-            <Button variant="outlined" startIcon={<TokenIcon />} onClick={handleManageTokens} fullWidth>
+            <Button
+              variant="outlined"
+              startIcon={<TokenIcon />}
+              onClick={handleManageTokens}
+              fullWidth
+            >
               Manage Tokens
             </Button>
             <Divider />
@@ -343,7 +372,12 @@ function PlayerActionsModalInner({
               renderOption={(props, opt) => {
                 const typeColor = getCharacterTypeColor(opt.type);
                 return (
-                  <Box component="li" {...props} key={opt.id} sx={{ color: typeColor, fontSize: '0.875rem' }}>
+                  <Box
+                    component="li"
+                    {...props}
+                    key={opt.id}
+                    sx={{ color: typeColor, fontSize: '0.875rem' }}
+                  >
                     {opt.name}
                   </Box>
                 );
@@ -352,7 +386,14 @@ function PlayerActionsModalInner({
                 <Box key={params.key}>
                   <Typography
                     variant="caption"
-                    sx={{ px: 1.5, py: 0.5, fontWeight: 700, color: 'text.secondary', display: 'block', bgcolor: 'action.hover' }}
+                    sx={{
+                      px: 1.5,
+                      py: 0.5,
+                      fontWeight: 700,
+                      color: 'text.secondary',
+                      display: 'block',
+                      bgcolor: 'action.hover',
+                    }}
                   >
                     {params.group}
                   </Typography>
