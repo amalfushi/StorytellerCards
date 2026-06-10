@@ -25,9 +25,6 @@ const mixedSlots: Slot[] = [
 
 function renderCircle(overrides: Partial<React.ComponentProps<typeof SeatingTemplateCircle>> = {}) {
   const handlers = {
-    onAddSeat: vi.fn(),
-    onAddSpacer: vi.fn(),
-    onAddStoryteller: vi.fn(),
     onRemoveSlot: vi.fn(),
     onAssignSeat: vi.fn(),
   };
@@ -45,12 +42,9 @@ function renderCircle(overrides: Partial<React.ComponentProps<typeof SeatingTemp
 }
 
 describe('SeatingTemplateCircle', () => {
-  it('renders empty state with all three add buttons enabled', () => {
+  it('renders empty state placeholder', () => {
     renderCircle({ slots: [] });
     expect(screen.getByText(/empty seating template/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /add seat/i })).toBeEnabled();
-    expect(screen.getByRole('button', { name: /add spacer/i })).toBeEnabled();
-    expect(screen.getByRole('button', { name: /\+ storyteller/i })).toBeEnabled();
   });
 
   it('renders seats with stable display numbers ignoring spacers/storyteller', () => {
@@ -60,19 +54,6 @@ describe('SeatingTemplateCircle', () => {
     expect(screen.getByTestId('template-seat-3')).toBeInTheDocument();
     expect(screen.getByTestId('template-spacer-1')).toBeInTheDocument();
     expect(screen.getByTestId('template-storyteller-3')).toBeInTheDocument();
-  });
-
-  it('disables Storyteller button when one is present', () => {
-    renderCircle();
-    expect(screen.getByRole('button', { name: /\+ storyteller/i })).toBeDisabled();
-  });
-
-  it('invokes add handlers', () => {
-    const { onAddSeat, onAddSpacer } = renderCircle({ slots: [] });
-    fireEvent.click(screen.getByRole('button', { name: /add seat/i }));
-    fireEvent.click(screen.getByRole('button', { name: /add spacer/i }));
-    expect(onAddSeat).toHaveBeenCalledOnce();
-    expect(onAddSpacer).toHaveBeenCalledOnce();
   });
 
   it('invokes remove handler with the correct slot id', () => {

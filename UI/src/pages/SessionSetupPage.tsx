@@ -463,13 +463,17 @@ export function SessionSetupPage() {
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
-              <SeatingTemplateCircle
-                slots={session.template.slots}
-                players={session.players}
-                displaySeatNumbers={displaySeatNumbers}
-                onAssign={(slotId, playerId) => assignTemplateSeat(session.id, slotId, playerId)}
-                onRemoveSlot={(slotId) => removeTemplateSlot(session.id, slotId)}
-              />
+              <Box sx={{ overflowX: 'auto', display: 'flex', justifyContent: 'center' }}>
+                <SeatingTemplateCircle
+                  slots={session.template.slots}
+                  players={session.players}
+                  displaySeatNumbers={displaySeatNumbers}
+                  onAssignSeat={(slotId, playerId) =>
+                    assignTemplateSeat(session.id, slotId, playerId)
+                  }
+                  onRemoveSlot={(slotId) => removeTemplateSlot(session.id, slotId)}
+                />
+              </Box>
             </DndContext>
           )}
         </Paper>

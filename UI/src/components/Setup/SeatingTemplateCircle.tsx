@@ -9,14 +9,17 @@
  *    parked/seated pill in the roster can match
  *  - the player picker greys out players already seated elsewhere (the current
  *    seat's own player stays selectable as a no-op)
+ *
+ * Sizing: tiles are large enough to show player names + the Select dropdown
+ * comfortably (default tileSize 140). The diameter auto-grows with slot count
+ * so seats never overlap when there's at least one slot pair — the parent is
+ * expected to allow horizontal scrolling on narrow viewports.
  */
 import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
 import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
-import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -32,40 +35,59 @@ export const SEAT_DROPPABLE_PREFIX = 'tseat:';
 export const SLOT_DRAGGABLE_PREFIX = 'tslot:';
 export const SLOT_POSITION_DROPPABLE_PREFIX = 'tslotpos:';
 
-const TOKEN_SIZE = 96;
-const TOKEN_RADIUS = TOKEN_SIZE / 2;
-const RING_PADDING = 8;
+const DEFAULT_TILE_SIZE = 140;
+const RING_PADDING = 16;
+const MIN_DIAMETER = 360;
 
 interface Props {
   slots: Slot[];
   players: Player[];
   /** Built once in the parent via `buildDisplaySeatNumberMap`. */
   displaySeatNumbers: Map<SlotId, number>;
-  /** Diameter in pixels. */
+  /**
+   * Tile (token) width in pixels. Default 140 — wide enough for typical
+   * player names in the assign dropdown. Pass a smaller value on tight
+   * viewports.
+   */
+  tileSize?: number;
+  /**
+   * Optional diameter override. When omitted, the diameter auto-grows with
+   * slot count so adjacent tiles never overlap.
+   */
   size?: number;
-  onAddSeat: () => void;
-  onAddSpacer: () => void;
-  onAddStoryteller: () => void;
   onRemoveSlot: (slotId: SlotId) => void;
   onAssignSeat: (slotId: SlotId, playerId: PlayerId | null) => void;
+}
+
+/**
+ * Smallest diameter that fits `n` tiles of `tileSize` width around a circle
+ * with no tile-to-tile overlap. The chord between adjacent points must be
+ * at least `tileSize` wide → `r ≥ tileSize / (2 sin(π/n))`. We add a half
+ * tile and a small ring padding so the tile fully fits inside the outer
+ * border.
+ */
+function computeDiameter(n: number, tileSize: number): number {
+  if (n <= 1) return Math.max(MIN_DIAMETER, tileSize + 2 * RING_PADDING + tileSize);
+  const minRadius = tileSize / (2 * Math.sin(Math.PI / n));
+  const required = 2 * (minRadius + tileSize / 2 + RING_PADDING);
+  return Math.max(MIN_DIAMETER, Math.ceil(required));
 }
 
 export function SeatingTemplateCircle({
   slots,
   players,
   displaySeatNumbers,
-  size = 480,
-  onAddSeat,
-  onAddSpacer,
-  onAddStoryteller,
+  tileSize = DEFAULT_TILE_SIZE,
+  size,
   onRemoveSlot,
   onAssignSeat,
 }: Props) {
-  const cx = size / 2;
-  const cy = size / 2;
-  const r = Math.max(size / 2 - TOKEN_RADIUS - RING_PADDING, 30);
   const n = slots.length;
-  const hasStoryteller = slots.some((s) => s.kind === 'storyteller');
+  const diameter = size ?? computeDiameter(n, tileSize);
+  const tokenRadius = tileSize / 2;
+  const cx = diameter / 2;
+  const cy = diameter / 2;
+  const r = Math.max(diameter / 2 - tokenRadius - RING_PADDING, 30);
   const playerIdsInOrder = players.map((p) => p.id);
   const seatedIds = new Set<PlayerId>(
     slots
@@ -78,8 +100,8 @@ export function SeatingTemplateCircle({
     <Box
       sx={{
         position: 'relative',
-        width: size,
-        height: size,
+        width: diameter,
+        height: diameter,
         mx: 'auto',
         my: 1,
         border: '1px dashed',
@@ -88,35 +110,20 @@ export function SeatingTemplateCircle({
       }}
       data-testid="seating-template-circle"
     >
-      <Stack
-        spacing={0.5}
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          alignItems: 'center',
-          width: TOKEN_SIZE * 2,
-        }}
-      >
-        <Typography variant="caption" color="text.secondary">
-          {n === 0 ? 'Empty seating template' : `${displaySeatNumbers.size} seats`}
-        </Typography>
-        <Button size="small" variant="outlined" onClick={onAddSeat}>
-          + Add Seat
-        </Button>
-        <Button size="small" variant="outlined" onClick={onAddSpacer}>
-          + Add Spacer
-        </Button>
-        <Button
-          size="small"
-          variant="outlined"
-          onClick={onAddStoryteller}
-          disabled={hasStoryteller}
+      {n === 0 && (
+        <Typography
+          variant="caption"
+          color="text.secondary"
+          sx={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+          }}
         >
-          + Storyteller
-        </Button>
-      </Stack>
+          Empty seating template
+        </Typography>
+      )}
 
       {slots.map((slot, i) => {
         const angle = -Math.PI / 2 + (2 * Math.PI * i) / n;
@@ -124,7 +131,7 @@ export function SeatingTemplateCircle({
         const y = cy + r * Math.sin(angle);
 
         return (
-          <SlotPositionWrapper key={slot.id} slotId={slot.id} x={x} y={y}>
+          <SlotPositionWrapper key={slot.id} slotId={slot.id} x={x} y={y} tileSize={tileSize}>
             {slot.kind === 'spacer' ? (
               <SpacerCell
                 index={i}
@@ -161,11 +168,13 @@ function SlotPositionWrapper({
   slotId,
   x,
   y,
+  tileSize,
   children,
 }: {
   slotId: SlotId;
   x: number;
   y: number;
+  tileSize: number;
   children: ReactNode;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: `${SLOT_POSITION_DROPPABLE_PREFIX}${slotId}` });
@@ -177,7 +186,7 @@ function SlotPositionWrapper({
         left: x,
         top: y,
         transform: 'translate(-50%, -50%)',
-        width: TOKEN_SIZE,
+        width: tileSize,
         outline: isOver ? '2px dashed' : 'none',
         outlineColor: 'info.main',
         outlineOffset: 2,
