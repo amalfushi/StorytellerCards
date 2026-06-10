@@ -166,13 +166,18 @@ export function SessionSetupPage() {
       const activeId = String(active.id);
       const overId = String(over.id);
 
-      if (
-        activeId.startsWith(SLOT_DRAGGABLE_PREFIX) &&
-        overId.startsWith(SLOT_POSITION_DROPPABLE_PREFIX)
-      ) {
+      if (activeId.startsWith(SLOT_DRAGGABLE_PREFIX)) {
         const slotId = activeId.slice(SLOT_DRAGGABLE_PREFIX.length);
-        const targetSlotId = overId.slice(SLOT_POSITION_DROPPABLE_PREFIX.length);
-        if (slotId === targetSlotId) return;
+        let targetSlotId: string | null = null;
+        if (overId.startsWith(SLOT_POSITION_DROPPABLE_PREFIX)) {
+          targetSlotId = overId.slice(SLOT_POSITION_DROPPABLE_PREFIX.length);
+        } else if (overId.startsWith(SEAT_DROPPABLE_PREFIX)) {
+          // Inner SeatCell droppable overlaps the SlotPositionWrapper. When
+          // collision detection resolves to the inner one, still treat it as a
+          // reorder target so the drop doesn't silently no-op.
+          targetSlotId = overId.slice(SEAT_DROPPABLE_PREFIX.length);
+        }
+        if (!targetSlotId || slotId === targetSlotId) return;
         const toIndex = session.template.slots.findIndex((s) => s.id === targetSlotId);
         if (toIndex === -1) return;
         moveTemplateSlot(sessionId, slotId, toIndex);

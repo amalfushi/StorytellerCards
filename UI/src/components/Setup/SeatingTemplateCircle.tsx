@@ -25,6 +25,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import type { ReactNode } from 'react';
 
 import type { Player, PlayerId, Slot, SlotId } from '@/types/index.ts';
@@ -132,36 +133,44 @@ export function SeatingTemplateCircle({
 
         return (
           <SlotPositionWrapper key={slot.id} slotId={slot.id} x={x} y={y} tileSize={tileSize}>
-            {slot.kind === 'spacer' ? (
-              <SpacerCell
-                index={i}
-                onRemove={() => onRemoveSlot(slot.id)}
-                dragHandle={<SlotDragHandle id={`${SLOT_DRAGGABLE_PREFIX}${slot.id}`} />}
-              />
-            ) : slot.kind === 'storyteller' ? (
-              <StorytellerCell
-                index={i}
-                angle={angle}
-                onRemove={() => onRemoveSlot(slot.id)}
-                dragHandle={<SlotDragHandle id={`${SLOT_DRAGGABLE_PREFIX}${slot.id}`} />}
-              />
-            ) : (
-              <SeatCell
-                seatNumber={displaySeatNumbers.get(slot.id) ?? i + 1}
-                slot={slot}
-                players={players}
-                playerIdsInOrder={playerIdsInOrder}
-                seatedIds={seatedIds}
-                onRemove={() => onRemoveSlot(slot.id)}
-                onAssign={(pid) => onAssignSeat(slot.id, pid)}
-                dragHandle={<SlotDragHandle id={`${SLOT_DRAGGABLE_PREFIX}${slot.id}`} />}
-              />
-            )}
+            {({ dragHandle }) =>
+              slot.kind === 'spacer' ? (
+                <SpacerCell
+                  index={i}
+                  onRemove={() => onRemoveSlot(slot.id)}
+                  dragHandle={dragHandle}
+                />
+              ) : slot.kind === 'storyteller' ? (
+                <StorytellerCell
+                  index={i}
+                  angle={angle}
+                  onRemove={() => onRemoveSlot(slot.id)}
+                  dragHandle={dragHandle}
+                />
+              ) : (
+                <SeatCell
+                  seatNumber={displaySeatNumbers.get(slot.id) ?? i + 1}
+                  slot={slot}
+                  players={players}
+                  playerIdsInOrder={playerIdsInOrder}
+                  seatedIds={seatedIds}
+                  onRemove={() => onRemoveSlot(slot.id)}
+                  onAssign={(pid) => onAssignSeat(slot.id, pid)}
+                  dragHandle={dragHandle}
+                />
+              )
+            }
           </SlotPositionWrapper>
         );
       })}
     </Box>
   );
+}
+
+interface DragHandleSlotProps {
+  listeners: ReturnType<typeof useDraggable>['listeners'];
+  attributes: ReturnType<typeof useDraggable>['attributes'];
+  isDragging: boolean;
 }
 
 function SlotPositionWrapper({
@@ -175,34 +184,56 @@ function SlotPositionWrapper({
   x: number;
   y: number;
   tileSize: number;
-  children: ReactNode;
+  children: (args: { dragHandle: ReactNode }) => ReactNode;
 }) {
-  const { setNodeRef, isOver } = useDroppable({ id: `${SLOT_POSITION_DROPPABLE_PREFIX}${slotId}` });
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `${SLOT_POSITION_DROPPABLE_PREFIX}${slotId}`,
+  });
+  const {
+    setNodeRef: setDragRef,
+    listeners,
+    attributes,
+    transform,
+    isDragging,
+  } = useDraggable({ id: `${SLOT_DRAGGABLE_PREFIX}${slotId}` });
+  const setRefs = (node: HTMLElement | null) => {
+    setDropRef(node);
+    setDragRef(node);
+  };
+  // Apply the dnd-kit translation on top of the centering translate(-50%,-50%)
+  // so the whole tile follows the pointer during drag. Without this, users get
+  // no visual feedback that a drag is in progress.
+  const dndTransform = transform ? CSS.Translate.toString(transform) : '';
   return (
     <Box
-      ref={setNodeRef}
+      ref={setRefs}
       sx={{
         position: 'absolute',
         left: x,
         top: y,
-        transform: 'translate(-50%, -50%)',
+        transform: dndTransform ? `translate(-50%, -50%) ${dndTransform}` : 'translate(-50%, -50%)',
         width: tileSize,
         outline: isOver ? '2px dashed' : 'none',
         outlineColor: 'info.main',
         outlineOffset: 2,
         borderRadius: 1,
+        opacity: isDragging ? 0.6 : 1,
+        zIndex: isDragging ? 10 : undefined,
+        cursor: isDragging ? 'grabbing' : undefined,
       }}
     >
-      {children}
+      {children({
+        dragHandle: (
+          <SlotDragHandle listeners={listeners} attributes={attributes} isDragging={isDragging} />
+        ),
+      })}
     </Box>
   );
 }
 
-function SlotDragHandle({ id }: { id: string }) {
-  const { setNodeRef, listeners, attributes, isDragging } = useDraggable({ id });
+function SlotDragHandle({ listeners, attributes, isDragging }: DragHandleSlotProps) {
   return (
     <Box
-      ref={setNodeRef}
       {...listeners}
       {...attributes}
       sx={{
@@ -222,7 +253,6 @@ function SlotDragHandle({ id }: { id: string }) {
         justifyContent: 'center',
         touchAction: 'none',
       }}
-      data-testid={`slot-drag-${id}`}
       aria-label="drag to reorder slot"
     >
       <DragIndicatorIcon sx={{ fontSize: 14 }} />

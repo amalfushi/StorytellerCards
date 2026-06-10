@@ -371,6 +371,24 @@ function PlayerActionsModalInner({
               renderInput={(params) => <TextField {...params} label="Character" size="small" />}
               renderOption={(props, opt) => {
                 const typeColor = getCharacterTypeColor(opt.type);
+                if (opt.type === 'Traveller') {
+                  // Travellers can be on either alignment; show the name in
+                  // two halves coloured for good (blue) and evil (red) so they
+                  // stand out from solid-coloured townsfolk/outsiders/minions.
+                  const mid = Math.ceil(opt.name.length / 2);
+                  const firstHalf = opt.name.slice(0, mid);
+                  const secondHalf = opt.name.slice(mid);
+                  return (
+                    <Box component="li" {...props} key={opt.id} sx={{ fontSize: '0.875rem' }}>
+                      <Box component="span" sx={{ color: 'info.main', fontWeight: 600 }}>
+                        {firstHalf}
+                      </Box>
+                      <Box component="span" sx={{ color: 'error.main', fontWeight: 600 }}>
+                        {secondHalf}
+                      </Box>
+                    </Box>
+                  );
+                }
                 return (
                   <Box
                     component="li"
