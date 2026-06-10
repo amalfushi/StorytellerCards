@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import type { ChangeEvent, CSSProperties } from 'react';
+import type { ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -15,22 +15,19 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
-import MenuItem from '@mui/material/MenuItem';
 import Paper from '@mui/material/Paper';
-import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import SyncIcon from '@mui/icons-material/Sync';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import {
   DndContext,
@@ -42,20 +39,20 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { useSession } from '@/context/useSession.ts';
 import { useApiSync } from '@/hooks/useApiSync.ts';
 import { importScript } from '@/utils/scriptImporter.ts';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { ScriptBuilder } from '@/components/ScriptBuilder/ScriptBuilder.tsx';
-import type { Player, Script, Slot } from '@/types/index.ts';
+import {
+  SeatingTemplateCircle,
+  SEAT_DROPPABLE_PREFIX,
+  SLOT_DRAGGABLE_PREFIX,
+  SLOT_POSITION_DROPPABLE_PREFIX,
+} from '@/components/Setup/SeatingTemplateCircle.tsx';
+import type { Player, Script } from '@/types/index.ts';
 import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import { getPlayerColorById } from '@/utils/playerColor.ts';
 
 const MAX_PLAYERS = 20;
 
@@ -74,8 +71,8 @@ export function SessionSetupPage() {
     removeTemplateSlot,
     moveTemplateSlot,
     assignTemplateSeat,
-    setPropagationDefault,
     addGameToSession,
+    applyTemplateToGame,
     selectGame,
     deleteGame,
   } = useSession();
@@ -86,6 +83,7 @@ export function SessionSetupPage() {
 
   const [sessionName, setSessionName] = useState('');
   const [newPlayerName, setNewPlayerName] = useState('');
+  const [bulkSeatCount, setBulkSeatCount] = useState('');
   const [script, setScript] = useState<Script | null>(null);
   const [scriptError, setScriptError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
@@ -94,7 +92,7 @@ export function SessionSetupPage() {
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor),
   );
 
   useEffect(() => {
@@ -164,13 +162,58 @@ export function SessionSetupPage() {
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      if (!sessionId || !session || !over || active.id === over.id) return;
-      const toIndex = session.template.slots.findIndex((slot) => slot.id === String(over.id));
-      if (toIndex === -1) return;
-      moveTemplateSlot(sessionId, String(active.id), toIndex);
+      if (!sessionId || !session || !over) return;
+      const activeId = String(active.id);
+      const overId = String(over.id);
+
+      if (
+        activeId.startsWith(SLOT_DRAGGABLE_PREFIX) &&
+        overId.startsWith(SLOT_POSITION_DROPPABLE_PREFIX)
+      ) {
+        const slotId = activeId.slice(SLOT_DRAGGABLE_PREFIX.length);
+        const targetSlotId = overId.slice(SLOT_POSITION_DROPPABLE_PREFIX.length);
+        if (slotId === targetSlotId) return;
+        const toIndex = session.template.slots.findIndex((s) => s.id === targetSlotId);
+        if (toIndex === -1) return;
+        moveTemplateSlot(sessionId, slotId, toIndex);
+        return;
+      }
+
+      if (overId.startsWith(SEAT_DROPPABLE_PREFIX)) {
+        const slotId = overId.slice(SEAT_DROPPABLE_PREFIX.length);
+        const playerId = activeId.startsWith('rosterplayer:')
+          ? activeId.slice('rosterplayer:'.length)
+          : null;
+        if (!playerId) return;
+        assignTemplateSeat(sessionId, slotId, playerId);
+      }
     },
-    [moveTemplateSlot, session, sessionId],
+    [assignTemplateSeat, moveTemplateSlot, session, sessionId],
   );
+
+  const handleAddBulkSeats = () => {
+    if (!sessionId) return;
+    const n = Math.max(1, Math.min(20, Number.parseInt(bulkSeatCount, 10) || 0));
+    if (
+      !n ||
+      (session?.template.slots.filter((s) => s.kind === 'seat').length ?? 0) + n > MAX_PLAYERS
+    )
+      return;
+    for (let i = 0; i < n; i++) addTemplateSeat(sessionId);
+    setBulkSeatCount('');
+  };
+
+  const handleAddSeatsForAllPlayers = () => {
+    if (!sessionId || !session) return;
+    const seatedCount = session.template.slots.filter((s) => s.kind === 'seat').length;
+    const need = Math.max(0, session.players.length - seatedCount);
+    for (let i = 0; i < need; i++) addTemplateSeat(sessionId);
+  };
+
+  const handleApplyTemplateToAllGames = () => {
+    if (!sessionId || !session) return;
+    session.gameIds.forEach((gid) => applyTemplateToGame(sessionId, gid));
+  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
@@ -344,6 +387,7 @@ export function SessionSetupPage() {
                 key={player.id}
                 player={player}
                 seated={seatedPlayerIds.has(player.id)}
+                rosterIds={session.players.map((p) => p.id)}
                 onNameChange={(name) => renamePlayer(session.id, player.id, name)}
                 onRemove={() => removePlayer(session.id, player.id)}
               />
@@ -380,31 +424,33 @@ export function SessionSetupPage() {
             </Button>
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mb: 2 }}>
-            <FormControlLabel
-              control={
-                <Switch
-                  size="small"
-                  checked={session.propagationDefault.toTemplate}
-                  onChange={(_, checked) =>
-                    setPropagationDefault(session.id, { toTemplate: checked })
-                  }
-                />
-              }
-              label="Apply game seating changes to template for future games"
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+            <TextField
+              size="small"
+              type="number"
+              label="N"
+              value={bulkSeatCount}
+              onChange={(e) => setBulkSeatCount(e.target.value)}
+              slotProps={{ htmlInput: { min: 1, max: 20 } }}
+              sx={{ width: 80 }}
             />
-            <FormControlLabel
-              control={
-                <Switch
-                  size="small"
-                  checked={session.propagationDefault.toOtherGames}
-                  onChange={(_, checked) =>
-                    setPropagationDefault(session.id, { toOtherGames: checked })
-                  }
-                />
-              }
-              label="Apply game seating changes to all other existing games"
-            />
+            <Button size="small" onClick={handleAddBulkSeats} disabled={!bulkSeatCount}>
+              Add N seats
+            </Button>
+            <Button size="small" onClick={handleAddSeatsForAllPlayers}>
+              Add seats for all players
+            </Button>
+            {session.gameIds.length > 0 && (
+              <Button
+                size="small"
+                color="primary"
+                variant="outlined"
+                onClick={handleApplyTemplateToAllGames}
+                sx={{ ml: 'auto' }}
+              >
+                Apply template to all games
+              </Button>
+            )}
           </Box>
 
           {session.template.slots.length === 0 ? (
@@ -417,23 +463,13 @@ export function SessionSetupPage() {
               collisionDetection={closestCenter}
               onDragEnd={handleDragEnd}
             >
-              <SortableContext
-                items={session.template.slots.map((slot) => slot.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                <Grid container spacing={1}>
-                  {session.template.slots.map((slot) => (
-                    <SortableTemplateSlot
-                      key={slot.id}
-                      slot={slot}
-                      displaySeatNumber={displaySeatNumbers.get(slot.id) ?? null}
-                      players={session.players}
-                      onAssign={(playerId) => assignTemplateSeat(session.id, slot.id, playerId)}
-                      onRemove={() => removeTemplateSlot(session.id, slot.id)}
-                    />
-                  ))}
-                </Grid>
-              </SortableContext>
+              <SeatingTemplateCircle
+                slots={session.template.slots}
+                players={session.players}
+                displaySeatNumbers={displaySeatNumbers}
+                onAssign={(slotId, playerId) => assignTemplateSeat(session.id, slotId, playerId)}
+                onRemoveSlot={(slotId) => removeTemplateSlot(session.id, slotId)}
+              />
             </DndContext>
           )}
         </Paper>
@@ -468,6 +504,7 @@ export function SessionSetupPage() {
                     gameNumber={index + 1}
                     onClick={() => handleOpenGame(gameId)}
                     onDelete={() => handleDeleteGame(gameId)}
+                    onApplyTemplate={() => applyTemplateToGame(session.id, gameId)}
                   />
                 ))}
               </List>
@@ -492,18 +529,30 @@ export function SessionSetupPage() {
 function RosterPlayerItem({
   player,
   seated,
+  rosterIds,
   onNameChange,
   onRemove,
 }: {
   player: Player;
   seated: boolean;
+  rosterIds: string[];
   onNameChange: (name: string) => void;
   onRemove: () => void;
 }) {
+  const color = getPlayerColorById(player.id, rosterIds);
   return (
     <Grid size={{ xs: 12 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Chip label={seated ? 'Seated' : 'Parked'} size="small" variant="outlined" />
+        <Chip
+          label={seated ? 'Seated' : 'Parked'}
+          size="small"
+          variant={seated ? 'filled' : 'outlined'}
+          sx={
+            seated
+              ? { bgcolor: color, color: '#fff', borderColor: color }
+              : { color, borderColor: color }
+          }
+        />
         <TextField
           fullWidth
           size="small"
@@ -524,88 +573,18 @@ function RosterPlayerItem({
   );
 }
 
-function SortableTemplateSlot({
-  slot,
-  displaySeatNumber,
-  players,
-  onAssign,
-  onRemove,
-}: {
-  slot: Slot;
-  displaySeatNumber: number | null;
-  players: Player[];
-  onAssign: (playerId: string | null) => void;
-  onRemove: () => void;
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: slot.id,
-  });
-
-  const style: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition: transition ?? undefined,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
-  const title =
-    slot.kind === 'seat'
-      ? `Seat ${displaySeatNumber ?? '?'}`
-      : slot.kind === 'spacer'
-        ? 'Spacer'
-        : 'Storyteller';
-
-  return (
-    <Grid size={{ xs: 12 }} ref={setNodeRef} style={style}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box
-          component="span"
-          {...attributes}
-          {...listeners}
-          sx={{ display: 'flex', cursor: 'grab', touchAction: 'none' }}
-          aria-label={`reorder ${title}`}
-        >
-          <DragIndicatorIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-        </Box>
-        <Chip label={title} size="small" color={slot.kind === 'seat' ? 'primary' : 'default'} />
-        {slot.kind === 'seat' ? (
-          <TextField
-            select
-            fullWidth
-            size="small"
-            label="Assigned player"
-            value={slot.playerId ?? ''}
-            onChange={(e) => onAssign(e.target.value || null)}
-          >
-            <MenuItem value="">Empty seat</MenuItem>
-            {players.map((player) => (
-              <MenuItem key={player.id} value={player.id}>
-                {player.name}
-              </MenuItem>
-            ))}
-          </TextField>
-        ) : (
-          <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
-            {slot.kind === 'spacer' ? 'Gap in seating layout' : 'Storyteller position marker'}
-          </Typography>
-        )}
-        <IconButton size="small" aria-label={`remove ${title}`} onClick={onRemove} color="error">
-          <DeleteIcon fontSize="small" />
-        </IconButton>
-      </Box>
-    </Grid>
-  );
-}
-
 function GameListItem({
   gameId,
   gameNumber,
   onClick,
   onDelete,
+  onApplyTemplate,
 }: {
   gameId: string;
   gameNumber: number;
   onClick: () => void;
   onDelete: () => void;
+  onApplyTemplate: () => void;
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [phase] = useState<string>(() => {
@@ -636,6 +615,16 @@ function GameListItem({
             </CardContent>
           </CardActionArea>
           <CardActions>
+            <IconButton
+              size="small"
+              color="primary"
+              aria-label={`apply template to game ${gameNumber}`}
+              onClick={onApplyTemplate}
+              data-testid={`apply-template-${gameId}`}
+              title="Apply current template to this game"
+            >
+              <SyncIcon fontSize="small" />
+            </IconButton>
             <IconButton
               size="small"
               color="error"

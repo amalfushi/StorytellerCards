@@ -100,6 +100,7 @@ type SessionAction =
       payload: { sessionId: string; pref: Partial<PropagationPreference> };
     }
   | { type: 'ADD_GAME_TO_SESSION'; payload: { sessionId: string; game: Game } }
+  | { type: 'APPLY_TEMPLATE_TO_GAME'; payload: { sessionId: string; gameId: string } }
   | { type: 'HYDRATE'; payload: SessionState }
   | { type: 'DELETE_GAME'; payload: { sessionId: string; gameId: string } }
   | { type: 'SYNC_SESSION'; payload: { session: Session } }
@@ -287,6 +288,43 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       };
     }
 
+    case 'APPLY_TEMPLATE_TO_GAME': {
+      const { sessionId, gameId } = action.payload;
+      const session = state.sessions.find((s) => s.id === sessionId);
+      if (!session) return state;
+      try {
+        const raw = localStorage.getItem(`storyteller-game-${gameId}`);
+        if (!raw) return state;
+        const existing = JSON.parse(raw) as Game;
+        const slotIdMap: Record<string, string> = {};
+        for (const s of session.template.slots) slotIdMap[s.id] = generateId();
+        const slots = snapshotTemplateSlots(session.template.slots, slotIdMap);
+        const participants = initialParticipantsFromSlots(slots);
+        const preservedPlayerState: Record<
+          PlayerId,
+          ReturnType<typeof makeDefaultPlayerGameState>
+        > = {};
+        for (const p of participants) {
+          preservedPlayerState[p.playerId] =
+            existing.playerState?.[p.playerId] ?? makeDefaultPlayerGameState();
+        }
+        const updated: Game = {
+          ...existing,
+          slots,
+          participants,
+          playerState: preservedPlayerState,
+        };
+        localStorage.setItem(`storyteller-game-${gameId}`, JSON.stringify(updated));
+      } catch {
+        // Silently ignore storage errors
+      }
+      // Bump session version so SSE/sync detects the change.
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        version: (s.version ?? 0) + 1,
+      }));
+    }
+
     case 'DELETE_GAME': {
       const { sessionId, gameId } = action.payload;
       try {
@@ -362,10 +400,7 @@ export interface SessionContextValue {
   deleteSession: (id: string) => void;
   selectSession: (id: string | null) => void;
   selectGame: (sessionId: string, gameId: string) => void;
-  updateSession: (
-    id: string,
-    updates: { name?: string; defaultScriptId?: string },
-  ) => void;
+  updateSession: (id: string, updates: { name?: string; defaultScriptId?: string }) => void;
   addPlayer: (sessionId: string, name: string) => Player;
   renamePlayer: (sessionId: string, playerId: PlayerId, name: string) => void;
   removePlayer: (sessionId: string, playerId: PlayerId) => void;
@@ -377,6 +412,7 @@ export interface SessionContextValue {
   assignTemplateSeat: (sessionId: string, slotId: SlotId, playerId: PlayerId | null) => void;
   setPropagationDefault: (sessionId: string, pref: Partial<PropagationPreference>) => void;
   addGameToSession: (sessionId: string) => void;
+  applyTemplateToGame: (sessionId: string, gameId: string) => void;
   deleteGame: (sessionId: string, gameId: string) => void;
   getActiveSession: () => Session | null;
   getActiveGame: () => Game | null;
@@ -564,6 +600,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [apiDeleteGame],
   );
 
+  const applyTemplateToGame = useCallback((sessionId: string, gameId: string) => {
+    dispatch({ type: 'APPLY_TEMPLATE_TO_GAME', payload: { sessionId, gameId } });
+  }, []);
+
   const getActiveSession = useCallback((): Session | null => {
     if (!state.activeSessionId) return null;
     return state.sessions.find((s) => s.id === state.activeSessionId) ?? null;
@@ -604,6 +644,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     assignTemplateSeat,
     setPropagationDefault,
     addGameToSession,
+    applyTemplateToGame,
     deleteGame,
     getActiveSession,
     getActiveGame,
