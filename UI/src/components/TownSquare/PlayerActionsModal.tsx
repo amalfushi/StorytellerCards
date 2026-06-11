@@ -18,15 +18,43 @@ import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import TokenIcon from '@mui/icons-material/Token';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
-import type { PlayerSeat, CharacterDef, Alignment } from '@/types/index.ts';
+import type { CharacterDef, Alignment, PlayerId } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
-import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
+import { filterCharacterDropdownOptions } from '@/utils/characterAssignment.ts';
 
 /** Type display order for grouping in the character selector. */
 const TYPE_ORDER = ['Townsfolk', 'Outsider', 'Minion', 'Demon', 'Traveller'];
 
 /** Character option extended with section info for the grouped Autocomplete. */
+type PlayerActionKey = PlayerId | number;
+type PlayerActionHandler = ((value: PlayerId) => void) | ((value: number) => void);
+type SaveCharacterHandler =
+  | ((value: PlayerId, updates: { characterId?: string; actualAlignment?: Alignment }) => void)
+  | ((value: number, updates: { characterId?: string; actualAlignment?: Alignment }) => void);
+
+function playerDisplayName(player: TownSquarePlayer): string {
+  return player.name ?? player['playerName'] ?? 'Unknown player';
+}
+
+function playerDisplaySeat(player: TownSquarePlayer): number {
+  return player.seatNumber ?? player['seat'] ?? 0;
+}
+
+function playerActionKey(player: TownSquarePlayer): PlayerActionKey {
+  return player.seatNumber !== undefined ? player.playerId : (player['seat'] ?? player.playerId);
+}
+
+function invokePlayerAction(handler: PlayerActionHandler, player: TownSquarePlayer): void {
+  const key = playerActionKey(player);
+  if (typeof key === 'number') {
+    (handler as (value: number) => void)(key);
+  } else {
+    (handler as (value: PlayerId) => void)(key);
+  }
+}
+
 interface CharacterOption {
   id: string;
   name: string;
@@ -38,42 +66,25 @@ interface CharacterOption {
 
 export interface PlayerActionsModalProps {
   open: boolean;
-  player: PlayerSeat | null;
+  player: TownSquarePlayer | null;
   showCharacters: boolean;
   scriptCharacters: CharacterDef[];
-  /** All characters from the registry — for "All Other" section in dropdown. */
   allCharacters?: CharacterDef[];
-  /** Current demon bluff character IDs (shown for demon players). */
   demonBluffs?: string[];
-  /** Character definitions for the current demon bluffs. */
   bluffCharacters?: CharacterDef[];
-  /** Available good characters not in play (for swapping bluffs). */
   availableBluffCharacters?: CharacterDef[];
-  /** Label for the bluff section header (default: "Demon Bluffs"). */
   bluffLabel?: string;
   onClose: () => void;
-  onToggleAlive: (seat: number) => void;
-  onToggleGhostVote: (seat: number) => void;
-  onRemoveTraveller: (seat: number) => void;
-  onManageTokens: (seat: number) => void;
-  onSaveCharacter: (
-    seat: number,
-    updates: { characterId?: string; actualAlignment?: Alignment },
-  ) => void;
-  onReseat?: (seat: number) => void;
-  onSwapWith?: (seat: number) => void;
-  /** Called when a bluff is changed (old bluff ID replaced with new). */
+  onToggleAlive: PlayerActionHandler;
+  onToggleGhostVote: PlayerActionHandler;
+  onRemoveParticipant?: PlayerActionHandler;
+  onRemoveTraveller?: PlayerActionHandler;
+  onManageTokens: PlayerActionHandler;
+  onSaveCharacter: SaveCharacterHandler;
+  onSwapWith?: PlayerActionHandler;
   onChangeBluff?: (oldBluffId: string, newBluffId: string) => void;
 }
 
-/**
- * Unified player actions modal for the Town Square.
- *
- * - **Hidden mode** (`showCharacters=false`): compact dialog with only
- *   Mark Dead/Alive, Ghost Vote, and Remove Traveller actions.
- * - **Visible mode** (`showCharacters=true`): full dialog with all actions
- *   including Manage Tokens, Change Character, and Change Alignment.
- */
 export function PlayerActionsModal({
   open,
   player,
@@ -87,10 +98,10 @@ export function PlayerActionsModal({
   onClose,
   onToggleAlive,
   onToggleGhostVote,
+  onRemoveParticipant,
   onRemoveTraveller,
   onManageTokens,
   onSaveCharacter,
-  onReseat,
   onSwapWith,
   onChangeBluff,
 }: PlayerActionsModalProps) {
@@ -98,7 +109,7 @@ export function PlayerActionsModal({
 
   return (
     <PlayerActionsModalInner
-      key={`${player.seat}-${player.characterId}-${player.actualAlignment}`}
+      key={`${player.playerId}-${player.characterId}-${player.actualAlignment}`}
       player={player}
       showCharacters={showCharacters}
       scriptCharacters={scriptCharacters}
@@ -110,17 +121,16 @@ export function PlayerActionsModal({
       onClose={onClose}
       onToggleAlive={onToggleAlive}
       onToggleGhostVote={onToggleGhostVote}
+      onRemoveParticipant={onRemoveParticipant}
       onRemoveTraveller={onRemoveTraveller}
       onManageTokens={onManageTokens}
       onSaveCharacter={onSaveCharacter}
-      onReseat={onReseat}
       onSwapWith={onSwapWith}
       onChangeBluff={onChangeBluff}
     />
   );
 }
 
-/** Inner component that owns local edit state; remounted via key when player changes. */
 function PlayerActionsModalInner({
   player,
   showCharacters,
@@ -133,25 +143,23 @@ function PlayerActionsModalInner({
   onClose,
   onToggleAlive,
   onToggleGhostVote,
+  onRemoveParticipant,
   onRemoveTraveller,
   onManageTokens,
   onSaveCharacter,
-  onReseat,
   onSwapWith,
   onChangeBluff,
-}: Omit<PlayerActionsModalProps, 'open'> & { player: PlayerSeat }) {
+}: Omit<PlayerActionsModalProps, 'open'> & { player: TownSquarePlayer }) {
   const [characterId, setCharacterId] = useState(player.characterId ?? '');
   const [actualAlignment, setActualAlignment] = useState<Alignment>(
     player.actualAlignment ?? 'Unknown',
   );
 
-  // Build grouped character options for the Autocomplete
   const characterOptions = useMemo(() => {
-    const assignableScriptCharacters = filterPlayerAssignableCharacters(scriptCharacters);
+    const assignableScriptCharacters = filterCharacterDropdownOptions(scriptCharacters);
     const scriptIds = new Set(assignableScriptCharacters.map((c) => c.id));
     const options: CharacterOption[] = [];
 
-    // Section 1: Script player characters
     for (const ch of assignableScriptCharacters) {
       options.push({
         id: ch.id,
@@ -163,9 +171,8 @@ function PlayerActionsModalInner({
       });
     }
 
-    // Section 2: All other characters (not on script)
     if (allCharacters) {
-      for (const ch of filterPlayerAssignableCharacters(allCharacters)) {
+      for (const ch of filterCharacterDropdownOptions(allCharacters)) {
         if (!scriptIds.has(ch.id)) {
           options.push({
             id: ch.id,
@@ -179,7 +186,6 @@ function PlayerActionsModalInner({
       }
     }
 
-    // Sort: by section order, then by type order, then by name
     options.sort((a, b) => {
       if (a.sectionOrder !== b.sectionOrder) return a.sectionOrder - b.sectionOrder;
       if (a.typeOrder !== b.typeOrder) return a.typeOrder - b.typeOrder;
@@ -189,56 +195,57 @@ function PlayerActionsModalInner({
     return options;
   }, [scriptCharacters, allCharacters]);
 
-  // Find the currently selected option
   const selectedOption = characterOptions.find((o) => o.id === characterId) ?? null;
-
   const isDead = !player.alive;
 
-  const handleToggleAlive = () => {
-    onToggleAlive(player.seat);
-  };
+  const handleToggleAlive = () => invokePlayerAction(onToggleAlive, player);
+  const handleToggleGhostVote = () => invokePlayerAction(onToggleGhostVote, player);
 
-  const handleToggleGhostVote = () => {
-    onToggleGhostVote(player.seat);
-  };
-
-  const handleRemoveTraveller = () => {
-    onRemoveTraveller(player.seat);
+  const handleRemoveParticipant = () => {
+    const removeHandler = onRemoveParticipant ?? onRemoveTraveller;
+    if (removeHandler) invokePlayerAction(removeHandler, player);
     onClose();
   };
 
   const handleSwapWith = () => {
     if (onSwapWith) {
-      onSwapWith(player.seat);
-      onClose();
-    }
-  };
-
-  const handleReseat = () => {
-    if (onReseat) {
-      onReseat(player.seat);
+      invokePlayerAction(onSwapWith, player);
       onClose();
     }
   };
 
   const handleManageTokens = () => {
-    onManageTokens(player.seat);
+    invokePlayerAction(onManageTokens, player);
     onClose();
   };
 
   const handleSaveCharacter = () => {
-    onSaveCharacter(player.seat, { characterId, actualAlignment });
+    const key = playerActionKey(player);
+    if (typeof key === 'number') {
+      (
+        onSaveCharacter as (
+          value: number,
+          updates: { characterId?: string; actualAlignment?: Alignment },
+        ) => void
+      )(key, { characterId, actualAlignment });
+    } else {
+      (
+        onSaveCharacter as (
+          value: PlayerId,
+          updates: { characterId?: string; actualAlignment?: Alignment },
+        ) => void
+      )(key, { characterId, actualAlignment });
+    }
     onClose();
   };
 
   return (
     <Dialog open onClose={onClose} fullWidth maxWidth="xs">
       <DialogTitle sx={{ pb: 1 }}>
-        {player.playerName} — Seat {player.seat}
+        {playerDisplayName(player)} — Seat {playerDisplaySeat(player)}
       </DialogTitle>
 
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 1 }}>
-        {/* ── Mark Dead / Alive toggle ── */}
         <Button
           variant="contained"
           color={isDead ? 'success' : 'error'}
@@ -250,7 +257,6 @@ function PlayerActionsModalInner({
           {isDead ? 'Mark as Alive' : 'Mark as Dead'}
         </Button>
 
-        {/* ── Ghost Vote toggle (only when dead) ── */}
         {isDead && (
           <Button
             variant="outlined"
@@ -263,34 +269,20 @@ function PlayerActionsModalInner({
           </Button>
         )}
 
-        {/* ── Swap with another player ── */}
-        {(onReseat || onSwapWith) && (
+        {onSwapWith && (
           <>
             <Divider />
-            {onReseat && (
-              <Button
-                variant="outlined"
-                startIcon={<SwapHorizIcon />}
-                onClick={handleReseat}
-                fullWidth
-              >
-                Reseat…
-              </Button>
-            )}
-            {onSwapWith && (
-              <Button
-                variant="outlined"
-                startIcon={<SwapHorizIcon />}
-                onClick={handleSwapWith}
-                fullWidth
-              >
-                Swap with…
-              </Button>
-            )}
+            <Button
+              variant="outlined"
+              startIcon={<SwapHorizIcon />}
+              onClick={handleSwapWith}
+              fullWidth
+            >
+              Swap with…
+            </Button>
           </>
         )}
 
-        {/* ── Remove Traveller (only when traveller) ── */}
         {player.isTraveller && (
           <>
             <Divider />
@@ -298,7 +290,7 @@ function PlayerActionsModalInner({
               variant="outlined"
               color="error"
               startIcon={<PersonRemoveIcon />}
-              onClick={handleRemoveTraveller}
+              onClick={handleRemoveParticipant}
               fullWidth
             >
               Remove Traveller
@@ -306,7 +298,6 @@ function PlayerActionsModalInner({
           </>
         )}
 
-        {/* ── Demon Bluffs section (only for demon players with bluffs) ── */}
         {showCharacters &&
           demonBluffs &&
           demonBluffs.length > 0 &&
@@ -321,12 +312,7 @@ function PlayerActionsModalInner({
                 {bluffCharacters.map((ch) => (
                   <Box
                     key={ch.id}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      py: 0.5,
-                    }}
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}
                     data-testid={`bluff-${ch.id}`}
                   >
                     <Avatar
@@ -336,11 +322,7 @@ function PlayerActionsModalInner({
                     />
                     <Typography
                       variant="body2"
-                      sx={{
-                        flexGrow: 1,
-                        color: getCharacterTypeColor(ch.type),
-                        fontWeight: 500,
-                      }}
+                      sx={{ flexGrow: 1, color: getCharacterTypeColor(ch.type), fontWeight: 500 }}
                     >
                       {ch.name}
                     </Typography>
@@ -367,12 +349,9 @@ function PlayerActionsModalInner({
             </>
           )}
 
-        {/* ── Visible-mode only actions ── */}
         {showCharacters && (
           <>
             <Divider />
-
-            {/* Manage Tokens */}
             <Button
               variant="outlined"
               startIcon={<TokenIcon />}
@@ -381,10 +360,7 @@ function PlayerActionsModalInner({
             >
               Manage Tokens
             </Button>
-
             <Divider />
-
-            {/* Change Character — grouped searchable dropdown */}
             <Autocomplete
               options={characterOptions}
               value={selectedOption}
@@ -395,6 +371,24 @@ function PlayerActionsModalInner({
               renderInput={(params) => <TextField {...params} label="Character" size="small" />}
               renderOption={(props, opt) => {
                 const typeColor = getCharacterTypeColor(opt.type);
+                if (opt.type === 'Traveller') {
+                  // Travellers can be on either alignment; show the name in
+                  // two halves coloured for good (blue) and evil (red) so they
+                  // stand out from solid-coloured townsfolk/outsiders/minions.
+                  const mid = Math.ceil(opt.name.length / 2);
+                  const firstHalf = opt.name.slice(0, mid);
+                  const secondHalf = opt.name.slice(mid);
+                  return (
+                    <Box component="li" {...props} key={opt.id} sx={{ fontSize: '0.875rem' }}>
+                      <Box component="span" sx={{ color: 'info.main', fontWeight: 600 }}>
+                        {firstHalf}
+                      </Box>
+                      <Box component="span" sx={{ color: 'error.main', fontWeight: 600 }}>
+                        {secondHalf}
+                      </Box>
+                    </Box>
+                  );
+                }
                 return (
                   <Box
                     component="li"
@@ -430,7 +424,6 @@ function PlayerActionsModalInner({
               data-testid="character-autocomplete"
             />
 
-            {/* Change Alignment */}
             <Box>
               <Typography variant="body2" color="text.secondary" gutterBottom>
                 Actual Alignment
@@ -456,14 +449,12 @@ function PlayerActionsModalInner({
               </ToggleButtonGroup>
             </Box>
 
-            {/* Save character/alignment changes */}
             <Button variant="contained" onClick={handleSaveCharacter} fullWidth>
               Save Changes
             </Button>
           </>
         )}
 
-        {/* ── Close button ── */}
         <Button onClick={onClose} sx={{ mt: 0.5 }}>
           Close
         </Button>

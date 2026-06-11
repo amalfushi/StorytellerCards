@@ -1,13 +1,16 @@
 import { useCallback, useMemo, useEffect } from 'react';
 import Box from '@mui/material/Box';
-import type { CharacterDef, NightOrderEntry, PlayerSeat } from '@/types/index.ts';
+import type { CharacterDef } from '@/types/index.ts';
 import { useGame } from '@/context/useGame.ts';
+import { useSession } from '@/context/useSession.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { FlashcardCarousel } from './FlashcardCarousel.tsx';
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import type { NightOrderPlayer, NightOrderViewEntry } from '@/utils/nightOrderFilter.ts';
 
 export interface NightTabPanelProps {
-  entries: NightOrderEntry[];
-  players: PlayerSeat[];
+  entries: NightOrderViewEntry[];
+  players?: NightOrderPlayer[];
   scriptCharacterIds: string[];
   /** Called when the night is completed so the parent can switch back to Day view */
   onComplete?: () => void;
@@ -27,7 +30,7 @@ export interface NightTabPanelProps {
  */
 export function NightTabPanel({
   entries,
-  players,
+  players: providedPlayers,
   scriptCharacterIds,
   onComplete,
   onReminderTokenClick,
@@ -50,8 +53,37 @@ export function NightTabPanel({
     recordAlignmentChange,
     setGainedAbility,
   } = useGame();
+  const sessionState = useSession().state;
   const { nightProgress } = state;
   const game = state.game;
+  const session = useMemo(
+    () => sessionState.sessions.find((candidate) => candidate.id === game?.sessionId),
+    [game?.sessionId, sessionState.sessions],
+  );
+  const players = useMemo<NightOrderPlayer[]>(() => {
+    if (providedPlayers) return providedPlayers;
+    if (!game || !session) return [];
+    const displaySeatBySlot = buildDisplaySeatNumberMap(game.slots);
+    return game.slots.flatMap((slot) => {
+      if (slot.kind !== 'seat' || !slot.playerId) return [];
+      const displaySeat = displaySeatBySlot.get(slot.id);
+      const player = session.players.find((candidate) => candidate.id === slot.playerId);
+      const playerState = game.playerState[slot.playerId];
+      if (!displaySeat || !player || !playerState) return [];
+      return [
+        {
+          playerId: slot.playerId,
+          playerName: player.name,
+          seat: displaySeat,
+          characterId: playerState.characterId,
+          alive: playerState.alive,
+          actualAlignment: playerState.actualAlignment,
+          tokens: playerState.tokens,
+          gainedAbility: playerState.gainedAbility,
+        },
+      ];
+    });
+  }, [game, providedPlayers, session]);
   const { getCharacter, getCharactersByIds } = useCharacterLookup();
 
   // Script characters for choice dropdowns
@@ -112,14 +144,14 @@ export function NightTabPanel({
       updateNightProgress(characterId, undefined, undefined, value);
       if (!game || Array.isArray(value) || !value) return;
 
-      const actor = game.players.find((player) => player.characterId === characterId);
-      const selectedPlayer = game.players.find((player) => player.playerName === value);
+      const actor = players.find((player) => player.characterId === characterId);
+      const selectedPlayer = players.find((player) => player.playerName === value);
       const selectedCharacter = scriptCharacters.find((character) => character.name === value);
       const nightPhase = game.isFirstNight ? 'first' : 'other';
 
       if (characterId === 'cultleader' && actor && (value === 'Good' || value === 'Evil')) {
         recordAlignmentChange(
-          actor.seat,
+          actor.playerId,
           value,
           'Cult Leader matched a living neighbor',
           game.currentDay,
@@ -129,7 +161,7 @@ export function NightTabPanel({
       }
       if (characterId === 'mezepheles' && selectedPlayer) {
         recordAlignmentChange(
-          selectedPlayer.seat,
+          selectedPlayer.playerId,
           'Evil',
           'Mezepheles whispered the word',
           game.currentDay,
@@ -147,7 +179,7 @@ export function NightTabPanel({
       } as const;
       const source = sourceByCharacter[characterId as keyof typeof sourceByCharacter];
       if (actor && source) {
-        setGainedAbility(actor.seat, {
+        setGainedAbility(actor.playerId, {
           characterId: selectedCharacter.id,
           source,
           hostSeat: actor.seat,
@@ -156,11 +188,9 @@ export function NightTabPanel({
         return;
       }
       if (characterId === 'boffin') {
-        const demon = game.players.find(
-          (player) => getCharacter(player.characterId)?.type === 'Demon',
-        );
+        const demon = players.find((player) => getCharacter(player.characterId)?.type === 'Demon');
         if (demon) {
-          setGainedAbility(demon.seat, {
+          setGainedAbility(demon.playerId, {
             characterId: selectedCharacter.id,
             source: 'boffin',
             hostSeat: demon.seat,
@@ -172,6 +202,7 @@ export function NightTabPanel({
     [
       game,
       getCharacter,
+      players,
       recordAlignmentChange,
       scriptCharacters,
       setGainedAbility,
@@ -228,7 +259,7 @@ export function NightTabPanel({
         showTemplates={game?.showTemplates}
         onAddShowMessage={
           game
-            ? (seat, text, templateId) => addShowMessage(game.id, seat, text, templateId)
+            ? (playerId, text, templateId) => addShowMessage(game.id, playerId, text, templateId)
             : undefined
         }
         onMarkShowMessageShown={

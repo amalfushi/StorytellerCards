@@ -44,7 +44,9 @@ func TestGamesCreate(t *testing.T) {
 			CurrentDay:   1,
 			CurrentPhase: models.Night,
 			IsFirstNight: true,
-			Players:      []models.PlayerSeat{},
+			Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 			NightHistory: []models.NightHistoryEntry{},
 		}
 		body, _ := json.Marshal(game)
@@ -81,7 +83,9 @@ func TestGamesGetAfterCreate(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	}
 	body, _ := json.Marshal(game)
@@ -119,7 +123,9 @@ func TestGamesUpdate(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	}
 	body, _ := json.Marshal(game)
@@ -185,7 +191,9 @@ func TestGamesCreateSetsVersion(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	}
 	body, _ := json.Marshal(game)
@@ -220,7 +228,9 @@ func TestGamesUpdateIncrementsVersion(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	}
 	body, _ := json.Marshal(game)
@@ -262,7 +272,9 @@ func TestGamesUpdateConflict(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	}
 	body, _ := json.Marshal(game)
@@ -313,7 +325,9 @@ func TestGamesGetVersion(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	}
 	body, _ := json.Marshal(game)
@@ -364,7 +378,9 @@ func TestGamesDelete(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	}
 	body, _ := json.Marshal(game)
@@ -417,7 +433,9 @@ func TestGamesMultiClientVersioning(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	}
 	body, _ := json.Marshal(game)

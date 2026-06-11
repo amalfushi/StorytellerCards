@@ -6,7 +6,7 @@
  * - Marionette: pick any good character (they think they are this character)
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Avatar from '@mui/material/Avatar';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -19,7 +19,7 @@ import ListItemButton from '@mui/material/ListItemButton';
 import ListItemAvatar from '@mui/material/ListItemAvatar';
 import ListItemText from '@mui/material/ListItemText';
 import Typography from '@mui/material/Typography';
-import type { CharacterDef, PlayerSeat } from '@/types/index.ts';
+import type { CharacterDef, PlayerId } from '@/types/index.ts';
 import { CharacterType } from '@/types/index.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
@@ -27,41 +27,44 @@ import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts
 export interface ApparentCharacterDialogProps {
   open: boolean;
   onClose: () => void;
-  /** The player seat being concealed. */
-  player: PlayerSeat;
+  playerId: PlayerId;
+  playerName: string;
+  currentApparentCharacterId?: string;
   /** The actual character assigned (Drunk or Marionette). */
   actualCharacter: CharacterDef;
   /** All script characters to pick from. */
   scriptCharacters: CharacterDef[];
   /** Callback with the selected apparent character ID. */
-  onConfirm: (seat: number, apparentCharacterId: string) => void;
+  onConfirm: (playerId: PlayerId, apparentCharacterId: string) => void;
 }
 
 export function ApparentCharacterDialog({
   open,
   onClose,
-  player,
+  playerId,
+  playerName,
+  currentApparentCharacterId,
   actualCharacter,
   scriptCharacters,
   onConfirm,
 }: ApparentCharacterDialogProps) {
-  const [selected, setSelected] = useState<string>(player.apparentCharacterId ?? '');
+  const [selected, setSelected] = useState<string>(currentApparentCharacterId ?? '');
 
-  // Filter candidates based on character type
+  const handleEnter = useCallback(() => {
+    setSelected(currentApparentCharacterId ?? '');
+  }, [currentApparentCharacterId]);
+
   const candidates = useMemo(() => {
     if (actualCharacter.id === 'drunk') {
-      // Drunk thinks they are a Townsfolk
       return scriptCharacters.filter((c) => c.type === CharacterType.Townsfolk && c.id !== 'drunk');
     }
     if (actualCharacter.id === 'marionette') {
-      // Marionette thinks they are a good character (Townsfolk or Outsider)
       return scriptCharacters.filter(
         (c) =>
           (c.type === CharacterType.Townsfolk || c.type === CharacterType.Outsider) &&
           c.id !== 'marionette',
       );
     }
-    // Generic fallback: any non-evil character
     return scriptCharacters.filter(
       (c) => c.type === CharacterType.Townsfolk || c.type === CharacterType.Outsider,
     );
@@ -69,23 +72,29 @@ export function ApparentCharacterDialog({
 
   const handleConfirm = () => {
     if (selected) {
-      onConfirm(player.seat, selected);
+      onConfirm(playerId, selected);
       onClose();
     }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="xs">
+    <Dialog
+      open={open}
+      onClose={onClose}
+      fullWidth
+      maxWidth="xs"
+      slotProps={{ transition: { onEnter: handleEnter } }}
+    >
       <DialogTitle>
         <Typography variant="h6" component="span">
-          Identity Concealment — {player.playerName}
+          Identity Concealment — {playerName}
         </Typography>
         <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
           {actualCharacter.id === 'drunk'
             ? 'The Drunk thinks they are a Townsfolk. Choose which character they believe they are.'
             : actualCharacter.id === 'marionette'
               ? 'The Marionette thinks they are a good character. Choose their believed identity.'
-              : `Choose which character ${player.playerName} believes they are.`}
+              : `Choose which character ${playerName} believes they are.`}
         </Typography>
       </DialogTitle>
       <DialogContent sx={{ p: 0 }}>

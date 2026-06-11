@@ -20,7 +20,7 @@ function makeTemplate(overrides: Partial<ShowToPlayerTemplate>): ShowToPlayerTem
 function makeMessage(overrides: Partial<ShowToPlayerMessage>): ShowToPlayerMessage {
   return {
     id: 'message',
-    seat: 1,
+    playerId: 'alice',
     text: 'Message',
     createdAt: '2026-01-01T00:00:00.000Z',
     ...overrides,

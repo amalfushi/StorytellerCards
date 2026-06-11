@@ -325,6 +325,30 @@ describe('calculateAdaptiveTargets', () => {
       const result = calculateAdaptiveTargets(8, ['lordoftyphon']);
       expect(result.warnings).toContain('Outsider count may vary — Storyteller decides');
     });
+
+    it('applies a positive variableModifierValues override', () => {
+      const result = calculateAdaptiveTargets(8, ['lordoftyphon'], {
+        variableModifierValues: { lordoftyphon: 2 },
+      });
+      // base outsiders 1 + 2 = 3
+      expect(result.outsiders).toBe(3);
+      // No variable warning when ST has chosen a value
+      expect(result.warnings).not.toContain('Outsider count may vary — Storyteller decides');
+      expect(
+        result.modifiers.find(
+          (m) => m.characterId === 'lordoftyphon' && m.description.includes('Outsider'),
+        ),
+      ).toBeDefined();
+    });
+
+    it('applies a negative variableModifierValues override', () => {
+      const result = calculateAdaptiveTargets(8, ['lordoftyphon'], {
+        variableModifierValues: { lordoftyphon: -1 },
+      });
+      // base outsiders 1 + (-1) = 0
+      expect(result.outsiders).toBe(0);
+      expect(result.warnings).not.toContain('Outsider count may vary — Storyteller decides');
+    });
   });
 
   // ──────────────────────────────────────────

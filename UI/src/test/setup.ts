@@ -15,3 +15,15 @@ if (typeof globalThis.EventSource === 'undefined') {
   }
   globalThis.EventSource = EventSourceStub as unknown as typeof EventSource;
 }
+
+// ResizeObserver is not available in jsdom — provide a no-op stub so
+// components that measure their container (e.g. SeatingTemplateCircle) don't
+// crash during tests.
+if (typeof globalThis.ResizeObserver === 'undefined') {
+  class ResizeObserverStub {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  globalThis.ResizeObserver = ResizeObserverStub as unknown as typeof ResizeObserver;
+}

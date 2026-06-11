@@ -16,7 +16,8 @@ import {
   playerWithManyTokens,
   spiritOfIvory,
 } from '../../stories/mockData';
-import type { CharacterDef, PlayerSeat } from '../../types';
+import type { CharacterDef } from '../../types';
+import type { StoryPlayer } from '../../stories/mockData';
 
 const noop = () => {};
 
@@ -35,7 +36,7 @@ function PlayerTokenWithBadges({
   showCharacters,
   size = 'medium',
 }: {
-  player: PlayerSeat;
+  player: StoryPlayer;
   characterDef?: CharacterDef;
   showCharacters: boolean;
   size?: 'small' | 'medium' | 'large';

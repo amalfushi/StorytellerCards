@@ -6,10 +6,10 @@
  * These never block assignment — they guide the Storyteller.
  */
 
-import type { PlayerSeat } from '@/types/index.ts';
+import type { PlayerGameState, PlayerId, Slot } from '@/types/index.ts';
+import { CharacterType } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
-
-// ── Types ──
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
 
 export interface SeatingWarning {
   characterId: string;
@@ -19,7 +19,11 @@ export interface SeatingWarning {
   seats: number[];
 }
 
-// ── Adjacency helpers ──
+interface SeatedAssignment {
+  playerId: PlayerId;
+  seat: number;
+  state: PlayerGameState;
+}
 
 /**
  * Get seat numbers adjacent to a given seat in a circular arrangement.
@@ -32,26 +36,19 @@ export function getAdjacentSeats(seat: number, totalSeats: number): [number, num
   return [prev, next];
 }
 
-/**
- * Check if two seats are adjacent in a circular arrangement.
- */
+/** Check if two seats are adjacent in a circular arrangement. */
 export function areSeatsAdjacent(seat1: number, seat2: number, totalSeats: number): boolean {
   const [prev, next] = getAdjacentSeats(seat1, totalSeats);
   return seat2 === prev || seat2 === next;
 }
 
-/**
- * Check if a set of seats forms a continuous line in a circular arrangement.
- * A "line" means all seats are consecutive (wrapping allowed).
- */
+/** Check if a set of seats forms a continuous line in a circular arrangement. */
 export function areSeatsInLine(seats: number[], totalSeats: number): boolean {
   if (seats.length <= 1) return true;
   if (seats.length >= totalSeats) return true;
 
   const sorted = [...seats].sort((a, b) => a - b);
 
-  // Check for continuous sequence (possibly wrapping)
-  // Try each seat as the "start" of the line
   for (let startIdx = 0; startIdx < sorted.length; startIdx++) {
     let continuous = true;
     for (let i = 1; i < sorted.length; i++) {
@@ -69,29 +66,35 @@ export function areSeatsInLine(seats: number[], totalSeats: number): boolean {
   return false;
 }
 
-// ── Constraint checks ──
+function buildSeatedAssignments(
+  slots: Slot[],
+  playerState: Record<PlayerId, PlayerGameState>,
+): SeatedAssignment[] {
+  const displayMap = buildDisplaySeatNumberMap(slots);
+  const assignments: SeatedAssignment[] = [];
+  for (const slot of slots) {
+    if (slot.kind !== 'seat' || !slot.playerId) continue;
+    const state = playerState[slot.playerId];
+    const seat = displayMap.get(slot.id);
+    if (!state || seat === undefined) continue;
+    assignments.push({ playerId: slot.playerId, seat, state });
+  }
+  return assignments;
+}
 
-/**
- * Check Marionette adjacency constraint.
- * Marionette must sit next to the Demon.
- */
-function checkMarionetteConstraint(players: PlayerSeat[]): SeatingWarning[] {
+function checkMarionetteConstraint(assignments: SeatedAssignment[]): SeatingWarning[] {
   const warnings: SeatingWarning[] = [];
-  const nonTravellers = players.filter((p) => !p.isTraveller);
-  const totalSeats = nonTravellers.length;
-
-  const marionetteSeat = nonTravellers.find((p) => p.characterId === 'marionette');
+  const totalSeats = assignments.length;
+  const marionetteSeat = assignments.find((p) => p.state.characterId === 'marionette');
   if (!marionetteSeat) return warnings;
 
-  // Find all demon seats
-  const demonSeats = nonTravellers.filter((p) => {
-    const charDef = getCharacter(p.characterId);
-    return charDef?.type === 'Demon';
+  const demonSeats = assignments.filter((p) => {
+    const charDef = getCharacter(p.state.characterId);
+    return charDef?.type === CharacterType.Demon;
   });
 
   if (demonSeats.length === 0) return warnings;
 
-  // Check if Marionette is adjacent to any demon
   const isAdjacent = demonSeats.some((d) =>
     areSeatsAdjacent(marionetteSeat.seat, d.seat, totalSeats),
   );
@@ -108,29 +111,20 @@ function checkMarionetteConstraint(players: PlayerSeat[]): SeatingWarning[] {
   return warnings;
 }
 
-/**
- * Check Lord of Typhon evil-line constraint.
- * All evil characters should form a continuous line with the Demon in the middle.
- */
-function checkLordOfTyphonConstraint(players: PlayerSeat[]): SeatingWarning[] {
+function checkLordOfTyphonConstraint(assignments: SeatedAssignment[]): SeatingWarning[] {
   const warnings: SeatingWarning[] = [];
-  const nonTravellers = players.filter((p) => !p.isTraveller);
-  const totalSeats = nonTravellers.length;
-
-  const typhonSeat = nonTravellers.find((p) => p.characterId === 'lordoftyphon');
+  const totalSeats = assignments.length;
+  const typhonSeat = assignments.find((p) => p.state.characterId === 'lordoftyphon');
   if (!typhonSeat) return warnings;
 
-  // Find all evil seats
-  const evilSeats = nonTravellers.filter((p) => {
-    const charDef = getCharacter(p.characterId);
-    return charDef?.type === 'Demon' || charDef?.type === 'Minion';
+  const evilSeats = assignments.filter((p) => {
+    const charDef = getCharacter(p.state.characterId);
+    return charDef?.type === CharacterType.Demon || charDef?.type === CharacterType.Minion;
   });
 
   if (evilSeats.length <= 1) return warnings;
 
   const evilSeatNumbers = evilSeats.map((p) => p.seat);
-
-  // Check if evil seats form a continuous line
   if (!areSeatsInLine(evilSeatNumbers, totalSeats)) {
     warnings.push({
       characterId: 'lordoftyphon',
@@ -141,14 +135,12 @@ function checkLordOfTyphonConstraint(players: PlayerSeat[]): SeatingWarning[] {
     return warnings;
   }
 
-  // Check if Lord of Typhon is in the middle of the evil line
   if (evilSeats.length >= 3) {
     const sorted = [...evilSeatNumbers].sort((a, b) => a - b);
     const typhonIndex = sorted.indexOf(typhonSeat.seat);
     const isMiddle = typhonIndex > 0 && typhonIndex < sorted.length - 1;
 
-    // Handle wrapping — if the line wraps, the "middle" concept changes
-    if (!isMiddle && evilSeats.length >= 3) {
+    if (!isMiddle) {
       warnings.push({
         characterId: 'lordoftyphon',
         characterName: getCharacter('lordoftyphon')?.name ?? 'Lord of Typhon',
@@ -161,28 +153,25 @@ function checkLordOfTyphonConstraint(players: PlayerSeat[]): SeatingWarning[] {
   return warnings;
 }
 
-// ── Public API ──
-
-/**
- * Get advisory seating constraint warnings for the current player assignments.
- * Returns an empty array if no constraints are violated.
- * All warnings are advisory — they never block assignment.
- */
-export function getSeatingWarnings(players: PlayerSeat[]): SeatingWarning[] {
-  return [...checkMarionetteConstraint(players), ...checkLordOfTyphonConstraint(players)];
+/** Get advisory seating constraint warnings for the current player assignments. */
+export function getSeatingWarnings(
+  slots: Slot[],
+  playerState: Record<PlayerId, PlayerGameState>,
+): SeatingWarning[] {
+  const assignments = buildSeatedAssignments(slots, playerState);
+  return [...checkMarionetteConstraint(assignments), ...checkLordOfTyphonConstraint(assignments)];
 }
 
-/**
- * Get seats that are valid for Marionette placement (adjacent to any Demon).
- * Returns empty array if no Demons are assigned yet.
- */
-export function getMarionetteValidSeats(players: PlayerSeat[]): number[] {
-  const nonTravellers = players.filter((p) => !p.isTraveller);
-  const totalSeats = nonTravellers.length;
-
-  const demonSeats = nonTravellers.filter((p) => {
-    const charDef = getCharacter(p.characterId);
-    return charDef?.type === 'Demon';
+/** Get seats that are valid for Marionette placement (adjacent to any Demon). */
+export function getMarionetteValidSeats(
+  slots: Slot[],
+  playerState: Record<PlayerId, PlayerGameState>,
+): number[] {
+  const assignments = buildSeatedAssignments(slots, playerState);
+  const totalSeats = assignments.length;
+  const demonSeats = assignments.filter((p) => {
+    const charDef = getCharacter(p.state.characterId);
+    return charDef?.type === CharacterType.Demon;
   });
 
   if (demonSeats.length === 0) return [];
@@ -194,12 +183,11 @@ export function getMarionetteValidSeats(players: PlayerSeat[]): number[] {
     validSeats.add(next);
   }
 
-  // Remove seats that already have an evil character assigned
   for (const seat of validSeats) {
-    const player = nonTravellers.find((p) => p.seat === seat);
-    if (player) {
-      const charDef = getCharacter(player.characterId);
-      if (charDef?.type === 'Demon' || charDef?.type === 'Minion') {
+    const assignment = assignments.find((p) => p.seat === seat);
+    if (assignment) {
+      const charDef = getCharacter(assignment.state.characterId);
+      if (charDef?.type === CharacterType.Demon || charDef?.type === CharacterType.Minion) {
         validSeats.delete(seat);
       }
     }

@@ -1,8 +1,9 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { TokenManager, TokenBadges } from '@/components/TownSquare/TokenManager.tsx';
-import type { PlayerSeat, PlayerToken, CharacterDef, ReminderToken } from '@/types/index.ts';
+import type { PlayerToken, CharacterDef, ReminderToken } from '@/types/index.ts';
 import { CharacterType, Alignment } from '@/types/index.ts';
+import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 
 // ──────────────────────────────────────────────
 // Mock generateId so we get predictable IDs
@@ -16,17 +17,19 @@ vi.mock('@/utils/idGenerator.ts', () => ({
 // Mock data
 // ──────────────────────────────────────────────
 
-const playerNoTokens: PlayerSeat = {
+const playerNoTokens: TownSquarePlayer = {
+  playerId: 'id1',
+  slotId: 'slot1',
   seat: 1,
   playerName: 'Alice',
-  characterId: 'noble',
+  isTraveller: false,
+  characterId: 'soldier',
   alive: true,
   ghostVoteUsed: false,
-  visibleAlignment: Alignment.Unknown,
+  visibleAlignment: Alignment.Good,
   actualAlignment: Alignment.Good,
   startingAlignment: Alignment.Good,
   activeReminders: [],
-  isTraveller: false,
   tokens: [],
 };
 
@@ -51,7 +54,7 @@ const customToken: PlayerToken = {
   color: '#ff9800',
 };
 
-const playerWithTokens: PlayerSeat = {
+const playerWithTokens: TownSquarePlayer = {
   ...playerNoTokens,
   tokens: [drunkToken, poisonedToken, customToken],
 };

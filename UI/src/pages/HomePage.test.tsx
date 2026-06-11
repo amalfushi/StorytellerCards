@@ -12,10 +12,17 @@ const mockSessions: Session[] = [
     name: 'Friday Night Game',
     createdAt: '2026-02-15T20:00:00.000Z',
     defaultScriptId: 'boozling',
-    defaultPlayers: [
-      { seat: 1, playerName: 'Alice' },
-      { seat: 2, playerName: 'Bob' },
+    players: [
+      { id: 'player-1', name: 'Alice' },
+      { id: 'player-2', name: 'Bob' },
     ],
+    template: {
+      slots: [
+        { kind: 'seat', id: 'slot-1', playerId: 'player-1' },
+        { kind: 'seat', id: 'slot-2', playerId: 'player-2' },
+      ],
+    },
+    propagationDefault: { toTemplate: true, toOtherGames: true },
     gameIds: ['game-1', 'game-2'],
   },
   {
@@ -23,7 +30,9 @@ const mockSessions: Session[] = [
     name: 'Saturday Session',
     createdAt: '2026-02-16T14:00:00.000Z',
     defaultScriptId: '',
-    defaultPlayers: [{ seat: 1, playerName: 'Charlie' }],
+    players: [{ id: 'player-3', name: 'Charlie' }],
+    template: { slots: [{ kind: 'seat', id: 'slot-3', playerId: 'player-3' }] },
+    propagationDefault: { toTemplate: true, toOtherGames: true },
     gameIds: [],
   },
 ];

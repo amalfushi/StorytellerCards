@@ -6,22 +6,22 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useSwipeable } from 'react-swipeable';
 import type {
-  NightOrderEntry,
-  PlayerSeat,
   CharacterDef,
   NightProgress,
   NightHistoryEntry,
   ShowToPlayerMessage,
   ShowToPlayerTemplate,
+  PlayerId,
 } from '@/types/index.ts';
+import type { NightOrderPlayer, NightOrderViewEntry } from '@/utils/nightOrderFilter.ts';
 import { NightFlashcard } from './NightFlashcard.tsx';
 import { StructuralCard } from './StructuralCard.tsx';
 import { NightProgressBar } from './NightProgressBar.tsx';
 import { PlayerShowDrawer } from './PlayerShowDrawer.tsx';
 
 export interface FlashcardCarouselProps {
-  entries: NightOrderEntry[];
-  players: PlayerSeat[];
+  entries: NightOrderViewEntry[];
+  players: NightOrderPlayer[];
   characterLookup: (id: string) => CharacterDef | undefined;
   nightProgress: NightProgress;
   onUpdateProgress: (characterId: string, subActionIndex: number) => void;
@@ -44,15 +44,15 @@ export interface FlashcardCarouselProps {
   ) => void;
   /** Demon bluff character definitions (passed to demoninfo StructuralCard). */
   bluffCharacters?: CharacterDef[];
-  /** Per-player bluffs keyed by seat number (as string). */
-  playerBluffs?: Record<string, string[]>;
+  /** Per-player bluffs keyed by player id. */
+  playerBluffs?: Record<PlayerId, string[]>;
   /** Current game script id for template recall. */
   scriptId?: string;
   /** M36 per-player show-to-player messages. */
   showMessages?: ShowToPlayerMessage[];
   /** M36 show-to-player template library. */
   showTemplates?: ShowToPlayerTemplate[];
-  onAddShowMessage?: (seat: number, text: string, templateId?: string) => void;
+  onAddShowMessage?: (playerId: PlayerId, text: string, templateId?: string) => void;
   onMarkShowMessageShown?: (messageId: string) => void;
   onEditShowMessage?: (messageId: string, text: string) => void;
   onDeleteShowMessage?: (messageId: string) => void;
@@ -136,8 +136,8 @@ export function FlashcardCarousel({
     for (const entry of entries) {
       if (entry.type === 'character') {
         const player =
-          entry.gainedAbilityHostSeat !== undefined
-            ? players.find((p) => p.seat === entry.gainedAbilityHostSeat)
+          entry.gainedAbilityHostPlayerId !== undefined
+            ? players.find((p) => p.playerId === entry.gainedAbilityHostPlayerId)
             : players.find((p) => p.characterId === entry.id);
         if (player && !player.alive) set.add(entry.id);
       }
@@ -251,8 +251,8 @@ export function FlashcardCarousel({
     }
 
     const player =
-      entry.gainedAbilityHostSeat !== undefined
-        ? players.find((p) => p.seat === entry.gainedAbilityHostSeat)
+      entry.gainedAbilityHostPlayerId !== undefined
+        ? players.find((p) => p.playerId === entry.gainedAbilityHostPlayerId)
         : players.find((p) => p.characterId === entry.id);
     const charDef = characterLookup(entry.id);
     const isDead = player ? !player.alive : false;
@@ -260,7 +260,7 @@ export function FlashcardCarousel({
     const isLunatic = entry.id === 'lunatic';
 
     // Per-player bluffs: look up from the matched player's seat
-    const playerSeatBluffs = player && playerBluffs ? playerBluffs[String(player.seat)] : undefined;
+    const playerSeatBluffs = player && playerBluffs ? playerBluffs[player.playerId] : undefined;
     const resolvedBluffChars = playerSeatBluffs?.length
       ? playerSeatBluffs
           .map((id) => characterLookup(id))
@@ -317,8 +317,7 @@ export function FlashcardCarousel({
     currentEntry?.type === 'character'
       ? players.find((p) => p.characterId === currentEntry.id)
       : undefined;
-  const currentBluffIds =
-    currentPlayer && playerBluffs ? playerBluffs[String(currentPlayer.seat)] : undefined;
+  const currentBluffIds = currentPlayer && playerBluffs ? playerBluffs[currentPlayer.playerId] : undefined;
   const currentBluffChars = useMemo(() => {
     if (!currentBluffIds?.length) return undefined;
     return currentBluffIds
@@ -427,7 +426,8 @@ export function FlashcardCarousel({
       <PlayerShowDrawer
         open={showDrawerOpen}
         onClose={() => setShowDrawerOpen(false)}
-        seat={currentPlayer?.seat}
+        playerId={currentPlayer?.playerId}
+        displaySeat={currentPlayer?.seat}
         playerName={currentPlayer?.playerName}
         scriptId={scriptId}
         messages={showMessages}

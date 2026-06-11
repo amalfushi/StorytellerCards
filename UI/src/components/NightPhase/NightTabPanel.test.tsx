@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { NightTabPanel } from '@/components/NightPhase/NightTabPanel.tsx';
 import type { NightOrderEntry, NightProgress } from '@/types/index.ts';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 import { Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -30,18 +31,14 @@ const entries: NightOrderEntry[] = [
   makeEntry('imp', 'Imp'),
 ];
 
-const mockPlayers = [
+const mockPlayers: NightOrderPlayer[] = [
   {
+    playerId: 'player-1',
     seat: 1,
     playerName: 'Alice',
     characterId: 'fortuneteller',
     alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
     actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
     tokens: [],
   },
 ];
@@ -67,7 +64,21 @@ vi.mock('@/context/useGame.ts', () => ({
         currentDay: 1,
         currentPhase: 'Night',
         isFirstNight: true,
-        players: mockPlayers,
+        slots: [{ kind: 'seat', id: 'slot-1', playerId: 'player-1' }],
+        participants: [{ playerId: 'player-1', isTraveller: false }],
+        playerState: {
+          'player-1': {
+            characterId: 'fortuneteller',
+            alive: true,
+            ghostVoteUsed: false,
+            visibleAlignment: Alignment.Unknown,
+            actualAlignment: Alignment.Good,
+            startingAlignment: Alignment.Good,
+            activeReminders: [],
+            tokens: [],
+          },
+        },
+        playerCountOverride: null,
         nightHistory: [],
       },
       showCharacters: false,
@@ -77,6 +88,27 @@ vi.mock('@/context/useGame.ts', () => ({
     completeNight: mockCompleteNight,
     updateNightProgress: mockUpdateNightProgress,
     setNightCardIndex: mockSetNightCardIndex,
+  }),
+}));
+
+vi.mock('@/context/useSession.ts', () => ({
+  useSession: () => ({
+    state: {
+      sessions: [
+        {
+          id: 'test-session',
+          name: 'Test Session',
+          createdAt: '2026-01-01T00:00:00.000Z',
+          defaultScriptId: 'test-script',
+          players: [{ id: 'player-1', name: 'Alice' }],
+          template: { slots: [{ kind: 'seat', id: 'slot-1', playerId: 'player-1' }] },
+          propagationDefault: { toTemplate: true, toOtherGames: true },
+          gameIds: ['test-game'],
+        },
+      ],
+      activeSessionId: 'test-session',
+      activeGameId: 'test-game',
+    },
   }),
 }));
 

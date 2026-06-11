@@ -12,7 +12,7 @@
  * Includes a "Start Night 1 →" button at the bottom.
  */
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Checkbox from '@mui/material/Checkbox';
@@ -22,9 +22,17 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
-import type { PlayerSeat, PlayerToken, ReminderToken } from '@/types/index.ts';
+import type {
+  Participant,
+  Player,
+  PlayerGameState,
+  PlayerId,
+  PlayerToken,
+  ReminderToken,
+} from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
 import { NightChoiceSelector } from '@/components/NightPhase/NightChoiceSelector.tsx';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 import { buildChecklistItems, type SetupChecklistItem } from './buildChecklistItems.ts';
 
 // ── Types ──
@@ -32,25 +40,35 @@ import { buildChecklistItems, type SetupChecklistItem } from './buildChecklistIt
 export interface SetupChecklistProps {
   /** Current game ID — used for localStorage key. */
   gameId: string;
-  /** Players with assigned characters. */
-  players: PlayerSeat[];
+  /** Players participating in this game. */
+  participants: Participant[];
+  /** Per-player state keyed by PlayerId. */
+  playerState: Record<PlayerId, PlayerGameState>;
+  /** Session roster used for player names. */
+  sessionPlayers: Player[];
   /** IDs of in-play characters. */
   inPlayCharacterIds: string[];
   /** Script character IDs (for modifier/requirement detection). */
   scriptCharacterIds: string[];
   /** Callback when "Start Night 1" is clicked. */
   onStartNight: () => void;
-  /** Callback when the Storyteller opens the quick reseat tool. */
-  onReseat?: () => void;
   /** Place a reminder token on a player using the canonical game token store. */
-  onAddToken?: (seat: number, token: PlayerToken) => void;
+  onAddToken?: (playerId: PlayerId, token: PlayerToken) => void;
   /** Remove a reminder token from a player using the canonical game token store. */
-  onRemoveToken?: (seat: number, tokenId: string) => void;
+  onRemoveToken?: (playerId: PlayerId, tokenId: string) => void;
 }
 
 // ── Helpers ──
 
 const STORAGE_KEY_PREFIX = 'storyteller-setup-checklist-';
+
+const CATEGORY_LABELS: Record<string, string> = {
+  setup: '⚙️ Setup Decisions',
+  modifier: '📊 Distribution Modifiers',
+  required: '⚠️ Required Characters',
+  prompt: '📋 Setup Prompts',
+  reminder: '🏷️ Reminder Placements',
+};
 
 function loadCheckedState(gameId: string): Record<string, boolean> {
   try {
@@ -87,11 +105,12 @@ function reminderToPlayerToken(reminder: ReminderToken): PlayerToken {
 
 export function SetupChecklist({
   gameId,
-  players,
+  participants,
+  playerState,
+  sessionPlayers,
   inPlayCharacterIds,
   scriptCharacterIds,
   onStartNight,
-  onReseat,
   onAddToken,
   onRemoveToken,
 }: SetupChecklistProps) {
@@ -105,9 +124,32 @@ export function SetupChecklist({
   }, [gameId, checkedState]);
 
   const items = useMemo(
-    () => buildChecklistItems(players, inPlayCharacterIds, scriptCharacterIds),
-    [players, inPlayCharacterIds, scriptCharacterIds],
+    () => buildChecklistItems(participants, playerState, inPlayCharacterIds, scriptCharacterIds),
+    [participants, playerState, inPlayCharacterIds, scriptCharacterIds],
   );
+
+  const sessionPlayerNameById = useMemo(() => {
+    return new Map(sessionPlayers.map((player) => [player.id, player.name]));
+  }, [sessionPlayers]);
+
+  const playerOptions = useMemo<NightOrderPlayer[]>(() => {
+    return participants
+      .map((participant, index): NightOrderPlayer | null => {
+        const state = playerState[participant.playerId];
+        if (!state) return null;
+        return {
+          playerId: participant.playerId,
+          playerName: sessionPlayerNameById.get(participant.playerId) ?? 'Unknown player',
+          seat: index + 1,
+          characterId: state.characterId,
+          alive: state.alive,
+          actualAlignment: state.actualAlignment,
+          tokens: state.tokens,
+          gainedAbility: state.gainedAbility,
+        };
+      })
+      .filter((player): player is NightOrderPlayer => player !== null);
+  }, [participants, playerState, sessionPlayerNameById]);
 
   const handleToggle = useCallback((itemId: string) => {
     setCheckedState((prev) => ({
@@ -117,7 +159,7 @@ export function SetupChecklist({
   }, []);
 
   // All critical items must be checked to enable "Start Night 1"
-  const criticalItems = items.filter((item) => item.critical);
+  const criticalItems = useMemo(() => items.filter((item) => item.critical), [items]);
   const allCriticalChecked = criticalItems.every((item) => checkedState[item.id]);
   const allChecked = items.every((item) => checkedState[item.id]);
   const checkedCount = items.filter((item) => checkedState[item.id]).length;
@@ -135,29 +177,37 @@ export function SetupChecklist({
   }, [items]);
 
   const tokenPlacements = useMemo(() => {
-    const placements = new Map<string, PlayerSeat>();
-    for (const player of players) {
+    const placements = new Map<string, NightOrderPlayer>();
+    for (const player of playerOptions) {
       for (const token of player.tokens ?? []) {
         placements.set(token.id, player);
       }
     }
     return placements;
-  }, [players]);
+  }, [playerOptions]);
 
   const handleReminderPlacement = useCallback(
     (tokenId: string, playerName: string) => {
       const currentPlayer = tokenPlacements.get(tokenId);
       if (!playerName) {
-        if (currentPlayer) onRemoveToken?.(currentPlayer.seat, tokenId);
+        if (currentPlayer) onRemoveToken?.(currentPlayer.playerId, tokenId);
         return;
       }
       const reminder = reminderLookup.get(tokenId);
-      const selectedPlayer = players.find((player) => player.playerName === playerName);
+      const selectedPlayer = playerOptions.find((player) => player.playerName === playerName);
       if (!reminder || !selectedPlayer) return;
-      onAddToken?.(selectedPlayer.seat, reminderToPlayerToken(reminder));
+      onAddToken?.(selectedPlayer.playerId, reminderToPlayerToken(reminder));
     },
-    [onAddToken, onRemoveToken, players, reminderLookup, tokenPlacements],
+    [onAddToken, onRemoveToken, playerOptions, reminderLookup, tokenPlacements],
   );
+
+  const groupedItems = useMemo(() => {
+    return items.reduce<Record<string, SetupChecklistItem[]>>((acc, item) => {
+      if (!acc[item.category]) acc[item.category] = [];
+      acc[item.category].push(item);
+      return acc;
+    }, {});
+  }, [items]);
 
   if (items.length === 0) {
     return (
@@ -165,34 +215,12 @@ export function SetupChecklist({
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
           No setup steps required — ready to start!
         </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, flexWrap: 'wrap' }}>
-          {onReseat && (
-            <Button variant="outlined" size="small" onClick={onReseat}>
-              Reseat
-            </Button>
-          )}
-          <Button variant="contained" startIcon={<NightlightRoundIcon />} onClick={onStartNight}>
-            Start Night 1 →
-          </Button>
-        </Box>
+        <Button variant="contained" startIcon={<NightlightRoundIcon />} onClick={onStartNight}>
+          Start Night 1 →
+        </Button>
       </Box>
     );
   }
-
-  const categoryLabels: Record<string, string> = {
-    setup: '⚙️ Setup Decisions',
-    modifier: '📊 Distribution Modifiers',
-    required: '⚠️ Required Characters',
-    prompt: '📋 Setup Prompts',
-    reminder: '🏷️ Reminder Placements',
-  };
-
-  // Group items by category
-  const groupedItems = items.reduce<Record<string, SetupChecklistItem[]>>((acc, item) => {
-    if (!acc[item.category]) acc[item.category] = [];
-    acc[item.category].push(item);
-    return acc;
-  }, {});
 
   return (
     <Box sx={{ p: 2 }} data-testid="setup-checklist">
@@ -205,16 +233,11 @@ export function SetupChecklist({
           sx={{ ml: 1 }}
         />
       </Typography>
-      {onReseat && (
-        <Button variant="outlined" size="small" onClick={onReseat} sx={{ mb: 1 }}>
-          Reseat
-        </Button>
-      )}
 
       {Object.entries(groupedItems).map(([category, categoryItems]) => (
         <Paper key={category} elevation={1} sx={{ mb: 1.5, p: 1.5, bgcolor: 'background.default' }}>
           <Typography variant="subtitle2" sx={{ mb: 0.5, fontWeight: 700 }}>
-            {categoryLabels[category] ?? category}
+            {CATEGORY_LABELS[category] ?? category}
           </Typography>
           {categoryItems.map((item) => (
             <Box key={item.id} sx={{ display: 'flex', alignItems: 'flex-start' }}>
@@ -277,7 +300,7 @@ export function SetupChecklist({
                                 if (Array.isArray(value)) return;
                                 handleReminderPlacement(tokenId, value);
                               }}
-                              players={players}
+                              players={playerOptions}
                               label={reminder.text}
                               readOnly={!onAddToken && !onRemoveToken}
                               emptyOptionLabel="Unassigned"

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { GameProvider } from '@/context/GameContext.tsx';
 import { useGame } from '@/context/useGame.ts';
@@ -8,6 +8,17 @@ import { Phase } from '@/types/index.ts';
 import type { ReactNode } from 'react';
 import { useEffect, useRef } from 'react';
 
+// Mock useSession for context access
+vi.mock('@/context/useSession.ts', () => ({
+  useSession: () => ({
+    state: {
+      sessions: [],
+      activeSessionId: null,
+      activeGameId: null,
+    },
+  }),
+}));
+
 // Minimal game to load into the provider
 const mockGame: Game = {
   id: 'test-game',
@@ -16,7 +27,10 @@ const mockGame: Game = {
   currentDay: 1,
   currentPhase: Phase.Day,
   isFirstNight: true,
-  players: [],
+  slots: [],
+  participants: [],
+  playerState: {},
+  playerCountOverride: null,
   nightHistory: [],
 };
 

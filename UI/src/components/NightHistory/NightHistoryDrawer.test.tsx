@@ -61,10 +61,18 @@ const baseGame: Game = {
   currentDay: 4,
   currentPhase: 'Day',
   isFirstNight: false,
-  players: [
-    {
-      seat: 1,
-      playerName: 'Alice',
+  slots: [
+    { kind: 'seat', id: 'slot-1', playerId: 'alice' },
+    { kind: 'seat', id: 'slot-2', playerId: 'bob' },
+    { kind: 'seat', id: 'slot-3', playerId: 'charlie' },
+  ],
+  participants: [
+    { playerId: 'alice', isTraveller: false },
+    { playerId: 'bob', isTraveller: false },
+    { playerId: 'charlie', isTraveller: false },
+  ],
+  playerState: {
+    alice: {
       characterId: 'noble',
       alive: true,
       ghostVoteUsed: false,
@@ -72,12 +80,9 @@ const baseGame: Game = {
       actualAlignment: Alignment.Good,
       startingAlignment: Alignment.Good,
       activeReminders: [],
-      isTraveller: false,
       tokens: [],
     },
-    {
-      seat: 2,
-      playerName: 'Bob',
+    bob: {
       characterId: 'imp',
       alive: true,
       ghostVoteUsed: false,
@@ -85,12 +90,9 @@ const baseGame: Game = {
       actualAlignment: Alignment.Evil,
       startingAlignment: Alignment.Evil,
       activeReminders: [],
-      isTraveller: false,
       tokens: [],
     },
-    {
-      seat: 3,
-      playerName: 'Charlie',
+    charlie: {
       characterId: 'fortuneteller',
       alive: true,
       ghostVoteUsed: false,
@@ -98,10 +100,10 @@ const baseGame: Game = {
       actualAlignment: Alignment.Good,
       startingAlignment: Alignment.Good,
       activeReminders: [],
-      isTraveller: false,
       tokens: [],
     },
-  ],
+  },
+  playerCountOverride: null,
   nightHistory: mockNightHistory,
 };
 
@@ -141,6 +143,17 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
       return chars[id];
     },
     allCharacters: [],
+  }),
+}));
+
+// Mock useSession for context access
+vi.mock('@/context/useSession.ts', () => ({
+  useSession: () => ({
+    state: {
+      sessions: [],
+      activeSessionId: null,
+      activeGameId: null,
+    },
   }),
 }));
 

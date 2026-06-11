@@ -3,8 +3,8 @@ import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
-import { PlayerRow } from '@/components/PlayerList/PlayerRow.tsx';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import { PlayerRow, type PlayerListRowPlayer } from '@/components/PlayerList/PlayerRow.tsx';
+import type { CharacterDef } from '@/types/index.ts';
 import { CharacterType, Alignment } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -55,88 +55,102 @@ const nobleCharacter: CharacterDef = {
   reminders: [],
 };
 
-const alivePlayer: PlayerSeat = {
-  seat: 1,
-  playerName: 'Alice',
-  characterId: 'noble',
-  alive: true,
-  ghostVoteUsed: false,
-  visibleAlignment: Alignment.Unknown,
-  actualAlignment: Alignment.Good,
-  startingAlignment: Alignment.Good,
-  activeReminders: [],
-  isTraveller: false,
-  tokens: [],
-};
-
-const deadPlayer: PlayerSeat = {
-  seat: 3,
-  playerName: 'Charlie',
-  characterId: 'noble',
-  alive: false,
-  ghostVoteUsed: false,
-  visibleAlignment: Alignment.Unknown,
-  actualAlignment: Alignment.Good,
-  startingAlignment: Alignment.Good,
-  activeReminders: [],
-  isTraveller: false,
-  tokens: [],
-};
-
-const deadPlayerGhostVoteUsed: PlayerSeat = {
-  seat: 5,
-  playerName: 'Eve',
-  characterId: 'noble',
-  alive: false,
-  ghostVoteUsed: true,
-  visibleAlignment: Alignment.Unknown,
-  actualAlignment: Alignment.Good,
-  startingAlignment: Alignment.Good,
-  activeReminders: [],
-  isTraveller: false,
-  tokens: [],
-};
-
-const travellerPlayer: PlayerSeat = {
-  seat: 7,
-  playerName: 'Jack',
-  characterId: 'spiritofivory',
-  alive: true,
-  ghostVoteUsed: false,
-  visibleAlignment: Alignment.Unknown,
-  actualAlignment: Alignment.Good,
-  startingAlignment: Alignment.Good,
-  activeReminders: [],
-  isTraveller: true,
-  tokens: [],
-};
-
 const travellerCharacter: CharacterDef = {
   id: 'spiritofivory',
   name: 'Spirit of Ivory',
-  type: CharacterType.Traveller,
+  type: CharacterType.Townsfolk,
   defaultAlignment: Alignment.Good,
-  abilityShort: "There can't be more than 1 extra evil player.",
-  firstNight: null,
+  abilityShort: 'You start knowing 1 Townsfolk. If you leave, all Travellers gain your ability.',
+  firstNight: {
+    order: 20,
+    helpText: 'Point to 1 Townsfolk.',
+    subActions: [{ id: 'soi-fn-1', description: 'Point to 1', isConditional: false }],
+  },
   otherNights: null,
   reminders: [],
 };
 
-const evilTownsfolkPlayer: PlayerSeat = {
-  seat: 11,
-  playerName: 'Mallory',
+const alivePlayer = {
+  playerId: 'alice',
+  slotId: 'slot1',
+  seat: 1,
+  playerName: 'Alice',
+  isTraveller: false,
   characterId: 'noble',
   alive: true,
   ghostVoteUsed: false,
-  visibleAlignment: Alignment.Unknown,
-  actualAlignment: Alignment.Evil,
+  visibleAlignment: Alignment.Good,
+  actualAlignment: Alignment.Good,
   startingAlignment: Alignment.Good,
   activeReminders: [],
-  isTraveller: false,
   tokens: [],
 };
 
-const playerWithTokens: PlayerSeat = {
+const deadPlayer = {
+  playerId: 'charlie',
+  slotId: 'slot3',
+  seat: 3,
+  playerName: 'Charlie',
+  isTraveller: false,
+  characterId: 'imp',
+  alive: false,
+  ghostVoteUsed: false,
+  visibleAlignment: Alignment.Evil,
+  actualAlignment: Alignment.Evil,
+  startingAlignment: Alignment.Evil,
+  activeReminders: [],
+  tokens: [],
+};
+
+const deadPlayerGhostVoteUsed = {
+  playerId: 'eve',
+  slotId: 'slot5',
+  seat: 5,
+  playerName: 'Eve',
+  isTraveller: false,
+  characterId: 'chef',
+  alive: false,
+  ghostVoteUsed: true,
+  visibleAlignment: Alignment.Good,
+  actualAlignment: Alignment.Good,
+  startingAlignment: Alignment.Good,
+  activeReminders: [],
+  tokens: [],
+};
+
+const travellerPlayer = {
+  playerId: 'jack',
+  slotId: 'slot7',
+  seat: 7,
+  playerName: 'Jack',
+  isTraveller: true,
+  characterId: 'spiritofivory',
+  alive: true,
+  ghostVoteUsed: false,
+  visibleAlignment: Alignment.Good,
+  actualAlignment: Alignment.Good,
+  startingAlignment: Alignment.Good,
+  activeReminders: [],
+  tokens: [],
+};
+
+const evilTownsfolkPlayer = {
+  playerId: 'mallory',
+  slotId: 'slot11',
+  seat: 11,
+  playerName: 'Mallory',
+  isTraveller: false,
+  characterId: 'recluse',
+  alive: true,
+  ghostVoteUsed: false,
+  visibleAlignment: Alignment.Good,
+  actualAlignment: Alignment.Evil,
+  startingAlignment: Alignment.Evil,
+  activeReminders: [],
+  tokens: [],
+};
+
+const playerWithTokens: PlayerListRowPlayer = {
   ...alivePlayer,
   tokens: [
     { id: 'tok-1', type: 'drunk', label: 'Drunk', color: '#1976d2' },
@@ -148,7 +162,11 @@ const playerWithTokens: PlayerSeat = {
 // Helper — wraps PlayerRow in a Table for valid DOM
 // ──────────────────────────────────────────────
 
-function renderPlayerRow(player: PlayerSeat, showCharacters: boolean, character?: CharacterDef) {
+function renderPlayerRow(
+  player: PlayerListRowPlayer,
+  showCharacters: boolean,
+  character?: CharacterDef,
+) {
   const onToggleAlive = vi.fn();
   const onToggleGhostVote = vi.fn();
   const onRowClick = vi.fn();
@@ -296,7 +314,7 @@ describe('PlayerRow', () => {
   });
 
   it('shows dash for unassigned character in night view', () => {
-    const unassignedPlayer: PlayerSeat = {
+    const unassignedPlayer: PlayerListRowPlayer = {
       ...alivePlayer,
       characterId: '',
     };

@@ -12,9 +12,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import NotesIcon from '@mui/icons-material/Notes';
 import type { NightHistoryEntry } from '@/types/index.ts';
 import { useGame } from '@/context/useGame.ts';
+import { useSession } from '@/context/useSession.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { getNightSummary, generateActionableNightSummary } from '@/utils/nightHistoryUtils.ts';
 import { NightHistoryReview } from './NightHistoryReview.tsx';
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 
 export interface NightHistoryDrawerProps {
   open: boolean;
@@ -28,12 +31,40 @@ export interface NightHistoryDrawerProps {
  */
 export function NightHistoryDrawer({ open, onClose }: NightHistoryDrawerProps) {
   const { state } = useGame();
+  const sessionState = useSession().state;
   const { getCharacter } = useCharacterLookup();
   const nightHistory: NightHistoryEntry[] = useMemo(
     () => state.game?.nightHistory ?? [],
     [state.game?.nightHistory],
   );
-  const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
+  const session = useMemo(
+    () => sessionState.sessions.find((candidate) => candidate.id === state.game?.sessionId),
+    [sessionState.sessions, state.game?.sessionId],
+  );
+  const players = useMemo<NightOrderPlayer[]>(() => {
+    const game = state.game;
+    if (!game || !session) return [];
+    const displaySeatBySlot = buildDisplaySeatNumberMap(game.slots);
+    return game.slots.flatMap((slot) => {
+      if (slot.kind !== 'seat' || !slot.playerId) return [];
+      const displaySeat = displaySeatBySlot.get(slot.id);
+      const player = session.players.find((candidate) => candidate.id === slot.playerId);
+      const playerState = game.playerState[slot.playerId];
+      if (!displaySeat || !player || !playerState) return [];
+      return [
+        {
+          playerId: slot.playerId,
+          playerName: player.name,
+          seat: displaySeat,
+          characterId: playerState.characterId,
+          alive: playerState.alive,
+          actualAlignment: playerState.actualAlignment,
+          tokens: playerState.tokens,
+          gainedAbility: playerState.gainedAbility,
+        },
+      ];
+    });
+  }, [session, state.game]);
 
   const [reviewEntry, setReviewEntry] = useState<NightHistoryEntry | null>(null);
   const [reviewIndex, setReviewIndex] = useState<number>(-1);

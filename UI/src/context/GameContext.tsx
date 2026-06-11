@@ -3,18 +3,30 @@ import { GameContext } from './useGame.ts';
 import type { ReactNode } from 'react';
 import type {
   Game,
-  PlayerSeat,
+  PlayerGameState,
   PlayerToken,
+  PlayerId,
+  PropagationPreference,
   NightProgress,
   NightHistoryEntry,
   SyncStatus,
   ShowToPlayerTemplate,
   GainedAbility,
+  SlotId,
+  Slot,
 } from '@/types/index.ts';
 import { Phase, Alignment, CharacterType } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
 import { useApiSync } from '@/hooks/useApiSync.ts';
 import { useSseSync } from '@/hooks/useSseSync.ts';
+import { useSession } from './useSession.ts';
+import {
+  moveSlot,
+  setSeatPlayer,
+  clearPlayerFromSlots,
+  makeDefaultPlayerGameState,
+} from '@/utils/seating/index.ts';
+import { generateId } from '@/utils/idGenerator.ts';
 
 // ──────────────────────────────────────────────
 // State
@@ -38,11 +50,6 @@ const INITIAL_STATE: GameViewState = {
 // Helpers
 // ──────────────────────────────────────────────
 
-/**
- * Derive a player's alignment from their character type.
- * Demons and Minions → Evil; Townsfolk and Outsiders → Good.
- * Travellers, Fabled, Loric, and unknown types return undefined (no change).
- */
 function deriveAlignmentFromType(type: CharacterType): Alignment | undefined {
   if (type === CharacterType.Demon || type === CharacterType.Minion) return Alignment.Evil;
   if (type === CharacterType.Townsfolk || type === CharacterType.Outsider) return Alignment.Good;
@@ -53,57 +60,27 @@ function createShowToPlayerId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-function normalizeShowToPlayerGame(game: Game): Game {
-  const needsMessageMigration = game.showMessages === undefined;
-  const showMessages = needsMessageMigration
-    ? Object.entries(game.customPlayerMessages ?? {}).flatMap(([characterId, text]) => {
-        const player = game.players.find((p) => p.characterId === characterId);
-        if (!player || !text.trim()) return [];
-        return [
-          {
-            id: `m36-migrated-${game.id}-${player.seat}-${characterId}`,
-            seat: player.seat,
-            text,
-            createdAt: game.updatedAt ?? new Date().toISOString(),
-          },
-        ];
-      })
-    : game.showMessages;
-
+function normalizeGame(game: Game): Game {
   return {
     ...game,
-    showMessages: showMessages ?? [],
+    showMessages: game.showMessages ?? [],
     showTemplates: game.showTemplates ?? [],
   };
 }
 
-function remapPlayerBluffs(
-  playerBluffs: Record<string, string[]> | undefined,
-  seatMap: Map<number, number>,
-): Record<string, string[]> | undefined {
-  if (!playerBluffs) return playerBluffs;
-  const remapped: Record<string, string[]> = {};
-  for (const [seat, bluffs] of Object.entries(playerBluffs)) {
-    const numericSeat = Number(seat);
-    const targetSeat = seatMap.get(numericSeat) ?? numericSeat;
-    remapped[String(targetSeat)] = bluffs;
-  }
-  return remapped;
-}
-
-function makeEmptySeat(atSeat: number): PlayerSeat {
+function updatePlayerStateInGame(
+  game: Game,
+  playerId: PlayerId,
+  updater: (current: PlayerGameState) => PlayerGameState,
+): Game {
+  const current = game.playerState[playerId];
+  if (!current) return game;
   return {
-    seat: atSeat,
-    playerName: '',
-    characterId: '',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Unknown,
-    startingAlignment: Alignment.Unknown,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
+    ...game,
+    playerState: {
+      ...game.playerState,
+      [playerId]: updater(current),
+    },
   };
 }
 
@@ -117,12 +94,12 @@ type GameAction =
   | { type: 'ADVANCE_DAY' }
   | { type: 'TOGGLE_SHOW_CHARACTERS' }
   | {
-      type: 'UPDATE_PLAYER';
+      type: 'UPDATE_PLAYER_STATE';
       payload: {
-        seat: number;
+        playerId: PlayerId;
         updates: Partial<
           Pick<
-            PlayerSeat,
+            PlayerGameState,
             | 'characterId'
             | 'alive'
             | 'ghostVoteUsed'
@@ -130,21 +107,38 @@ type GameAction =
             | 'actualAlignment'
             | 'startingAlignment'
             | 'activeReminders'
-            | 'playerName'
           >
         >;
       };
     }
   | {
-      type: 'ADD_TRAVELLER';
-      payload: {
-        seat: number;
-        playerName: string;
-        characterId: string;
-        alignment: 'Good' | 'Evil';
-      };
+      type: 'ADD_PARTICIPANT';
+      payload: { playerId: PlayerId; isTraveller?: boolean; characterId?: string };
     }
-  | { type: 'REMOVE_TRAVELLER'; payload: { seat: number } }
+  | { type: 'REMOVE_PARTICIPANT'; payload: { playerId: PlayerId } }
+  | {
+      type: 'SET_PARTICIPANT_TRAVELLER';
+      payload: { playerId: PlayerId; isTraveller: boolean; alignment?: Alignment };
+    }
+  | {
+      type: 'ADD_GAME_SEAT';
+      payload: { slotId: SlotId };
+    }
+  | {
+      type: 'ADD_GAME_SPACER';
+      payload: { slotId: SlotId };
+    }
+  | {
+      type: 'ADD_GAME_STORYTELLER';
+      payload: { slotId: SlotId };
+    }
+  | { type: 'REMOVE_GAME_SLOT'; payload: { slotId: SlotId } }
+  | { type: 'MOVE_GAME_SLOT'; payload: { slotId: SlotId; toIndex: number } }
+  | {
+      type: 'ASSIGN_GAME_SEAT';
+      payload: { slotId: SlotId; playerId: PlayerId | null };
+    }
+  | { type: 'SET_PLAYER_COUNT_OVERRIDE'; payload: { count: number | null } }
   | { type: 'START_NIGHT'; payload: { totalCards: number } }
   | {
       type: 'UPDATE_NIGHT_PROGRESS';
@@ -158,8 +152,8 @@ type GameAction =
   | { type: 'COMPLETE_NIGHT' }
   | { type: 'SET_NIGHT_CARD_INDEX'; payload: { index: number } }
   | { type: 'SAVE_GAME' }
-  | { type: 'ADD_TOKEN'; payload: { seat: number; token: PlayerToken } }
-  | { type: 'REMOVE_TOKEN'; payload: { seat: number; tokenId: string } }
+  | { type: 'ADD_TOKEN'; payload: { playerId: PlayerId; token: PlayerToken } }
+  | { type: 'REMOVE_TOKEN'; payload: { playerId: PlayerId; tokenId: string } }
   | { type: 'UPDATE_NIGHT_HISTORY'; payload: { index: number; entry: NightHistoryEntry } }
   | {
       type: 'UPDATE_NIGHT_HISTORY_NOTE';
@@ -174,19 +168,16 @@ type GameAction =
   | { type: 'ADD_LORIC'; payload: { characterId: string } }
   | { type: 'REMOVE_LORIC'; payload: { characterId: string } }
   | { type: 'SET_IN_PLAY_CHARACTERS'; payload: { characterIds: string[] } }
-  | { type: 'SWAP_PLAYER_SEATS'; payload: { gameId: string; seatA: number; seatB: number } }
-  | { type: 'SHIFT_PLAYER_SEATS'; payload: { gameId: string; startSeat: number; shiftBy: number } }
-  | { type: 'INSERT_EMPTY_SEAT'; payload: { gameId: string; atSeat: number } }
-  | { type: 'SET_APPARENT_CHARACTER'; payload: { seat: number; apparentCharacterId: string } }
+  | { type: 'SET_APPARENT_CHARACTER'; payload: { playerId: PlayerId; apparentCharacterId: string } }
   | { type: 'SET_DEMON_BLUFFS'; payload: { characterIds: string[] } }
   | { type: 'SET_LUNATIC_BLUFFS'; payload: { characterIds: string[] } }
-  | { type: 'SET_PLAYER_BLUFFS'; payload: { seat: number; bluffIds: string[] } }
+  | { type: 'SET_PLAYER_BLUFFS'; payload: { playerId: PlayerId; bluffIds: string[] } }
   | { type: 'SET_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string; message: string } }
   | { type: 'CLEAR_CUSTOM_PLAYER_MESSAGE'; payload: { characterId: string } }
   | { type: 'SYNC_GAME'; payload: { game: Game } }
   | {
       type: 'ADD_SHOW_MESSAGE';
-      payload: { gameId: string; seat: number; text: string; templateId?: string };
+      payload: { gameId: string; playerId: PlayerId; text: string; templateId?: string };
     }
   | { type: 'MARK_SHOW_MESSAGE_SHOWN'; payload: { gameId: string; messageId: string } }
   | { type: 'EDIT_SHOW_MESSAGE'; payload: { gameId: string; messageId: string; text: string } }
@@ -205,16 +196,15 @@ type GameAction =
   | {
       type: 'RECORD_ALIGNMENT_CHANGE';
       payload: {
-        seat: number;
+        playerId: PlayerId;
         newAlignment: Alignment;
         reason: string;
         day: number;
         nightPhase: 'first' | 'other' | 'day' | 'manual';
       };
     }
-  | { type: 'SET_GAINED_ABILITY'; payload: { seat: number; gainedAbility: GainedAbility } }
-  | { type: 'CLEAR_GAINED_ABILITY'; payload: { seat: number } }
-  | { type: 'SYNC_GAME'; payload: { game: Game } };
+  | { type: 'SET_GAINED_ABILITY'; payload: { playerId: PlayerId; gainedAbility: GainedAbility } }
+  | { type: 'CLEAR_GAINED_ABILITY'; payload: { playerId: PlayerId } };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -225,97 +215,178 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
     case 'LOAD_GAME':
       return {
         ...state,
-        game: normalizeShowToPlayerGame(action.payload.game),
+        game: normalizeGame(action.payload.game),
         showCharacters: false,
         nightProgress: null,
       };
 
     case 'SET_PHASE': {
       if (!state.game) return state;
-      return {
-        ...state,
-        game: { ...state.game, currentPhase: action.payload.phase },
-      };
+      return { ...state, game: { ...state.game, currentPhase: action.payload.phase } };
     }
 
     case 'ADVANCE_DAY': {
       if (!state.game) return state;
       return {
         ...state,
-        game: {
-          ...state.game,
-          currentDay: state.game.currentDay + 1,
-          isFirstNight: false,
-        },
+        game: { ...state.game, currentDay: state.game.currentDay + 1, isFirstNight: false },
       };
     }
 
     case 'TOGGLE_SHOW_CHARACTERS':
       return { ...state, showCharacters: !state.showCharacters };
 
-    case 'UPDATE_PLAYER': {
+    case 'UPDATE_PLAYER_STATE': {
       if (!state.game) return state;
-      const { seat, updates } = action.payload;
+      const { playerId, updates } = action.payload;
       return {
         ...state,
-        game: {
-          ...state.game,
-          players: state.game.players.map((p) => {
-            if (p.seat !== seat) return p;
-            const merged = { ...p, ...updates };
-            // M4: Auto-update alignment when characterId changes
-            if (updates.characterId !== undefined && updates.characterId !== p.characterId) {
-              const charDef = getCharacter(updates.characterId);
-              if (charDef) {
-                const newAlignment = deriveAlignmentFromType(charDef.type);
-                // Only auto-update if alignment was not explicitly set in this update
-                if (updates.actualAlignment === undefined) {
-                  merged.actualAlignment = newAlignment;
-                }
+        game: updatePlayerStateInGame(state.game, playerId, (current) => {
+          const merged: PlayerGameState = { ...current, ...updates };
+          if (updates.characterId !== undefined && updates.characterId !== current.characterId) {
+            const charDef = getCharacter(updates.characterId);
+            if (charDef) {
+              const newAlignment = deriveAlignmentFromType(charDef.type);
+              if (updates.actualAlignment === undefined) {
+                merged.actualAlignment = newAlignment ?? merged.actualAlignment;
               }
             }
-            return merged;
-          }),
-        },
+          }
+          return merged;
+        }),
       };
     }
 
-    case 'ADD_TRAVELLER': {
+    case 'ADD_PARTICIPANT': {
       if (!state.game) return state;
-      const { seat, playerName, characterId, alignment } = action.payload;
-      const alignmentValue = alignment === 'Good' ? Alignment.Good : Alignment.Evil;
-      const traveller: PlayerSeat = {
-        seat,
-        playerName,
-        characterId,
-        alive: true,
-        ghostVoteUsed: false,
-        visibleAlignment: Alignment.Unknown,
-        actualAlignment: alignmentValue,
-        startingAlignment: alignmentValue,
-        activeReminders: [],
-        isTraveller: true,
-        tokens: [],
-      };
+      const { playerId, isTraveller, characterId } = action.payload;
+      if (state.game.participants.some((p) => p.playerId === playerId)) return state;
+      const baseState = makeDefaultPlayerGameState();
+      if (characterId) {
+        baseState.characterId = characterId;
+        const charDef = getCharacter(characterId);
+        if (charDef) {
+          const newAlignment = deriveAlignmentFromType(charDef.type);
+          if (newAlignment) {
+            baseState.actualAlignment = newAlignment;
+            baseState.startingAlignment = newAlignment;
+          }
+        }
+      }
       return {
         ...state,
         game: {
           ...state.game,
-          players: [...state.game.players, traveller],
+          participants: [
+            ...state.game.participants,
+            { playerId, isTraveller: isTraveller ?? false },
+          ],
+          playerState: { ...state.game.playerState, [playerId]: baseState },
         },
       };
     }
 
-    case 'REMOVE_TRAVELLER': {
+    case 'REMOVE_PARTICIPANT': {
+      if (!state.game) return state;
+      const { playerId } = action.payload;
+      const nextPlayerState = { ...state.game.playerState };
+      delete nextPlayerState[playerId];
+      const nextBluffs = state.game.playerBluffs ? { ...state.game.playerBluffs } : undefined;
+      if (nextBluffs) delete nextBluffs[playerId];
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          participants: state.game.participants.filter((p) => p.playerId !== playerId),
+          playerState: nextPlayerState,
+          slots: clearPlayerFromSlots(state.game.slots, playerId),
+          playerBluffs: nextBluffs,
+        },
+      };
+    }
+
+    case 'SET_PARTICIPANT_TRAVELLER': {
+      if (!state.game) return state;
+      const { playerId, isTraveller, alignment } = action.payload;
+      const updatedGame: Game = {
+        ...state.game,
+        participants: state.game.participants.map((p) =>
+          p.playerId === playerId ? { ...p, isTraveller } : p,
+        ),
+      };
+      if (alignment !== undefined) {
+        return {
+          ...state,
+          game: updatePlayerStateInGame(updatedGame, playerId, (current) => ({
+            ...current,
+            actualAlignment: alignment,
+            startingAlignment: alignment,
+          })),
+        };
+      }
+      return { ...state, game: updatedGame };
+    }
+
+    case 'ADD_GAME_SEAT': {
+      if (!state.game) return state;
+      const slot: Slot = { kind: 'seat', id: action.payload.slotId, playerId: null };
+      return { ...state, game: { ...state.game, slots: [...state.game.slots, slot] } };
+    }
+
+    case 'ADD_GAME_SPACER': {
+      if (!state.game) return state;
+      const slot: Slot = { kind: 'spacer', id: action.payload.slotId };
+      return { ...state, game: { ...state.game, slots: [...state.game.slots, slot] } };
+    }
+
+    case 'ADD_GAME_STORYTELLER': {
+      if (!state.game) return state;
+      const slot: Slot = { kind: 'storyteller', id: action.payload.slotId };
+      return { ...state, game: { ...state.game, slots: [...state.game.slots, slot] } };
+    }
+
+    case 'REMOVE_GAME_SLOT': {
       if (!state.game) return state;
       return {
         ...state,
         game: {
           ...state.game,
-          players: state.game.players.filter(
-            (p) => !(p.seat === action.payload.seat && p.isTraveller),
+          slots: state.game.slots.filter((s) => s.id !== action.payload.slotId),
+        },
+      };
+    }
+
+    case 'MOVE_GAME_SLOT': {
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          slots: moveSlot(state.game.slots, action.payload.slotId, action.payload.toIndex),
+        },
+      };
+    }
+
+    case 'ASSIGN_GAME_SEAT': {
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          slots: setSeatPlayer(
+            state.game.slots,
+            action.payload.slotId,
+            action.payload.playerId,
           ),
         },
+      };
+    }
+
+    case 'SET_PLAYER_COUNT_OVERRIDE': {
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: { ...state.game, playerCountOverride: action.payload.count },
       };
     }
 
@@ -356,11 +427,10 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'COMPLETE_NIGHT': {
       if (!state.game || !state.nightProgress) return state;
-      // Snapshot each player's tokens keyed by characterId
       const tokenSnapshot: Record<string, PlayerToken[]> = {};
-      for (const player of state.game.players) {
-        if ((player.tokens ?? []).length > 0) {
-          tokenSnapshot[player.characterId] = [...(player.tokens ?? [])];
+      for (const [, ps] of Object.entries(state.game.playerState)) {
+        if ((ps.tokens ?? []).length > 0 && ps.characterId) {
+          tokenSnapshot[ps.characterId] = [...(ps.tokens ?? [])];
         }
       }
       const historyEntry: NightHistoryEntry = {
@@ -379,53 +449,44 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         currentDay: state.game.currentDay + 1,
         isFirstNight: false,
       };
-      // Persist completed game
       persistGame(updatedGame);
-      return {
-        ...state,
-        game: updatedGame,
-        nightProgress: null,
-      };
+      return { ...state, game: updatedGame, nightProgress: null };
     }
 
     case 'SAVE_GAME': {
-      if (state.game) {
-        persistGame(state.game);
-      }
+      if (state.game) persistGame(state.game);
       return state;
     }
 
     case 'ADD_TOKEN': {
       if (!state.game) return state;
-      const { seat: tokenSeat, token } = action.payload;
-      return {
-        ...state,
-        game: {
-          ...state.game,
-          players: state.game.players.map((p) => {
-            const tokensWithoutCopy = (p.tokens ?? []).filter(
-              (existing) => existing.id !== token.id,
-            );
-            if (p.seat !== tokenSeat) return { ...p, tokens: tokensWithoutCopy };
-            return { ...p, tokens: [...tokensWithoutCopy, token] };
-          }),
-        },
-      };
+      const { playerId, token } = action.payload;
+      // Remove the token id from any other player to maintain uniqueness
+      const cleanedState: Record<PlayerId, PlayerGameState> = {};
+      for (const [pid, ps] of Object.entries(state.game.playerState)) {
+        cleanedState[pid] = {
+          ...ps,
+          tokens: (ps.tokens ?? []).filter((t) => t.id !== token.id),
+        };
+      }
+      if (cleanedState[playerId]) {
+        cleanedState[playerId] = {
+          ...cleanedState[playerId],
+          tokens: [...(cleanedState[playerId].tokens ?? []), token],
+        };
+      }
+      return { ...state, game: { ...state.game, playerState: cleanedState } };
     }
 
     case 'REMOVE_TOKEN': {
       if (!state.game) return state;
-      const { seat: rmSeat, tokenId } = action.payload;
+      const { playerId, tokenId } = action.payload;
       return {
         ...state,
-        game: {
-          ...state.game,
-          players: state.game.players.map((p) =>
-            p.seat === rmSeat
-              ? { ...p, tokens: (p.tokens ?? []).filter((t) => t.id !== tokenId) }
-              : p,
-          ),
-        },
+        game: updatePlayerStateInGame(state.game, playerId, (current) => ({
+          ...current,
+          tokens: (current.tokens ?? []).filter((t) => t.id !== tokenId),
+        })),
       };
     }
 
@@ -436,38 +497,29 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       if (index >= 0 && index < updatedHistory.length) {
         updatedHistory[index] = entry;
       }
-      return {
-        ...state,
-        game: { ...state.game, nightHistory: updatedHistory },
-      };
+      return { ...state, game: { ...state.game, nightHistory: updatedHistory } };
     }
 
     case 'UPDATE_NIGHT_HISTORY_NOTE': {
       if (!state.game) return state;
       const { nightIndex, characterId, note } = action.payload;
-      const noteHistory = [...state.game.nightHistory];
-      if (nightIndex < 0 || nightIndex >= noteHistory.length) return state;
-      const noteEntry = { ...noteHistory[nightIndex] };
-      noteEntry.notes = { ...noteEntry.notes, [characterId]: note };
-      noteHistory[nightIndex] = noteEntry;
-      return {
-        ...state,
-        game: { ...state.game, nightHistory: noteHistory },
-      };
+      const history = [...state.game.nightHistory];
+      if (nightIndex < 0 || nightIndex >= history.length) return state;
+      const entry = { ...history[nightIndex] };
+      entry.notes = { ...entry.notes, [characterId]: note };
+      history[nightIndex] = entry;
+      return { ...state, game: { ...state.game, nightHistory: history } };
     }
 
     case 'UPDATE_NIGHT_HISTORY_CHOICE': {
       if (!state.game) return state;
-      const { nightIndex: choiceNightIdx, characterId: choiceCharId, choiceValue } = action.payload;
-      const choiceHistory = [...state.game.nightHistory];
-      if (choiceNightIdx < 0 || choiceNightIdx >= choiceHistory.length) return state;
-      const choiceEntry = { ...choiceHistory[choiceNightIdx] };
-      choiceEntry.selections = { ...(choiceEntry.selections ?? {}), [choiceCharId]: choiceValue };
-      choiceHistory[choiceNightIdx] = choiceEntry;
-      return {
-        ...state,
-        game: { ...state.game, nightHistory: choiceHistory },
-      };
+      const { nightIndex, characterId, choiceValue } = action.payload;
+      const history = [...state.game.nightHistory];
+      if (nightIndex < 0 || nightIndex >= history.length) return state;
+      const entry = { ...history[nightIndex] };
+      entry.selections = { ...(entry.selections ?? {}), [characterId]: choiceValue };
+      history[nightIndex] = entry;
+      return { ...state, game: { ...state.game, nightHistory: history } };
     }
 
     case 'SET_NIGHT_CARD_INDEX': {
@@ -483,11 +535,11 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'ADD_FABLED': {
       if (!state.game) return state;
-      const currentFabled = state.game.activeFabled ?? [];
-      if (currentFabled.includes(action.payload.characterId)) return state;
+      const current = state.game.activeFabled ?? [];
+      if (current.includes(action.payload.characterId)) return state;
       return {
         ...state,
-        game: { ...state.game, activeFabled: [...currentFabled, action.payload.characterId] },
+        game: { ...state.game, activeFabled: [...current, action.payload.characterId] },
       };
     }
 
@@ -506,11 +558,11 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'ADD_LORIC': {
       if (!state.game) return state;
-      const currentLoric = state.game.activeLoric ?? [];
-      if (currentLoric.includes(action.payload.characterId)) return state;
+      const current = state.game.activeLoric ?? [];
+      if (current.includes(action.payload.characterId)) return state;
       return {
         ...state,
-        game: { ...state.game, activeLoric: [...currentLoric, action.payload.characterId] },
+        game: { ...state.game, activeLoric: [...current, action.payload.characterId] },
       };
     }
 
@@ -529,137 +581,39 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'SET_IN_PLAY_CHARACTERS': {
       if (!state.game) return state;
-      return {
-        ...state,
-        game: { ...state.game, inPlayCharacterIds: action.payload.characterIds },
-      };
-    }
-
-    case 'SWAP_PLAYER_SEATS': {
-      if (!state.game) return state;
-      const { gameId, seatA, seatB } = action.payload;
-      if (state.game.id !== gameId) return state;
-      if (seatA === seatB) return state;
-      const playerA = state.game.players.find((p) => p.seat === seatA);
-      const playerB = state.game.players.find((p) => p.seat === seatB);
-      if (!playerA || !playerB) return state;
-      const seatMap = new Map<number, number>([
-        [seatA, seatB],
-        [seatB, seatA],
-      ]);
-      return {
-        ...state,
-        game: {
-          ...state.game,
-          players: state.game.players.map((p) => {
-            if (p.seat === seatA) {
-              return {
-                ...playerB,
-                seat: seatA,
-              };
-            }
-            if (p.seat === seatB) {
-              return {
-                ...playerA,
-                seat: seatB,
-              };
-            }
-            return p;
-          }),
-          playerBluffs: remapPlayerBluffs(state.game.playerBluffs, seatMap),
-        },
-      };
-    }
-
-    case 'SHIFT_PLAYER_SEATS': {
-      if (!state.game) return state;
-      const { gameId, startSeat, shiftBy } = action.payload;
-      if (state.game.id !== gameId || shiftBy === 0) return state;
-      const affected = state.game.players
-        .filter((player) => player.seat >= startSeat)
-        .sort((a, b) => a.seat - b.seat);
-      if (affected.length <= 1) return state;
-      const normalizedShift = ((shiftBy % affected.length) + affected.length) % affected.length;
-      if (normalizedShift === 0) return state;
-      const seatMap = new Map<number, number>();
-      affected.forEach((player, index) => {
-        const targetIndex = (index + normalizedShift) % affected.length;
-        seatMap.set(player.seat, affected[targetIndex].seat);
-      });
-      return {
-        ...state,
-        game: {
-          ...state.game,
-          players: state.game.players.map((player) => ({
-            ...player,
-            seat: seatMap.get(player.seat) ?? player.seat,
-          })),
-          playerBluffs: remapPlayerBluffs(state.game.playerBluffs, seatMap),
-        },
-      };
-    }
-
-    case 'INSERT_EMPTY_SEAT': {
-      if (!state.game) return state;
-      const { gameId, atSeat } = action.payload;
-      if (state.game.id !== gameId || atSeat < 1) return state;
-      const seatMap = new Map<number, number>();
-      const shiftedPlayers = state.game.players.map((player) => {
-        if (player.seat < atSeat) return player;
-        seatMap.set(player.seat, player.seat + 1);
-        return { ...player, seat: player.seat + 1 };
-      });
-      return {
-        ...state,
-        game: {
-          ...state.game,
-          players: [...shiftedPlayers, makeEmptySeat(atSeat)].sort((a, b) => a.seat - b.seat),
-          playerBluffs: remapPlayerBluffs(state.game.playerBluffs, seatMap),
-        },
-      };
+      return { ...state, game: { ...state.game, inPlayCharacterIds: action.payload.characterIds } };
     }
 
     case 'SET_APPARENT_CHARACTER': {
       if (!state.game) return state;
-      const { seat: acSeat, apparentCharacterId } = action.payload;
+      const { playerId, apparentCharacterId } = action.payload;
       return {
         ...state,
-        game: {
-          ...state.game,
-          players: state.game.players.map((p) =>
-            p.seat === acSeat ? { ...p, apparentCharacterId } : p,
-          ),
-        },
+        game: updatePlayerStateInGame(state.game, playerId, (current) => ({
+          ...current,
+          apparentCharacterId,
+        })),
       };
     }
 
     case 'SET_DEMON_BLUFFS': {
       if (!state.game) return state;
-      return {
-        ...state,
-        game: { ...state.game, demonBluffs: action.payload.characterIds },
-      };
+      return { ...state, game: { ...state.game, demonBluffs: action.payload.characterIds } };
     }
 
     case 'SET_LUNATIC_BLUFFS': {
       if (!state.game) return state;
-      return {
-        ...state,
-        game: { ...state.game, lunaticBluffs: action.payload.characterIds },
-      };
+      return { ...state, game: { ...state.game, lunaticBluffs: action.payload.characterIds } };
     }
 
     case 'SET_PLAYER_BLUFFS': {
       if (!state.game) return state;
-      const { seat, bluffIds } = action.payload;
+      const { playerId, bluffIds } = action.payload;
       return {
         ...state,
         game: {
           ...state.game,
-          playerBluffs: {
-            ...state.game.playerBluffs,
-            [String(seat)]: bluffIds,
-          },
+          playerBluffs: { ...state.game.playerBluffs, [playerId]: bluffIds },
         },
       };
     }
@@ -671,10 +625,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         ...state,
         game: {
           ...state.game,
-          customPlayerMessages: {
-            ...state.game.customPlayerMessages,
-            [characterId]: message,
-          },
+          customPlayerMessages: { ...state.game.customPlayerMessages, [characterId]: message },
         },
       };
     }
@@ -694,71 +645,55 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'RECORD_ALIGNMENT_CHANGE': {
       if (!state.game) return state;
-      const { seat, newAlignment, reason, day, nightPhase } = action.payload;
+      const { playerId, newAlignment, reason, day, nightPhase } = action.payload;
       return {
         ...state,
-        game: {
-          ...state.game,
-          players: state.game.players.map((player) =>
-            player.seat === seat
-              ? {
-                  ...player,
-                  actualAlignment: newAlignment,
-                  alignmentHistory: [
-                    ...(player.alignmentHistory ?? []),
-                    {
-                      id: `${seat}-${day}-${nightPhase}-${Date.now()}`,
-                      day,
-                      nightPhase,
-                      newAlignment,
-                      reason,
-                      timestamp: Date.now(),
-                    },
-                  ],
-                }
-              : player,
-          ),
-        },
+        game: updatePlayerStateInGame(state.game, playerId, (current) => ({
+          ...current,
+          actualAlignment: newAlignment,
+          alignmentHistory: [
+            ...(current.alignmentHistory ?? []),
+            {
+              id: `${playerId}-${day}-${nightPhase}-${Date.now()}`,
+              day,
+              nightPhase,
+              newAlignment,
+              reason,
+              timestamp: Date.now(),
+            },
+          ],
+        })),
       };
     }
 
     case 'SET_GAINED_ABILITY': {
       if (!state.game) return state;
-      const { seat, gainedAbility } = action.payload;
+      const { playerId, gainedAbility } = action.payload;
       return {
         ...state,
-        game: {
-          ...state.game,
-          players: state.game.players.map((player) =>
-            player.seat === seat ? { ...player, gainedAbility } : player,
-          ),
-        },
+        game: updatePlayerStateInGame(state.game, playerId, (current) => ({
+          ...current,
+          gainedAbility,
+        })),
       };
     }
 
     case 'CLEAR_GAINED_ABILITY': {
       if (!state.game) return state;
-      const { seat } = action.payload;
+      const { playerId } = action.payload;
       return {
         ...state,
-        game: {
-          ...state.game,
-          players: state.game.players.map((player) => {
-            if (player.seat !== seat) return player;
-            const { gainedAbility: _gainedAbility, ...rest } = player;
-            return rest;
-          }),
-        },
+        game: updatePlayerStateInGame(state.game, playerId, (current) => {
+          const { gainedAbility: _g, ...rest } = current;
+          return rest;
+        }),
       };
     }
 
     case 'SYNC_GAME': {
-      const remote = normalizeShowToPlayerGame(action.payload.game);
+      const remote = normalizeGame(action.payload.game);
       if (!state.game || state.game.id !== remote.id) return state;
-      return {
-        ...state,
-        game: remote,
-      };
+      return { ...state, game: remote };
     }
 
     case 'ADD_SHOW_MESSAGE': {
@@ -773,7 +708,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
             ...(state.game.showMessages ?? []),
             {
               id: createShowToPlayerId('show-message'),
-              seat: action.payload.seat,
+              playerId: action.payload.playerId,
               text,
               templateId: action.payload.templateId,
               createdAt: new Date().toISOString(),
@@ -789,10 +724,10 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         ...state,
         game: {
           ...state.game,
-          showMessages: (state.game.showMessages ?? []).map((message) =>
-            message.id === action.payload.messageId
-              ? { ...message, lastShownAt: new Date().toISOString() }
-              : message,
+          showMessages: (state.game.showMessages ?? []).map((m) =>
+            m.id === action.payload.messageId
+              ? { ...m, lastShownAt: new Date().toISOString() }
+              : m,
           ),
         },
       };
@@ -806,8 +741,8 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         ...state,
         game: {
           ...state.game,
-          showMessages: (state.game.showMessages ?? []).map((message) =>
-            message.id === action.payload.messageId ? { ...message, text } : message,
+          showMessages: (state.game.showMessages ?? []).map((m) =>
+            m.id === action.payload.messageId ? { ...m, text } : m,
           ),
         },
       };
@@ -820,7 +755,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         game: {
           ...state.game,
           showMessages: (state.game.showMessages ?? []).filter(
-            (message) => message.id !== action.payload.messageId,
+            (m) => m.id !== action.payload.messageId,
           ),
         },
       };
@@ -832,10 +767,10 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       if (!text) return state;
       const current = state.game.showTemplates ?? [];
       const alreadyPinned = current.some(
-        (template) =>
-          template.text.localeCompare(text, undefined, { sensitivity: 'accent' }) === 0 &&
-          template.scope === action.payload.scope &&
-          template.scriptId === action.payload.scriptId,
+        (t) =>
+          t.text.localeCompare(text, undefined, { sensitivity: 'accent' }) === 0 &&
+          t.scope === action.payload.scope &&
+          t.scriptId === action.payload.scriptId,
       );
       if (alreadyPinned) return state;
       return {
@@ -864,7 +799,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         game: {
           ...state.game,
           showTemplates: (state.game.showTemplates ?? []).filter(
-            (template) => template.id !== action.payload.templateId,
+            (t) => t.id !== action.payload.templateId,
           ),
         },
       };
@@ -876,14 +811,10 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         ...state,
         game: {
           ...state.game,
-          showTemplates: (state.game.showTemplates ?? []).map((template) =>
-            template.id === action.payload.templateId
-              ? {
-                  ...template,
-                  usageCount: template.usageCount + 1,
-                  lastUsedAt: new Date().toISOString(),
-                }
-              : template,
+          showTemplates: (state.game.showTemplates ?? []).map((t) =>
+            t.id === action.payload.templateId
+              ? { ...t, usageCount: t.usageCount + 1, lastUsedAt: new Date().toISOString() }
+              : t,
           ),
         },
       };
@@ -894,30 +825,30 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
   }
 }
 
-/**
- * Wraps the base reducer to auto-increment `game.version` on every
- * game-modifying action, except SYNC_GAME (remote) and LOAD_GAME (initial).
- */
-/**
- * Wraps the base reducer. Version is managed by the server — the client
- * does not increment version locally. SYNC_GAME and LOAD_GAME pass through unchanged.
- */
-function gameReducerWithVersion(state: GameViewState, action: GameAction): GameViewState {
-  return gameReducer(state, action);
-}
-
-/** Write a game object to localStorage. */
 function persistGame(game: Game): void {
   try {
     localStorage.setItem(`storyteller-game-${game.id}`, JSON.stringify(game));
   } catch {
-    // Storage full or unavailable – silently ignore.
+    // Silently ignore storage errors
   }
 }
 
 // ──────────────────────────────────────────────
 // Context value shape
 // ──────────────────────────────────────────────
+
+type PlayerStateUpdates = Partial<
+  Pick<
+    PlayerGameState,
+    | 'characterId'
+    | 'alive'
+    | 'ghostVoteUsed'
+    | 'visibleAlignment'
+    | 'actualAlignment'
+    | 'startingAlignment'
+    | 'activeReminders'
+  >
+>;
 
 export interface GameContextValue {
   state: GameViewState;
@@ -926,29 +857,29 @@ export interface GameContextValue {
   setPhase: (phase: Phase) => void;
   advanceDay: () => void;
   toggleShowCharacters: () => void;
-  updatePlayer: (
-    seat: number,
-    updates: Partial<
-      Pick<
-        PlayerSeat,
-        | 'characterId'
-        | 'alive'
-        | 'ghostVoteUsed'
-        | 'visibleAlignment'
-        | 'actualAlignment'
-        | 'startingAlignment'
-        | 'activeReminders'
-        | 'playerName'
-      >
-    >,
+  updatePlayerState: (playerId: PlayerId, updates: PlayerStateUpdates) => void;
+  addParticipant: (playerId: PlayerId, opts?: { isTraveller?: boolean; characterId?: string }) => void;
+  removeParticipant: (playerId: PlayerId) => void;
+  setParticipantTraveller: (
+    playerId: PlayerId,
+    isTraveller: boolean,
+    alignment?: Alignment,
   ) => void;
-  addTraveller: (
-    seat: number,
-    playerName: string,
-    characterId: string,
-    alignment: 'Good' | 'Evil',
+  addGameSeat: (propagation?: Partial<PropagationPreference>) => SlotId;
+  addGameSpacer: (propagation?: Partial<PropagationPreference>) => SlotId;
+  addGameStoryteller: (propagation?: Partial<PropagationPreference>) => SlotId;
+  removeGameSlot: (slotId: SlotId, propagation?: Partial<PropagationPreference>) => void;
+  moveGameSlot: (
+    slotId: SlotId,
+    toIndex: number,
+    propagation?: Partial<PropagationPreference>,
   ) => void;
-  removeTraveller: (seat: number) => void;
+  assignGameSeat: (
+    slotId: SlotId,
+    playerId: PlayerId | null,
+    propagation?: Partial<PropagationPreference>,
+  ) => void;
+  setPlayerCountOverride: (count: number | null) => void;
   startNight: (totalCards: number) => void;
   updateNightProgress: (
     characterId: string,
@@ -959,8 +890,8 @@ export interface GameContextValue {
   completeNight: () => void;
   saveGame: () => void;
   setNightCardIndex: (index: number) => void;
-  addToken: (seat: number, token: PlayerToken) => void;
-  removeToken: (seat: number, tokenId: string) => void;
+  addToken: (playerId: PlayerId, token: PlayerToken) => void;
+  removeToken: (playerId: PlayerId, tokenId: string) => void;
   updateNightHistory: (index: number, entry: NightHistoryEntry) => void;
   updateNightHistoryNote: (nightIndex: number, characterId: string, note: string) => void;
   updateNightHistoryChoice: (
@@ -973,16 +904,13 @@ export interface GameContextValue {
   addLoric: (characterId: string) => void;
   removeLoric: (characterId: string) => void;
   setInPlayCharacters: (characterIds: string[]) => void;
-  swapPlayerSeats: (seatA: number, seatB: number) => void;
-  shiftPlayerSeats: (startSeat: number, shiftBy: number) => void;
-  insertEmptySeat: (atSeat: number) => void;
-  setApparentCharacter: (seat: number, apparentCharacterId: string) => void;
+  setApparentCharacter: (playerId: PlayerId, apparentCharacterId: string) => void;
   setDemonBluffs: (characterIds: string[]) => void;
   setLunaticBluffs: (characterIds: string[]) => void;
-  setPlayerBluffs: (seat: number, bluffIds: string[]) => void;
+  setPlayerBluffs: (playerId: PlayerId, bluffIds: string[]) => void;
   setCustomPlayerMessage: (characterId: string, message: string) => void;
   clearCustomPlayerMessage: (characterId: string) => void;
-  addShowMessage: (gameId: string, seat: number, text: string, templateId?: string) => void;
+  addShowMessage: (gameId: string, playerId: PlayerId, text: string, templateId?: string) => void;
   markShowMessageShown: (gameId: string, messageId: string) => void;
   editShowMessage: (gameId: string, messageId: string, text: string) => void;
   deleteShowMessage: (gameId: string, messageId: string) => void;
@@ -995,14 +923,14 @@ export interface GameContextValue {
   unpinShowTemplate: (gameId: string, templateId: string) => void;
   bumpTemplateUsage: (gameId: string, templateId: string) => void;
   recordAlignmentChange: (
-    seat: number,
+    playerId: PlayerId,
     newAlignment: Alignment,
     reason: string,
     day: number,
     nightPhase: 'first' | 'other' | 'day' | 'manual',
   ) => void;
-  setGainedAbility: (seat: number, gainedAbility: GainedAbility) => void;
-  clearGainedAbility: (seat: number) => void;
+  setGainedAbility: (playerId: PlayerId, gainedAbility: GainedAbility) => void;
+  clearGainedAbility: (playerId: PlayerId) => void;
   syncGame: (game: Game) => void;
   syncStatus: SyncStatus;
   forceSync: () => void;
@@ -1012,15 +940,10 @@ export interface GameContextValue {
 // Provider
 // ──────────────────────────────────────────────
 
-/**
- * After a local push, ignore incoming SSE version-changed events for this
- * duration. This prevents "self-echo" — the server broadcasting our own save
- * back to us, which would replace game state and reset UI (e.g., open dialogs).
- */
 const SELF_ECHO_COOLDOWN_MS = 3_000;
 
 export function GameProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(gameReducerWithVersion, INITIAL_STATE);
+  const [state, dispatch] = useReducer(gameReducer, INITIAL_STATE);
   const isSyncingRef = useRef(false);
   const gameRef = useRef(state.game);
   const lastPushedGameRef = useRef<string | null>(null);
@@ -1028,20 +951,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [syncStatus, setSyncStatus] = useState<SyncStatus>('idle');
 
   const { fetchGame: apiFetchGame, syncGame: apiSyncGame } = useApiSync();
+  const session = useSession();
 
-  // Keep gameRef in sync
   useEffect(() => {
     gameRef.current = state.game;
   }, [state.game]);
 
-  // Auto-save game to localStorage whenever it changes
   useEffect(() => {
-    if (state.game) {
-      persistGame(state.game);
-    }
+    if (state.game) persistGame(state.game);
   }, [state.game]);
 
-  // Push game to API when it changes (skip if change came from SYNC_GAME)
   useEffect(() => {
     const game = state.game;
     if (game && !isSyncingRef.current) {
@@ -1052,24 +971,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     isSyncingRef.current = false;
   }, [state.game, apiSyncGame]);
 
-  // Handle new version detected by SSE
   const handleNewVersion = useCallback(async () => {
     const g = gameRef.current;
     if (!g) return;
-
-    // Self-echo guard: after we push, the server broadcasts a version-changed
-    // event back to us. Ignore SSE events arriving within the cooldown window
-    // to prevent our own save from replacing state and resetting UI.
-    if (Date.now() - lastPushTimestampRef.current < SELF_ECHO_COOLDOWN_MS) {
-      return;
-    }
-
-    // Don't overwrite local state if we have unpushed changes.
+    if (Date.now() - lastPushTimestampRef.current < SELF_ECHO_COOLDOWN_MS) return;
     const currentJson = JSON.stringify(g);
-    if (lastPushedGameRef.current !== null && currentJson !== lastPushedGameRef.current) {
-      return;
-    }
-
+    if (lastPushedGameRef.current !== null && currentJson !== lastPushedGameRef.current) return;
     const remoteGame = await apiFetchGame(g.sessionId, g.id);
     if (remoteGame) {
       isSyncingRef.current = true;
@@ -1085,6 +992,61 @@ export function GameProvider({ children }: { children: ReactNode }) {
     onVersionChanged: handleNewVersion,
     onStatusChange: setSyncStatus,
   });
+
+  // ── Propagation helpers ──────────────────────────────────────────────────────
+
+  const sessionsRef = useRef(session.state.sessions);
+  useEffect(() => {
+    sessionsRef.current = session.state.sessions;
+  }, [session.state.sessions]);
+
+  /** Resolve effective propagation flags from explicit override or session default. */
+  const resolvePropagation = useCallback(
+    (override?: Partial<PropagationPreference>): PropagationPreference => {
+      const game = gameRef.current;
+      const sessionId = game?.sessionId;
+      const sess = sessionsRef.current.find((s) => s.id === sessionId);
+      const base: PropagationPreference = sess?.propagationDefault ?? {
+        toTemplate: true,
+        toOtherGames: true,
+      };
+      return { ...base, ...override };
+    },
+    [],
+  );
+
+  /**
+   * Apply a slot mutation to sibling games (not the current game, not the template).
+   * Template propagation is handled at each call site via specific session actions
+   * because template slot IDs differ from per-game slot IDs.
+   */
+  const propagateSlotMutation = useCallback(
+    (
+      pref: Pick<PropagationPreference, 'toOtherGames'>,
+      mutator: (slots: Slot[]) => Slot[],
+    ) => {
+      const game = gameRef.current;
+      if (!game) return;
+      const sess = sessionsRef.current.find((s) => s.id === game.sessionId);
+      if (!sess) return;
+      if (!pref.toOtherGames) return;
+      for (const gid of sess.gameIds) {
+        if (gid === game.id) continue;
+        try {
+          const raw = localStorage.getItem(`storyteller-game-${gid}`);
+          if (!raw) continue;
+          const other = JSON.parse(raw) as Game;
+          const newSlots = mutator(other.slots);
+          const updated: Game = { ...other, slots: newSlots };
+          localStorage.setItem(`storyteller-game-${gid}`, JSON.stringify(updated));
+          apiSyncGame(updated);
+        } catch {
+          // Silently ignore storage errors
+        }
+      }
+    },
+    [apiSyncGame],
+  );
 
   // ── Helper functions ──
 
@@ -1105,40 +1067,199 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'TOGGLE_SHOW_CHARACTERS' });
   }, []);
 
-  const updatePlayer = useCallback(
-    (
-      seat: number,
-      updates: Partial<
-        Pick<
-          PlayerSeat,
-          | 'characterId'
-          | 'alive'
-          | 'ghostVoteUsed'
-          | 'visibleAlignment'
-          | 'actualAlignment'
-          | 'startingAlignment'
-          | 'activeReminders'
-          | 'playerName'
-        >
-      >,
-    ) => {
-      dispatch({ type: 'UPDATE_PLAYER', payload: { seat, updates } });
-    },
-    [],
-  );
+  const updatePlayerState = useCallback((playerId: PlayerId, updates: PlayerStateUpdates) => {
+    dispatch({ type: 'UPDATE_PLAYER_STATE', payload: { playerId, updates } });
+  }, []);
 
-  const addTraveller = useCallback(
-    (seat: number, playerName: string, characterId: string, alignment: 'Good' | 'Evil') => {
+  const addParticipant = useCallback(
+    (playerId: PlayerId, opts?: { isTraveller?: boolean; characterId?: string }) => {
       dispatch({
-        type: 'ADD_TRAVELLER',
-        payload: { seat, playerName, characterId, alignment },
+        type: 'ADD_PARTICIPANT',
+        payload: { playerId, isTraveller: opts?.isTraveller, characterId: opts?.characterId },
       });
     },
     [],
   );
 
-  const removeTraveller = useCallback((seat: number) => {
-    dispatch({ type: 'REMOVE_TRAVELLER', payload: { seat } });
+  const removeParticipant = useCallback((playerId: PlayerId) => {
+    dispatch({ type: 'REMOVE_PARTICIPANT', payload: { playerId } });
+  }, []);
+
+  const setParticipantTraveller = useCallback(
+    (playerId: PlayerId, isTraveller: boolean, alignment?: Alignment) => {
+      dispatch({
+        type: 'SET_PARTICIPANT_TRAVELLER',
+        payload: { playerId, isTraveller, alignment },
+      });
+    },
+    [],
+  );
+
+  const addGameSeat = useCallback(
+    (propagation?: Partial<PropagationPreference>): SlotId => {
+      const slotId = generateId();
+      const pref = resolvePropagation(propagation);
+      dispatch({ type: 'ADD_GAME_SEAT', payload: { slotId } });
+      const game = gameRef.current;
+      const sess = sessionsRef.current.find((s) => s.id === game?.sessionId);
+      if (sess && pref.toTemplate) {
+        session.dispatch({
+          type: 'ADD_TEMPLATE_SEAT',
+          payload: { sessionId: sess.id, slotId: generateId() },
+        });
+      }
+      if (sess && pref.toOtherGames) {
+        propagateSlotMutation({ toOtherGames: true }, (slots) => [
+          ...slots,
+          { kind: 'seat', id: generateId(), playerId: null },
+        ]);
+      }
+      return slotId;
+    },
+    [resolvePropagation, session, propagateSlotMutation],
+  );
+
+  const addGameSpacer = useCallback(
+    (propagation?: Partial<PropagationPreference>): SlotId => {
+      const slotId = generateId();
+      const pref = resolvePropagation(propagation);
+      dispatch({ type: 'ADD_GAME_SPACER', payload: { slotId } });
+      const game = gameRef.current;
+      const sess = sessionsRef.current.find((s) => s.id === game?.sessionId);
+      if (sess && pref.toTemplate) {
+        session.dispatch({
+          type: 'ADD_TEMPLATE_SPACER',
+          payload: { sessionId: sess.id, slotId: generateId() },
+        });
+      }
+      if (sess && pref.toOtherGames) {
+        propagateSlotMutation({ toOtherGames: true }, (slots) => [
+          ...slots,
+          { kind: 'spacer', id: generateId() },
+        ]);
+      }
+      return slotId;
+    },
+    [resolvePropagation, session, propagateSlotMutation],
+  );
+
+  const addGameStoryteller = useCallback(
+    (propagation?: Partial<PropagationPreference>): SlotId => {
+      const slotId = generateId();
+      const pref = resolvePropagation(propagation);
+      dispatch({ type: 'ADD_GAME_STORYTELLER', payload: { slotId } });
+      const game = gameRef.current;
+      const sess = sessionsRef.current.find((s) => s.id === game?.sessionId);
+      if (sess && pref.toTemplate) {
+        session.dispatch({
+          type: 'ADD_TEMPLATE_STORYTELLER',
+          payload: { sessionId: sess.id, slotId: generateId() },
+        });
+      }
+      if (sess && pref.toOtherGames) {
+        propagateSlotMutation({ toOtherGames: true }, (slots) => [
+          ...slots,
+          { kind: 'storyteller', id: generateId() },
+        ]);
+      }
+      return slotId;
+    },
+    [resolvePropagation, session, propagateSlotMutation],
+  );
+
+  const removeGameSlot = useCallback(
+    (slotId: SlotId, propagation?: Partial<PropagationPreference>) => {
+      const game = gameRef.current;
+      if (!game) return;
+      const targetSlot = game.slots.find((s) => s.id === slotId);
+      if (!targetSlot) return;
+      const targetIndex = game.slots.findIndex((s) => s.id === slotId);
+      const pref = resolvePropagation(propagation);
+      dispatch({ type: 'REMOVE_GAME_SLOT', payload: { slotId } });
+      const sess = sessionsRef.current.find((s) => s.id === game.sessionId);
+      if (sess && pref.toTemplate) {
+        // Match by position+kind heuristic, since template slot IDs differ from game.
+        const templateSlot = sess.template.slots.filter((s) => s.kind === targetSlot.kind)[
+          game.slots.filter((s) => s.kind === targetSlot.kind).findIndex((s) => s.id === slotId)
+        ];
+        if (templateSlot) {
+          session.dispatch({
+            type: 'REMOVE_TEMPLATE_SLOT',
+            payload: { sessionId: sess.id, slotId: templateSlot.id },
+          });
+        }
+      }
+      if (sess && pref.toOtherGames) {
+        propagateSlotMutation({ toOtherGames: true }, (slots) => {
+          const matching = slots.filter((s) => s.kind === targetSlot.kind);
+          const matchAtIdx = matching[targetIndex] ?? matching[matching.length - 1];
+          return matchAtIdx ? slots.filter((s) => s.id !== matchAtIdx.id) : slots;
+        });
+      }
+    },
+    [resolvePropagation, session, propagateSlotMutation],
+  );
+
+  const moveGameSlot = useCallback(
+    (slotId: SlotId, toIndex: number, propagation?: Partial<PropagationPreference>) => {
+      const game = gameRef.current;
+      if (!game) return;
+      const targetSlot = game.slots.find((s) => s.id === slotId);
+      if (!targetSlot) return;
+      const sourceIdx = game.slots.findIndex((s) => s.id === slotId);
+      const pref = resolvePropagation(propagation);
+      dispatch({ type: 'MOVE_GAME_SLOT', payload: { slotId, toIndex } });
+      const sess = sessionsRef.current.find((s) => s.id === game.sessionId);
+      if (sess && pref.toTemplate) {
+        // Position-based match in the template
+        const templateSlot = sess.template.slots[sourceIdx];
+        if (templateSlot) {
+          session.dispatch({
+            type: 'MOVE_TEMPLATE_SLOT',
+            payload: { sessionId: sess.id, slotId: templateSlot.id, toIndex },
+          });
+        }
+      }
+      if (sess && pref.toOtherGames) {
+        propagateSlotMutation({ toOtherGames: true }, (slots) => {
+          const other = slots[sourceIdx];
+          return other ? moveSlot(slots, other.id, toIndex) : slots;
+        });
+      }
+    },
+    [resolvePropagation, session, propagateSlotMutation],
+  );
+
+  const assignGameSeat = useCallback(
+    (slotId: SlotId, playerId: PlayerId | null, propagation?: Partial<PropagationPreference>) => {
+      const game = gameRef.current;
+      if (!game) return;
+      const sourceIdx = game.slots.findIndex((s) => s.id === slotId);
+      const pref = resolvePropagation(propagation);
+      dispatch({ type: 'ASSIGN_GAME_SEAT', payload: { slotId, playerId } });
+      const sess = sessionsRef.current.find((s) => s.id === game.sessionId);
+      if (sess && pref.toTemplate) {
+        const templateSlot = sess.template.slots[sourceIdx];
+        if (templateSlot && templateSlot.kind === 'seat') {
+          session.dispatch({
+            type: 'ASSIGN_TEMPLATE_SEAT',
+            payload: { sessionId: sess.id, slotId: templateSlot.id, playerId },
+          });
+        }
+      }
+      if (sess && pref.toOtherGames) {
+        propagateSlotMutation({ toOtherGames: true }, (slots) => {
+          const other = slots[sourceIdx];
+          if (!other || other.kind !== 'seat') return slots;
+          return setSeatPlayer(slots, other.id, playerId);
+        });
+      }
+    },
+    [resolvePropagation, session, propagateSlotMutation],
+  );
+
+  const setPlayerCountOverride = useCallback((count: number | null) => {
+    dispatch({ type: 'SET_PLAYER_COUNT_OVERRIDE', payload: { count } });
   }, []);
 
   const startNight = useCallback((totalCards: number) => {
@@ -1168,12 +1289,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SAVE_GAME' });
   }, []);
 
-  const addToken = useCallback((seat: number, token: PlayerToken) => {
-    dispatch({ type: 'ADD_TOKEN', payload: { seat, token } });
+  const addToken = useCallback((playerId: PlayerId, token: PlayerToken) => {
+    dispatch({ type: 'ADD_TOKEN', payload: { playerId, token } });
   }, []);
 
-  const removeToken = useCallback((seat: number, tokenId: string) => {
-    dispatch({ type: 'REMOVE_TOKEN', payload: { seat, tokenId } });
+  const removeToken = useCallback((playerId: PlayerId, tokenId: string) => {
+    dispatch({ type: 'REMOVE_TOKEN', payload: { playerId, tokenId } });
   }, []);
 
   const setNightCardIndex = useCallback((index: number) => {
@@ -1195,11 +1316,12 @@ export function GameProvider({ children }: { children: ReactNode }) {
     (nightIndex: number, characterId: string, choiceValue: string | string[]) => {
       dispatch({
         type: 'UPDATE_NIGHT_HISTORY_CHOICE',
-        payload: { nightIndex, characterId: characterId, choiceValue },
+        payload: { nightIndex, characterId, choiceValue },
       });
     },
     [],
   );
+
   const addFabled = useCallback((characterId: string) => {
     dispatch({ type: 'ADD_FABLED', payload: { characterId } });
   }, []);
@@ -1220,26 +1342,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_IN_PLAY_CHARACTERS', payload: { characterIds } });
   }, []);
 
-  const swapPlayerSeats = useCallback((seatA: number, seatB: number) => {
-    const gameId = gameRef.current?.id;
-    if (!gameId) return;
-    dispatch({ type: 'SWAP_PLAYER_SEATS', payload: { gameId, seatA, seatB } });
-  }, []);
-
-  const shiftPlayerSeats = useCallback((startSeat: number, shiftBy: number) => {
-    const gameId = gameRef.current?.id;
-    if (!gameId) return;
-    dispatch({ type: 'SHIFT_PLAYER_SEATS', payload: { gameId, startSeat, shiftBy } });
-  }, []);
-
-  const insertEmptySeat = useCallback((atSeat: number) => {
-    const gameId = gameRef.current?.id;
-    if (!gameId) return;
-    dispatch({ type: 'INSERT_EMPTY_SEAT', payload: { gameId, atSeat } });
-  }, []);
-
-  const setApparentCharacter = useCallback((seat: number, apparentCharacterId: string) => {
-    dispatch({ type: 'SET_APPARENT_CHARACTER', payload: { seat, apparentCharacterId } });
+  const setApparentCharacter = useCallback((playerId: PlayerId, apparentCharacterId: string) => {
+    dispatch({ type: 'SET_APPARENT_CHARACTER', payload: { playerId, apparentCharacterId } });
   }, []);
 
   const setDemonBluffs = useCallback((characterIds: string[]) => {
@@ -1250,8 +1354,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_LUNATIC_BLUFFS', payload: { characterIds } });
   }, []);
 
-  const setPlayerBluffs = useCallback((seat: number, bluffIds: string[]) => {
-    dispatch({ type: 'SET_PLAYER_BLUFFS', payload: { seat, bluffIds } });
+  const setPlayerBluffs = useCallback((playerId: PlayerId, bluffIds: string[]) => {
+    dispatch({ type: 'SET_PLAYER_BLUFFS', payload: { playerId, bluffIds } });
   }, []);
 
   const setCustomPlayerMessage = useCallback((characterId: string, message: string) => {
@@ -1264,7 +1368,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
 
   const recordAlignmentChange = useCallback(
     (
-      seat: number,
+      playerId: PlayerId,
       newAlignment: Alignment,
       reason: string,
       day: number,
@@ -1272,18 +1376,18 @@ export function GameProvider({ children }: { children: ReactNode }) {
     ) => {
       dispatch({
         type: 'RECORD_ALIGNMENT_CHANGE',
-        payload: { seat, newAlignment, reason, day, nightPhase },
+        payload: { playerId, newAlignment, reason, day, nightPhase },
       });
     },
     [],
   );
 
-  const setGainedAbility = useCallback((seat: number, gainedAbility: GainedAbility) => {
-    dispatch({ type: 'SET_GAINED_ABILITY', payload: { seat, gainedAbility } });
+  const setGainedAbility = useCallback((playerId: PlayerId, gainedAbility: GainedAbility) => {
+    dispatch({ type: 'SET_GAINED_ABILITY', payload: { playerId, gainedAbility } });
   }, []);
 
-  const clearGainedAbility = useCallback((seat: number) => {
-    dispatch({ type: 'CLEAR_GAINED_ABILITY', payload: { seat } });
+  const clearGainedAbility = useCallback((playerId: PlayerId) => {
+    dispatch({ type: 'CLEAR_GAINED_ABILITY', payload: { playerId } });
   }, []);
 
   const syncGame = useCallback((game: Game) => {
@@ -1291,8 +1395,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addShowMessage = useCallback(
-    (gameId: string, seat: number, text: string, templateId?: string) => {
-      dispatch({ type: 'ADD_SHOW_MESSAGE', payload: { gameId, seat, text, templateId } });
+    (gameId: string, playerId: PlayerId, text: string, templateId?: string) => {
+      dispatch({ type: 'ADD_SHOW_MESSAGE', payload: { gameId, playerId, text, templateId } });
     },
     [],
   );
@@ -1331,9 +1435,17 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setPhase,
     advanceDay,
     toggleShowCharacters,
-    updatePlayer,
-    addTraveller,
-    removeTraveller,
+    updatePlayerState,
+    addParticipant,
+    removeParticipant,
+    setParticipantTraveller,
+    addGameSeat,
+    addGameSpacer,
+    addGameStoryteller,
+    removeGameSlot,
+    moveGameSlot,
+    assignGameSeat,
+    setPlayerCountOverride,
     startNight,
     updateNightProgress,
     completeNight,
@@ -1349,9 +1461,6 @@ export function GameProvider({ children }: { children: ReactNode }) {
     addLoric,
     removeLoric,
     setInPlayCharacters,
-    swapPlayerSeats,
-    shiftPlayerSeats,
-    insertEmptySeat,
     setApparentCharacter,
     setDemonBluffs,
     setLunaticBluffs,

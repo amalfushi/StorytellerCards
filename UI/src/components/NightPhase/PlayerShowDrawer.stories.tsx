@@ -12,19 +12,20 @@ const meta = {
   args: {
     open: true,
     onClose: fn(),
-    seat: 1,
+    playerId: 'player-1',
+    displaySeat: 1,
     playerName: 'Alice',
     scriptId: 'carousel',
     messages: [
       {
         id: 'message-1',
-        seat: 1,
+        playerId: 'player-1',
         text: 'Quietly stand up and go to the basement',
         createdAt: '2026-06-01T00:00:00.000Z',
       },
       {
         id: 'message-2',
-        seat: 1,
+        playerId: 'player-1',
         text: 'Open your eyes and look at the storyteller',
         createdAt: '2026-06-01T00:01:00.000Z',
       },

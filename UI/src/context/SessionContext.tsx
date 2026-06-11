@@ -1,11 +1,27 @@
 import { useReducer, useCallback, useEffect, useRef } from 'react';
 import type { ReactNode } from 'react';
-import type { Session, Game, PlayerSeat } from '@/types/index.ts';
-import { Phase, Alignment } from '@/types/index.ts';
+import type {
+  Session,
+  Game,
+  Player,
+  PlayerId,
+  Slot,
+  SlotId,
+  PropagationPreference,
+} from '@/types/index.ts';
+import { Phase } from '@/types/index.ts';
 import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
 import { generateId } from '@/utils/idGenerator.ts';
 import { useApiSync, isSyncDisabled } from '@/hooks/useApiSync.ts';
 import { getCharacter } from '@/data/characters/index.ts';
+import {
+  snapshotTemplateSlots,
+  initialParticipantsFromSlots,
+  makeDefaultPlayerGameState,
+  moveSlot,
+  setSeatPlayer,
+  clearPlayerFromSlots,
+} from '@/utils/seating/index.ts';
 import { SessionContext } from './useSession.ts';
 
 function getSetupPowersForScript(scriptId: string): Pick<Game, 'activeFabled' | 'activeLoric'> {
@@ -45,12 +61,17 @@ const INITIAL_STATE: SessionState = {
   activeGameId: null,
 };
 
+const DEFAULT_PROPAGATION: PropagationPreference = {
+  toTemplate: true,
+  toOtherGames: true,
+};
+
 // ──────────────────────────────────────────────
 // Actions
 // ──────────────────────────────────────────────
 
 type SessionAction =
-  | { type: 'CREATE_SESSION'; payload: { name: string; scriptId: string; players: string[] } }
+  | { type: 'CREATE_SESSION'; payload: { name: string; scriptId: string; playerNames: string[] } }
   | { type: 'DELETE_SESSION'; payload: { id: string } }
   | { type: 'SET_ACTIVE_SESSION'; payload: { id: string | null } }
   | { type: 'SET_ACTIVE_GAME'; payload: { gameId: string | null } }
@@ -59,22 +80,29 @@ type SessionAction =
       payload: {
         id: string;
         name?: string;
-        defaultPlayers?: Array<{ seat: number; playerName: string }>;
         defaultScriptId?: string;
       };
     }
+  | { type: 'ADD_PLAYER'; payload: { sessionId: string; player: Player } }
+  | { type: 'RENAME_PLAYER'; payload: { sessionId: string; playerId: PlayerId; name: string } }
+  | { type: 'REMOVE_PLAYER'; payload: { sessionId: string; playerId: PlayerId } }
+  | { type: 'ADD_TEMPLATE_SEAT'; payload: { sessionId: string; slotId: SlotId } }
+  | { type: 'ADD_TEMPLATE_SPACER'; payload: { sessionId: string; slotId: SlotId } }
+  | { type: 'ADD_TEMPLATE_STORYTELLER'; payload: { sessionId: string; slotId: SlotId } }
+  | { type: 'REMOVE_TEMPLATE_SLOT'; payload: { sessionId: string; slotId: SlotId } }
+  | { type: 'MOVE_TEMPLATE_SLOT'; payload: { sessionId: string; slotId: SlotId; toIndex: number } }
+  | {
+      type: 'ASSIGN_TEMPLATE_SEAT';
+      payload: { sessionId: string; slotId: SlotId; playerId: PlayerId | null };
+    }
+  | {
+      type: 'SET_PROPAGATION_DEFAULT';
+      payload: { sessionId: string; pref: Partial<PropagationPreference> };
+    }
   | { type: 'ADD_GAME_TO_SESSION'; payload: { sessionId: string; game: Game } }
+  | { type: 'APPLY_TEMPLATE_TO_GAME'; payload: { sessionId: string; gameId: string } }
   | { type: 'HYDRATE'; payload: SessionState }
   | { type: 'DELETE_GAME'; payload: { sessionId: string; gameId: string } }
-  | { type: 'SWAP_SESSION_PLAYERS'; payload: { sessionId: string; seatA: number; seatB: number } }
-  | {
-      type: 'SHIFT_SESSION_PLAYERS';
-      payload: { sessionId: string; startSeat: number; shiftBy: number };
-    }
-  | {
-      type: 'INSERT_SESSION_PLAYER_SLOT';
-      payload: { sessionId: string; atSeat: number; playerName: string };
-    }
   | { type: 'SYNC_SESSION'; payload: { session: Session } }
   | { type: 'MERGE_REMOTE_SESSIONS'; payload: { sessions: Session[] } };
 
@@ -82,24 +110,37 @@ type SessionAction =
 // Reducer
 // ──────────────────────────────────────────────
 
+function mapSession(
+  state: SessionState,
+  sessionId: string,
+  fn: (s: Session) => Session,
+): SessionState {
+  return {
+    ...state,
+    sessions: state.sessions.map((s) => (s.id === sessionId ? fn(s) : s)),
+  };
+}
+
 function sessionReducer(state: SessionState, action: SessionAction): SessionState {
   switch (action.type) {
     case 'HYDRATE':
       return action.payload;
 
     case 'CREATE_SESSION': {
-      const { name, scriptId, players } = action.payload;
+      const { name, scriptId, playerNames } = action.payload;
       const id = generateId();
-      const defaultPlayers = players.map((pName, i) => ({
-        seat: i + 1,
-        playerName: pName,
-      }));
+      const players: Player[] = playerNames.map((n) => ({ id: generateId(), name: n }));
+      const slots: Slot[] = players.map(
+        (p): Slot => ({ kind: 'seat', id: generateId(), playerId: p.id }),
+      );
       const session: Session = {
         id,
         name,
         createdAt: new Date().toISOString(),
         defaultScriptId: scriptId,
-        defaultPlayers,
+        players,
+        template: { slots },
+        propagationDefault: { ...DEFAULT_PROPAGATION },
         gameIds: [],
       };
       return {
@@ -111,7 +152,6 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
 
     case 'DELETE_SESSION': {
       const { id } = action.payload;
-      // Clean up game data from localStorage
       const session = state.sessions.find((s) => s.id === id);
       if (session) {
         for (const gameId of session.gameIds) {
@@ -144,116 +184,165 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       };
 
     case 'UPDATE_SESSION': {
-      const { id, ...updates } = action.payload;
-      return {
-        ...state,
-        sessions: state.sessions.map((s) => {
-          if (s.id !== id) return s;
-          return {
-            ...s,
-            ...(updates.name !== undefined && { name: updates.name }),
-            ...(updates.defaultPlayers !== undefined && {
-              defaultPlayers: updates.defaultPlayers,
-            }),
-            ...(updates.defaultScriptId !== undefined && {
-              defaultScriptId: updates.defaultScriptId,
-            }),
-          };
-        }),
-      };
+      const { id, name, defaultScriptId } = action.payload;
+      return mapSession(state, id, (s) => ({
+        ...s,
+        ...(name !== undefined && { name }),
+        ...(defaultScriptId !== undefined && { defaultScriptId }),
+      }));
+    }
+
+    case 'ADD_PLAYER': {
+      const { sessionId, player } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        players: [...s.players, player],
+      }));
+    }
+
+    case 'RENAME_PLAYER': {
+      const { sessionId, playerId, name } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        players: s.players.map((p) => (p.id === playerId ? { ...p, name } : p)),
+      }));
+    }
+
+    case 'REMOVE_PLAYER': {
+      const { sessionId, playerId } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        players: s.players.filter((p) => p.id !== playerId),
+        template: { slots: clearPlayerFromSlots(s.template.slots, playerId) },
+      }));
+    }
+
+    case 'ADD_TEMPLATE_SEAT': {
+      const { sessionId, slotId } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        template: {
+          slots: [...s.template.slots, { kind: 'seat', id: slotId, playerId: null }],
+        },
+      }));
+    }
+
+    case 'ADD_TEMPLATE_SPACER': {
+      const { sessionId, slotId } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        template: { slots: [...s.template.slots, { kind: 'spacer', id: slotId }] },
+      }));
+    }
+
+    case 'ADD_TEMPLATE_STORYTELLER': {
+      const { sessionId, slotId } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        template: { slots: [...s.template.slots, { kind: 'storyteller', id: slotId }] },
+      }));
+    }
+
+    case 'REMOVE_TEMPLATE_SLOT': {
+      const { sessionId, slotId } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        template: { slots: s.template.slots.filter((sl) => sl.id !== slotId) },
+      }));
+    }
+
+    case 'MOVE_TEMPLATE_SLOT': {
+      const { sessionId, slotId, toIndex } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        template: { slots: moveSlot(s.template.slots, slotId, toIndex) },
+      }));
+    }
+
+    case 'ASSIGN_TEMPLATE_SEAT': {
+      const { sessionId, slotId, playerId } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        template: { slots: setSeatPlayer(s.template.slots, slotId, playerId) },
+      }));
+    }
+
+    case 'SET_PROPAGATION_DEFAULT': {
+      const { sessionId, pref } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        propagationDefault: { ...s.propagationDefault, ...pref },
+      }));
     }
 
     case 'ADD_GAME_TO_SESSION': {
       const { sessionId, game } = action.payload;
-      // Persist the game itself
       try {
         localStorage.setItem(`storyteller-game-${game.id}`, JSON.stringify(game));
       } catch {
         // Silently ignore storage errors
       }
       return {
-        ...state,
-        sessions: state.sessions.map((s) => {
-          if (s.id !== sessionId) return s;
-          return { ...s, gameIds: [...s.gameIds, game.id] };
-        }),
+        ...mapSession(state, sessionId, (s) => ({ ...s, gameIds: [...s.gameIds, game.id] })),
         activeGameId: game.id,
       };
     }
 
+    case 'APPLY_TEMPLATE_TO_GAME': {
+      const { sessionId, gameId } = action.payload;
+      const session = state.sessions.find((s) => s.id === sessionId);
+      if (!session) return state;
+      try {
+        const raw = localStorage.getItem(`storyteller-game-${gameId}`);
+        if (!raw) return state;
+        const existing = JSON.parse(raw) as Game;
+        const slotIdMap: Record<string, string> = {};
+        for (const s of session.template.slots) slotIdMap[s.id] = generateId();
+        const slots = snapshotTemplateSlots(session.template.slots, slotIdMap);
+        const participants = initialParticipantsFromSlots(slots);
+        const preservedPlayerState: Record<
+          PlayerId,
+          ReturnType<typeof makeDefaultPlayerGameState>
+        > = {};
+        for (const p of participants) {
+          preservedPlayerState[p.playerId] =
+            existing.playerState?.[p.playerId] ?? makeDefaultPlayerGameState();
+        }
+        const updated: Game = {
+          ...existing,
+          slots,
+          participants,
+          playerState: preservedPlayerState,
+        };
+        localStorage.setItem(`storyteller-game-${gameId}`, JSON.stringify(updated));
+      } catch {
+        // Silently ignore storage errors
+      }
+      // Bump session version so SSE/sync detects the change.
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        version: (s.version ?? 0) + 1,
+      }));
+    }
+
     case 'DELETE_GAME': {
       const { sessionId, gameId } = action.payload;
-      // Remove game data from localStorage
       try {
         localStorage.removeItem(`storyteller-game-${gameId}`);
       } catch {
         // Silently ignore storage errors
       }
-      // Remove setup checklist data
       try {
         localStorage.removeItem(`storyteller-setup-checklist-${gameId}`);
       } catch {
         // Silently ignore storage errors
       }
       return {
-        ...state,
-        sessions: state.sessions.map((s) => {
-          if (s.id !== sessionId) return s;
-          return { ...s, gameIds: s.gameIds.filter((gid) => gid !== gameId) };
-        }),
+        ...mapSession(state, sessionId, (s) => ({
+          ...s,
+          gameIds: s.gameIds.filter((gid) => gid !== gameId),
+        })),
         activeGameId: state.activeGameId === gameId ? null : state.activeGameId,
-      };
-    }
-
-    case 'SWAP_SESSION_PLAYERS': {
-      const { sessionId, seatA, seatB } = action.payload;
-      if (seatA === seatB) return state;
-      return {
-        ...state,
-        sessions: state.sessions.map((session) => {
-          if (session.id !== sessionId) return session;
-          const playerA = session.defaultPlayers.find((player) => player.seat === seatA);
-          const playerB = session.defaultPlayers.find((player) => player.seat === seatB);
-          if (!playerA || !playerB) return session;
-          return {
-            ...session,
-            defaultPlayers: session.defaultPlayers.map((player) => {
-              if (player.seat === seatA) return { ...playerB, seat: seatA };
-              if (player.seat === seatB) return { ...playerA, seat: seatB };
-              return player;
-            }),
-          };
-        }),
-      };
-    }
-
-    case 'SHIFT_SESSION_PLAYERS': {
-      const { sessionId, startSeat, shiftBy } = action.payload;
-      if (shiftBy === 0) return state;
-      return {
-        ...state,
-        sessions: state.sessions.map((session) => {
-          if (session.id !== sessionId) return session;
-          return {
-            ...session,
-            defaultPlayers: shiftDefaultPlayers(session.defaultPlayers, startSeat, shiftBy),
-          };
-        }),
-      };
-    }
-
-    case 'INSERT_SESSION_PLAYER_SLOT': {
-      const { sessionId, atSeat, playerName } = action.payload;
-      if (atSeat < 1) return state;
-      return {
-        ...state,
-        sessions: state.sessions.map((session) => {
-          if (session.id !== sessionId) return session;
-          return {
-            ...session,
-            defaultPlayers: insertDefaultPlayer(session.defaultPlayers, atSeat, playerName),
-          };
-        }),
       };
     }
 
@@ -300,14 +389,6 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
   }
 }
 
-/**
- * Wraps the base reducer. Version is managed by the server — the client
- * does not increment version locally.
- */
-function sessionReducerWithVersion(state: SessionState, action: SessionAction): SessionState {
-  return sessionReducer(state, action);
-}
-
 // ──────────────────────────────────────────────
 // Context value shape
 // ──────────────────────────────────────────────
@@ -315,23 +396,24 @@ function sessionReducerWithVersion(state: SessionState, action: SessionAction): 
 export interface SessionContextValue {
   state: SessionState;
   dispatch: React.Dispatch<SessionAction>;
-  createSession: (name: string, scriptId: string, players: string[]) => void;
+  createSession: (name: string, scriptId: string, playerNames: string[]) => void;
   deleteSession: (id: string) => void;
   selectSession: (id: string | null) => void;
   selectGame: (sessionId: string, gameId: string) => void;
-  updateSession: (
-    id: string,
-    updates: {
-      name?: string;
-      defaultPlayers?: Array<{ seat: number; playerName: string }>;
-      defaultScriptId?: string;
-    },
-  ) => void;
-  addGameToSession: (sessionId: string, reuseLastSeating?: boolean) => void;
+  updateSession: (id: string, updates: { name?: string; defaultScriptId?: string }) => void;
+  addPlayer: (sessionId: string, name: string) => Player;
+  renamePlayer: (sessionId: string, playerId: PlayerId, name: string) => void;
+  removePlayer: (sessionId: string, playerId: PlayerId) => void;
+  addTemplateSeat: (sessionId: string) => SlotId;
+  addTemplateSpacer: (sessionId: string) => SlotId;
+  addTemplateStoryteller: (sessionId: string) => SlotId;
+  removeTemplateSlot: (sessionId: string, slotId: SlotId) => void;
+  moveTemplateSlot: (sessionId: string, slotId: SlotId, toIndex: number) => void;
+  assignTemplateSeat: (sessionId: string, slotId: SlotId, playerId: PlayerId | null) => void;
+  setPropagationDefault: (sessionId: string, pref: Partial<PropagationPreference>) => void;
+  addGameToSession: (sessionId: string) => void;
+  applyTemplateToGame: (sessionId: string, gameId: string) => void;
   deleteGame: (sessionId: string, gameId: string) => void;
-  swapSessionPlayers: (sessionId: string, seatA: number, seatB: number) => void;
-  shiftSessionPlayers: (sessionId: string, startSeat: number, shiftBy: number) => void;
-  insertSessionPlayerSlot: (sessionId: string, atSeat: number, playerName: string) => void;
   getActiveSession: () => Session | null;
   getActiveGame: () => Game | null;
   syncSession: (session: Session) => void;
@@ -346,7 +428,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     'storyteller-sessions',
     INITIAL_STATE,
   );
-  const [state, dispatch] = useReducer(sessionReducerWithVersion, persisted);
+  const [state, dispatch] = useReducer(sessionReducer, persisted);
   const isSyncingRef = useRef(false);
 
   const {
@@ -356,13 +438,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     deleteGame: apiDeleteGame,
   } = useApiSync();
 
-  // Sync reducer state → localStorage whenever it changes
   useEffect(() => {
     setPersisted(state);
   }, [state, setPersisted]);
 
-  // Fetch sessions from API on startup and merge with local state
-  // Skipped when sync is disabled (local-only mode)
   useEffect(() => {
     if (isSyncDisabled) {
       console.info('[SessionContext] Sync disabled — skipping API fetch on startup');
@@ -381,7 +460,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     };
   }, [apiFetchSessions]);
 
-  // Push active session to API when sessions change
   useEffect(() => {
     if (isSyncingRef.current) {
       isSyncingRef.current = false;
@@ -395,8 +473,8 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   // ── Helper functions ──
 
-  const createSession = useCallback((name: string, scriptId: string, players: string[]) => {
-    dispatch({ type: 'CREATE_SESSION', payload: { name, scriptId, players } });
+  const createSession = useCallback((name: string, scriptId: string, playerNames: string[]) => {
+    dispatch({ type: 'CREATE_SESSION', payload: { name, scriptId, playerNames } });
   }, []);
 
   const deleteSession = useCallback(
@@ -417,62 +495,80 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const updateSession = useCallback(
-    (
-      id: string,
-      updates: {
-        name?: string;
-        defaultPlayers?: Array<{ seat: number; playerName: string }>;
-        defaultScriptId?: string;
-      },
-    ) => {
+    (id: string, updates: { name?: string; defaultScriptId?: string }) => {
       dispatch({ type: 'UPDATE_SESSION', payload: { id, ...updates } });
     },
     [],
   );
 
+  const addPlayer = useCallback((sessionId: string, name: string): Player => {
+    const player: Player = { id: generateId(), name };
+    dispatch({ type: 'ADD_PLAYER', payload: { sessionId, player } });
+    return player;
+  }, []);
+
+  const renamePlayer = useCallback((sessionId: string, playerId: PlayerId, name: string) => {
+    dispatch({ type: 'RENAME_PLAYER', payload: { sessionId, playerId, name } });
+  }, []);
+
+  const removePlayer = useCallback((sessionId: string, playerId: PlayerId) => {
+    dispatch({ type: 'REMOVE_PLAYER', payload: { sessionId, playerId } });
+  }, []);
+
+  const addTemplateSeat = useCallback((sessionId: string): SlotId => {
+    const slotId = generateId();
+    dispatch({ type: 'ADD_TEMPLATE_SEAT', payload: { sessionId, slotId } });
+    return slotId;
+  }, []);
+
+  const addTemplateSpacer = useCallback((sessionId: string): SlotId => {
+    const slotId = generateId();
+    dispatch({ type: 'ADD_TEMPLATE_SPACER', payload: { sessionId, slotId } });
+    return slotId;
+  }, []);
+
+  const addTemplateStoryteller = useCallback((sessionId: string): SlotId => {
+    const slotId = generateId();
+    dispatch({ type: 'ADD_TEMPLATE_STORYTELLER', payload: { sessionId, slotId } });
+    return slotId;
+  }, []);
+
+  const removeTemplateSlot = useCallback((sessionId: string, slotId: SlotId) => {
+    dispatch({ type: 'REMOVE_TEMPLATE_SLOT', payload: { sessionId, slotId } });
+  }, []);
+
+  const moveTemplateSlot = useCallback((sessionId: string, slotId: SlotId, toIndex: number) => {
+    dispatch({ type: 'MOVE_TEMPLATE_SLOT', payload: { sessionId, slotId, toIndex } });
+  }, []);
+
+  const assignTemplateSeat = useCallback(
+    (sessionId: string, slotId: SlotId, playerId: PlayerId | null) => {
+      dispatch({ type: 'ASSIGN_TEMPLATE_SEAT', payload: { sessionId, slotId, playerId } });
+    },
+    [],
+  );
+
+  const setPropagationDefault = useCallback(
+    (sessionId: string, pref: Partial<PropagationPreference>) => {
+      dispatch({ type: 'SET_PROPAGATION_DEFAULT', payload: { sessionId, pref } });
+    },
+    [],
+  );
+
   const addGameToSession = useCallback(
-    (sessionId: string, reuseLastSeating = true) => {
+    (sessionId: string) => {
       const session = state.sessions.find((s) => s.id === sessionId);
       if (!session) return;
 
       const gameId = generateId();
-      const gameNumber = session.gameIds.length + 1;
-
-      // If there's a previous game, carry forward its players; else use session defaults
-      let players: PlayerSeat[];
-      const lastGameId = session.gameIds[session.gameIds.length - 1];
-
-      if (lastGameId && reuseLastSeating) {
-        try {
-          const raw = localStorage.getItem(`storyteller-game-${lastGameId}`);
-          if (raw) {
-            const lastGame = JSON.parse(raw) as Game;
-            players = lastGame.players
-              .filter((p) => !p.isTraveller)
-              .map((p) => ({
-                ...p,
-                characterId: '',
-                alive: true,
-                ghostVoteUsed: false,
-                visibleAlignment: Alignment.Unknown,
-                actualAlignment: Alignment.Unknown,
-                startingAlignment: Alignment.Unknown,
-                activeReminders: [],
-                isTraveller: false,
-                tokens: [],
-              }));
-          } else {
-            players = buildPlayersFromDefaults(session);
-          }
-        } catch {
-          players = buildPlayersFromDefaults(session);
-        }
-      } else {
-        players = buildPlayersFromDefaults(session);
+      const slotIdMap: Record<string, string> = {};
+      for (const s of session.template.slots) slotIdMap[s.id] = generateId();
+      const slots = snapshotTemplateSlots(session.template.slots, slotIdMap);
+      const participants = initialParticipantsFromSlots(slots);
+      const playerState: Record<PlayerId, ReturnType<typeof makeDefaultPlayerGameState>> = {};
+      for (const p of participants) {
+        playerState[p.playerId] = makeDefaultPlayerGameState();
       }
-
-      // Ensure players are always in sequential seat order
-      players.sort((a, b) => a.seat - b.seat);
 
       const setupPowers = getSetupPowersForScript(session.defaultScriptId);
 
@@ -483,14 +579,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         currentDay: 1,
         currentPhase: Phase.Day,
         isFirstNight: true,
-        players,
+        slots,
+        participants,
+        playerState,
+        playerCountOverride: null,
         nightHistory: [],
         ...setupPowers,
       };
-
-      // Also store a display label (Game 1, Game 2, etc.) — not part of Game type,
-      // but the gameNumber can be derived from index in session.gameIds
-      void gameNumber;
 
       dispatch({ type: 'ADD_GAME_TO_SESSION', payload: { sessionId, game } });
     },
@@ -505,23 +600,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [apiDeleteGame],
   );
 
-  const swapSessionPlayers = useCallback((sessionId: string, seatA: number, seatB: number) => {
-    dispatch({ type: 'SWAP_SESSION_PLAYERS', payload: { sessionId, seatA, seatB } });
+  const applyTemplateToGame = useCallback((sessionId: string, gameId: string) => {
+    dispatch({ type: 'APPLY_TEMPLATE_TO_GAME', payload: { sessionId, gameId } });
   }, []);
-
-  const shiftSessionPlayers = useCallback(
-    (sessionId: string, startSeat: number, shiftBy: number) => {
-      dispatch({ type: 'SHIFT_SESSION_PLAYERS', payload: { sessionId, startSeat, shiftBy } });
-    },
-    [],
-  );
-
-  const insertSessionPlayerSlot = useCallback(
-    (sessionId: string, atSeat: number, playerName: string) => {
-      dispatch({ type: 'INSERT_SESSION_PLAYER_SLOT', payload: { sessionId, atSeat, playerName } });
-    },
-    [],
-  );
 
   const getActiveSession = useCallback((): Session | null => {
     if (!state.activeSessionId) return null;
@@ -552,69 +633,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     selectSession,
     selectGame,
     updateSession,
+    addPlayer,
+    renamePlayer,
+    removePlayer,
+    addTemplateSeat,
+    addTemplateSpacer,
+    addTemplateStoryteller,
+    removeTemplateSlot,
+    moveTemplateSlot,
+    assignTemplateSeat,
+    setPropagationDefault,
     addGameToSession,
+    applyTemplateToGame,
     deleteGame,
-    swapSessionPlayers,
-    shiftSessionPlayers,
-    insertSessionPlayerSlot,
     getActiveSession,
     getActiveGame,
     syncSession,
   };
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
-}
-
-// ──────────────────────────────────────────────
-// Helpers
-// ──────────────────────────────────────────────
-
-function buildPlayersFromDefaults(session: Session): PlayerSeat[] {
-  return session.defaultPlayers.map((dp) => ({
-    seat: dp.seat,
-    playerName: dp.playerName,
-    characterId: '',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Unknown,
-    startingAlignment: Alignment.Unknown,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  }));
-}
-
-function shiftDefaultPlayers(
-  players: Array<{ seat: number; playerName: string }>,
-  startSeat: number,
-  shiftBy: number,
-): Array<{ seat: number; playerName: string }> {
-  const affected = players
-    .filter((player) => player.seat >= startSeat)
-    .sort((a, b) => a.seat - b.seat);
-  if (affected.length <= 1) return players;
-  const normalizedShift = ((shiftBy % affected.length) + affected.length) % affected.length;
-  if (normalizedShift === 0) return players;
-  const seatMap = new Map<number, number>();
-  affected.forEach((player, index) => {
-    const targetIndex = (index + normalizedShift) % affected.length;
-    seatMap.set(player.seat, affected[targetIndex].seat);
-  });
-  return players
-    .map((player) => ({ ...player, seat: seatMap.get(player.seat) ?? player.seat }))
-    .sort((a, b) => a.seat - b.seat);
-}
-
-function insertDefaultPlayer(
-  players: Array<{ seat: number; playerName: string }>,
-  atSeat: number,
-  playerName: string,
-): Array<{ seat: number; playerName: string }> {
-  return [
-    ...players.map((player) =>
-      player.seat >= atSeat ? { ...player, seat: player.seat + 1 } : player,
-    ),
-    { seat: atSeat, playerName },
-  ].sort((a, b) => a.seat - b.seat);
 }

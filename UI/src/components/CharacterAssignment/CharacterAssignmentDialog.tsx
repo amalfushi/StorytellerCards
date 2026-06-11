@@ -14,23 +14,35 @@ import IconButton from '@mui/material/IconButton';
 import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import Select from '@mui/material/Select';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CasinoIcon from '@mui/icons-material/Casino';
 import CloseIcon from '@mui/icons-material/Close';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
-import { Alignment } from '@/types/index.ts';
+import type {
+  CharacterDef,
+  Participant,
+  Player,
+  PlayerGameState,
+  PlayerId,
+  Slot,
+} from '@/types/index.ts';
+import { Alignment, CharacterType } from '@/types/index.ts';
 import {
   getDistribution,
   getDistributionWarnings,
   getDistributionSuggestions,
 } from '@/data/playerCountRules.ts';
-import type { Distribution } from '@/data/playerCountRules.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { getSetupModifiers, getNetAdjustment } from '@/utils/setupModifiers.ts';
 import { getRequiredCharacters, getSetupPrompts } from '@/utils/requiredCharacters.ts';
 import { getSeatingWarnings, getMarionetteValidSeats } from '@/utils/seatingConstraints.ts';
 import { getDefaultCharacterIconPath } from '@/utils/characterIcon.ts';
-import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
+import {
+  filterPlayerAssignableCharacters,
+  randomlyAssignCharacters,
+} from '@/utils/characterAssignment.ts';
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import { ApparentCharacterDialog } from '@/components/Setup/ApparentCharacterDialog.tsx';
 
 /** Characters that trigger identity concealment prompts on assignment. */
 const CONCEALMENT_CHARACTERS = new Set(['marionette', 'drunk']);
@@ -43,6 +55,14 @@ const TYPE_SORT_ORDER: Record<string, number> = {
   Demon: 3,
 };
 
+interface AssignmentParticipant {
+  playerId: PlayerId;
+  isTraveller: boolean;
+  name: string;
+  seatNumber: number | null;
+  state: PlayerGameState;
+}
+
 /** Sort characters by type (Townsfolk→Outsider→Minion→Demon) then alphabetically. */
 function sortByTypeAndName(a: CharacterDef, b: CharacterDef): number {
   const typeA = TYPE_SORT_ORDER[a.type] ?? 99;
@@ -51,68 +71,69 @@ function sortByTypeAndName(a: CharacterDef, b: CharacterDef): number {
   return a.name.localeCompare(b.name);
 }
 
-/** Fisher-Yates shuffle (in-place). */
-function shuffle<T>(arr: T[]): T[] {
-  for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arr[i], arr[j]] = [arr[j], arr[i]];
-  }
-  return arr;
+function alignmentForCharacter(character: CharacterDef): Alignment {
+  return character.type === CharacterType.Minion || character.type === CharacterType.Demon
+    ? Alignment.Evil
+    : Alignment.Good;
 }
 
 function sanitizePlayersForCharacterPool(
-  players: PlayerSeat[],
+  playerState: Record<PlayerId, PlayerGameState>,
   availableCharacters: CharacterDef[],
-): PlayerSeat[] {
+): Record<PlayerId, PlayerGameState> {
   const allowedIds = new Set(availableCharacters.map((character) => character.id));
-  return [...players]
-    .sort((a, b) => a.seat - b.seat)
-    .map((player) =>
-      player.characterId && !allowedIds.has(player.characterId)
-        ? { ...player, characterId: '' }
-        : player,
-    );
+  const sanitized: Record<PlayerId, PlayerGameState> = {};
+  for (const [playerId, state] of Object.entries(playerState)) {
+    sanitized[playerId] =
+      state.characterId && !allowedIds.has(state.characterId)
+        ? { ...state, characterId: '' }
+        : { ...state };
+  }
+  return sanitized;
 }
 
 export interface CharacterAssignmentDialogProps {
   open: boolean;
   onClose: () => void;
-  players: PlayerSeat[];
+  slots: Slot[];
+  participants: Participant[];
+  playerState: Record<PlayerId, PlayerGameState>;
+  sessionPlayers: Player[];
+  playerCountOverride: number | null;
   scriptCharacters: CharacterDef[];
-  onConfirm: (updatedPlayers: PlayerSeat[]) => void;
+  onConfirm: (updatedPlayerState: Record<PlayerId, PlayerGameState>) => void;
+  onPlayerCountChange: (value: number | null) => void;
   /** Character IDs selected as in-play (from CharacterSelection). */
   inPlayCharacterIds?: string[];
 }
 
 /**
- * Full-screen dialog for assigning characters to players before the first night.
- *
- * Features:
- * - Character pool at top: unassigned characters shown as tappable chips
- * - Tap-to-assign: tap a chip then tap a seat to assign
- * - Dropdown fallback for accessibility
- * - Seating constraint warnings (Marionette adjacency, Lord of Typhon line)
- * - Identity concealment prompts (Marionette, Drunk)
- * - Randomize with best-effort constraint awareness
+ * Full-screen dialog for assigning characters to participants before the first night.
  */
 export function CharacterAssignmentDialog({
   open,
   onClose,
-  players,
+  slots,
+  participants,
+  playerState,
+  sessionPlayers,
+  playerCountOverride,
   scriptCharacters,
   onConfirm,
+  onPlayerCountChange,
   inPlayCharacterIds,
 }: CharacterAssignmentDialogProps) {
-  const nonTravellers = useMemo(() => players.filter((p) => !p.isTraveller), [players]);
-  const baseDistribution = useMemo(
-    () => getDistribution(nonTravellers.length),
-    [nonTravellers.length],
-  );
+  const [localPlayerState, setLocalPlayerState] = useState<Record<PlayerId, PlayerGameState>>({});
+  const [error, setError] = useState<string | null>(null);
+  const [selectedChipId, setSelectedChipId] = useState<string | null>(null);
+  const [apparentDialogPlayerId, setApparentDialogPlayerId] = useState<PlayerId | null>(null);
 
-  // Characters available for assignment (in-play or all script chars)
+  const participantCount = participants.length;
+  const effectivePlayerCount = playerCountOverride ?? participantCount;
+  const distribution = useMemo(() => getDistribution(effectivePlayerCount), [effectivePlayerCount]);
+
   const availableCharacters = useMemo(() => {
     if (inPlayCharacterIds && inPlayCharacterIds.length > 0) {
-      // Use in-play character list (which may contain duplicates)
       return filterPlayerAssignableCharacters(
         inPlayCharacterIds
           .map((id) => scriptCharacters.find((c) => c.id === id))
@@ -122,14 +143,56 @@ export function CharacterAssignmentDialog({
     return filterPlayerAssignableCharacters(scriptCharacters);
   }, [scriptCharacters, inPlayCharacterIds]);
 
-  const [distribution, setDistribution] = useState<Distribution>(baseDistribution);
-  const [localPlayers, setLocalPlayers] = useState<PlayerSeat[]>(() =>
-    sanitizePlayersForCharacterPool(players, availableCharacters),
-  );
-  const [error, setError] = useState<string | null>(null);
-  const [selectedChipId, setSelectedChipId] = useState<string | null>(null);
+  const handleEnter = useCallback(() => {
+    setLocalPlayerState(sanitizePlayersForCharacterPool(playerState, availableCharacters));
+    setError(null);
+    setSelectedChipId(null);
+    setApparentDialogPlayerId(null);
+  }, [playerState, availableCharacters]);
 
-  // IDs of characters that allow duplicates (from inPlayCharacterIds duplicates)
+  const sessionPlayerById = useMemo(
+    () => new Map(sessionPlayers.map((player) => [player.id, player])),
+    [sessionPlayers],
+  );
+
+  const seatNumberByPlayerId = useMemo(() => {
+    const displayMap = buildDisplaySeatNumberMap(slots);
+    const map = new Map<PlayerId, number>();
+    for (const slot of slots) {
+      if (slot.kind === 'seat' && slot.playerId) {
+        const displayNumber = displayMap.get(slot.id);
+        if (displayNumber !== undefined) map.set(slot.playerId, displayNumber);
+      }
+    }
+    return map;
+  }, [slots]);
+
+  const assignmentParticipants = useMemo<AssignmentParticipant[]>(
+    () =>
+      participants
+        .map((participant) => ({
+          ...participant,
+          name: sessionPlayerById.get(participant.playerId)?.name ?? 'Unknown player',
+          seatNumber: seatNumberByPlayerId.get(participant.playerId) ?? null,
+          state: localPlayerState[participant.playerId] ?? playerState[participant.playerId],
+        }))
+        .sort((a, b) => {
+          if (a.seatNumber !== null && b.seatNumber !== null) return a.seatNumber - b.seatNumber;
+          if (a.seatNumber !== null) return -1;
+          if (b.seatNumber !== null) return 1;
+          return (
+            indexForParticipant(participants, a.playerId) -
+            indexForParticipant(participants, b.playerId)
+          );
+        }),
+    [participants, sessionPlayerById, seatNumberByPlayerId, localPlayerState, playerState],
+  );
+
+  const nonTravellerParticipants = useMemo(
+    () => assignmentParticipants.filter((participant) => !participant.isTraveller),
+    [assignmentParticipants],
+  );
+
   const duplicateAllowedIds = useMemo(() => {
     const ids = new Set<string>();
     if (inPlayCharacterIds) {
@@ -139,7 +202,6 @@ export function CharacterAssignmentDialog({
         seen.add(id);
       }
     }
-    // Always allow Legion duplicates
     for (const ch of scriptCharacters) {
       if (ch.id === 'legion') ids.add(ch.id);
     }
@@ -148,63 +210,54 @@ export function CharacterAssignmentDialog({
 
   const scriptCharacterIds = useMemo(() => scriptCharacters.map((c) => c.id), [scriptCharacters]);
 
-  // Script-aware distribution suggestions
   const suggestions = useMemo(
-    () => getDistributionSuggestions(scriptCharacterIds, baseDistribution),
-    [scriptCharacterIds, baseDistribution],
+    () => getDistributionSuggestions(scriptCharacterIds, distribution),
+    [scriptCharacterIds, distribution],
   );
 
-  // Distribution warnings (soft, not blocking)
   const distWarnings = useMemo(
     () => getDistributionWarnings(distribution, scriptCharacterIds),
     [distribution, scriptCharacterIds],
   );
 
-  // Setup modifiers (Baron +2 Outsiders, etc.)
   const setupModifiers = useMemo(() => getSetupModifiers(scriptCharacterIds), [scriptCharacterIds]);
   const netAdjustment = useMemo(() => getNetAdjustment(setupModifiers), [setupModifiers]);
 
-  // Required character detection (Choirboy → King, etc.)
   const requiredCharacters = useMemo(
     () => getRequiredCharacters(scriptCharacterIds),
     [scriptCharacterIds],
   );
 
-  // Setup prompts (Bounty Hunter evil townsfolk designation, etc.)
   const setupPrompts = useMemo(() => getSetupPrompts(scriptCharacterIds), [scriptCharacterIds]);
 
-  // Seating constraint warnings
-  const seatingWarnings = useMemo(() => getSeatingWarnings(localPlayers), [localPlayers]);
+  const seatingWarnings = useMemo(
+    () => getSeatingWarnings(slots, localPlayerState),
+    [slots, localPlayerState],
+  );
 
-  // Marionette valid seats (for highlighting)
   const marionetteSeats = useMemo(() => {
     const hasMarionette = availableCharacters.some((c) => c.id === 'marionette');
     if (!hasMarionette) return [];
-    return getMarionetteValidSeats(localPlayers);
-  }, [localPlayers, availableCharacters]);
+    return getMarionetteValidSeats(slots, localPlayerState);
+  }, [slots, localPlayerState, availableCharacters]);
 
-  // Track which characters are assigned (as a count map for duplicate support)
   const assignedCounts = useMemo(() => {
     const counts = new Map<string, number>();
-    for (const p of localPlayers) {
-      if (p.characterId && !p.isTraveller) {
-        counts.set(p.characterId, (counts.get(p.characterId) ?? 0) + 1);
-      }
+    for (const participant of nonTravellerParticipants) {
+      const characterId = participant.state?.characterId;
+      if (characterId) counts.set(characterId, (counts.get(characterId) ?? 0) + 1);
     }
     return counts;
-  }, [localPlayers]);
+  }, [nonTravellerParticipants]);
 
-  // Unassigned character pool (chips) — sorted by type then name
   const unassignedPool = useMemo(() => {
     const pool: CharacterDef[] = [];
     const remainingCounts = new Map<string, number>();
 
-    // Count how many of each character should be in pool
     for (const ch of availableCharacters) {
       remainingCounts.set(ch.id, (remainingCounts.get(ch.id) ?? 0) + 1);
     }
 
-    // Subtract assigned counts
     for (const [id, assigned] of assignedCounts) {
       const remaining = (remainingCounts.get(id) ?? 0) - assigned;
       if (remaining <= 0) {
@@ -214,7 +267,6 @@ export function CharacterAssignmentDialog({
       }
     }
 
-    // Build pool
     const seen = new Map<string, number>();
     for (const ch of availableCharacters) {
       const remaining = remainingCounts.get(ch.id) ?? 0;
@@ -228,7 +280,6 @@ export function CharacterAssignmentDialog({
     return [...pool].sort(sortByTypeAndName);
   }, [availableCharacters, assignedCounts]);
 
-  // Total available count per character ID (for dropdown disable logic)
   const totalAvailableCounts = useMemo(() => {
     const counts = new Map<string, number>();
     for (const ch of availableCharacters) {
@@ -237,7 +288,6 @@ export function CharacterAssignmentDialog({
     return counts;
   }, [availableCharacters]);
 
-  // Deduplicated & sorted character list for dropdowns
   const dropdownCharacters = useMemo(() => {
     const source = inPlayCharacterIds
       ? availableCharacters
@@ -251,94 +301,107 @@ export function CharacterAssignmentDialog({
     return [...deduped].sort(sortByTypeAndName);
   }, [inPlayCharacterIds, availableCharacters, scriptCharacters]);
 
-  // Compute distribution from in-play character type counts when available
-  const inPlayDistribution = useMemo((): Distribution | null => {
-    if (!inPlayCharacterIds || inPlayCharacterIds.length === 0) return null;
-    const counts = { townsfolk: 0, outsiders: 0, minions: 0, demons: 0 };
-    for (const id of inPlayCharacterIds) {
-      const ch = scriptCharacters.find((c) => c.id === id);
-      if (!ch) continue;
-      if (ch.type === 'Townsfolk') counts.townsfolk++;
-      else if (ch.type === 'Outsider') counts.outsiders++;
-      else if (ch.type === 'Minion') counts.minions++;
-      else if (ch.type === 'Demon') counts.demons++;
-    }
-    return counts;
-  }, [inPlayCharacterIds, scriptCharacters]);
-
-  // Reset state when dialog opens
-  const handleEnter = useCallback(() => {
-    setDistribution(
-      inPlayDistribution ?? getDistribution(players.filter((p) => !p.isTraveller).length),
-    );
-    setLocalPlayers(sanitizePlayersForCharacterPool(players, availableCharacters));
-    setError(null);
-    setSelectedChipId(null);
-  }, [availableCharacters, players, inPlayDistribution]);
-
-  // Simplified randomize: assign all unassigned characters to all empty seats
   const handleRandomize = () => {
     setError(null);
-    const pool = shuffle([...unassignedPool]);
-    let idx = 0;
-    setLocalPlayers((prev) =>
-      prev.map((p) => {
-        if (p.isTraveller || p.characterId || idx >= pool.length) return p;
-        const ch = pool[idx++];
-        const alignment =
-          ch.type === 'Minion' || ch.type === 'Demon' ? Alignment.Evil : Alignment.Good;
-        return {
-          ...p,
-          characterId: ch.id,
-          actualAlignment: alignment,
-          startingAlignment: alignment,
-        };
-      }),
-    );
+    try {
+      setLocalPlayerState((prev) =>
+        randomlyAssignCharacters(participants, prev, availableCharacters, distribution),
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Unable to randomize characters');
+    }
+  };
+
+  const handleClearAll = () => {
+    setError(null);
+    setLocalPlayerState((prev) => {
+      const next = { ...prev };
+      for (const participant of participants) {
+        const current = next[participant.playerId];
+        if (current) {
+          next[participant.playerId] = {
+            ...current,
+            characterId: '',
+            apparentCharacterId: '',
+          };
+        }
+      }
+      return next;
+    });
   };
 
   const handleCharacterChange = useCallback(
-    (seat: number, characterId: string) => {
+    (playerId: PlayerId, characterId: string) => {
       const charDef = scriptCharacters.find((c) => c.id === characterId);
-      setLocalPlayers((prev) =>
-        prev.map((p) => {
-          if (p.seat !== seat || p.isTraveller) return p;
-          const alignment =
-            charDef?.type === 'Minion' || charDef?.type === 'Demon' ? 'Evil' : 'Good';
-          return {
-            ...p,
+      setLocalPlayerState((prev) => {
+        const current = prev[playerId];
+        if (!current) return prev;
+        if (!characterId || !charDef) {
+          return { ...prev, [playerId]: { ...current, characterId, apparentCharacterId: '' } };
+        }
+        const alignment = alignmentForCharacter(charDef);
+        return {
+          ...prev,
+          [playerId]: {
+            ...current,
             characterId,
             actualAlignment: alignment,
             startingAlignment: alignment,
-          };
-        }),
-      );
+            apparentCharacterId: CONCEALMENT_CHARACTERS.has(characterId)
+              ? current.apparentCharacterId
+              : '',
+          },
+        };
+      });
     },
     [scriptCharacters],
   );
 
-  // Tap-to-assign: select a chip, then assign to seat
   const handleChipClick = useCallback((characterId: string) => {
     setSelectedChipId((prev) => (prev === characterId ? null : characterId));
   }, []);
 
   const handleSeatClick = useCallback(
-    (seat: number) => {
+    (playerId: PlayerId) => {
       if (!selectedChipId) return;
-      handleCharacterChange(seat, selectedChipId);
+      handleCharacterChange(playerId, selectedChipId);
       setSelectedChipId(null);
     },
     [selectedChipId, handleCharacterChange],
   );
 
+  const handleApparentConfirm = useCallback((playerId: PlayerId, apparentCharacterId: string) => {
+    setLocalPlayerState((prev) => {
+      const current = prev[playerId];
+      if (!current) return prev;
+      return { ...prev, [playerId]: { ...current, apparentCharacterId } };
+    });
+  }, []);
+
+  const handlePlayerCountChange = (rawValue: string) => {
+    const parsed = Number.parseInt(rawValue, 10);
+    if (!Number.isFinite(parsed) || parsed < 0) return;
+    onPlayerCountChange(parsed);
+  };
+
   const handleConfirm = () => {
-    onConfirm(localPlayers);
+    onConfirm(localPlayerState);
     onClose();
   };
 
+  const apparentDialogParticipant = apparentDialogPlayerId
+    ? (assignmentParticipants.find(
+        (participant) => participant.playerId === apparentDialogPlayerId,
+      ) ?? null)
+    : null;
+  const apparentDialogCharacter = apparentDialogParticipant?.state.characterId
+    ? scriptCharacters.find(
+        (character) => character.id === apparentDialogParticipant.state.characterId,
+      )
+    : undefined;
+
   const totalAssigned =
     distribution.townsfolk + distribution.outsiders + distribution.minions + distribution.demons;
-  const expectedCount = nonTravellers.length;
 
   return (
     <Dialog
@@ -346,7 +409,7 @@ export function CharacterAssignmentDialog({
       onClose={onClose}
       fullWidth
       maxWidth="sm"
-      TransitionProps={{ onEnter: handleEnter }}
+      slotProps={{ transition: { onEnter: handleEnter } }}
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Typography component="span" variant="h6" sx={{ flexGrow: 1 }}>
@@ -358,7 +421,6 @@ export function CharacterAssignmentDialog({
       </DialogTitle>
 
       <DialogContent dividers>
-        {/* Seating constraint warnings */}
         {seatingWarnings.map((w, i) => (
           <Alert
             key={`seat-warning-${i}`}
@@ -370,33 +432,64 @@ export function CharacterAssignmentDialog({
           </Alert>
         ))}
 
-        {/* Marionette valid seats hint */}
         {marionetteSeats.length > 0 && selectedChipId === 'marionette' && (
           <Alert severity="info" sx={{ mb: 1 }} data-testid="marionette-hint">
             💡 Seats adjacent to Demon: {marionetteSeats.join(', ')}
           </Alert>
         )}
 
-        {/* Identity concealment prompts */}
-        {localPlayers
-          .filter((p) => CONCEALMENT_CHARACTERS.has(p.characterId) && !p.apparentCharacterId)
-          .map((p) => (
+        {nonTravellerParticipants
+          .filter(
+            (participant) =>
+              CONCEALMENT_CHARACTERS.has(participant.state.characterId) &&
+              !participant.state.apparentCharacterId,
+          )
+          .map((participant) => (
             <Alert
-              key={`conceal-${p.seat}`}
+              key={`conceal-${participant.playerId}`}
               severity="info"
               sx={{ mb: 1 }}
-              data-testid={`concealment-prompt-${p.characterId}`}
+              data-testid={`concealment-prompt-${participant.state.characterId}`}
+              action={
+                <Button
+                  color="inherit"
+                  size="small"
+                  onClick={() => setApparentDialogPlayerId(participant.playerId)}
+                >
+                  Set
+                </Button>
+              }
             >
-              📋 {p.playerName} (Seat {p.seat}):{' '}
-              {p.characterId === 'marionette'
+              📋 {participant.name}
+              {participant.seatNumber !== null ? ` (Seat ${participant.seatNumber})` : ''}:{' '}
+              {participant.state.characterId === 'marionette'
                 ? 'Choose which good character the Marionette believes they are'
                 : 'Choose which Townsfolk the Drunk believes they are'}
             </Alert>
           ))}
 
-        {/* Distribution Rule */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, flexWrap: 'wrap' }}>
+          <TextField
+            label="Player Count"
+            type="number"
+            size="small"
+            value={effectivePlayerCount}
+            onChange={(event) => handlePlayerCountChange(event.target.value)}
+            inputProps={{ min: 0 }}
+            sx={{ width: 140 }}
+          />
+          {playerCountOverride !== null && (
+            <Button size="small" onClick={() => onPlayerCountChange(null)}>
+              Reset
+            </Button>
+          )}
+          <Typography variant="body2" color="text.secondary">
+            Default: {participantCount} participants
+          </Typography>
+        </Box>
+
         <Typography variant="subtitle2" gutterBottom>
-          Distribution ({nonTravellers.length} players)
+          Distribution ({effectivePlayerCount} players)
         </Typography>
         <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap' }}>
           {(
@@ -420,27 +513,24 @@ export function CharacterAssignmentDialog({
           ))}
         </Box>
 
-        {totalAssigned !== expectedCount && (
+        {totalAssigned !== effectivePlayerCount && (
           <Typography variant="body2" color="warning.main" sx={{ mb: 1 }}>
-            Distribution total ({totalAssigned}) ≠ player count ({expectedCount})
+            Distribution total ({totalAssigned}) ≠ player count ({effectivePlayerCount})
           </Typography>
         )}
 
-        {/* Script-aware distribution suggestions */}
         {suggestions.map((s, i) => (
           <Alert key={`suggestion-${i}`} severity="info" sx={{ mb: 1 }}>
             {s.reason}
           </Alert>
         ))}
 
-        {/* Distribution warnings (soft, not blocking) */}
         {distWarnings.map((w, i) => (
           <Alert key={`warning-${i}`} severity={w.severity} sx={{ mb: 1 }}>
             {w.message}
           </Alert>
         ))}
 
-        {/* Setup distribution modifiers */}
         {setupModifiers.length > 0 && (
           <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1.5 }}>
             {setupModifiers.map((m) => (
@@ -455,7 +545,6 @@ export function CharacterAssignmentDialog({
           </Box>
         )}
 
-        {/* Net adjustments */}
         {typeof netAdjustment.outsiders === 'number' && netAdjustment.outsiders !== 0 && (
           <Typography variant="body2" sx={{ mb: 0.5, fontWeight: 600 }}>
             Net Outsider adjustment: {netAdjustment.outsiders > 0 ? '+' : ''}
@@ -479,14 +568,12 @@ export function CharacterAssignmentDialog({
           </Typography>
         )}
 
-        {/* Required character warnings */}
         {requiredCharacters.map((req) => (
           <Alert key={`req-${req.sourceCharacterId}`} severity="warning" sx={{ mb: 1 }}>
             ⚠️ {req.reason}
           </Alert>
         ))}
 
-        {/* Setup prompts (e.g. Bounty Hunter evil townsfolk) */}
         {setupPrompts.map((sp) => (
           <Alert key={`prompt-${sp.characterId}`} severity="info" sx={{ mb: 1 }}>
             📋 {sp.characterName}: {sp.prompt}
@@ -496,6 +583,9 @@ export function CharacterAssignmentDialog({
         <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
           <Button variant="outlined" startIcon={<CasinoIcon />} onClick={handleRandomize}>
             Randomize
+          </Button>
+          <Button variant="outlined" color="warning" onClick={handleClearAll}>
+            Clear All
           </Button>
         </Box>
 
@@ -507,7 +597,6 @@ export function CharacterAssignmentDialog({
 
         <Divider sx={{ mb: 2 }} />
 
-        {/* Unassigned Characters — tappable chips with character icons */}
         {unassignedPool.length > 0 && (
           <>
             <Typography variant="subtitle2" gutterBottom>
@@ -544,7 +633,7 @@ export function CharacterAssignmentDialog({
             </Box>
             {selectedChipId && (
               <Typography variant="body2" color="primary" sx={{ mb: 1 }}>
-                Tap a seat below to assign{' '}
+                Tap a player below to assign{' '}
                 {scriptCharacters.find((c) => c.id === selectedChipId)?.name ?? selectedChipId}
               </Typography>
             )}
@@ -552,86 +641,95 @@ export function CharacterAssignmentDialog({
           </>
         )}
 
-        {/* Player Assignments */}
         <Typography variant="subtitle2" gutterBottom>
           Player Assignments
         </Typography>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          {localPlayers
-            .filter((p) => !p.isTraveller)
-            .map((player) => {
-              const isMarionetteValid =
-                selectedChipId === 'marionette' && marionetteSeats.includes(player.seat);
-              const selectValue = dropdownCharacters.some(
-                (character) => character.id === player.characterId,
-              )
-                ? player.characterId
-                : '';
-              return (
-                <Box
-                  key={player.seat}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    cursor: selectedChipId ? 'pointer' : 'default',
-                    borderRadius: 1,
-                    p: 0.5,
-                    backgroundColor: isMarionetteValid ? 'success.light' : undefined,
-                    border: selectedChipId && !player.characterId ? '1px dashed' : undefined,
-                    borderColor: selectedChipId ? 'primary.main' : undefined,
-                    '&:hover': selectedChipId ? { backgroundColor: 'action.hover' } : undefined,
-                  }}
-                  onClick={() => handleSeatClick(player.seat)}
-                  data-testid={`seat-row-${player.seat}`}
-                >
-                  <Chip
-                    label={player.seat}
+          {nonTravellerParticipants.map((participant) => {
+            const characterId = participant.state.characterId;
+            const isMarionetteValid =
+              selectedChipId === 'marionette' &&
+              participant.seatNumber !== null &&
+              marionetteSeats.includes(participant.seatNumber);
+            const selectValue = dropdownCharacters.some((character) => character.id === characterId)
+              ? characterId
+              : '';
+            return (
+              <Box
+                key={participant.playerId}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  cursor: selectedChipId ? 'pointer' : 'default',
+                  borderRadius: 1,
+                  p: 0.5,
+                  backgroundColor: isMarionetteValid ? 'success.light' : undefined,
+                  border: selectedChipId && !characterId ? '1px dashed' : undefined,
+                  borderColor: selectedChipId ? 'primary.main' : undefined,
+                  '&:hover': selectedChipId ? { backgroundColor: 'action.hover' } : undefined,
+                }}
+                onClick={() => handleSeatClick(participant.playerId)}
+                data-testid={`seat-row-${participant.seatNumber ?? participant.playerId}`}
+              >
+                <Chip
+                  label={participant.seatNumber ?? '—'}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  sx={{ minWidth: 32 }}
+                />
+                <Typography variant="body2" sx={{ minWidth: 90, flexShrink: 0 }} noWrap>
+                  {participant.name}
+                </Typography>
+                <FormControl size="small" fullWidth>
+                  <InputLabel id={`char-select-${participant.playerId}`}>Character</InputLabel>
+                  <Select
+                    labelId={`char-select-${participant.playerId}`}
+                    value={selectValue}
+                    label="Character"
+                    onChange={(e) => handleCharacterChange(participant.playerId, e.target.value)}
+                  >
+                    <MenuItem value="">
+                      <em>None</em>
+                    </MenuItem>
+                    {dropdownCharacters.map((c) => {
+                      const assignedCount = assignedCounts.get(c.id) ?? 0;
+                      const isCurrentPlayer = characterId === c.id;
+                      const isDisabled = inPlayCharacterIds
+                        ? !isCurrentPlayer && assignedCount >= (totalAvailableCounts.get(c.id) ?? 0)
+                        : assignedCount > 0 && !isCurrentPlayer && !duplicateAllowedIds.has(c.id);
+                      return (
+                        <MenuItem
+                          key={c.id}
+                          value={c.id}
+                          disabled={isDisabled}
+                          sx={{
+                            color: getCharacterTypeColor(c.type),
+                            opacity: isDisabled ? 0.4 : 1,
+                          }}
+                        >
+                          {c.name} ({c.type})
+                        </MenuItem>
+                      );
+                    })}
+                  </Select>
+                </FormControl>
+                {CONCEALMENT_CHARACTERS.has(characterId) && (
+                  <Button
                     size="small"
-                    color="primary"
                     variant="outlined"
-                    sx={{ minWidth: 32 }}
-                  />
-                  <Typography variant="body2" sx={{ minWidth: 90, flexShrink: 0 }} noWrap>
-                    {player.playerName}
-                  </Typography>
-                  <FormControl size="small" fullWidth>
-                    <InputLabel id={`char-select-${player.seat}`}>Character</InputLabel>
-                    <Select
-                      labelId={`char-select-${player.seat}`}
-                      value={selectValue}
-                      label="Character"
-                      onChange={(e) => handleCharacterChange(player.seat, e.target.value)}
-                    >
-                      <MenuItem value="">
-                        <em>None</em>
-                      </MenuItem>
-                      {dropdownCharacters.map((c) => {
-                        const assignedCount = assignedCounts.get(c.id) ?? 0;
-                        const isCurrentPlayer = player.characterId === c.id;
-                        const isDisabled = inPlayCharacterIds
-                          ? !isCurrentPlayer &&
-                            assignedCount >= (totalAvailableCounts.get(c.id) ?? 0)
-                          : assignedCount > 0 && !isCurrentPlayer && !duplicateAllowedIds.has(c.id);
-                        return (
-                          <MenuItem
-                            key={c.id}
-                            value={c.id}
-                            disabled={isDisabled}
-                            sx={{
-                              color: getCharacterTypeColor(c.type),
-                              opacity: isDisabled ? 0.4 : 1,
-                            }}
-                          >
-                            {c.name} ({c.type})
-                          </MenuItem>
-                        );
-                      })}
-                    </Select>
-                  </FormControl>
-                </Box>
-              );
-            })}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      setApparentDialogPlayerId(participant.playerId);
+                    }}
+                  >
+                    Apparent
+                  </Button>
+                )}
+              </Box>
+            );
+          })}
         </Box>
       </DialogContent>
 
@@ -641,6 +739,23 @@ export function CharacterAssignmentDialog({
           Confirm
         </Button>
       </DialogActions>
+
+      {apparentDialogParticipant && apparentDialogCharacter && (
+        <ApparentCharacterDialog
+          open={apparentDialogPlayerId !== null}
+          onClose={() => setApparentDialogPlayerId(null)}
+          playerId={apparentDialogParticipant.playerId}
+          playerName={apparentDialogParticipant.name}
+          currentApparentCharacterId={apparentDialogParticipant.state.apparentCharacterId}
+          actualCharacter={apparentDialogCharacter}
+          scriptCharacters={scriptCharacters}
+          onConfirm={handleApparentConfirm}
+        />
+      )}
     </Dialog>
   );
+}
+
+function indexForParticipant(participants: Participant[], playerId: PlayerId): number {
+  return participants.findIndex((participant) => participant.playerId === playerId);
 }

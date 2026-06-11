@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
+import type { ChangeEvent } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -14,21 +15,24 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import ListItemText from '@mui/material/ListItemText';
-import Paper from '@mui/material/Paper';
-import Switch from '@mui/material/Switch';
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
 import TextField from '@mui/material/TextField';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import DeleteIcon from '@mui/icons-material/Delete';
-import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import SyncIcon from '@mui/icons-material/Sync';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import {
   DndContext,
@@ -40,23 +44,21 @@ import {
   useSensors,
   type DragEndEvent,
 } from '@dnd-kit/core';
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  useSortable,
-  verticalListSortingStrategy,
-  arrayMove,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { useSession } from '@/context/useSession.ts';
 import { useApiSync } from '@/hooks/useApiSync.ts';
 import { importScript } from '@/utils/scriptImporter.ts';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { ScriptBuilder } from '@/components/ScriptBuilder/ScriptBuilder.tsx';
-import { ShiftSeatsDialog } from '@/components/common/ShiftSeatsDialog.tsx';
-import type { Script } from '@/types/index.ts';
+import {
+  SeatingTemplateCircle,
+  SEAT_DROPPABLE_PREFIX,
+  SLOT_DRAGGABLE_PREFIX,
+  SLOT_POSITION_DROPPABLE_PREFIX,
+} from '@/components/Setup/SeatingTemplateCircle.tsx';
+import type { Player, Script } from '@/types/index.ts';
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import { getPlayerColorById } from '@/utils/playerColor.ts';
 
-const MIN_PLAYERS = 5;
 const MAX_PLAYERS = 20;
 
 export function SessionSetupPage() {
@@ -65,50 +67,58 @@ export function SessionSetupPage() {
   const {
     state,
     updateSession,
+    addPlayer,
+    renamePlayer,
+    removePlayer,
+    addTemplateSeat,
+    addTemplateSpacer,
+    addTemplateStoryteller,
+    removeTemplateSlot,
+    moveTemplateSlot,
+    assignTemplateSeat,
     addGameToSession,
+    applyTemplateToGame,
     selectGame,
     deleteGame,
-    shiftSessionPlayers,
-    insertSessionPlayerSlot,
   } = useSession();
   const { syncScript } = useApiSync();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const session = state.sessions.find((s) => s.id === sessionId);
 
-  // Local state for editing
   const [sessionName, setSessionName] = useState('');
-  const [players, setPlayers] = useState<Array<{ seat: number; playerName: string }>>([]);
+  const [newPlayerName, setNewPlayerName] = useState('');
   const [script, setScript] = useState<Script | null>(null);
   const [scriptError, setScriptError] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
   const [scriptBuilderOpen, setScriptBuilderOpen] = useState(false);
-  const [shiftDialogOpen, setShiftDialogOpen] = useState(false);
-  const [reuseLastSeating, setReuseLastSeating] = useState(true);
 
-  // Initialize local state from session
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
+    useSensor(KeyboardSensor),
+  );
+
+  const theme = useTheme();
+  const isSmallViewport = useMediaQuery(theme.breakpoints.down('sm'));
+
   useEffect(() => {
     if (session) {
       setSessionName(session.name);
-      setPlayers([...session.defaultPlayers]);
     }
   }, [session]);
 
-  // Load script info from localStorage if a scriptId exists
   useEffect(() => {
     if (session?.defaultScriptId) {
       try {
         const raw = localStorage.getItem(`storyteller-script-${session.defaultScriptId}`);
-        if (raw) {
-          setScript(JSON.parse(raw) as Script);
-        }
+        setScript(raw ? (JSON.parse(raw) as Script) : null);
       } catch {
-        // Ignore parse errors
+        setScript(null);
       }
     }
   }, [session?.defaultScriptId]);
 
-  // ── Debounced save for session name ──
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const debouncedSaveName = useCallback(
@@ -123,112 +133,93 @@ export function SessionSetupPage() {
     [sessionId, updateSession],
   );
 
+  const displaySeatNumbers = useMemo(
+    () => buildDisplaySeatNumberMap(session?.template.slots ?? []),
+    [session?.template.slots],
+  );
+
+  const seatedPlayerIds = useMemo(
+    () =>
+      new Set(
+        (session?.template.slots ?? [])
+          .filter((slot): slot is Extract<Slot, { kind: 'seat' }> => slot.kind === 'seat')
+          .map((slot) => slot.playerId)
+          .filter((playerId): playerId is string => playerId !== null),
+      ),
+    [session?.template.slots],
+  );
+
+  const parkedPlayers = useMemo(
+    () => session?.players.filter((player) => !seatedPlayerIds.has(player.id)) ?? [],
+    [session?.players, seatedPlayerIds],
+  );
+
   const handleNameChange = (value: string) => {
     setSessionName(value);
     debouncedSaveName(value);
   };
 
-  // ── Player management ──
-
-  // Drag-and-drop sensors
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
-  );
-
-  const savePlayers = useCallback(
-    (updated: Array<{ seat: number; playerName: string }>) => {
-      if (sessionId) {
-        updateSession(sessionId, { defaultPlayers: updated });
-      }
-    },
-    [sessionId, updateSession],
-  );
-
-  const handlePlayerNameChange = (seat: number, name: string) => {
-    const updated = players.map((p) => (p.seat === seat ? { ...p, playerName: name } : p));
-    setPlayers(updated);
-    savePlayers(updated);
-  };
-
-  const handleAddPlayer = () => {
-    if (players.length >= MAX_PLAYERS) return;
-    const newSeat = players.length + 1;
-    const updated = [...players, { seat: newSeat, playerName: `Player ${newSeat}` }];
-    setPlayers(updated);
-    savePlayers(updated);
-  };
-
-  const handleAddPlayerAtSeat = (seat: number, playerName: string) => {
-    if (!sessionId || players.length >= MAX_PLAYERS) return;
-    insertSessionPlayerSlot(sessionId, seat, playerName);
-    const updated = [
-      ...players.map((player) =>
-        player.seat >= seat ? { ...player, seat: player.seat + 1 } : player,
-      ),
-      { seat, playerName },
-    ].sort((a, b) => a.seat - b.seat);
-    setPlayers(updated);
-  };
-
-  const handleShiftSeats = (startSeat: number, shiftBy: number) => {
-    if (!sessionId) return;
-    shiftSessionPlayers(sessionId, startSeat, shiftBy);
-    const affected = players
-      .filter((player) => player.seat >= startSeat)
-      .sort((a, b) => a.seat - b.seat);
-    if (affected.length <= 1) return;
-    const normalizedShift = ((shiftBy % affected.length) + affected.length) % affected.length;
-    const seatMap = new Map<number, number>();
-    affected.forEach((player, index) => {
-      const targetIndex = (index + normalizedShift) % affected.length;
-      seatMap.set(player.seat, affected[targetIndex].seat);
-    });
-    setPlayers(
-      players
-        .map((player) => ({ ...player, seat: seatMap.get(player.seat) ?? player.seat }))
-        .sort((a, b) => a.seat - b.seat),
-    );
-  };
-
-  const handleInsertEmptySeat = (seat: number) => {
-    handleAddPlayerAtSeat(seat, '');
-  };
-
-  const handleRemovePlayer = (seat: number) => {
-    if (players.length <= MIN_PLAYERS) return;
-    // Remove player and re-number seats
-    const filtered = players.filter((p) => p.seat !== seat);
-    const renumbered = filtered.map((p, i) => ({ ...p, seat: i + 1 }));
-    setPlayers(renumbered);
-    savePlayers(renumbered);
+  const handleAddRosterPlayer = () => {
+    if (!sessionId || !newPlayerName.trim() || (session?.players.length ?? 0) >= MAX_PLAYERS)
+      return;
+    addPlayer(sessionId, newPlayerName.trim());
+    setNewPlayerName('');
   };
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      if (!over || active.id === over.id) return;
+      if (!sessionId || !session || !over) return;
+      const activeId = String(active.id);
+      const overId = String(over.id);
 
-      const oldIndex = players.findIndex((p) => String(p.seat) === String(active.id));
-      const newIndex = players.findIndex((p) => String(p.seat) === String(over.id));
-      if (oldIndex === -1 || newIndex === -1) return;
+      if (activeId.startsWith(SLOT_DRAGGABLE_PREFIX)) {
+        const slotId = activeId.slice(SLOT_DRAGGABLE_PREFIX.length);
+        let targetSlotId: string | null = null;
+        if (overId.startsWith(SLOT_POSITION_DROPPABLE_PREFIX)) {
+          targetSlotId = overId.slice(SLOT_POSITION_DROPPABLE_PREFIX.length);
+        } else if (overId.startsWith(SEAT_DROPPABLE_PREFIX)) {
+          // Inner SeatCell droppable overlaps the SlotPositionWrapper. When
+          // collision detection resolves to the inner one, still treat it as a
+          // reorder target so the drop doesn't silently no-op.
+          targetSlotId = overId.slice(SEAT_DROPPABLE_PREFIX.length);
+        }
+        if (!targetSlotId || slotId === targetSlotId) return;
+        const toIndex = session.template.slots.findIndex((s) => s.id === targetSlotId);
+        if (toIndex === -1) return;
+        moveTemplateSlot(sessionId, slotId, toIndex);
+        return;
+      }
 
-      const reordered = arrayMove(players, oldIndex, newIndex);
-      const renumbered = reordered.map((p, i) => ({ ...p, seat: i + 1 }));
-      setPlayers(renumbered);
-      savePlayers(renumbered);
+      if (overId.startsWith(SEAT_DROPPABLE_PREFIX)) {
+        const slotId = overId.slice(SEAT_DROPPABLE_PREFIX.length);
+        const playerId = activeId.startsWith('rosterplayer:')
+          ? activeId.slice('rosterplayer:'.length)
+          : null;
+        if (!playerId) return;
+        assignTemplateSeat(sessionId, slotId, playerId);
+      }
     },
-    [players, savePlayers],
+    [assignTemplateSeat, moveTemplateSlot, session, sessionId],
   );
 
-  // ── Script import ──
+  const handleAddSeatsForAllPlayers = () => {
+    if (!sessionId || !session) return;
+    const seatedCount = session.template.slots.filter((s) => s.kind === 'seat').length;
+    const need = Math.max(0, session.players.length - seatedCount);
+    for (let i = 0; i < need; i++) addTemplateSeat(sessionId);
+  };
+
+  const handleApplyTemplateToAllGames = () => {
+    if (!sessionId || !session) return;
+    session.gameIds.forEach((gid) => applyTemplateToGame(sessionId, gid));
+  };
 
   const handleImportClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     setScriptError(null);
     const file = e.target.files?.[0];
     if (!file) return;
@@ -239,7 +230,6 @@ export function SessionSetupPage() {
       const json: unknown = JSON.parse(text);
       const parsed = importScript(json);
 
-      // Save script to localStorage
       localStorage.setItem(`storyteller-script-${parsed.id}`, JSON.stringify(parsed));
       syncScript(parsed);
 
@@ -253,17 +243,14 @@ export function SessionSetupPage() {
       setImporting(false);
     }
 
-    // Reset file input so same file can be re-uploaded
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
 
-  // ── Game management ──
-
   const handleCreateGame = () => {
     if (!sessionId) return;
-    addGameToSession(sessionId, reuseLastSeating);
+    addGameToSession(sessionId);
   };
 
   const handleOpenGame = (gameId: string) => {
@@ -277,11 +264,9 @@ export function SessionSetupPage() {
     deleteGame(sessionId, gameId);
   };
 
-  // ── Guard: session not found ──
-
-  if (!session) {
+  if (!session || !sessionId) {
     return (
-      <Container maxWidth="sm" sx={{ py: 4, textAlign: 'center' }}>
+      <Container maxWidth="lg" sx={{ py: 4, textAlign: 'center' }}>
         <Typography variant="h6" color="error">
           Session not found
         </Typography>
@@ -311,188 +296,248 @@ export function SessionSetupPage() {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="sm" sx={{ pt: 2 }}>
-        {/* ── Section A: Session Info ── */}
-        <Paper sx={{ p: 2, mb: 3 }} elevation={1}>
-          <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-            Session Info
-          </Typography>
-
-          <TextField
-            fullWidth
-            label="Session Name"
-            variant="outlined"
-            size="small"
-            value={sessionName}
-            onChange={(e) => handleNameChange(e.target.value)}
-            sx={{ mb: 2 }}
-          />
-
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-            <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
-              Script: {script ? script.name : 'None selected'}
-              {script?.author ? ` (by ${script.author})` : ''}
+      <Container maxWidth="lg" sx={{ pt: 2 }}>
+        <Accordion defaultExpanded sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Session Info
             </Typography>
-            <Button
+          </AccordionSummary>
+          <AccordionDetails>
+            <TextField
+              fullWidth
+              label="Session Name"
               variant="outlined"
               size="small"
-              startIcon={<UploadFileIcon />}
-              onClick={handleImportClick}
-            >
-              Import Script
-            </Button>
-            <Button
-              variant="outlined"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={() => setScriptBuilderOpen(true)}
-            >
-              Create Script
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".json"
-              hidden
-              onChange={(e) => void handleFileUpload(e)}
+              value={sessionName}
+              onChange={(e) => handleNameChange(e.target.value)}
+              sx={{ mb: 2 }}
             />
-          </Box>
 
-          {importing && <LoadingState message="Importing script…" />}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Typography variant="body2" color="text.secondary" sx={{ flexGrow: 1 }}>
+                Script: {script ? script.name : 'None selected'}
+                {script?.author ? ` (by ${script.author})` : ''}
+              </Typography>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<UploadFileIcon />}
+                onClick={handleImportClick}
+              >
+                Import Script
+              </Button>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => setScriptBuilderOpen(true)}
+              >
+                Create Script
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json"
+                hidden
+                onChange={(e) => void handleFileUpload(e)}
+              />
+            </Box>
 
-          {scriptError && (
-            <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-              {scriptError}
+            {importing && <LoadingState message="Importing script…" />}
+
+            {scriptError && (
+              <Typography variant="body2" color="error" sx={{ mt: 1 }}>
+                {scriptError}
+              </Typography>
+            )}
+
+            {script && !importing && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                {script.characterIds.length} characters
+              </Typography>
+            )}
+          </AccordionDetails>
+        </Accordion>
+
+        <Accordion defaultExpanded sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Player Roster ({session.players.length})
             </Typography>
-          )}
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                label="New player name"
+                value={newPlayerName}
+                onChange={(e) => setNewPlayerName(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleAddRosterPlayer();
+                }}
+              />
+              <Button
+                variant="outlined"
+                startIcon={<AddIcon />}
+                onClick={handleAddRosterPlayer}
+                disabled={!newPlayerName.trim() || session.players.length >= MAX_PLAYERS}
+              >
+                Add
+              </Button>
+            </Box>
+            <Grid container spacing={1}>
+              {session.players.map((player) => (
+                <RosterPlayerItem
+                  key={player.id}
+                  player={player}
+                  seated={seatedPlayerIds.has(player.id)}
+                  rosterIds={session.players.map((p) => p.id)}
+                  onNameChange={(name) => renamePlayer(session.id, player.id, name)}
+                  onRemove={() => removePlayer(session.id, player.id)}
+                />
+              ))}
+            </Grid>
+            {parkedPlayers.length > 0 && (
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                Parking lot: {parkedPlayers.map((player) => player.name).join(', ')}
+              </Typography>
+            )}
+          </AccordionDetails>
+        </Accordion>
 
-          {script && !importing && (
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-              {script.characterIds.length} characters
+        <Accordion defaultExpanded sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">
+              Seating Template ({displaySeatNumbers.size} seats)
             </Typography>
-          )}
-        </Paper>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, flexWrap: 'wrap' }}>
+              <Button
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={() => addTemplateSeat(session.id)}
+              >
+                Add Seat
+              </Button>
+              <Button size="small" onClick={() => addTemplateSpacer(session.id)}>
+                Add Spacer
+              </Button>
+              <Button
+                size="small"
+                onClick={() => addTemplateStoryteller(session.id)}
+                disabled={session.template.slots.some((slot) => slot.kind === 'storyteller')}
+              >
+                Add Storyteller
+              </Button>
+              <Button size="small" onClick={handleAddSeatsForAllPlayers}>
+                Add seats for all players
+              </Button>
+              {session.gameIds.length > 0 && (
+                <Button
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                  onClick={handleApplyTemplateToAllGames}
+                  sx={{ ml: 'auto' }}
+                >
+                  Apply template to all games
+                </Button>
+              )}
+            </Box>
 
-        {/* ── Section B: Default Players ── */}
-        <Paper sx={{ p: 2, mb: 3 }} elevation={1}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ flexGrow: 1 }}>
-              Default Players ({players.length})
-            </Typography>
-            <Button
-              size="small"
-              onClick={() => setShiftDialogOpen(true)}
-              disabled={players.length >= MAX_PLAYERS}
-            >
-              Shift / Insert
-            </Button>
-            <Button
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={handleAddPlayer}
-              disabled={players.length >= MAX_PLAYERS}
-            >
-              Add Player
-            </Button>
-          </Box>
-
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext
-              items={players.map((p) => String(p.seat))}
-              strategy={verticalListSortingStrategy}
-            >
-              <Grid container spacing={1}>
-                {players.map((player) => (
-                  <SortablePlayerItem
-                    key={player.seat}
-                    player={player}
-                    onNameChange={handlePlayerNameChange}
-                    onRemove={handleRemovePlayer}
-                    removeDisabled={players.length <= MIN_PLAYERS}
+            {session.template.slots.length === 0 ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ py: 2, textAlign: 'center' }}
+              >
+                No seating slots yet. Add seats, spacers, or a storyteller marker.
+              </Typography>
+            ) : (
+              <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+              >
+                <Box
+                  sx={{
+                    position: 'relative',
+                    width: '100%',
+                    height: { xs: 560, sm: 560, md: 640 },
+                  }}
+                >
+                  <SeatingTemplateCircle
+                    slots={session.template.slots}
+                    players={session.players}
+                    displaySeatNumbers={displaySeatNumbers}
+                    shape={isSmallViewport ? 'ovoid' : 'circle'}
+                    onAssignSeat={(slotId, playerId) =>
+                      assignTemplateSeat(session.id, slotId, playerId)
+                    }
+                    onRemoveSlot={(slotId) => removeTemplateSlot(session.id, slotId)}
                   />
-                ))}
-              </Grid>
-            </SortableContext>
-          </DndContext>
-          <ShiftSeatsDialog
-            open={shiftDialogOpen}
-            players={players}
-            onClose={() => setShiftDialogOpen(false)}
-            onAddPlayerAtSeat={handleAddPlayerAtSeat}
-            onShiftSeats={handleShiftSeats}
-            onInsertEmptySeat={handleInsertEmptySeat}
-          />
-        </Paper>
+                </Box>
+              </DndContext>
+            )}
+          </AccordionDetails>
+        </Accordion>
 
-        {/* ── Section C: Games List ── */}
-        <Paper sx={{ p: 2 }} elevation={1}>
-          <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ flexGrow: 1 }}>
+        <Accordion defaultExpanded sx={{ mb: 2 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="subtitle1" fontWeight="bold">
               Games ({session.gameIds.length})
             </Typography>
-            {session.gameIds.length > 0 && (
-              <FormControlLabel
-                control={
-                  <Switch
-                    size="small"
-                    checked={reuseLastSeating}
-                    onChange={(_, checked) => setReuseLastSeating(checked)}
-                  />
-                }
-                label={
-                  <Typography variant="caption" color="text.secondary">
-                    Reuse last seating
-                  </Typography>
-                }
-                sx={{ mr: 1 }}
-              />
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Box sx={{ flexGrow: 1 }} />
+              <Button
+                variant="contained"
+                size="small"
+                startIcon={<AddIcon />}
+                onClick={handleCreateGame}
+              >
+                New Game
+              </Button>
+            </Box>
+            {session.gameIds.length === 0 ? (
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                sx={{ py: 2, textAlign: 'center' }}
+              >
+                No games yet. Create your first game to start playing.
+              </Typography>
+            ) : (
+              <>
+                <Divider sx={{ mb: 1 }} />
+                <List disablePadding>
+                  {session.gameIds.map((gameId, index) => (
+                    <GameListItem
+                      key={gameId}
+                      gameId={gameId}
+                      gameNumber={index + 1}
+                      onClick={() => handleOpenGame(gameId)}
+                      onDelete={() => handleDeleteGame(gameId)}
+                      onApplyTemplate={() => applyTemplateToGame(session.id, gameId)}
+                    />
+                  ))}
+                </List>
+              </>
             )}
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<AddIcon />}
-              onClick={handleCreateGame}
-            >
-              New Game
-            </Button>
-          </Box>
+          </AccordionDetails>
+        </Accordion>
 
-          {session.gameIds.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
-              No games yet. Create your first game to start playing.
-            </Typography>
-          ) : (
-            <>
-              <Divider sx={{ mb: 1 }} />
-              <List disablePadding>
-                {session.gameIds.map((gameId, index) => (
-                  <GameListItem
-                    key={gameId}
-                    gameId={gameId}
-                    gameNumber={index + 1}
-                    onClick={() => handleOpenGame(gameId)}
-                    onDelete={() => handleDeleteGame(gameId)}
-                  />
-                ))}
-              </List>
-            </>
-          )}
-        </Paper>
-
-        {/* ── Script Builder Dialog ── */}
         <ScriptBuilder
           open={scriptBuilderOpen}
           onClose={() => setScriptBuilderOpen(false)}
           onSave={(newScript) => {
             syncScript(newScript);
             setScript(newScript);
-            if (sessionId) {
-              updateSession(sessionId, { defaultScriptId: newScript.id });
-            }
+            updateSession(session.id, { defaultScriptId: newScript.id });
           }}
         />
       </Container>
@@ -500,67 +545,44 @@ export function SessionSetupPage() {
   );
 }
 
-// ──────────────────────────────────────────────
-// Sub-component: Game list item
-// ──────────────────────────────────────────────
-
-// ──────────────────────────────────────────────
-// Sub-component: Sortable default-player item
-// ──────────────────────────────────────────────
-
-function SortablePlayerItem({
+function RosterPlayerItem({
   player,
+  seated,
+  rosterIds,
   onNameChange,
   onRemove,
-  removeDisabled,
 }: {
-  player: { seat: number; playerName: string };
-  onNameChange: (seat: number, name: string) => void;
-  onRemove: (seat: number) => void;
-  removeDisabled: boolean;
+  player: Player;
+  seated: boolean;
+  rosterIds: string[];
+  onNameChange: (name: string) => void;
+  onRemove: () => void;
 }) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: String(player.seat),
-  });
-
-  const style: React.CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition: transition ?? undefined,
-    opacity: isDragging ? 0.5 : 1,
-  };
-
+  const color = getPlayerColorById(player.id, rosterIds);
   return (
-    <Grid size={{ xs: 12 }} ref={setNodeRef} style={style}>
+    <Grid size={{ xs: 12 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box
-          component="span"
-          {...attributes}
-          {...listeners}
-          sx={{ display: 'flex', cursor: 'grab', touchAction: 'none' }}
-          aria-label={`reorder player ${player.seat}`}
-        >
-          <DragIndicatorIcon fontSize="small" sx={{ color: 'text.secondary' }} />
-        </Box>
         <Chip
-          label={player.seat}
+          label={seated ? 'Seated' : 'Parked'}
           size="small"
-          color="primary"
-          variant="outlined"
-          sx={{ minWidth: 32 }}
+          variant={seated ? 'filled' : 'outlined'}
+          sx={
+            seated
+              ? { bgcolor: color, color: '#fff', borderColor: color }
+              : { color, borderColor: color }
+          }
         />
         <TextField
           fullWidth
           size="small"
           variant="outlined"
-          value={player.playerName}
-          onChange={(e) => onNameChange(player.seat, e.target.value)}
-          placeholder={`Player ${player.seat}`}
+          value={player.name}
+          onChange={(e) => onNameChange(e.target.value)}
         />
         <IconButton
           size="small"
-          aria-label={`remove player ${player.seat}`}
-          onClick={() => onRemove(player.seat)}
-          disabled={removeDisabled}
+          aria-label={`remove ${player.name}`}
+          onClick={onRemove}
           color="error"
         >
           <DeleteIcon fontSize="small" />
@@ -570,20 +592,18 @@ function SortablePlayerItem({
   );
 }
 
-// ──────────────────────────────────────────────
-// Sub-component: Game list item
-// ──────────────────────────────────────────────
-
 function GameListItem({
   gameId,
   gameNumber,
   onClick,
   onDelete,
+  onApplyTemplate,
 }: {
   gameId: string;
   gameNumber: number;
   onClick: () => void;
   onDelete: () => void;
+  onApplyTemplate: () => void;
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [phase] = useState<string>(() => {
@@ -616,6 +636,16 @@ function GameListItem({
           <CardActions>
             <IconButton
               size="small"
+              color="primary"
+              aria-label={`apply template to game ${gameNumber}`}
+              onClick={onApplyTemplate}
+              data-testid={`apply-template-${gameId}`}
+              title="Apply current template to this game"
+            >
+              <SyncIcon fontSize="small" />
+            </IconButton>
+            <IconButton
+              size="small"
               color="error"
               aria-label={`delete game ${gameNumber}`}
               onClick={() => setConfirmOpen(true)}
@@ -627,7 +657,6 @@ function GameListItem({
         </Box>
       </Card>
 
-      {/* Delete confirmation dialog */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs">
         <DialogTitle>Delete Game {gameNumber}?</DialogTitle>
         <DialogContent>

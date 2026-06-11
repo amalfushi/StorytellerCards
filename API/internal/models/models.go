@@ -88,7 +88,7 @@ type Script struct {
 }
 
 // ──────────────────────────────────────────────
-// Player / Seat
+// Player (session-level identity)
 // ──────────────────────────────────────────────
 
 type PlayerToken struct {
@@ -99,19 +99,85 @@ type PlayerToken struct {
 	Color             string `json:"color,omitempty"`
 }
 
-type PlayerSeat struct {
-	Seat                int           `json:"seat"`
-	PlayerName          string        `json:"playerName"`
-	CharacterID         string        `json:"characterId"`
-	Alive               bool          `json:"alive"`
-	GhostVoteUsed       bool          `json:"ghostVoteUsed"`
-	VisibleAlignment    Alignment     `json:"visibleAlignment"`
-	ActualAlignment     Alignment     `json:"actualAlignment"`
-	StartingAlignment   Alignment     `json:"startingAlignment"`
-	ActiveReminders     []string      `json:"activeReminders"`
-	IsTraveller         bool          `json:"isTraveller"`
-	Tokens              []PlayerToken `json:"tokens,omitempty"`
-	ApparentCharacterID string        `json:"apparentCharacterId,omitempty"`
+// Player is a session-level identity. Players are not tied to a seat or game.
+type Player struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
+// ──────────────────────────────────────────────
+// Slot (seat / spacer / storyteller marker)
+// ──────────────────────────────────────────────
+
+// SlotKind discriminates the Slot union: "seat" | "spacer" | "storyteller".
+type SlotKind string
+
+const (
+	SlotSeat        SlotKind = "seat"
+	SlotSpacer      SlotKind = "spacer"
+	SlotStoryteller SlotKind = "storyteller"
+)
+
+// Slot models the TypeScript discriminated union. Only seat slots carry a PlayerID.
+type Slot struct {
+	Kind     SlotKind `json:"kind"`
+	ID       string   `json:"id"`
+	PlayerID string   `json:"playerId,omitempty"` // seat only; "" when unassigned
+}
+
+// SeatingTemplate is the session-level circle definition that games snapshot from.
+type SeatingTemplate struct {
+	Slots []Slot `json:"slots"`
+}
+
+// PropagationPreference is the sticky session default for "update template /
+// update other games" toggles on seat-assignment actions.
+type PropagationPreference struct {
+	ToTemplate   bool `json:"toTemplate"`
+	ToOtherGames bool `json:"toOtherGames"`
+}
+
+// ──────────────────────────────────────────────
+// Game participation
+// ──────────────────────────────────────────────
+
+// Participant links a Player to a Game with traveller status. Decoupled from
+// Slot so a player can be in the game without a seat (and vice-versa).
+type Participant struct {
+	PlayerID    string `json:"playerId"`
+	IsTraveller bool   `json:"isTraveller"`
+}
+
+// AlignmentChange records a single visible/actual alignment transition.
+type AlignmentChange struct {
+	Day      int       `json:"day"`
+	Phase    Phase     `json:"phase"`
+	OldValue Alignment `json:"oldValue"`
+	NewValue Alignment `json:"newValue"`
+	Note     string    `json:"note,omitempty"`
+}
+
+// GainedAbility represents a lazily-applied character ability (Cannibal / Philo).
+type GainedAbility struct {
+	SourceCharacterID string `json:"sourceCharacterId"`
+	GrantedDay        int    `json:"grantedDay"`
+	Note              string `json:"note,omitempty"`
+}
+
+// PlayerGameState is per-player per-game state, keyed in Game.PlayerState by
+// PlayerID. Splits "who plays" (Participant) from "what state are they in".
+type PlayerGameState struct {
+	Alive              bool              `json:"alive"`
+	GhostVoteUsed      bool              `json:"ghostVoteUsed"`
+	VisibleAlignment   Alignment         `json:"visibleAlignment"`
+	ActualAlignment    Alignment         `json:"actualAlignment"`
+	StartingAlignment  Alignment         `json:"startingAlignment"`
+	ActiveReminders    []string          `json:"activeReminders"`
+	Tokens             []PlayerToken     `json:"tokens,omitempty"`
+	ApparentCharacterID string           `json:"apparentCharacterId,omitempty"`
+	AlignmentHistory   []AlignmentChange `json:"alignmentHistory,omitempty"`
+	GainedAbility      *GainedAbility    `json:"gainedAbility,omitempty"`
+	CharacterID        string            `json:"characterId,omitempty"`
 }
 
 // ──────────────────────────────────────────────
@@ -119,13 +185,13 @@ type PlayerSeat struct {
 // ──────────────────────────────────────────────
 
 type NightHistoryEntry struct {
-	DayNumber       int                           `json:"dayNumber"`
-	IsFirstNight    bool                          `json:"isFirstNight"`
-	CompletedAt     string                        `json:"completedAt"`
-	SubActionStates map[string][]bool             `json:"subActionStates"`
-	Notes           map[string]string             `json:"notes"`
-	Selections      map[string]any                `json:"selections,omitempty"`
-	TokenSnapshot   map[string][]PlayerToken      `json:"tokenSnapshot,omitempty"`
+	DayNumber       int                      `json:"dayNumber"`
+	IsFirstNight    bool                     `json:"isFirstNight"`
+	CompletedAt     string                   `json:"completedAt"`
+	SubActionStates map[string][]bool        `json:"subActionStates"`
+	Notes           map[string]string        `json:"notes"`
+	Selections      map[string]any           `json:"selections,omitempty"`
+	TokenSnapshot   map[string][]PlayerToken `json:"tokenSnapshot,omitempty"`
 }
 
 // ──────────────────────────────────────────────
@@ -133,43 +199,43 @@ type NightHistoryEntry struct {
 // ──────────────────────────────────────────────
 
 type Game struct {
-	ID                   string              `json:"id"`
-	SessionID            string              `json:"sessionId"`
-	ScriptID             string              `json:"scriptId"`
-	CurrentDay           int                 `json:"currentDay"`
-	CurrentPhase         Phase               `json:"currentPhase"`
-	IsFirstNight         bool                `json:"isFirstNight"`
-	Players              []PlayerSeat        `json:"players"`
-	NightHistory         []NightHistoryEntry `json:"nightHistory"`
-	ActiveFabled         []string            `json:"activeFabled,omitempty"`
-	ActiveLoric          []string            `json:"activeLoric,omitempty"`
-	InPlayCharacterIds   []string            `json:"inPlayCharacterIds,omitempty"`
-	DemonBluffs          []string            `json:"demonBluffs,omitempty"`
-	LunaticBluffs        []string            `json:"lunaticBluffs,omitempty"`
-	PlayerBluffs         map[string][]string `json:"playerBluffs,omitempty"`
-	CustomPlayerMessages map[string]string   `json:"customPlayerMessages,omitempty"`
-	Version              int                 `json:"version"`
-	UpdatedAt            string              `json:"updatedAt,omitempty"`
+	ID                   string                     `json:"id"`
+	SessionID            string                     `json:"sessionId"`
+	ScriptID             string                     `json:"scriptId"`
+	CurrentDay           int                        `json:"currentDay"`
+	CurrentPhase         Phase                      `json:"currentPhase"`
+	IsFirstNight         bool                       `json:"isFirstNight"`
+	Slots                []Slot                     `json:"slots"`
+	Participants         []Participant              `json:"participants"`
+	PlayerState          map[string]PlayerGameState `json:"playerState"`
+	PlayerCountOverride  *int                       `json:"playerCountOverride,omitempty"`
+	NightHistory         []NightHistoryEntry        `json:"nightHistory"`
+	ActiveFabled         []string                   `json:"activeFabled,omitempty"`
+	ActiveLoric          []string                   `json:"activeLoric,omitempty"`
+	InPlayCharacterIds   []string                   `json:"inPlayCharacterIds,omitempty"`
+	DemonBluffs          []string                   `json:"demonBluffs,omitempty"`
+	LunaticBluffs        []string                   `json:"lunaticBluffs,omitempty"`
+	PlayerBluffs         map[string][]string        `json:"playerBluffs,omitempty"` // keyed by PlayerID
+	CustomPlayerMessages map[string]string          `json:"customPlayerMessages,omitempty"`
+	Version              int                        `json:"version"`
+	UpdatedAt            string                     `json:"updatedAt,omitempty"`
 }
 
 // ──────────────────────────────────────────────
 // Session
 // ──────────────────────────────────────────────
 
-type PlayerTemplate struct {
-	Seat       int    `json:"seat"`
-	PlayerName string `json:"playerName"`
-}
-
 type Session struct {
-	ID              string           `json:"id"`
-	Name            string           `json:"name"`
-	CreatedAt       string           `json:"createdAt"`
-	DefaultScriptID string           `json:"defaultScriptId"`
-	DefaultPlayers  []PlayerTemplate `json:"defaultPlayers"`
-	GameIDs         []string         `json:"gameIds"`
-	Version         int              `json:"version"`
-	UpdatedAt       string           `json:"updatedAt,omitempty"`
+	ID                 string                `json:"id"`
+	Name               string                `json:"name"`
+	CreatedAt          string                `json:"createdAt"`
+	DefaultScriptID    string                `json:"defaultScriptId"`
+	Players            []Player              `json:"players"`
+	Template           SeatingTemplate       `json:"template"`
+	PropagationDefault PropagationPreference `json:"propagationDefault"`
+	GameIDs            []string              `json:"gameIds"`
+	Version            int                   `json:"version"`
+	UpdatedAt          string                `json:"updatedAt,omitempty"`
 }
 
 // ──────────────────────────────────────────────

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { FlashcardCarousel } from '@/components/NightPhase/FlashcardCarousel.tsx';
-import type { NightOrderEntry, PlayerSeat, NightProgress, CharacterDef } from '@/types/index.ts';
+import type { NightOrderEntry, NightProgress, CharacterDef } from '@/types/index.ts';
 import { Alignment, CharacterType } from '@/types/index.ts';
 
 // ──────────────────────────────────────────────
@@ -36,32 +36,22 @@ const dawnEntry = makeEntry('dawn', 'Dawn', 'structural');
 
 const entries: NightOrderEntry[] = [duskEntry, fortuneTellerEntry, impEntry, dawnEntry];
 
-const mockPlayers: PlayerSeat[] = [
+const mockPlayers = [
   {
-    seat: 1,
+    playerId: 'alice',
     playerName: 'Alice',
+    seat: 1,
     characterId: 'fortuneteller',
     alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
     actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
   },
   {
-    seat: 2,
+    playerId: 'bob',
     playerName: 'Bob',
+    seat: 2,
     characterId: 'imp',
     alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
     actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
   },
 ];
 

@@ -6,39 +6,35 @@ import {
   getSeatingWarnings,
   getMarionetteValidSeats,
 } from '@/utils/seatingConstraints.ts';
-import type { PlayerSeat } from '@/types/index.ts';
+import type { PlayerGameState, PlayerId, Slot } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
 
-// ── Helpers ──
-
-function makeSeat(overrides: Partial<PlayerSeat> = {}): PlayerSeat {
+function makeState(characterId = ''): PlayerGameState {
   return {
-    seat: 1,
-    playerName: 'Player',
-    characterId: '',
+    characterId,
     alive: true,
     ghostVoteUsed: false,
     visibleAlignment: Alignment.Unknown,
     actualAlignment: Alignment.Unknown,
     startingAlignment: Alignment.Unknown,
     activeReminders: [],
-    isTraveller: false,
     tokens: [],
-    ...overrides,
   };
 }
 
-function makePlayers(count: number, assignments?: Record<number, string>): PlayerSeat[] {
-  return Array.from({ length: count }, (_, i) =>
-    makeSeat({
-      seat: i + 1,
-      playerName: `P${i + 1}`,
-      characterId: assignments?.[i + 1] ?? '',
-    }),
-  );
+function makeSeating(
+  count: number,
+  assignments: Record<number, string> = {},
+): { slots: Slot[]; playerState: Record<PlayerId, PlayerGameState> } {
+  const slots: Slot[] = [];
+  const playerState: Record<PlayerId, PlayerGameState> = {};
+  for (let seat = 1; seat <= count; seat += 1) {
+    const playerId = `player-${seat}`;
+    slots.push({ kind: 'seat', id: `slot-${seat}`, playerId });
+    playerState[playerId] = makeState(assignments[seat] ?? '');
+  }
+  return { slots, playerState };
 }
-
-// ── Tests ──
 
 describe('getAdjacentSeats', () => {
   it('returns neighbors for middle seat', () => {
@@ -106,105 +102,99 @@ describe('areSeatsInLine', () => {
 });
 
 describe('getSeatingWarnings', () => {
-  it('returns empty array when no special characters', () => {
-    const players = makePlayers(5);
-    expect(getSeatingWarnings(players)).toHaveLength(0);
+  it('returns empty array when no special characters are assigned', () => {
+    const { slots, playerState } = makeSeating(5);
+    expect(getSeatingWarnings(slots, playerState)).toHaveLength(0);
   });
 
-  it('warns when Marionette is not adjacent to Demon', () => {
-    const players = makePlayers(5, {
+  it('warns when Marionette is not adjacent to a Demon', () => {
+    const { slots, playerState } = makeSeating(5, {
       1: 'imp',
-      3: 'marionette', // seat 3 is NOT adjacent to seat 1 in a 5-seat circle
+      3: 'marionette',
       4: 'washerwoman',
     });
-    const warnings = getSeatingWarnings(players);
-    const marionetteWarning = warnings.find((w) => w.characterId === 'marionette');
+
+    const marionetteWarning = getSeatingWarnings(slots, playerState).find(
+      (warning) => warning.characterId === 'marionette',
+    );
+
     expect(marionetteWarning).toBeDefined();
-    expect(marionetteWarning!.message).toContain('Marionette');
-    expect(marionetteWarning!.message).toContain('Demon');
+    expect(marionetteWarning?.message).toContain('Marionette');
+    expect(marionetteWarning?.message).toContain('Demon');
   });
 
-  it('no warning when Marionette IS adjacent to Demon', () => {
-    const players = makePlayers(5, {
-      1: 'imp',
-      2: 'marionette', // seat 2 is adjacent to seat 1
-    });
-    const warnings = getSeatingWarnings(players);
-    const marionetteWarning = warnings.find((w) => w.characterId === 'marionette');
+  it('does not warn when Marionette is adjacent to a Demon', () => {
+    const { slots, playerState } = makeSeating(5, { 1: 'imp', 2: 'marionette' });
+    const marionetteWarning = getSeatingWarnings(slots, playerState).find(
+      (warning) => warning.characterId === 'marionette',
+    );
     expect(marionetteWarning).toBeUndefined();
   });
 
-  it('no warning when Marionette is not in play', () => {
-    const players = makePlayers(5, {
-      1: 'imp',
-      2: 'poisoner',
-    });
-    expect(getSeatingWarnings(players)).toHaveLength(0);
+  it('does not warn when Marionette is not in play', () => {
+    const { slots, playerState } = makeSeating(5, { 1: 'imp', 2: 'poisoner' });
+    expect(getSeatingWarnings(slots, playerState)).toHaveLength(0);
   });
 
   it('warns when Lord of Typhon evil characters are not in a line', () => {
-    const players = makePlayers(8, {
+    const { slots, playerState } = makeSeating(8, {
       1: 'lordoftyphon',
-      3: 'poisoner', // seats 1, 3, 5 are not in a line
+      3: 'poisoner',
       5: 'baron',
     });
-    const warnings = getSeatingWarnings(players);
-    const typhonWarning = warnings.find((w) => w.characterId === 'lordoftyphon');
+
+    const typhonWarning = getSeatingWarnings(slots, playerState).find(
+      (warning) => warning.characterId === 'lordoftyphon',
+    );
+
     expect(typhonWarning).toBeDefined();
-    expect(typhonWarning!.message).toContain('continuous line');
+    expect(typhonWarning?.message).toContain('continuous line');
   });
 
-  it('no warning when Lord of Typhon evil characters ARE in a line', () => {
-    const players = makePlayers(8, {
+  it('does not warn when Lord of Typhon evil characters are in a line', () => {
+    const { slots, playerState } = makeSeating(8, {
       3: 'poisoner',
       4: 'lordoftyphon',
       5: 'baron',
     });
-    const warnings = getSeatingWarnings(players);
-    // Should not have a "not in line" warning
-    const lineWarning = warnings.find(
-      (w) => w.characterId === 'lordoftyphon' && w.message.includes('continuous line'),
+
+    const lineWarning = getSeatingWarnings(slots, playerState).find(
+      (warning) =>
+        warning.characterId === 'lordoftyphon' && warning.message.includes('continuous line'),
     );
+
     expect(lineWarning).toBeUndefined();
   });
 
-  it('excludes travellers from constraint checks', () => {
-    const players = [
-      makeSeat({ seat: 1, characterId: 'imp' }),
-      makeSeat({ seat: 2, characterId: 'marionette' }),
-      makeSeat({ seat: 3, characterId: 'washerwoman' }),
-      makeSeat({ seat: 4, characterId: 'spiritofivory', isTraveller: true }),
-    ];
-    // Marionette (seat 2) is adjacent to Imp (seat 1) — no warning
-    const warnings = getSeatingWarnings(players);
-    expect(warnings.filter((w) => w.characterId === 'marionette')).toHaveLength(0);
+  it('ignores unoccupied seats for constraint checks', () => {
+    const { slots, playerState } = makeSeating(4, { 1: 'imp', 2: 'marionette' });
+    const sparseSlots = slots.map((slot) =>
+      slot.kind === 'seat' && slot.id === 'slot-4' ? { ...slot, playerId: null } : slot,
+    );
+
+    expect(getSeatingWarnings(sparseSlots, playerState)).toHaveLength(0);
   });
 });
 
 describe('getMarionetteValidSeats', () => {
-  it('returns empty when no demons assigned', () => {
-    const players = makePlayers(5);
-    expect(getMarionetteValidSeats(players)).toEqual([]);
+  it('returns empty when no demons are assigned', () => {
+    const { slots, playerState } = makeSeating(5);
+    expect(getMarionetteValidSeats(slots, playerState)).toEqual([]);
   });
 
-  it('returns adjacent seats when demon is assigned', () => {
-    const players = makePlayers(5, { 3: 'imp' });
-    const valid = getMarionetteValidSeats(players);
-    expect(valid).toContain(2);
-    expect(valid).toContain(4);
+  it('returns adjacent display seats when a demon is assigned', () => {
+    const { slots, playerState } = makeSeating(5, { 3: 'imp' });
+    expect(getMarionetteValidSeats(slots, playerState)).toEqual([2, 4]);
   });
 
-  it('wraps around for demon at seat 1', () => {
-    const players = makePlayers(5, { 1: 'imp' });
-    const valid = getMarionetteValidSeats(players);
-    expect(valid).toContain(5);
-    expect(valid).toContain(2);
+  it('wraps around for demon at display seat 1', () => {
+    const { slots, playerState } = makeSeating(5, { 1: 'imp' });
+    expect(getMarionetteValidSeats(slots, playerState)).toEqual([2, 5]);
   });
 
   it('excludes seats already occupied by evil characters', () => {
-    const players = makePlayers(5, { 3: 'imp', 4: 'poisoner' });
-    const valid = getMarionetteValidSeats(players);
-    // seat 4 is adjacent but already has a minion
+    const { slots, playerState } = makeSeating(5, { 3: 'imp', 4: 'poisoner' });
+    const valid = getMarionetteValidSeats(slots, playerState);
     expect(valid).not.toContain(4);
     expect(valid).toContain(2);
   });

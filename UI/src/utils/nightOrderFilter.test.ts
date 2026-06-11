@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { filterNightOrder, getPlayerNamesForCharacter } from './nightOrderFilter';
-import type { NightOrderEntry, PlayerSeat } from '../types/index';
+import type { NightOrderEntry } from '../types/index';
 import { Alignment } from '../types/index';
+import type { NightOrderPlayer } from './nightOrderFilter';
 
 /** Helper to create a structural entry. */
 function structural(id: string): NightOrderEntry {
@@ -27,19 +28,15 @@ function character(id: string, order = 0): NightOrderEntry {
   };
 }
 
-/** Helper to create a minimal PlayerSeat. */
-function player(seat: number, characterId: string, alive = true): PlayerSeat {
+/** Helper to create a minimal night-order player. */
+function player(seat: number, characterId: string, alive = true): NightOrderPlayer {
   return {
+    playerId: `player-${seat}`,
     seat,
     playerName: `Player ${seat}`,
     characterId,
     alive,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
     actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
     tokens: [],
   };
 }

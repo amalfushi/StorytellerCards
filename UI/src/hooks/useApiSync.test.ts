@@ -12,7 +12,9 @@ describe('useApiSync', () => {
     name: 'Test Session',
     createdAt: '2024-01-01T00:00:00Z',
     defaultScriptId: 'script-1',
-    defaultPlayers: [],
+    players: [],
+    template: { slots: [] },
+    propagationDefault: { toTemplate: true, toOtherGames: true },
     gameIds: [],
     ...overrides,
   });
@@ -25,7 +27,10 @@ describe('useApiSync', () => {
     currentDay: 1,
     currentPhase: 'Day',
     isFirstNight: true,
-    players: [],
+    slots: [],
+    participants: [],
+    playerState: {},
+    playerCountOverride: null,
     nightHistory: [],
     ...overrides,
   });

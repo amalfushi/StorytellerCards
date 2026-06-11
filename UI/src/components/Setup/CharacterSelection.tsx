@@ -32,7 +32,7 @@ import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 import { calculateAdaptiveTargets } from '@/utils/adaptiveDistribution.ts';
 import type { AdaptiveDistributionOptions } from '@/utils/adaptiveDistribution.ts';
-import { randomizeCharacters } from '@/utils/randomizeCharacters.ts';
+import { randomizeCharactersWithModifiers } from '@/utils/randomizeCharacters.ts';
 import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
 
 /** Ordered list of character type groups to display (Travellers omitted). */
@@ -151,12 +151,17 @@ export function CharacterSelection({
   // Randomize character selection using distribution rules
   const handleRandomize = useCallback(() => {
     const scriptIds = scriptCharacters.map((ch) => ch.id);
-    const randomIds = randomizeCharacters(scriptIds, playerCount);
-    setSelectedIds(new Set(randomIds));
-    // Reset duplicates and variable modifiers since randomize picks fresh
+    const { characterIds, variableModifiers: randomMods } = randomizeCharactersWithModifiers(
+      scriptIds,
+      playerCount,
+    );
+    setSelectedIds(new Set(characterIds));
+    // Reset duplicates since randomize picks fresh
     setExtraVillageIdiots(0);
     setExtraLegionCopies(0);
-    setVariableModifiers({});
+    // Apply any variable modifiers the randomizer chose (e.g. Lord of Typhon
+    // outsider delta) so the +/- steppers stay in sync with the random pick.
+    setVariableModifiers(randomMods);
     setXaanX(undefined);
   }, [scriptCharacters, playerCount]);
 

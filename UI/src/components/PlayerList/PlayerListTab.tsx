@@ -31,39 +31,41 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { CharacterDef, Alignment, PlayerToken as PlayerTokenType } from '@/types/index.ts';
+import { CharacterType } from '@/types/index.ts';
 import { useGame } from '@/context/useGame.ts';
+import { useSession } from '@/context/useSession.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
-import { PlayerRow } from '@/components/PlayerList/PlayerRow.tsx';
+import { PlayerRow, type PlayerListRowPlayer } from '@/components/PlayerList/PlayerRow.tsx';
 import { PlayerActionsModal } from '@/components/TownSquare/PlayerActionsModal.tsx';
 import { TokenManager } from '@/components/TownSquare/TokenManager.tsx';
 import { buildAvailableTokens } from '@/utils/buildAvailableTokens.ts';
-import { ReseatTool } from '@/components/common/ReseatTool.tsx';
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
 
 interface PlayerListTabProps {
   scriptCharacterIds: string[];
 }
 
 /**
- * Scrollable table of all players in the game.
+ * Scrollable table of all seated players in the game.
  * Day view shows seat, name, alive/dead, ghost vote.
  * Night view adds character name, type, alignment, reminders, and an edit icon.
  */
 export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   const {
     state,
-    updatePlayer,
-    swapPlayerSeats,
-    removeTraveller,
+    updatePlayerState,
+    moveGameSlot,
+    removeParticipant,
     addToken,
     removeToken,
     setPlayerBluffs,
+    setParticipantTraveller,
   } = useGame();
+  const { state: sessionState } = useSession();
   const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
   const [editSeat, setEditSeat] = useState<number | null>(null);
-  const [swapSourceSeat, setSwapSourceSeat] = useState<number | null>(null);
-  const [reseatInitialSeat, setReseatInitialSeat] = useState<number | null>(null);
-  const [reseatOpen, setReseatOpen] = useState(false);
+  const [moveSourceSlotId, setMoveSourceSlotId] = useState<string | null>(null);
   const [showAlignment, setShowAlignment] = useState(false);
   const [tokenManagerSeat, setTokenManagerSeat] = useState<number | null>(null);
 
@@ -74,18 +76,62 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
+  const game = state.game;
+  const session = useMemo(
+    () => (game ? (sessionState.sessions.find((s) => s.id === game.sessionId) ?? null) : null),
+    [game, sessionState.sessions],
+  );
   const showCharacters = state.showCharacters;
 
+  const sessionPlayersById = useMemo(
+    () => new Map((session?.players ?? []).map((player) => [player.id, player] as const)),
+    [session?.players],
+  );
+
+  const participantsById = useMemo(
+    () =>
+      new Map(
+        (game?.participants ?? []).map(
+          (participant) => [participant.playerId, participant] as const,
+        ),
+      ),
+    [game?.participants],
+  );
+
+  const players = useMemo<PlayerListRowPlayer[]>(() => {
+    if (!game) return [];
+
+    const displaySeatNumbers = buildDisplaySeatNumberMap(game.slots);
+    return game.slots.flatMap((slot) => {
+      if (slot.kind !== 'seat' || !slot.playerId) return [];
+
+      const playerState = game.playerState[slot.playerId];
+      const sessionPlayer = sessionPlayersById.get(slot.playerId);
+      if (!playerState || !sessionPlayer) return [];
+
+      return [
+        {
+          ...playerState,
+          playerId: slot.playerId,
+          slotId: slot.id,
+          seat: displaySeatNumbers.get(slot.id) ?? 0,
+          playerName: sessionPlayer.name,
+          isTraveller: participantsById.get(slot.playerId)?.isTraveller ?? false,
+          tokens: playerState.tokens ?? [],
+        },
+      ];
+    });
+  }, [game, participantsById, sessionPlayersById]);
+
   // Active Fabled/Loric game modifiers
-  const activeFabledIds = useMemo(() => state.game?.activeFabled ?? [], [state.game?.activeFabled]);
-  const activeLoricIds = useMemo(() => state.game?.activeLoric ?? [], [state.game?.activeLoric]);
+  const activeFabledIds = useMemo(() => game?.activeFabled ?? [], [game?.activeFabled]);
+  const activeLoricIds = useMemo(() => game?.activeLoric ?? [], [game?.activeLoric]);
   const activeModifiers: CharacterDef[] = useMemo(() => {
     const ids = [...activeFabledIds, ...activeLoricIds];
     return ids.map((id) => getCharacter(id)).filter((ch): ch is CharacterDef => ch !== undefined);
   }, [activeFabledIds, activeLoricIds, getCharacter]);
 
-  // Sort by seat number
+  // Rows are already derived from slot order; keep an explicit sort by display number for safety.
   const sortedPlayers = useMemo(() => [...players].sort((a, b) => a.seat - b.seat), [players]);
 
   // Script characters for the dropdown
@@ -95,7 +141,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   );
 
   const editingPlayer =
-    editSeat !== null ? (players.find((p) => p.seat === editSeat) ?? null) : null;
+    editSeat !== null ? (players.find((player) => player.seat === editSeat) ?? null) : null;
 
   // ── Bluff props for the actions modal ──
   const editingPlayerCharDef = editingPlayer?.characterId
@@ -105,9 +151,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   const isEditPlayerLunatic = editingPlayer?.characterId === 'lunatic';
   const showBluffsForPlayer = isEditPlayerDemon || isEditPlayerLunatic;
 
-  const bluffIds = editingPlayer
-    ? state.game?.playerBluffs?.[String(editingPlayer.seat)]
-    : undefined;
+  const bluffIds = editingPlayer ? game?.playerBluffs?.[editingPlayer.playerId] : undefined;
 
   const modalBluffCharacters = useMemo(
     () => (bluffIds?.length ? getCharactersByIds(bluffIds) : undefined),
@@ -116,20 +160,20 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
 
   const modalAvailableBluffCharacters = useMemo(() => {
     if (!showBluffsForPlayer) return undefined;
-    const inPlay = new Set(state.game?.inPlayCharacterIds ?? []);
+    const inPlay = new Set(game?.inPlayCharacterIds ?? []);
     return scriptCharacters.filter((ch) => {
       if (ch.type !== 'Townsfolk' && ch.type !== 'Outsider') return false;
       if (isEditPlayerLunatic) return true;
       return !inPlay.has(ch.id);
     });
-  }, [showBluffsForPlayer, isEditPlayerLunatic, scriptCharacters, state.game?.inPlayCharacterIds]);
+  }, [showBluffsForPlayer, isEditPlayerLunatic, scriptCharacters, game?.inPlayCharacterIds]);
 
   const handleChangeBluff = useCallback(
     (oldBluffId: string, newBluffId: string) => {
       if (!editingPlayer) return;
       const currentBluffs = bluffIds ?? [];
       const updated = currentBluffs.map((id) => (id === oldBluffId ? newBluffId : id));
-      setPlayerBluffs(editingPlayer.seat, updated);
+      setPlayerBluffs(editingPlayer.playerId, updated);
     },
     [editingPlayer, bluffIds, setPlayerBluffs],
   );
@@ -138,54 +182,76 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
 
   // Token manager player (derive from live state for fresh tokens)
   const tokenPlayer =
-    tokenManagerSeat !== null ? (players.find((p) => p.seat === tokenManagerSeat) ?? null) : null;
+    tokenManagerSeat !== null
+      ? (players.find((player) => player.seat === tokenManagerSeat) ?? null)
+      : null;
 
   // Available tokens for token manager — resolve character IDs to CharacterDef objects
   const activeCharacters = useMemo(() => {
-    if (!state.game) return [] as CharacterDef[];
-    return state.game.players
-      .map((p) => getCharacter(p.characterId))
-      .filter((c): c is CharacterDef => c !== undefined);
-  }, [state.game, getCharacter]);
+    if (!game) return [] as CharacterDef[];
+    return game.participants
+      .map((participant) => game.playerState[participant.playerId]?.characterId)
+      .filter((characterId): characterId is string => Boolean(characterId))
+      .map((characterId) => getCharacter(characterId))
+      .filter((character): character is CharacterDef => character !== undefined);
+  }, [game, getCharacter]);
 
   const apparentCharacters = useMemo(() => {
-    if (!state.game) return [] as CharacterDef[];
-    return state.game.players
-      .filter((p) => p.apparentCharacterId)
-      .map((p) => getCharacter(p.apparentCharacterId!))
-      .filter((c): c is CharacterDef => c !== undefined);
-  }, [state.game, getCharacter]);
+    if (!game) return [] as CharacterDef[];
+    return game.participants
+      .map((participant) => game.playerState[participant.playerId]?.apparentCharacterId)
+      .filter((characterId): characterId is string => Boolean(characterId))
+      .map((characterId) => getCharacter(characterId))
+      .filter((character): character is CharacterDef => character !== undefined);
+  }, [game, getCharacter]);
 
   const availableTokens = useMemo(
     () => buildAvailableTokens(activeCharacters, apparentCharacters),
     [activeCharacters, apparentCharacters],
   );
 
+  const findPlayerBySeat = useCallback(
+    (seat: number) => players.find((player) => player.seat === seat),
+    [players],
+  );
+
+  const moveSlotToPlayerSeat = useCallback(
+    (slotId: string, targetSeat: number) => {
+      if (!game) return;
+      const targetPlayer = findPlayerBySeat(targetSeat);
+      if (!targetPlayer) return;
+      const targetIndex = game.slots.findIndex((slot) => slot.id === targetPlayer.slotId);
+      if (targetIndex >= 0) moveGameSlot(slotId, targetIndex);
+    },
+    [findPlayerBySeat, game, moveGameSlot],
+  );
+
   const handleToggleAlive = useCallback(
     (seat: number) => {
-      const player = players.find((p) => p.seat === seat);
+      const player = findPlayerBySeat(seat);
       if (player) {
-        updatePlayer(seat, { alive: !player.alive });
+        updatePlayerState(player.playerId, { alive: !player.alive });
       }
     },
-    [players, updatePlayer],
+    [findPlayerBySeat, updatePlayerState],
   );
 
   const handleToggleGhostVote = useCallback(
     (seat: number) => {
-      const player = players.find((p) => p.seat === seat);
+      const player = findPlayerBySeat(seat);
       if (player) {
-        updatePlayer(seat, { ghostVoteUsed: !player.ghostVoteUsed });
+        updatePlayerState(player.playerId, { ghostVoteUsed: !player.ghostVoteUsed });
       }
     },
-    [players, updatePlayer],
+    [findPlayerBySeat, updatePlayerState],
   );
 
   const handleRemoveTraveller = useCallback(
     (seat: number) => {
-      removeTraveller(seat);
+      const player = findPlayerBySeat(seat);
+      if (player) removeParticipant(player.playerId);
     },
-    [removeTraveller],
+    [findPlayerBySeat, removeParticipant],
   );
 
   const handleManageTokens = useCallback((seat: number) => {
@@ -194,27 +260,37 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
 
   const handleSaveCharacter = useCallback(
     (seat: number, updates: { characterId?: string; actualAlignment?: Alignment }) => {
-      updatePlayer(seat, updates);
+      const player = findPlayerBySeat(seat);
+      if (!player) return;
+      if (updates.characterId !== undefined) {
+        const character = getCharacter(updates.characterId);
+        const nextIsTraveller = character?.type === CharacterType.Traveller;
+        const participant = state.game?.participants.find((p) => p.playerId === player.playerId);
+        const currentIsTraveller = participant?.isTraveller ?? false;
+        if (nextIsTraveller !== currentIsTraveller) {
+          setParticipantTraveller(player.playerId, nextIsTraveller, updates.actualAlignment);
+        }
+      }
+      updatePlayerState(player.playerId, updates);
     },
-    [updatePlayer],
+    [findPlayerBySeat, getCharacter, setParticipantTraveller, state.game, updatePlayerState],
   );
 
-  const handleSwapWith = useCallback((seat: number) => {
-    setSwapSourceSeat(seat);
-  }, []);
-
-  const handleOpenReseat = useCallback((seat: number) => {
-    setReseatInitialSeat(seat);
-    setReseatOpen(true);
-  }, []);
+  const handleSwapWith = useCallback(
+    (seat: number) => {
+      const player = findPlayerBySeat(seat);
+      if (player) setMoveSourceSlotId(player.slotId);
+    },
+    [findPlayerBySeat],
+  );
 
   const handleRowClick = (seat: number) => {
-    if (swapSourceSeat !== null) {
-      if (seat !== swapSourceSeat) {
-        swapPlayerSeats(swapSourceSeat, seat);
+    if (moveSourceSlotId !== null) {
+      const sourcePlayer = players.find((player) => player.slotId === moveSourceSlotId);
+      if (sourcePlayer && seat !== sourcePlayer.seat) {
+        moveSlotToPlayerSeat(moveSourceSlotId, seat);
       }
-      setSwapSourceSeat(null);
-      return;
+      setMoveSourceSlotId(null);
     }
   };
 
@@ -225,25 +301,33 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
       const { active, over } = event;
-      if (!over || active.id === over.id) return;
-      swapPlayerSeats(Number(active.id), Number(over.id));
+      if (!over || active.id === over.id || !game) return;
+      const targetIndex = game.slots.findIndex((slot) => slot.id === over.id);
+      if (targetIndex >= 0) moveGameSlot(String(active.id), targetIndex);
     },
-    [swapPlayerSeats],
+    [game, moveGameSlot],
   );
 
   const handleAddToken = useCallback(
     (seat: number, token: PlayerTokenType) => {
-      addToken(seat, token);
+      const player = findPlayerBySeat(seat);
+      if (player) addToken(player.playerId, token);
     },
-    [addToken],
+    [addToken, findPlayerBySeat],
   );
 
   const handleRemoveToken = useCallback(
     (seat: number, tokenId: string) => {
-      removeToken(seat, tokenId);
+      const player = findPlayerBySeat(seat);
+      if (player) removeToken(player.playerId, tokenId);
     },
-    [removeToken],
+    [findPlayerBySeat, removeToken],
   );
+
+  const moveSourceSeat =
+    moveSourceSlotId !== null
+      ? (players.find((player) => player.slotId === moveSourceSlotId)?.seat ?? null)
+      : null;
 
   if (sortedPlayers.length === 0) {
     return (
@@ -255,12 +339,12 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
 
   return (
     <Box sx={{ height: '100%', overflow: 'auto' }}>
-      {/* Swap mode indicator */}
-      {swapSourceSeat !== null && (
+      {/* Move mode indicator */}
+      {moveSourceSeat !== null && (
         <Chip
           icon={<SwapHorizIcon />}
-          label={`Tap a player to swap with Seat ${swapSourceSeat}`}
-          onDelete={() => setSwapSourceSeat(null)}
+          label={`Tap a player to move Seat ${moveSourceSeat} before them`}
+          onDelete={() => setMoveSourceSlotId(null)}
           color="warning"
           sx={{ m: 1 }}
           data-testid="swap-mode-indicator"
@@ -290,7 +374,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
 
       <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
         <SortableContext
-          items={sortedPlayers.map((p) => String(p.seat))}
+          items={sortedPlayers.map((player) => player.slotId)}
           strategy={verticalListSortingStrategy}
         >
           <TableContainer>
@@ -332,7 +416,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
               <TableBody>
                 {sortedPlayers.map((player) => (
                   <SortablePlayerRow
-                    key={player.seat}
+                    key={player.slotId}
                     player={player}
                     showCharacters={showCharacters}
                     showAlignment={showAlignment}
@@ -346,7 +430,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
                     onToggleGhostVote={handleToggleGhostVote}
                     onRowClick={handleRowClick}
                     onEdit={showCharacters ? handleOpenEdit : undefined}
-                    isSwapSource={swapSourceSeat === player.seat}
+                    isSwapSource={moveSourceSlotId === player.slotId}
                   />
                 ))}
               </TableBody>
@@ -372,17 +456,8 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         onRemoveTraveller={handleRemoveTraveller}
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
-        onReseat={handleOpenReseat}
         onSwapWith={handleSwapWith}
         onChangeBluff={handleChangeBluff}
-      />
-
-      <ReseatTool
-        open={reseatOpen}
-        players={players}
-        initialSeat={reseatInitialSeat}
-        onClose={() => setReseatOpen(false)}
-        onConfirmSwap={swapPlayerSeats}
       />
 
       {/* Token Manager Dialog */}
@@ -474,7 +549,7 @@ type SortablePlayerRowProps = Omit<
 
 function SortablePlayerRow(props: SortablePlayerRowProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
-    id: String(props.player.seat),
+    id: props.player.slotId,
   });
 
   return (

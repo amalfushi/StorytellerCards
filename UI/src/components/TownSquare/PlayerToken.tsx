@@ -1,7 +1,7 @@
 import { memo, useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
-import type { PlayerSeat, CharacterDef } from '@/types/index.ts';
+import type { CharacterDef, PlayerGameState, PlayerId, SlotId } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
@@ -11,22 +11,31 @@ import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 
 // ──────────────────────────────────────────────
 // Size presets (px) based on player count
-// F3-6: Enlarged defaults — old "large" is now "medium",
-//       all fonts increased ~30%.
-// Icon sizes bumped to ≥ 48 minimum.
-// Token boxes enlarged to accommodate larger icons.
+// R5: Token boxes are now square (width === height) and wider than before
+// so player names + reminders have room to breathe.
 // ──────────────────────────────────────────────
 
 export const SIZE_MAP = {
-  large: { width: 80, height: 120, icon: 56, nameFont: '0.91rem', metaFont: '0.78rem' },
-  medium: { width: 73, height: 110, icon: 52, nameFont: '0.91rem', metaFont: '0.78rem' },
-  small: { width: 67, height: 100, icon: 48, nameFont: '0.85rem', metaFont: '0.72rem' },
+  large: { width: 120, height: 120, icon: 56, nameFont: '0.91rem', metaFont: '0.78rem' },
+  medium: { width: 110, height: 110, icon: 52, nameFont: '0.91rem', metaFont: '0.78rem' },
+  small: { width: 100, height: 100, icon: 48, nameFont: '0.85rem', metaFont: '0.72rem' },
 } as const;
 
 export type TokenSize = keyof typeof SIZE_MAP;
 
+/** Render-ready Town Square projection of Slot + Player + PlayerGameState + Participant. */
+export interface TownSquarePlayer extends PlayerGameState {
+  playerId: PlayerId;
+  slotId: SlotId;
+  name?: string;
+  seatNumber?: number;
+  playerName?: string;
+  seat?: number;
+  isTraveller: boolean;
+}
+
 export interface PlayerTokenProps {
-  player: PlayerSeat;
+  player: TownSquarePlayer;
   characterDef?: CharacterDef;
   showCharacters: boolean;
   isSelected: boolean;
@@ -92,7 +101,9 @@ export const PlayerToken = memo(function PlayerToken({
   const [detailOpen, setDetailOpen] = useState(false);
 
   const aliveStatus = player.alive ? 'alive' : 'dead';
-  const ariaLabel = `${player.playerName}, Seat ${player.seat}, ${aliveStatus}`;
+  const displayName = player.name ?? player['playerName'] ?? 'Unknown player';
+  const displaySeat = player.seatNumber ?? player['seat'] ?? 0;
+  const ariaLabel = `${displayName}, Seat ${displaySeat}, ${aliveStatus}`;
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     if (e.key === 'Enter' || e.key === ' ') {
@@ -258,7 +269,7 @@ export const PlayerToken = memo(function PlayerToken({
           color: showCharacters ? 'text.secondary' : 'text.primary',
         }}
       >
-        {player.playerName}
+        {displayName}
       </Typography>
 
       {/* ── Seat # & status row ── */}
@@ -270,14 +281,8 @@ export const PlayerToken = memo(function PlayerToken({
           justifyContent: 'center',
         }}
       >
-        <Typography
-          sx={{
-            fontSize: s.metaFont,
-            color: 'text.secondary',
-            lineHeight: 1,
-          }}
-        >
-          {player.seat}
+        <Typography sx={{ fontSize: s.metaFont, color: 'text.secondary', lineHeight: 1 }}>
+          {displaySeat}
         </Typography>
 
         {showCharacters && (

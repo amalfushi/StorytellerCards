@@ -2,11 +2,11 @@ import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
+import type { CharacterDef } from '@/types/index.ts';
 import type {
-  NightOrderEntry as NightOrderEntryType,
-  PlayerSeat,
-  CharacterDef,
-} from '@/types/index.ts';
+  NightOrderPlayer,
+  NightOrderViewEntry as NightOrderEntryType,
+} from '@/utils/nightOrderFilter.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import { CharacterDetailModal } from '@/components/common/CharacterDetailModal.tsx';
 import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
@@ -16,7 +16,7 @@ interface NightOrderEntryProps {
   entry: NightOrderEntryType;
   character?: CharacterDef;
   /** Player assigned to this character (if any). */
-  assignedPlayer?: PlayerSeat;
+  assignedPlayer?: NightOrderPlayer;
 }
 
 /**
@@ -113,6 +113,7 @@ export function NightOrderEntry({ entry, character, assignedPlayer }: NightOrder
           {assignedPlayer && (
             <Typography
               variant="caption"
+              data-testid="assigned-player"
               sx={{
                 bgcolor: 'grey.100',
                 px: 0.75,

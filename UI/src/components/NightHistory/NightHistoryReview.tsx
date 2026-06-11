@@ -8,9 +8,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import type { NightHistoryEntry, NightProgress } from '@/types/index.ts';
 import { useGame } from '@/context/useGame.ts';
+import { useSession } from '@/context/useSession.ts';
 import { useNightOrder } from '@/hooks/useNightOrder.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { FlashcardCarousel } from '@/components/NightPhase/FlashcardCarousel.tsx';
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import type { NightOrderPlayer } from '@/utils/nightOrderFilter.ts';
 
 export interface NightHistoryReviewProps {
   historyEntry: NightHistoryEntry;
@@ -37,6 +40,7 @@ export function NightHistoryReview({
   onClose,
 }: NightHistoryReviewProps) {
   const { state, updateNightHistory, updateNightHistoryNote, updateNightHistoryChoice } = useGame();
+  const sessionState = useSession().state;
   const { getCharacter, allCharacters } = useCharacterLookup();
 
   const [isEditMode, setIsEditMode] = useState(false);
@@ -44,22 +48,39 @@ export function NightHistoryReview({
   // Derive the same script character IDs used in the game
   const scriptCharacterIds = useMemo(() => allCharacters.map((ch) => ch.id), [allCharacters]);
 
-  // Overlay snapshotted tokens from the history entry onto players so
+  // Overlay snapshotted tokens from the history entry onto seated players so
   // the review flashcards show tokens that were active during that night
   // rather than current (live) tokens.
-  const players = useMemo(() => {
-    const livePlayers = state.game?.players ?? [];
+  const session = useMemo(
+    () => sessionState.sessions.find((candidate) => candidate.id === state.game?.sessionId),
+    [sessionState.sessions, state.game?.sessionId],
+  );
+  const players = useMemo<NightOrderPlayer[]>(() => {
+    const game = state.game;
+    if (!game || !session) return [];
+    const displaySeatBySlot = buildDisplaySeatNumberMap(game.slots);
     const snapshot = historyEntry.tokenSnapshot;
-    if (!snapshot) return livePlayers;
-    return livePlayers.map((p) => {
-      const snapshotTokens = snapshot[p.characterId];
-      if (snapshotTokens !== undefined) {
-        return { ...p, tokens: snapshotTokens };
-      }
-      // Character had no tokens at that point in time
-      return { ...p, tokens: [] };
+    return game.slots.flatMap((slot) => {
+      if (slot.kind !== 'seat' || !slot.playerId) return [];
+      const displaySeat = displaySeatBySlot.get(slot.id);
+      const player = session.players.find((candidate) => candidate.id === slot.playerId);
+      const playerState = game.playerState[slot.playerId];
+      if (!displaySeat || !player || !playerState) return [];
+      const snapshotTokens = snapshot?.[playerState.characterId] ?? [];
+      return [
+        {
+          playerId: slot.playerId,
+          playerName: player.name,
+          seat: displaySeat,
+          characterId: playerState.characterId,
+          alive: playerState.alive,
+          actualAlignment: playerState.actualAlignment,
+          tokens: snapshot ? snapshotTokens : playerState.tokens,
+          gainedAbility: playerState.gainedAbility,
+        },
+      ];
     });
-  }, [state.game?.players, historyEntry.tokenSnapshot]);
+  }, [state.game, session, historyEntry.tokenSnapshot]);
 
   // Get the night order entries that match the historical night type
   const entries = useNightOrder(scriptCharacterIds, isFirstNight, players);

@@ -10,20 +10,23 @@ import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type {
   CharacterDef,
   Alignment,
-  PlayerSeat,
+  PlayerId,
   PlayerToken as PlayerTokenType,
+  SlotId,
 } from '@/types/index.ts';
+import { CharacterType } from '@/types/index.ts';
 import { useGame } from '@/context/useGame.ts';
+import { useSession } from '@/context/useSession.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
 import { useLocalStorage } from '@/hooks/useLocalStorage.ts';
 import { PlayerToken, SIZE_MAP } from '@/components/TownSquare/PlayerToken.tsx';
-import type { TokenSize } from '@/components/TownSquare/PlayerToken.tsx';
+import type { TokenSize, TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 import { TownSquareLayout } from '@/components/TownSquare/TownSquareLayout.tsx';
 import type { TokenPosition } from '@/components/TownSquare/TownSquareLayout.tsx';
 import { PlayerActionsModal } from '@/components/TownSquare/PlayerActionsModal.tsx';
 import { TokenManager, TokenBadges } from '@/components/TownSquare/TokenManager.tsx';
 import { buildAvailableTokens } from '@/utils/buildAvailableTokens.ts';
-import { ReseatTool } from '@/components/common/ReseatTool.tsx';
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
 
 /** Persisted layout preference — `'auto'` defers to viewport size. */
 type TokenLayoutPref = 'radial' | 'linear' | 'auto';
@@ -39,35 +42,38 @@ function tokenSizeForCount(count: number): TokenSize {
   return 'small';
 }
 
-/** Half-height of the token card (used as padding inset for the layout). */
-const TOKEN_HALF = { large: 75, medium: 70, small: 65 } as const;
+/** Half-side of the token square (used as padding inset for the layout). */
+const TOKEN_HALF = { large: 60, medium: 55, small: 50 } as const;
+const GAME_ONLY_PROPAGATION = { toTemplate: false, toOtherGames: false } as const;
 
 /**
  * Town Square tab — the signature circular / ovoid "clock face" layout.
- *
- * - **Phone (< 600 px):** ovoid (taller ellipse) to maximise portrait space.
- * - **Tablet (≥ 600 px):** circle for a natural clock face.
- * - **Day view:** tokens show name + seat + alive/dead; tap opens quick-action menu.
- * - **Night view:** tokens additionally show character icon & name with alignment
- *   border; tap opens `PlayerEditDialog`.
  */
 export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
   const {
     state,
-    updatePlayer,
-    removeTraveller,
+    updatePlayerState,
+    removeParticipant,
     addToken,
     removeToken,
-    swapPlayerSeats,
+    assignGameSeat,
     setPlayerBluffs,
+    setParticipantTraveller,
   } = useGame();
+  const { state: sessionState } = useSession();
   const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
+
+  const game = state.game;
+  const session = useMemo(
+    () =>
+      game ? sessionState.sessions.find((candidate) => candidate.id === game.sessionId) : undefined,
+    [game, sessionState.sessions],
+  );
 
   const isTablet = useMediaQuery('(min-width:600px)');
   const isSmallViewport = useMediaQuery('(max-width:479px)');
   const shape = isTablet ? 'circle' : 'ovoid';
 
-  // ── Token layout preference (radial / linear / auto) ──
   const [layoutPref, setLayoutPref] = useLocalStorage<TokenLayoutPref>(
     'storyteller-token-layout',
     'auto',
@@ -80,49 +86,83 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
     setLayoutPref((prev) => (prev === 'linear' ? 'radial' : 'linear'));
   }, [setLayoutPref]);
 
-  const players = useMemo(() => state.game?.players ?? [], [state.game?.players]);
+  const players = useMemo<TownSquarePlayer[]>(() => {
+    if (!game || !session) return [];
+    const roster = new Map(session.players.map((player) => [player.id, player]));
+    const participants = new Map(
+      game.participants.map((participant) => [participant.playerId, participant]),
+    );
+    const displaySeatNumbers = buildDisplaySeatNumberMap(game.slots);
+
+    return game.slots.flatMap((slot) => {
+      if (slot.kind !== 'seat' || !slot.playerId) return [];
+      const rosterPlayer = roster.get(slot.playerId);
+      const playerState = game.playerState[slot.playerId];
+      const seatNumber = displaySeatNumbers.get(slot.id);
+      if (!rosterPlayer || !playerState || seatNumber === undefined) return [];
+
+      return [
+        {
+          ...playerState,
+          playerId: slot.playerId,
+          slotId: slot.id,
+          name: rosterPlayer.name,
+          seatNumber,
+          isTraveller: participants.get(slot.playerId)?.isTraveller ?? false,
+        },
+      ];
+    });
+  }, [game, session]);
+
+  const playersById = useMemo(
+    () => new Map<PlayerId, TownSquarePlayer>(players.map((player) => [player.playerId, player])),
+    [players],
+  );
+
+  const playersBySlotId = useMemo(
+    () => new Map<SlotId, TownSquarePlayer>(players.map((player) => [player.slotId, player])),
+    [players],
+  );
+
   const showCharacters = state.showCharacters;
-  const sorted = useMemo(() => [...players].sort((a, b) => a.seat - b.seat), [players]);
 
   const scriptCharacters: CharacterDef[] = useMemo(
     () => getCharactersByIds(scriptCharacterIds),
     [getCharactersByIds, scriptCharacterIds],
   );
 
-  // ── Dynamic token set from active characters ──
   const activeSetupPowers = useMemo(
     () =>
-      [...(state.game?.activeFabled ?? []), ...(state.game?.activeLoric ?? [])]
+      [...(game?.activeFabled ?? []), ...(game?.activeLoric ?? [])]
         .map((id) => getCharacter(id))
         .filter((character): character is CharacterDef => character !== undefined),
-    [state.game?.activeFabled, state.game?.activeLoric, getCharacter],
+    [game?.activeFabled, game?.activeLoric, getCharacter],
   );
 
   const activeCharacters = useMemo(() => {
-    if (!state.game) return activeSetupPowers;
-    const playerCharacters = state.game.players
-      .map((p) => getCharacter(p.characterId))
-      .filter((c): c is CharacterDef => c !== undefined);
+    if (!game) return activeSetupPowers;
+    const playerCharacters = game.participants
+      .map(({ playerId }) => game.playerState[playerId]?.characterId)
+      .map((characterId) => (characterId ? getCharacter(characterId) : undefined))
+      .filter((character): character is CharacterDef => character !== undefined);
     return [...playerCharacters, ...activeSetupPowers];
-  }, [state.game, getCharacter, activeSetupPowers]);
+  }, [game, getCharacter, activeSetupPowers]);
 
-  // Apparent characters for concealed identities (Drunk/Marionette)
   const apparentCharacters = useMemo(() => {
-    if (!state.game) return [];
-    return state.game.players
-      .filter((p) => p.apparentCharacterId)
-      .map((p) => getCharacter(p.apparentCharacterId!))
-      .filter((c): c is CharacterDef => c !== undefined);
-  }, [state.game, getCharacter]);
+    if (!game) return [];
+    return game.participants
+      .map(({ playerId }) => game.playerState[playerId]?.apparentCharacterId)
+      .map((characterId) => (characterId ? getCharacter(characterId) : undefined))
+      .filter((character): character is CharacterDef => character !== undefined);
+  }, [game, getCharacter]);
 
   const availableTokens = useMemo(
     () => buildAvailableTokens(activeCharacters, apparentCharacters),
     [activeCharacters, apparentCharacters],
   );
 
-  const tokenSize = tokenSizeForCount(sorted.length);
+  const tokenSize = tokenSizeForCount(players.length);
 
-  // ── Container sizing via ResizeObserver ──
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [dims, setDims] = useState({ width: 0, height: 0 });
 
@@ -145,19 +185,11 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
     return () => ro.disconnect();
   }, []);
 
-  // ── Selection / actions modal state ──
-  const [selectedSeat, setSelectedSeat] = useState<number | null>(null);
-  /** Seat number of the player whose actions modal is open (null = closed). */
-  const [actionsSeat, setActionsSeat] = useState<number | null>(null);
-  /** Seat number of the player initiating a swap (null = not in swap mode). */
-  const [swapSourceSeat, setSwapSourceSeat] = useState<number | null>(null);
-  const [reseatInitialSeat, setReseatInitialSeat] = useState<number | null>(null);
-  const [reseatOpen, setReseatOpen] = useState(false);
-  /** Derive the current player from live state so the modal always sees fresh data. */
-  const actionsPlayer =
-    actionsSeat !== null ? (players.find((p) => p.seat === actionsSeat) ?? null) : null;
+  const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(null);
+  const [actionsPlayerId, setActionsPlayerId] = useState<PlayerId | null>(null);
+  const [swapSourcePlayerId, setSwapSourcePlayerId] = useState<PlayerId | null>(null);
+  const actionsPlayer = actionsPlayerId ? (playersById.get(actionsPlayerId) ?? null) : null;
 
-  // ── Bluff props for the actions modal ──
   const actionsPlayerCharDef = actionsPlayer?.characterId
     ? getCharacter(actionsPlayer.characterId)
     : undefined;
@@ -165,9 +197,7 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
   const isActionsPlayerLunatic = actionsPlayer?.characterId === 'lunatic';
   const showBluffsForPlayer = isActionsPlayerDemon || isActionsPlayerLunatic;
 
-  const bluffIds = actionsPlayer
-    ? state.game?.playerBluffs?.[String(actionsPlayer.seat)]
-    : undefined;
+  const bluffIds = actionsPlayer ? game?.playerBluffs?.[actionsPlayer.playerId] : undefined;
 
   const modalBluffCharacters = useMemo(
     () => (bluffIds?.length ? getCharactersByIds(bluffIds) : undefined),
@@ -176,134 +206,125 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
 
   const modalAvailableBluffCharacters = useMemo(() => {
     if (!showBluffsForPlayer) return undefined;
-    const inPlay = new Set(state.game?.inPlayCharacterIds ?? []);
+    const inPlay = new Set(game?.inPlayCharacterIds ?? []);
     return scriptCharacters.filter((ch) => {
       if (ch.type !== 'Townsfolk' && ch.type !== 'Outsider') return false;
       if (isActionsPlayerLunatic) return true;
       return !inPlay.has(ch.id);
     });
-  }, [
-    showBluffsForPlayer,
-    isActionsPlayerLunatic,
-    scriptCharacters,
-    state.game?.inPlayCharacterIds,
-  ]);
+  }, [showBluffsForPlayer, isActionsPlayerLunatic, scriptCharacters, game?.inPlayCharacterIds]);
 
   const handleChangeBluff = useCallback(
     (oldBluffId: string, newBluffId: string) => {
       if (!actionsPlayer) return;
       const currentBluffs = bluffIds ?? [];
       const updated = currentBluffs.map((id) => (id === oldBluffId ? newBluffId : id));
-      setPlayerBluffs(actionsPlayer.seat, updated);
+      setPlayerBluffs(actionsPlayer.playerId, updated);
     },
     [actionsPlayer, bluffIds, setPlayerBluffs],
   );
 
   const modalBluffLabel = isActionsPlayerLunatic ? 'Lunatic Bluffs' : 'Demon Bluffs';
 
-  // ── Token manager dialog ──
-  const [tokenSeat, setTokenSeat] = useState<number | null>(null);
-  /** Derive the current player from live state so the dialog always sees fresh tokens. */
-  const tokenPlayer =
-    tokenSeat !== null ? (players.find((p) => p.seat === tokenSeat) ?? null) : null;
-
-  // ── Handlers ──
+  const [tokenPlayerId, setTokenPlayerId] = useState<PlayerId | null>(null);
+  const tokenPlayer = tokenPlayerId ? (playersById.get(tokenPlayerId) ?? null) : null;
 
   const handleTokenClick = useCallback(
-    (player: PlayerSeat, _event: React.MouseEvent<HTMLElement>) => {
-      if (swapSourceSeat !== null) {
-        // In swap mode — complete the swap
-        if (player.seat !== swapSourceSeat) {
-          swapPlayerSeats(swapSourceSeat, player.seat);
+    (player: TownSquarePlayer, _event: React.MouseEvent<HTMLElement>) => {
+      if (swapSourcePlayerId !== null) {
+        const source = playersById.get(swapSourcePlayerId);
+        if (source && source.playerId !== player.playerId) {
+          assignGameSeat(player.slotId, source.playerId, GAME_ONLY_PROPAGATION);
+          assignGameSeat(source.slotId, player.playerId, GAME_ONLY_PROPAGATION);
         }
-        setSwapSourceSeat(null);
-        setSelectedSeat(null);
+        setSwapSourcePlayerId(null);
+        setSelectedPlayerId(null);
         return;
       }
-      // Normal mode — open PlayerActionsModal
-      setActionsSeat(player.seat);
-      setSelectedSeat(player.seat);
+      setActionsPlayerId(player.playerId);
+      setSelectedPlayerId(player.playerId);
     },
-    [swapSourceSeat, swapPlayerSeats],
+    [swapSourcePlayerId, playersById, assignGameSeat],
   );
 
   const handleActionsClose = useCallback(() => {
-    setActionsSeat(null);
-    setSelectedSeat(null);
+    setActionsPlayerId(null);
+    setSelectedPlayerId(null);
   }, []);
 
   const handleToggleAlive = useCallback(
-    (seat: number) => {
-      const p = players.find((pl) => pl.seat === seat);
-      if (!p) return;
-      if (p.alive) {
-        // Killing: mark dead, ghostVoteUsed stays false (they get one ghost vote)
-        updatePlayer(seat, { alive: false, ghostVoteUsed: false });
-      } else {
-        // Resurrecting: mark alive, reset ghostVoteUsed
-        updatePlayer(seat, { alive: true, ghostVoteUsed: false });
-      }
+    (playerId: PlayerId) => {
+      const player = playersById.get(playerId);
+      if (!player) return;
+      updatePlayerState(
+        playerId,
+        player.alive
+          ? { alive: false, ghostVoteUsed: false }
+          : { alive: true, ghostVoteUsed: false },
+      );
     },
-    [players, updatePlayer],
+    [playersById, updatePlayerState],
   );
 
   const handleToggleGhostVote = useCallback(
-    (seat: number) => {
-      const p = players.find((pl) => pl.seat === seat);
-      if (p) updatePlayer(seat, { ghostVoteUsed: !p.ghostVoteUsed });
+    (playerId: PlayerId) => {
+      const player = playersById.get(playerId);
+      if (player) updatePlayerState(playerId, { ghostVoteUsed: !player.ghostVoteUsed });
     },
-    [players, updatePlayer],
+    [playersById, updatePlayerState],
   );
 
-  const handleRemoveTraveller = useCallback(
-    (seat: number) => {
-      removeTraveller(seat);
+  const handleRemoveParticipant = useCallback(
+    (playerId: PlayerId) => {
+      removeParticipant(playerId);
     },
-    [removeTraveller],
+    [removeParticipant],
   );
 
   const handleSaveCharacter = useCallback(
-    (seat: number, updates: { characterId?: string; actualAlignment?: Alignment }) => {
-      updatePlayer(seat, updates);
+    (playerId: PlayerId, updates: { characterId?: string; actualAlignment?: Alignment }) => {
+      if (updates.characterId !== undefined) {
+        const character = getCharacter(updates.characterId);
+        const nextIsTraveller = character?.type === CharacterType.Traveller;
+        const participant = state.game?.participants.find((p) => p.playerId === playerId);
+        const currentIsTraveller = participant?.isTraveller ?? false;
+        if (nextIsTraveller !== currentIsTraveller) {
+          setParticipantTraveller(playerId, nextIsTraveller, updates.actualAlignment);
+        }
+      }
+      updatePlayerState(playerId, updates);
     },
-    [updatePlayer],
+    [getCharacter, setParticipantTraveller, state.game, updatePlayerState],
   );
 
-  const handleSwapWith = useCallback((seat: number) => {
-    setSwapSourceSeat(seat);
-    setSelectedSeat(seat);
+  const handleSwapWith = useCallback((playerId: PlayerId) => {
+    setSwapSourcePlayerId(playerId);
+    setSelectedPlayerId(playerId);
   }, []);
 
-  const handleOpenReseat = useCallback((seat: number) => {
-    setReseatInitialSeat(seat);
-    setReseatOpen(true);
-  }, []);
-
-  const handleManageTokens = useCallback((seat: number) => {
-    setTokenSeat(seat);
+  const handleManageTokens = useCallback((playerId: PlayerId) => {
+    setTokenPlayerId(playerId);
   }, []);
 
   const handleAddToken = useCallback(
-    (seat: number, token: PlayerTokenType) => {
-      addToken(seat, token);
+    (playerId: PlayerId, token: PlayerTokenType) => {
+      addToken(playerId, token);
     },
     [addToken],
   );
 
   const handleRemoveToken = useCallback(
-    (seat: number, tokenId: string) => {
-      removeToken(seat, tokenId);
+    (playerId: PlayerId, tokenId: string) => {
+      removeToken(playerId, tokenId);
     },
     [removeToken],
   );
-
-  // ── Render token callback (memoised) ──
 
   const centerX = dims.width / 2;
   const centerY = dims.height / 2;
 
   const renderToken = useCallback(
-    (player: PlayerSeat, position: TokenPosition) => {
+    (player: TownSquarePlayer, position: TokenPosition) => {
       const characterDef = player.characterId ? getCharacter(player.characterId) : undefined;
       const apparentCharacterDef = player.apparentCharacterId
         ? getCharacter(player.apparentCharacterId)
@@ -317,7 +338,7 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
             characterDef={characterDef}
             apparentCharacterDef={apparentCharacterDef}
             showCharacters={showCharacters}
-            isSelected={selectedSeat === player.seat}
+            isSelected={selectedPlayerId === player.playerId}
             onClick={(e: React.MouseEvent<HTMLElement>) => handleTokenClick(player, e)}
             size={tokenSize}
           />
@@ -339,7 +360,7 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
     [
       getCharacter,
       showCharacters,
-      selectedSeat,
+      selectedPlayerId,
       handleTokenClick,
       tokenSize,
       centerX,
@@ -361,14 +382,13 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         overflow: 'hidden',
       }}
     >
-      {/* ── Swap mode indicator ── */}
-      {swapSourceSeat !== null && (
+      {swapSourcePlayerId !== null && (
         <Chip
           icon={<SwapHorizIcon />}
-          label={`Tap a player to swap with Seat ${swapSourceSeat}`}
+          label={`Tap a player to swap with Seat ${playersById.get(swapSourcePlayerId)?.seatNumber ?? '?'}`}
           onDelete={() => {
-            setSwapSourceSeat(null);
-            setSelectedSeat(null);
+            setSwapSourcePlayerId(null);
+            setSelectedPlayerId(null);
           }}
           color="warning"
           sx={{
@@ -382,28 +402,27 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         />
       )}
 
-      {/* ── Circle / Ovoid layout ── */}
-      {dims.width > 0 && dims.height > 0 && (
+      {dims.width > 0 && dims.height > 0 && game && (
         <TownSquareLayout
-          players={sorted}
+          slots={game.slots}
+          playersBySlotId={playersBySlotId}
           renderToken={renderToken}
           shape={shape}
           containerWidth={dims.width}
           containerHeight={dims.height}
           tokenRadius={TOKEN_HALF[tokenSize]}
           tokenLayout={effectiveLayout}
-          activeFabled={(state.game?.activeFabled ?? [])
+          activeFabled={(game.activeFabled ?? [])
             .map((id) => getCharacter(id))
             .filter((character): character is CharacterDef => character !== undefined)}
-          activeLoric={(state.game?.activeLoric ?? [])
+          activeLoric={(game.activeLoric ?? [])
             .map((id) => getCharacter(id))
             .filter((character): character is CharacterDef => character !== undefined)}
         />
       )}
 
-      {/* ── Unified player actions modal (day & night views) ── */}
       <PlayerActionsModal
-        open={actionsSeat !== null}
+        open={actionsPlayerId !== null}
         player={actionsPlayer}
         showCharacters={showCharacters}
         scriptCharacters={scriptCharacters}
@@ -415,23 +434,13 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         onClose={handleActionsClose}
         onToggleAlive={handleToggleAlive}
         onToggleGhostVote={handleToggleGhostVote}
-        onRemoveTraveller={handleRemoveTraveller}
+        onRemoveParticipant={handleRemoveParticipant}
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
-        onReseat={handleOpenReseat}
         onSwapWith={handleSwapWith}
         onChangeBluff={handleChangeBluff}
       />
 
-      <ReseatTool
-        open={reseatOpen}
-        players={players}
-        initialSeat={reseatInitialSeat}
-        onClose={() => setReseatOpen(false)}
-        onConfirmSwap={swapPlayerSeats}
-      />
-
-      {/* ── Token layout toggle ── */}
       <Tooltip
         title={effectiveLayout === 'radial' ? 'Switch to linear tokens' : 'Switch to radial tokens'}
       >
@@ -459,11 +468,10 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         </IconButton>
       </Tooltip>
 
-      {/* ── Token Manager Dialog ── */}
       <TokenManager
         open={tokenPlayer !== null}
         player={tokenPlayer}
-        onClose={() => setTokenSeat(null)}
+        onClose={() => setTokenPlayerId(null)}
         onAddToken={handleAddToken}
         onRemoveToken={handleRemoveToken}
         characterDef={tokenPlayer?.characterId ? getCharacter(tokenPlayer.characterId) : undefined}

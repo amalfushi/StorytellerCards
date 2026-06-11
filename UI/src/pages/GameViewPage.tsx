@@ -7,13 +7,11 @@ import Box from '@mui/material/Box';
 import BottomNavigation from '@mui/material/BottomNavigation';
 import BottomNavigationAction from '@mui/material/BottomNavigationAction';
 import Button from '@mui/material/Button';
-import Fab from '@mui/material/Fab';
 import IconButton from '@mui/material/IconButton';
 import Toolbar from '@mui/material/Toolbar';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import Popover from '@mui/material/Popover';
-import AddIcon from '@mui/icons-material/Add';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import ChecklistIcon from '@mui/icons-material/Checklist';
@@ -23,7 +21,15 @@ import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
-import type { CharacterDef, Game, Phase, PlayerToken, Script } from '@/types/index.ts';
+import type {
+  CharacterDef,
+  Game,
+  Phase,
+  PlayerGameState,
+  PlayerId,
+  PlayerToken,
+  Script,
+} from '@/types/index.ts';
 import { useSession } from '@/context/useSession.ts';
 import { useGame } from '@/context/useGame.ts';
 import { useCharacterLookup } from '@/hooks/useCharacterLookup.ts';
@@ -43,11 +49,17 @@ import { CharacterSelection } from '@/components/Setup/CharacterSelection.tsx';
 import { DemonBluffSelection } from '@/components/Setup/DemonBluffSelection.tsx';
 import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
-import { ReseatTool } from '@/components/common/ReseatTool.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
 import { Phase as PhaseEnum } from '@/types/index.ts';
-import { AddPlayerDialog } from '@/components/TownSquare/AddPlayerDialog.tsx';
 import { DayTimerFab } from '@/components/Timer/DayTimerFab.tsx';
+import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+
+interface GameViewPlayer extends PlayerGameState {
+  playerId: string;
+  seat: number;
+  playerName: string;
+  isTraveller: boolean;
+}
 
 /**
  * Main Game View page — the primary gameplay screen.
@@ -65,15 +77,15 @@ export function GameViewPage() {
   const {
     state: gameState,
     loadGame,
-    updatePlayer,
-    addTraveller,
+    updatePlayerState,
     saveGame,
     setPhase,
     setInPlayCharacters,
     setDemonBluffs,
     setLunaticBluffs,
     setPlayerBluffs,
-    swapPlayerSeats,
+    setApparentCharacter,
+    setPlayerCountOverride,
     addToken,
     removeToken,
   } = useGame();
@@ -86,9 +98,7 @@ export function GameViewPage() {
   const [bluffSelectionOpen, setBluffSelectionOpen] = useState(false);
   const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
-  const [reseatOpen, setReseatOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
-  const [addPlayerOpen, setAddPlayerOpen] = useState(false);
   const [reminderPicker, setReminderPicker] = useState<{
     anchorEl: HTMLElement;
     token: PlayerToken;
@@ -110,13 +120,6 @@ export function GameViewPage() {
   }, [gameState.game?.currentPhase, dayTimer]);
 
   const isDayPhase = gameState.game?.currentPhase === PhaseEnum.Day;
-
-  const handleAddPlayer = useCallback(
-    (seat: number, playerName: string, characterId: string, alignment: 'Good' | 'Evil') => {
-      addTraveller(seat, playerName, characterId, alignment);
-    },
-    [addTraveller],
-  );
 
   // Find the session for the display name
   const session = useMemo(
@@ -217,9 +220,51 @@ export function GameViewPage() {
   const game = gameState.game;
   const nightHistoryCount = game?.nightHistory.length ?? 0;
 
-  // Build night order entries for the NightTabPanel
+  // Build display rows for legacy child components until their Slot-based migration lands.
   const isFirstNight = game?.isFirstNight ?? true;
-  const players = useMemo(() => game?.players ?? [], [game?.players]);
+  const players = useMemo<GameViewPlayer[]>(() => {
+    if (!game) return [];
+    const sessionPlayers = new Map((session?.players ?? []).map((player) => [player.id, player]));
+    const participants = new Map(
+      game.participants.map((participant) => [participant.playerId, participant]),
+    );
+    const displayMap = buildDisplaySeatNumberMap(game.slots);
+    const rows: GameViewPlayer[] = [];
+    const seatedPlayerIds = new Set<string>();
+
+    for (const slot of game.slots) {
+      if (slot.kind !== 'seat' || !slot.playerId) continue;
+      const stateForPlayer = game.playerState[slot.playerId];
+      const participant = participants.get(slot.playerId);
+      if (!stateForPlayer || !participant) continue;
+      seatedPlayerIds.add(slot.playerId);
+      rows.push({
+        ...stateForPlayer,
+        playerId: slot.playerId,
+        seat: displayMap.get(slot.id) ?? rows.length + 1,
+        playerName: sessionPlayers.get(slot.playerId)?.name ?? 'Unknown player',
+        isTraveller: participant.isTraveller,
+      });
+    }
+
+    let nextSeat = rows.length + 1;
+    for (const participant of game.participants) {
+      if (seatedPlayerIds.has(participant.playerId)) continue;
+      const stateForPlayer = game.playerState[participant.playerId];
+      if (!stateForPlayer) continue;
+      rows.push({
+        ...stateForPlayer,
+        playerId: participant.playerId,
+        seat: nextSeat,
+        playerName: sessionPlayers.get(participant.playerId)?.name ?? 'Unknown player',
+        isTraveller: participant.isTraveller,
+      });
+      nextSeat += 1;
+    }
+
+    return rows.sort((a, b) => a.seat - b.seat);
+  }, [game, session?.players]);
+
   const nightEntries = useNightOrder(
     scriptCharacterIds,
     isFirstNight,
@@ -231,8 +276,11 @@ export function GameViewPage() {
   // Check if characters need to be assigned (all non-traveller players have empty characterId)
   const needsCharacterAssignment = useMemo(() => {
     if (!game) return false;
-    const nonTravellers = game.players.filter((p) => !p.isTraveller);
-    return nonTravellers.length > 0 && nonTravellers.every((p) => !p.characterId);
+    const nonTravellers = game.participants.filter((p) => !p.isTraveller);
+    return (
+      nonTravellers.length > 0 &&
+      nonTravellers.every((participant) => !game.playerState[participant.playerId]?.characterId)
+    );
   }, [game]);
 
   // Check if in-play character selection is needed (no inPlayCharacterIds yet)
@@ -302,28 +350,28 @@ export function GameViewPage() {
 
   // Handle confirming character assignments
   const handleConfirmAssignments = useCallback(
-    (updatedPlayers: import('@/types/index.ts').PlayerSeat[]) => {
-      for (const p of updatedPlayers) {
-        if (p.characterId) {
-          updatePlayer(p.seat, {
-            characterId: p.characterId,
-            actualAlignment: p.actualAlignment,
-            startingAlignment: p.startingAlignment,
-          });
+    (updatedPlayerState: Record<PlayerId, PlayerGameState>) => {
+      for (const [playerId, state] of Object.entries(updatedPlayerState)) {
+        updatePlayerState(playerId, {
+          characterId: state.characterId,
+          actualAlignment: state.actualAlignment,
+          startingAlignment: state.startingAlignment,
+        });
 
-          // Distribute template bluffs to the assigned seat
-          const charDef = getCharacter(p.characterId);
-          if (charDef?.type === 'Demon' && templateDemonBluffs?.length) {
-            setPlayerBluffs(p.seat, templateDemonBluffs);
-          } else if (p.characterId === 'lunatic' && templateLunaticBluffs?.length) {
-            setPlayerBluffs(p.seat, templateLunaticBluffs);
-          }
+        setApparentCharacter(playerId, state.apparentCharacterId ?? '');
+
+        const charDef = getCharacter(state.characterId);
+        if (charDef?.type === 'Demon' && templateDemonBluffs?.length) {
+          setPlayerBluffs(playerId, templateDemonBluffs);
+        } else if (state.characterId === 'lunatic' && templateLunaticBluffs?.length) {
+          setPlayerBluffs(playerId, templateLunaticBluffs);
         }
       }
       saveGame();
     },
     [
-      updatePlayer,
+      updatePlayerState,
+      setApparentCharacter,
       saveGame,
       getCharacter,
       templateDemonBluffs,
@@ -387,12 +435,26 @@ export function GameViewPage() {
     return getCharacter(currentReminderPlayer.characterId)?.name ?? '';
   }, [currentReminderPlayer, getCharacter]);
 
+  const handleSetupAddToken = useCallback(
+    (playerId: PlayerId, token: PlayerToken) => {
+      addToken(playerId, token);
+    },
+    [addToken],
+  );
+
+  const handleSetupRemoveToken = useCallback(
+    (playerId: PlayerId, tokenId: string) => {
+      removeToken(playerId, tokenId);
+    },
+    [removeToken],
+  );
+
   const handleReminderPlayerChange = useCallback(
     (value: string | string[]) => {
       if (!reminderPicker || Array.isArray(value)) return;
       if (!value) {
         if (currentReminderPlayer) {
-          removeToken(currentReminderPlayer.seat, reminderPicker.token.id);
+          removeToken(currentReminderPlayer.playerId, reminderPicker.token.id);
         }
         setReminderPicker(null);
         return;
@@ -406,9 +468,9 @@ export function GameViewPage() {
           ? players.find((player) => player.characterId === selectedCharacter.id)
           : undefined;
         if (selectedPlayer) {
-          addToken(selectedPlayer.seat, reminderPicker.token);
+          addToken(selectedPlayer.playerId, reminderPicker.token);
         } else if (currentReminderPlayer) {
-          removeToken(currentReminderPlayer.seat, reminderPicker.token.id);
+          removeToken(currentReminderPlayer.playerId, reminderPicker.token.id);
         }
         setReminderPicker(null);
         return;
@@ -416,7 +478,7 @@ export function GameViewPage() {
 
       const selectedPlayer = players.find((player) => player.playerName === value);
       if (selectedPlayer) {
-        addToken(selectedPlayer.seat, reminderPicker.token);
+        addToken(selectedPlayer.playerId, reminderPicker.token);
       }
       setReminderPicker(null);
     },
@@ -607,16 +669,17 @@ export function GameViewPage() {
           <Box sx={{ overflow: 'auto', flex: 1 }}>
             <SetupChecklist
               gameId={game.id}
-              players={game.players}
+              participants={game.participants}
+              playerState={game.playerState}
+              sessionPlayers={session?.players ?? []}
               inPlayCharacterIds={game.inPlayCharacterIds}
               scriptCharacterIds={scriptCharacterIds}
               onStartNight={() => {
                 setSetupChecklistOpen(false);
                 handleNightClick();
               }}
-              onReseat={() => setReseatOpen(true)}
-              onAddToken={addToken}
-              onRemoveToken={removeToken}
+              onAddToken={handleSetupAddToken}
+              onRemoveToken={handleSetupRemoveToken}
             />
           </Box>
         </Drawer>
@@ -650,36 +713,7 @@ export function GameViewPage() {
             </Box>
 
             {/* ── Shared FABs for Town Square & Players tabs ── */}
-            {(tabIndex === 0 || tabIndex === 1) && (
-              <>
-                <Fab
-                  color="primary"
-                  size="small"
-                  aria-label="add player"
-                  onClick={() => setAddPlayerOpen(true)}
-                  sx={{
-                    position: 'absolute',
-                    bottom: 16,
-                    right: 16,
-                    zIndex: 10,
-                  }}
-                >
-                  <AddIcon />
-                </Fab>
-                {isDayPhase && <DayTimerFab timer={dayTimer} />}
-              </>
-            )}
-
-            {/* ── Add Player Dialog ── */}
-            <AddPlayerDialog
-              key={String(addPlayerOpen)}
-              open={addPlayerOpen}
-              existingPlayers={players}
-              scriptCharacterIds={scriptCharacterIds}
-              inPlayCharacterIds={game?.inPlayCharacterIds ?? []}
-              onClose={() => setAddPlayerOpen(false)}
-              onAdd={handleAddPlayer}
-            />
+            {(tabIndex === 0 || tabIndex === 1) && isDayPhase && <DayTimerFab timer={dayTimer} />}
           </Box>
 
           {/* ── Bottom Navigation ── */}
@@ -721,13 +755,6 @@ export function GameViewPage() {
 
       {/* Night History Drawer */}
       <NightHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
-
-      <ReseatTool
-        open={reseatOpen}
-        players={players}
-        onClose={() => setReseatOpen(false)}
-        onConfirmSwap={swapPlayerSeats}
-      />
 
       <Popover
         open={!!reminderPicker}
@@ -771,10 +798,15 @@ export function GameViewPage() {
         <CharacterAssignmentDialog
           open={assignDialogOpen}
           onClose={() => setAssignDialogOpen(false)}
-          players={game.players}
+          slots={game.slots}
+          participants={game.participants}
+          playerState={game.playerState}
+          sessionPlayers={session?.players ?? []}
+          playerCountOverride={game.playerCountOverride}
           scriptCharacters={scriptCharacterDefs}
           inPlayCharacterIds={game.inPlayCharacterIds}
           onConfirm={handleConfirmAssignments}
+          onPlayerCountChange={setPlayerCountOverride}
         />
       )}
 
@@ -784,7 +816,7 @@ export function GameViewPage() {
           open={charSelectionOpen}
           onClose={() => setCharSelectionOpen(false)}
           scriptCharacters={scriptCharacterDefs}
-          playerCount={game.players.filter((p) => !p.isTraveller).length}
+          playerCount={game.participants.filter((participant) => !participant.isTraveller).length}
           initialSelected={game.inPlayCharacterIds}
           onConfirm={handleConfirmInPlayCharacters}
         />

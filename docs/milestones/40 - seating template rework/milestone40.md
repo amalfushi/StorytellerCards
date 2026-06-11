@@ -1,11 +1,10 @@
 # Milestone 40 — Seating Template + Player + Game Rework (Playground)
 
-## Status: 🚧 In Progress
+## Status: ✅ Complete
 
-> **Scope note:** M40 ships a **disposable playground UI** at `/playground/m40` that
-> iterates the data model and storyteller flow in isolation from the production
-> `SessionContext` / `GameContext`. Production integration is a deliberate follow-up
-> milestone, not part of M40.
+**Note:** The disposable `/playground/m40` UI shipped in this milestone has been
+fully integrated into production in [M41 — Seating Model Integration](../41%20-%20seating%20model%20integration/milestone41.md).
+The playground page, reducer, and route are removed.
 
 ---
 

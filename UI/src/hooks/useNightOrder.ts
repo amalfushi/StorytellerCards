@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
-import type { CharacterDef, NightOrderEntry, PlayerSeat } from '@/types/index.ts';
+import type { CharacterDef } from '@/types/index.ts';
 import { allCharacters, buildNightOrder } from '@/data/characters/index.ts';
 import { filterNightOrder } from '@/utils/nightOrderFilter.ts';
+import type { NightOrderPlayer, NightOrderViewEntry } from '@/utils/nightOrderFilter.ts';
 
 const EMPTY_ACTIVE_SETUP_POWERS: string[] = [];
 
@@ -11,17 +12,17 @@ const EMPTY_ACTIVE_SETUP_POWERS: string[] = [];
  * chosen night type.
  *
  * When `players` is provided the result is further narrowed to only characters
- * that are actually assigned to a player seat in the current game.
+ * that are actually assigned to a seated player in the current game.
  *
  * Memoised so filtering only re-runs when inputs change.
  */
 export function useNightOrder(
   scriptCharacterIds: string[],
   isFirstNight: boolean,
-  players?: PlayerSeat[],
+  players?: NightOrderPlayer[],
   activeLoric: string[] = EMPTY_ACTIVE_SETUP_POWERS,
   activeFabled: string[] = EMPTY_ACTIVE_SETUP_POWERS,
-): NightOrderEntry[] {
+): NightOrderViewEntry[] {
   return useMemo(() => {
     const nightArray = buildNightOrder(allCharacters, isFirstNight);
     const filtered = filterNightOrder(
@@ -37,12 +38,12 @@ export function useNightOrder(
 }
 
 export function injectGainedAbilityEntries(
-  entries: NightOrderEntry[],
-  players: PlayerSeat[],
+  entries: NightOrderViewEntry[],
+  players: NightOrderPlayer[],
   characters: CharacterDef[],
   isFirstNight: boolean,
-): NightOrderEntry[] {
-  const gainedEntries: NightOrderEntry[] = [];
+): NightOrderViewEntry[] {
+  const gainedEntries: NightOrderViewEntry[] = [];
 
   for (const player of players) {
     if (!player.gainedAbility) continue;
@@ -61,6 +62,7 @@ export function injectGainedAbilityEntries(
       subActions: action.subActions,
       gainedAbilityHostSeat: player.gainedAbility.hostSeat,
       gainedAbilityBaseCharacterId: player.characterId,
+      gainedAbilityHostPlayerId: player.playerId,
     });
   }
 

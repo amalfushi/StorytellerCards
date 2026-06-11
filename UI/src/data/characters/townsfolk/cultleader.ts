@@ -50,7 +50,6 @@ export const cultleader: CharacterDef = {
     choices: [
       {
         type: 'alignment-change',
-        options: ['Good', 'Evil', 'Unchanged'],
         maxSelections: 1,
         label: 'Alignment result',
       },

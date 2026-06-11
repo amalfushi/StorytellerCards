@@ -18,8 +18,12 @@ func TestSaveAndGetSession(t *testing.T) {
 		Name:            "Friday Night",
 		CreatedAt:       "2025-01-01T00:00:00Z",
 		DefaultScriptID: "boozling",
-		DefaultPlayers:  []models.PlayerTemplate{{Seat: 1, PlayerName: "Alice"}},
-		GameIDs:         []string{},
+		Players:         []models.Player{{ID: "p-alice", Name: "Alice"}},
+		Template: models.SeatingTemplate{
+			Slots: []models.Slot{{Kind: models.SlotSeat, ID: "s-1", PlayerID: "p-alice"}},
+		},
+		PropagationDefault: models.PropagationPreference{ToTemplate: true, ToOtherGames: true},
+		GameIDs:            []string{},
 	}
 
 	t.Run("save then get round-trip", func(t *testing.T) {
@@ -38,8 +42,11 @@ func TestSaveAndGetSession(t *testing.T) {
 		if got.Name != session.Name {
 			t.Errorf("Name = %q, want %q", got.Name, session.Name)
 		}
-		if len(got.DefaultPlayers) != 1 || got.DefaultPlayers[0].PlayerName != "Alice" {
-			t.Errorf("DefaultPlayers mismatch: %+v", got.DefaultPlayers)
+		if len(got.Players) != 1 || got.Players[0].Name != "Alice" {
+			t.Errorf("Players mismatch: %+v", got.Players)
+		}
+		if len(got.Template.Slots) != 1 || got.Template.Slots[0].PlayerID != "p-alice" {
+			t.Errorf("Template.Slots mismatch: %+v", got.Template.Slots)
 		}
 	})
 }
@@ -126,7 +133,9 @@ func TestDeleteGame(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players:      []models.PlayerSeat{},
+		Slots:        []models.Slot{},
+		Participants: []models.Participant{},
+		PlayerState:  map[string]models.PlayerGameState{},
 		NightHistory: []models.NightHistoryEntry{},
 	}
 	if err := store.SaveGame(game); err != nil {
@@ -178,8 +187,20 @@ func TestSaveAndGetGame(t *testing.T) {
 		CurrentDay:   1,
 		CurrentPhase: models.Night,
 		IsFirstNight: true,
-		Players: []models.PlayerSeat{
-			{Seat: 1, PlayerName: "Alice", CharacterID: "noble", Alive: true},
+		Slots: []models.Slot{
+			{Kind: models.SlotSeat, ID: "s-1", PlayerID: "p-alice"},
+		},
+		Participants: []models.Participant{
+			{PlayerID: "p-alice", IsTraveller: false},
+		},
+		PlayerState: map[string]models.PlayerGameState{
+			"p-alice": {
+				CharacterID:      "noble",
+				Alive:            true,
+				VisibleAlignment: models.Good,
+				ActualAlignment:  models.Good,
+				ActiveReminders:  []string{},
+			},
 		},
 		NightHistory: []models.NightHistoryEntry{},
 	}
@@ -200,8 +221,11 @@ func TestSaveAndGetGame(t *testing.T) {
 		if got.ScriptID != game.ScriptID {
 			t.Errorf("ScriptID = %q, want %q", got.ScriptID, game.ScriptID)
 		}
-		if len(got.Players) != 1 || got.Players[0].PlayerName != "Alice" {
-			t.Errorf("Players mismatch: %+v", got.Players)
+		if len(got.Participants) != 1 || got.Participants[0].PlayerID != "p-alice" {
+			t.Errorf("Participants mismatch: %+v", got.Participants)
+		}
+		if got.PlayerState["p-alice"].CharacterID != "noble" {
+			t.Errorf("PlayerState mismatch: %+v", got.PlayerState)
 		}
 	})
 }

@@ -265,8 +265,19 @@ export interface Script {
 }
 
 // ──────────────────────────────────────────────
-// Player / Seat
+// Player / Slot / Participant (M41 seating model)
 // ──────────────────────────────────────────────
+
+/**
+ * M41 sync contract version. Bumped when Session/Game JSON shape changes in an
+ * incompatible way. Older clients refuse to load newer payloads.
+ */
+export const SEATING_MODEL_VERSION = 2;
+
+/** Stable uuid for a Player across the session and any games inside it. */
+export type PlayerId = string;
+/** Stable uuid for a Slot (seat / spacer / storyteller) inside a template or game. */
+export type SlotId = string;
 
 /** A status token that can be placed on a player in the Grimoire. */
 export interface PlayerToken {
@@ -280,20 +291,60 @@ export interface PlayerToken {
   color?: string;
 }
 
-/** A single player seat in a running game. */
-export interface PlayerSeat {
-  /** Seat number (1–20). */
-  seat: number;
-  playerName: string;
+/** Session-level player identity. Per-game state lives in Game.playerState. */
+export interface Player {
+  id: PlayerId;
+  name: string;
+}
+
+/**
+ * One slot in a seating arrangement (template or game). Three kinds:
+ * - `seat`: counts toward the displayed seat number (1..N), can hold a PlayerId.
+ * - `spacer`: a gap in the circle to reflect IRL layout; never numbered.
+ * - `storyteller`: storyteller orientation marker (typically singleton); never numbered.
+ *
+ * The display seat number is derived from position by counting only `seat` kinds
+ * (see `utils/seating/displaySeat.ts`).
+ */
+export type Slot =
+  | { kind: 'seat'; id: SlotId; playerId: PlayerId | null }
+  | { kind: 'spacer'; id: SlotId }
+  | { kind: 'storyteller'; id: SlotId };
+
+/** A session-level seating template — copied into each new game at creation. */
+export interface SeatingTemplate {
+  slots: Slot[];
+}
+
+/** Whether a propagating mutation should also touch the template and/or sibling games. */
+export interface PropagationPreference {
+  /** When mutating a game's slots, also mirror onto the session template. */
+  toTemplate: boolean;
+  /** When mutating a game's slots, also mirror onto sibling games. */
+  toOtherGames: boolean;
+}
+
+/** Game-level membership for a Player. */
+export interface Participant {
+  playerId: PlayerId;
+  /** True when this participant plays as a Traveller (does not count toward role counts). */
+  isTraveller: boolean;
+}
+
+/**
+ * Per-player state inside a single Game. Every field here used to live on the old
+ * `PlayerSeat` row; under M41 those rows are gone and per-player state is keyed by
+ * `PlayerId` instead of seat number.
+ */
+export interface PlayerGameState {
   characterId: string;
   alive: boolean;
   ghostVoteUsed: boolean;
   visibleAlignment: Alignment;
   actualAlignment: Alignment;
   startingAlignment: Alignment;
-  /** IDs of active reminder tokens placed on this seat. */
+  /** IDs of active reminder tokens placed on this player. */
   activeReminders: string[];
-  isTraveller: boolean;
   /** Status tokens placed on this player (drunk, poisoned, custom). May be absent in legacy/API data. */
   tokens?: PlayerToken[];
   /** Character ID this player believes they are (for Drunk/Marionette concealment). */
@@ -316,7 +367,21 @@ export interface Game {
   currentDay: number;
   currentPhase: Phase;
   isFirstNight: boolean;
-  players: PlayerSeat[];
+  /**
+   * Slot layout for this game. Snapshot of the session template at game-creation
+   * time; mutated independently afterward (with optional propagation back to the
+   * template and/or sibling games via {@link PropagationPreference}).
+   */
+  slots: Slot[];
+  /** Players "in" this game. Need not match seated slots (travellers + unseated planning). */
+  participants: Participant[];
+  /** Per-player state keyed by PlayerId. */
+  playerState: Record<PlayerId, PlayerGameState>;
+  /**
+   * Override for the character-assignment role count. When null, role counts derive
+   * from `participants.length`. Useful when planning for travellers separately.
+   */
+  playerCountOverride: number | null;
   nightHistory: NightHistoryEntry[];
   /** Character IDs of active Fabled game modifiers. */
   activeFabled?: string[];
@@ -328,8 +393,8 @@ export interface Game {
   demonBluffs?: string[];
   /** Character IDs of the 3 good characters shown to the Lunatic as fake bluffs. */
   lunaticBluffs?: string[];
-  /** Per-player bluffs keyed by seat number (as string). Supports multiple demons/lunatics with distinct bluffs. */
-  playerBluffs?: Record<string, string[]>;
+  /** Per-player bluffs keyed by PlayerId. Supports multiple demons/lunatics with distinct bluffs. */
+  playerBluffs?: Record<PlayerId, string[]>;
   /** Custom messages the Storyteller can show to players fullscreen. Key = characterId. */
   customPlayerMessages?: Record<string, string>;
   /** Sync version — incremented on each server-side save. */
@@ -348,7 +413,12 @@ export interface Session {
   name: string;
   createdAt: string;
   defaultScriptId: string;
-  defaultPlayers: Array<{ seat: number; playerName: string }>;
+  /** Roster of named players that can be seated in the template or any game. */
+  players: Player[];
+  /** Seating template copied into each new game at creation. */
+  template: SeatingTemplate;
+  /** Sticky default for propagation checkboxes inside games. */
+  propagationDefault: PropagationPreference;
   gameIds: string[];
   /** Sync version — incremented on each server-side save. */
   version?: number;
@@ -446,7 +516,8 @@ export interface GainedAbility {
 
 export type ShowToPlayerMessage = {
   id: string;
-  seat: number;
+  /** PlayerId the message is targeted at (M41: was seat: number). */
+  playerId: PlayerId;
   text: string;
   templateId?: string;
   createdAt: string;

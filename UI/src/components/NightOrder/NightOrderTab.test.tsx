@@ -5,6 +5,31 @@ import { NightOrderTab } from '@/components/NightOrder/NightOrderTab.tsx';
 import type { Game, NightOrderEntry as NightOrderEntryType } from '@/types/index.ts';
 import { Alignment } from '@/types/index.ts';
 
+// Mock useSession for context access
+vi.mock('@/context/useSession.ts', () => ({
+  useSession: () => ({
+    state: {
+      sessions: [
+        {
+          id: 'session-1',
+          name: 'Test Session',
+          createdAt: '2024-01-01T00:00:00Z',
+          defaultScriptId: 'boozling',
+          players: [
+            { id: 'alice', name: 'Alice' },
+            { id: 'bob', name: 'Bob' },
+          ],
+          template: { slots: [] },
+          propagationDefault: 'preserve' as const,
+          gameIds: ['game-1'],
+        },
+      ],
+      activeSessionId: null,
+      activeGameId: null,
+    },
+  }),
+}));
+
 // ──────────────────────────────────────────────
 // Mock data
 // ──────────────────────────────────────────────
@@ -16,10 +41,16 @@ const baseGame: Game = {
   currentDay: 1,
   currentPhase: 'Day',
   isFirstNight: true,
-  players: [
-    {
-      seat: 1,
-      playerName: 'Alice',
+  slots: [
+    { kind: 'seat' as const, id: 'slot-1', playerId: 'alice' },
+    { kind: 'seat' as const, id: 'slot-2', playerId: 'bob' },
+  ],
+  participants: [
+    { playerId: 'alice', isTraveller: false },
+    { playerId: 'bob', isTraveller: false },
+  ],
+  playerState: {
+    alice: {
       characterId: 'fortuneteller',
       alive: true,
       ghostVoteUsed: false,
@@ -27,12 +58,9 @@ const baseGame: Game = {
       actualAlignment: Alignment.Good,
       startingAlignment: Alignment.Good,
       activeReminders: [],
-      isTraveller: false,
       tokens: [],
     },
-    {
-      seat: 2,
-      playerName: 'Bob',
+    bob: {
       characterId: 'imp',
       alive: true,
       ghostVoteUsed: false,
@@ -40,10 +68,10 @@ const baseGame: Game = {
       actualAlignment: Alignment.Evil,
       startingAlignment: Alignment.Evil,
       activeReminders: [],
-      isTraveller: false,
       tokens: [],
     },
-  ],
+  },
+  playerCountOverride: null,
   nightHistory: [],
 };
 

@@ -8,7 +8,8 @@ import {
   travJackPlayer,
   mockCharacters,
 } from '../../stories/mockData';
-import type { PlayerSeat, CharacterDef } from '../../types';
+import type { CharacterDef } from '../../types';
+import type { StoryPlayer } from '../../stories/mockData';
 
 const noop = () => {};
 
@@ -30,13 +31,13 @@ const bluffCharacters: CharacterDef[] = demonBluffIds
   .filter((c): c is CharacterDef => c !== undefined);
 
 /** Dead player with ghost vote not used. */
-const deadPlayerNoGhostVote: PlayerSeat = {
+const deadPlayerNoGhostVote: StoryPlayer = {
   ...charliePlayer,
   ghostVoteUsed: false,
 };
 
 /** Dead traveller player (for combined dead + traveller state). */
-const deadTraveller: PlayerSeat = {
+const deadTraveller: StoryPlayer = {
   ...travJackPlayer,
   alive: false,
   ghostVoteUsed: false,

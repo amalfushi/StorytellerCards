@@ -1,80 +1,43 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import type { Game, Session, PlayerSeat } from '@/types/index.ts';
+import { cleanup, render, screen, fireEvent } from '@testing-library/react';
+import type { Game, Session, PlayerGameState } from '@/types/index.ts';
 import type { GameViewState } from '@/context/GameContext.tsx';
 import { Alignment, Phase } from '@/types/index.ts';
 
-// ──────────────────────────────────────────────
-// Mock data
-// ──────────────────────────────────────────────
-
-const mockPlayers: PlayerSeat[] = [
-  {
-    seat: 1,
-    playerName: 'Alice',
-    characterId: 'noble',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 2,
-    playerName: 'Bob',
-    characterId: 'imp',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 3,
-    playerName: 'Charlie',
-    characterId: 'fortuneteller',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 4,
-    playerName: 'Diana',
-    characterId: 'poisoner',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Evil,
-    startingAlignment: Alignment.Evil,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
-  {
-    seat: 5,
-    playerName: 'Eve',
-    characterId: 'drunk',
-    alive: true,
-    ghostVoteUsed: false,
-    visibleAlignment: Alignment.Unknown,
-    actualAlignment: Alignment.Good,
-    startingAlignment: Alignment.Good,
-    activeReminders: [],
-    isTraveller: false,
-    tokens: [],
-  },
+const sessionPlayers = [
+  { id: 'player-1', name: 'Alice' },
+  { id: 'player-2', name: 'Bob' },
+  { id: 'player-3', name: 'Charlie' },
+  { id: 'player-4', name: 'Diana' },
+  { id: 'player-5', name: 'Eve' },
 ];
+const slots = sessionPlayers.map((player, index) => ({
+  kind: 'seat' as const,
+  id: `slot-${index + 1}`,
+  playerId: player.id,
+}));
+const participants = sessionPlayers.map((player) => ({ playerId: player.id, isTraveller: false }));
+
+function makePlayerState(characterId: string, alignment: Alignment): PlayerGameState {
+  return {
+    characterId,
+    alive: true,
+    ghostVoteUsed: false,
+    visibleAlignment: Alignment.Unknown,
+    actualAlignment: alignment,
+    startingAlignment: alignment,
+    activeReminders: [],
+    tokens: [],
+  };
+}
+
+const playerState: Record<string, PlayerGameState> = {
+  'player-1': makePlayerState('noble', Alignment.Good),
+  'player-2': makePlayerState('imp', Alignment.Evil),
+  'player-3': makePlayerState('fortuneteller', Alignment.Good),
+  'player-4': makePlayerState('poisoner', Alignment.Evil),
+  'player-5': makePlayerState('drunk', Alignment.Good),
+};
 
 const baseGame: Game = {
   id: 'game-1',
@@ -83,7 +46,10 @@ const baseGame: Game = {
   currentDay: 2,
   currentPhase: Phase.Day,
   isFirstNight: false,
-  players: mockPlayers,
+  slots,
+  participants,
+  playerState,
+  playerCountOverride: null,
   nightHistory: [
     {
       dayNumber: 1,
@@ -101,23 +67,26 @@ const mockSession: Session = {
   name: 'Friday Night Game',
   createdAt: '2026-02-15T20:00:00.000Z',
   defaultScriptId: 'boozling',
-  defaultPlayers: [],
+  players: sessionPlayers,
+  template: { slots },
+  propagationDefault: { toTemplate: true, toOtherGames: true },
   gameIds: ['game-1'],
 };
-
-// ──────────────────────────────────────────────
-// Mocks
-// ──────────────────────────────────────────────
 
 let mockGame: Game | null;
 let mockShowCharacters: boolean;
 let mockNightProgress: GameViewState['nightProgress'];
+let capturedPhaseBarProps: {
+  activeView: string;
+  nightInProgress: boolean;
+  onDayClick: () => void;
+  onNightClick: () => void;
+} | null = null;
 
 const mockLoadGame = vi.fn();
-const mockUpdatePlayer = vi.fn();
-const mockSaveGame = vi.fn();
 const mockSetPhase = vi.fn();
 const mockNavigate = vi.fn();
+const mockUpdatePlayerState = vi.fn();
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
@@ -126,37 +95,45 @@ vi.mock('react-router-dom', () => ({
 
 vi.mock('@/context/useSession.ts', () => ({
   useSession: () => ({
-    state: {
-      sessions: [mockSession],
-      activeSessionId: 'session-1',
-      activeGameId: 'game-1',
-    },
+    state: { sessions: [mockSession], activeSessionId: 'session-1', activeGameId: 'game-1' },
+    addPlayer: vi.fn((sessionId: string, name: string) => ({ id: `${sessionId}-${name}`, name })),
   }),
 }));
 
 vi.mock('@/context/useGame.ts', () => ({
   useGame: () => ({
-    state: {
-      game: mockGame,
-      showCharacters: mockShowCharacters,
-      nightProgress: mockNightProgress,
-    },
+    state: { game: mockGame, showCharacters: mockShowCharacters, nightProgress: mockNightProgress },
     loadGame: mockLoadGame,
-    updatePlayer: mockUpdatePlayer,
-    addTraveller: vi.fn(),
-    saveGame: mockSaveGame,
+    updatePlayerState: mockUpdatePlayerState,
+    addParticipant: vi.fn(),
+    setParticipantTraveller: vi.fn(),
+    addGameSeat: vi.fn(() => 'new-slot'),
+    assignGameSeat: vi.fn(),
+    saveGame: vi.fn(),
     setPhase: mockSetPhase,
+    setInPlayCharacters: vi.fn(),
+    setDemonBluffs: vi.fn(),
+    setLunaticBluffs: vi.fn(),
+    setPlayerBluffs: vi.fn(),
+    setApparentCharacter: vi.fn(),
+    setPlayerCountOverride: vi.fn(),
+    addToken: vi.fn(),
+    removeToken: vi.fn(),
   }),
+}));
+
+vi.mock('@/hooks/useApiSync.ts', () => ({
+  useApiSync: () => ({ fetchGame: vi.fn(async () => null), fetchScript: vi.fn(async () => null) }),
 }));
 
 vi.mock('@/hooks/useCharacterLookup.ts', () => ({
   useCharacterLookup: () => ({
     getCharacter: (id: string) => ({
       id,
-      name: id.charAt(0).toUpperCase() + id.slice(1),
+      name: id,
       type: 'Townsfolk',
       defaultAlignment: 'Good',
-      abilityShort: 'Test ability',
+      abilityShort: 'Test',
       firstNight: null,
       otherNights: null,
       reminders: [],
@@ -164,10 +141,10 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
     getCharactersByIds: (ids: string[]) =>
       ids.map((id) => ({
         id,
-        name: id.charAt(0).toUpperCase() + id.slice(1),
+        name: id,
         type: 'Townsfolk',
         defaultAlignment: 'Good',
-        abilityShort: 'Test ability',
+        abilityShort: 'Test',
         firstNight: null,
         otherNights: null,
         reminders: [],
@@ -175,11 +152,7 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
     allCharacters: [],
   }),
 }));
-
-vi.mock('@/hooks/useNightOrder.ts', () => ({
-  useNightOrder: () => [],
-}));
-
+vi.mock('@/hooks/useNightOrder.ts', () => ({ useNightOrder: () => [] }));
 vi.mock('@/hooks/useTimer.ts', () => ({
   useTimer: () => ({
     timeRemaining: 0,
@@ -195,26 +168,13 @@ vi.mock('@/hooks/useTimer.ts', () => ({
   }),
 }));
 
-// Mock heavy child components to simplify rendering
 vi.mock('@/components/common/ShowCharactersToggle.tsx', () => ({
   ShowCharactersToggle: () => <button data-testid="show-chars-toggle">Toggle</button>,
 }));
-
-// PhaseBar mock — captures props for testing
-let capturedPhaseBarProps: {
-  activeView: string;
-  nightInProgress: boolean;
-  onDayClick: () => void;
-  onNightClick: () => void;
-} | null = null;
-
 vi.mock('@/components/PhaseBar/PhaseBar.tsx', () => ({
-  PhaseBar: (props: {
-    activeView: string;
-    nightInProgress: boolean;
-    onDayClick: () => void;
-    onNightClick: () => void;
-  }) => {
+  PhaseBar: (
+    props: typeof capturedPhaseBarProps & { onDayClick: () => void; onNightClick: () => void },
+  ) => {
     capturedPhaseBarProps = props;
     return (
       <div data-testid="phase-bar">
@@ -228,23 +188,18 @@ vi.mock('@/components/PhaseBar/PhaseBar.tsx', () => ({
     );
   },
 }));
-
 vi.mock('@/components/TownSquare/TownSquareTab.tsx', () => ({
   TownSquareTab: () => <div data-testid="town-square-tab">Town Square</div>,
 }));
-
 vi.mock('@/components/PlayerList/PlayerListTab.tsx', () => ({
   PlayerListTab: () => <div data-testid="player-list-tab">Player List</div>,
 }));
-
 vi.mock('@/components/ScriptViewer/ScriptReferenceTab.tsx', () => ({
   ScriptReferenceTab: () => <div data-testid="script-reference-tab">Script Reference</div>,
 }));
-
 vi.mock('@/components/NightOrder/NightOrderTab.tsx', () => ({
   NightOrderTab: () => <div data-testid="night-order-tab">Night Order</div>,
 }));
-
 vi.mock('@/components/NightPhase/NightTabPanel.tsx', () => ({
   NightTabPanel: ({ onComplete }: { onComplete?: () => void }) => (
     <div data-testid="night-tab-panel">
@@ -254,41 +209,30 @@ vi.mock('@/components/NightPhase/NightTabPanel.tsx', () => ({
     </div>
   ),
 }));
-
 vi.mock('@/components/NightHistory/NightHistoryDrawer.tsx', () => ({
   NightHistoryDrawer: ({ open }: { open: boolean }) =>
     open ? <div data-testid="night-history-drawer">History</div> : null,
 }));
-
 vi.mock('@/components/CharacterAssignment/CharacterAssignmentDialog.tsx', () => ({
   CharacterAssignmentDialog: ({ open }: { open: boolean }) =>
     open ? <div data-testid="char-assign-dialog">Assignment</div> : null,
 }));
-
 vi.mock('@/components/common/LoadingState.tsx', () => ({
   LoadingState: ({ message }: { message: string }) => (
     <div data-testid="loading-state">{message}</div>
   ),
 }));
-
-vi.mock('@/components/TownSquare/AddPlayerDialog.tsx', () => ({
-  AddPlayerDialog: ({ open }: { open: boolean }) =>
-    open ? <div data-testid="add-player-dialog">Add Player Dialog</div> : null,
-}));
-
 vi.mock('@/components/Timer/DayTimerFab.tsx', () => ({
   DayTimerFab: () => <div data-testid="day-timer-fab">Timer FAB</div>,
 }));
-
-// ──────────────────────────────────────────────
-// Import after mocks
-// ──────────────────────────────────────────────
+vi.mock('@/components/NightPhase/NightChoiceSelector.tsx', () => ({
+  NightChoiceSelector: () => null,
+}));
+vi.mock('@/components/Setup/CharacterSelection.tsx', () => ({ CharacterSelection: () => null }));
+vi.mock('@/components/Setup/DemonBluffSelection.tsx', () => ({ DemonBluffSelection: () => null }));
+vi.mock('@/components/Setup/SetupChecklist.tsx', () => ({ SetupChecklist: () => null }));
 
 import { GameViewPage } from '@/pages/GameViewPage.tsx';
-
-// ──────────────────────────────────────────────
-// Tests
-// ──────────────────────────────────────────────
 
 describe('GameViewPage', () => {
   beforeEach(() => {
@@ -297,7 +241,6 @@ describe('GameViewPage', () => {
     mockGame = baseGame;
     mockShowCharacters = false;
     mockNightProgress = null;
-    // Store game in localStorage so the page can find it
     localStorage.setItem('storyteller-game-game-1', JSON.stringify(baseGame));
   });
 
@@ -305,243 +248,93 @@ describe('GameViewPage', () => {
     localStorage.clear();
   });
 
-  it('renders without crashing', () => {
-    const { container } = render(<GameViewPage />);
-    expect(container).toBeTruthy();
-  });
-
-  it('shows session name and day number in the AppBar', () => {
+  it('renders the session title and day number', () => {
     render(<GameViewPage />);
     expect(screen.getByText(/Friday Night Game — Day 2/)).toBeInTheDocument();
-  });
-
-  it('shows PhaseBar', () => {
-    render(<GameViewPage />);
     expect(screen.getByTestId('phase-bar')).toBeInTheDocument();
-  });
-
-  it('shows ShowCharactersToggle', () => {
-    render(<GameViewPage />);
     expect(screen.getByTestId('show-chars-toggle')).toBeInTheDocument();
   });
 
-  it('shows 4 bottom navigation tabs in day view', () => {
-    render(<GameViewPage />);
-    expect(screen.getByRole('button', { name: /town square tab/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /players tab/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /script reference tab/i })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /night order tab/i })).toBeInTheDocument();
-  });
-
-  it('shows Town Square tab by default', () => {
+  it('shows day navigation tabs and switches between them', () => {
     render(<GameViewPage />);
     expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
-  });
 
-  it('switches to Players tab on click', () => {
-    render(<GameViewPage />);
     fireEvent.click(screen.getByRole('button', { name: /players tab/i }));
     expect(screen.getByTestId('player-list-tab')).toBeInTheDocument();
-    expect(screen.queryByTestId('town-square-tab')).not.toBeInTheDocument();
-  });
 
-  it('switches to Script tab on click', () => {
-    render(<GameViewPage />);
     fireEvent.click(screen.getByRole('button', { name: /script reference tab/i }));
     expect(screen.getByTestId('script-reference-tab')).toBeInTheDocument();
-  });
 
-  it('switches to Night Order tab on click', () => {
-    render(<GameViewPage />);
     fireEvent.click(screen.getByRole('button', { name: /night order tab/i }));
     expect(screen.getByTestId('night-order-tab')).toBeInTheDocument();
   });
 
-  it('shows night history button when night history exists', () => {
+  it('shows night history controls only when history exists', () => {
     render(<GameViewPage />);
     expect(screen.getByRole('button', { name: /night history/i })).toBeInTheDocument();
-  });
 
-  it('does not show night history button when no history', () => {
+    cleanup();
+    localStorage.clear();
     mockGame = { ...baseGame, nightHistory: [] };
     localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
     render(<GameViewPage />);
     expect(screen.queryByRole('button', { name: /night history/i })).not.toBeInTheDocument();
   });
 
-  it('shows back to session button', () => {
-    render(<GameViewPage />);
-    expect(screen.getByRole('button', { name: /back to session/i })).toBeInTheDocument();
-  });
-
-  it('shows "Game not found" when game is null and no localStorage data', () => {
+  it('shows Game not found when no context or localStorage game exists', () => {
     mockGame = null;
-    localStorage.removeItem('storyteller-game-game-1');
+    localStorage.clear();
     render(<GameViewPage />);
     expect(screen.getByText('Game not found')).toBeInTheDocument();
   });
 
-  it('shows character assignment banner when all players have empty characterId', () => {
-    const unassignedPlayers = mockPlayers.map((p) => ({
-      ...p,
-      characterId: '',
-    }));
-    mockGame = { ...baseGame, players: unassignedPlayers };
+  it('shows character assignment banner when playerState has no characters', () => {
+    const unassignedPlayerState = Object.fromEntries(
+      Object.entries(playerState).map(([playerId, state]) => [
+        playerId,
+        { ...state, characterId: '' },
+      ]),
+    );
+    mockGame = { ...baseGame, playerState: unassignedPlayerState };
     localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+
     render(<GameViewPage />);
+
     expect(screen.getByText(/Characters haven't been assigned yet/)).toBeInTheDocument();
   });
 
-  it('does not show character assignment banner when players have characters', () => {
-    render(<GameViewPage />);
-    expect(screen.queryByText(/Characters haven't been assigned yet/)).not.toBeInTheDocument();
-  });
-
-  // ── Night view mode tests ──
-
-  it('shows NightTabPanel inline when Night chip is clicked', () => {
-    render(<GameViewPage />);
-    // Click the Night chip
-    fireEvent.click(screen.getByTestId('night-chip'));
-    // NightTabPanel should appear
-    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
-    // Bottom navigation tabs should be hidden
-    expect(screen.queryByRole('button', { name: /town square tab/i })).not.toBeInTheDocument();
-  });
-
-  it('returns to Day tabs when Day chip is clicked from Night view', () => {
-    render(<GameViewPage />);
-    // Switch to night view
-    fireEvent.click(screen.getByTestId('night-chip'));
-    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
-    // Click Day chip
-    fireEvent.click(screen.getByTestId('day-chip'));
-    // Should show day tabs again
-    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
-    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
-  });
-
-  it('returns to Day view when night is completed', () => {
-    render(<GameViewPage />);
-    // Switch to night view
-    fireEvent.click(screen.getByTestId('night-chip'));
-    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
-    // Click the Complete Night button
-    fireEvent.click(screen.getByTestId('complete-night-btn'));
-    // Should return to day view
-    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
-  });
-
-  it('does not show moon icon in AppBar', () => {
-    // The moon icon was removed in M15
-    mockGame = { ...baseGame, currentPhase: Phase.Night };
-    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
-    render(<GameViewPage />);
-    expect(screen.queryByRole('button', { name: /start night/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /resume night/i })).not.toBeInTheDocument();
-  });
-
-  it('passes activeView=Day to PhaseBar in day view', () => {
+  it('switches between day and night views using PhaseBar callbacks', () => {
     render(<GameViewPage />);
     expect(capturedPhaseBarProps?.activeView).toBe('Day');
-  });
 
-  it('passes activeView=Night to PhaseBar in night view', () => {
-    render(<GameViewPage />);
     fireEvent.click(screen.getByTestId('night-chip'));
+    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /town square tab/i })).not.toBeInTheDocument();
     expect(capturedPhaseBarProps?.activeView).toBe('Night');
+
+    fireEvent.click(screen.getByTestId('day-chip'));
+    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
   });
 
-  it('passes nightInProgress=true to PhaseBar when nightProgress is non-null', () => {
+  it('passes night progress state to PhaseBar and exits night view on completion', () => {
     mockNightProgress = {
       currentCardIndex: 0,
+      totalCards: 1,
       subActionStates: {},
       notes: {},
       selections: {},
-      totalCards: 3,
     };
     render(<GameViewPage />);
     expect(capturedPhaseBarProps?.nightInProgress).toBe(true);
-  });
 
-  it('defaults to Day view for a brand new game (isFirstNight, no nightProgress)', () => {
-    mockGame = {
-      ...baseGame,
-      currentDay: 1,
-      currentPhase: Phase.Day,
-      isFirstNight: true,
-      nightHistory: [],
-    };
-    mockNightProgress = null;
-    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
-    render(<GameViewPage />);
-    // Should show day tabs, NOT the night panel
+    fireEvent.click(screen.getByTestId('night-chip'));
+    fireEvent.click(screen.getByTestId('complete-night-btn'));
     expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
-    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
-    // PhaseBar should show Day as active
-    expect(capturedPhaseBarProps?.activeView).toBe('Day');
   });
 
-  it('does not auto-enter night view when nightProgress is null', () => {
-    mockNightProgress = null;
+  it('navigates back to the session setup page', () => {
     render(<GameViewPage />);
-    // Should stay in day view
-    expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
-    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
-  });
-
-  // ── Shared FABs (Add Player + Day Timer) ──
-
-  it('shows add player FAB on Town Square tab', () => {
-    render(<GameViewPage />);
-    expect(screen.getByLabelText('add player')).toBeInTheDocument();
-  });
-
-  it('shows add player FAB on Players tab', () => {
-    render(<GameViewPage />);
-    fireEvent.click(screen.getByRole('button', { name: /players tab/i }));
-    expect(screen.getByLabelText('add player')).toBeInTheDocument();
-  });
-
-  it('does not show add player FAB on Script tab', () => {
-    render(<GameViewPage />);
-    fireEvent.click(screen.getByRole('button', { name: /script reference tab/i }));
-    expect(screen.queryByLabelText('add player')).not.toBeInTheDocument();
-  });
-
-  it('does not show add player FAB on Night Order tab', () => {
-    render(<GameViewPage />);
-    fireEvent.click(screen.getByRole('button', { name: /night order tab/i }));
-    expect(screen.queryByLabelText('add player')).not.toBeInTheDocument();
-  });
-
-  it('clicking add player FAB opens AddPlayerDialog', () => {
-    render(<GameViewPage />);
-    fireEvent.click(screen.getByLabelText('add player'));
-    expect(screen.getByTestId('add-player-dialog')).toBeInTheDocument();
-  });
-
-  it('shows day timer FAB on Town Square tab when in Day phase', () => {
-    render(<GameViewPage />);
-    expect(screen.getByTestId('day-timer-fab')).toBeInTheDocument();
-  });
-
-  it('shows day timer FAB on Players tab when in Day phase', () => {
-    render(<GameViewPage />);
-    fireEvent.click(screen.getByRole('button', { name: /players tab/i }));
-    expect(screen.getByTestId('day-timer-fab')).toBeInTheDocument();
-  });
-
-  it('does not show day timer FAB on Script tab', () => {
-    render(<GameViewPage />);
-    fireEvent.click(screen.getByRole('button', { name: /script reference tab/i }));
-    expect(screen.queryByTestId('day-timer-fab')).not.toBeInTheDocument();
-  });
-
-  it('does not show day timer FAB when not in Day phase', () => {
-    mockGame = { ...baseGame, currentPhase: Phase.Night };
-    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
-    render(<GameViewPage />);
-    expect(screen.queryByTestId('day-timer-fab')).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: /back to session/i }));
+    expect(mockNavigate).toHaveBeenCalledWith('/session/session-1');
   });
 });

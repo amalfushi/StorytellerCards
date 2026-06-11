@@ -1,18 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { filterPlayerAssignableCharacters, randomlyAssignCharacters } from './characterAssignment';
-import type { CharacterDef, PlayerSeat } from '@/types/index';
+import type { CharacterDef, Participant, PlayerGameState, PlayerId } from '@/types/index';
 import { Alignment } from '@/types/index';
 import type { Distribution } from '@/data/playerCountRules';
 
-// ── Factory helpers ──
-
-/** Create a minimal CharacterDef. */
 function makeChar(id: string, type: CharacterDef['type']): CharacterDef {
   return {
     id,
     name: id.charAt(0).toUpperCase() + id.slice(1),
     type,
-    defaultAlignment: type === 'Minion' || type === 'Demon' ? 'Evil' : 'Good',
+    defaultAlignment: type === 'Minion' || type === 'Demon' ? Alignment.Evil : Alignment.Good,
     abilityShort: `${id} ability`,
     firstNight: null,
     otherNights: null,
@@ -21,58 +18,48 @@ function makeChar(id: string, type: CharacterDef['type']): CharacterDef {
   };
 }
 
-/** Create a minimal PlayerSeat. */
-function makePlayer(
-  seat: number,
-  opts: { isTraveller?: boolean; characterId?: string } = {},
-): PlayerSeat {
+function makeParticipant(index: number, isTraveller = false): Participant {
+  return { playerId: `player-${index}`, isTraveller };
+}
+
+function makeState(overrides: Partial<PlayerGameState> = {}): PlayerGameState {
   return {
-    seat,
-    playerName: `Player ${seat}`,
-    characterId: opts.characterId ?? '',
+    characterId: '',
     alive: true,
     ghostVoteUsed: false,
     visibleAlignment: Alignment.Unknown,
     actualAlignment: Alignment.Unknown,
     startingAlignment: Alignment.Unknown,
     activeReminders: [],
-    isTraveller: opts.isTraveller ?? false,
     tokens: [],
+    ...overrides,
   };
 }
 
-/** Create a standard pool of script characters for testing. */
+function makePlayerState(participants: Participant[]): Record<PlayerId, PlayerGameState> {
+  return Object.fromEntries(participants.map((participant) => [participant.playerId, makeState()]));
+}
+
+function assignedStates(state: Record<PlayerId, PlayerGameState>): PlayerGameState[] {
+  return Object.values(state).filter((player) => player.characterId !== '');
+}
+
 function makePool(): CharacterDef[] {
   return [
-    // Townsfolk (10)
-    makeChar('townsfolk1', 'Townsfolk'),
-    makeChar('townsfolk2', 'Townsfolk'),
-    makeChar('townsfolk3', 'Townsfolk'),
-    makeChar('townsfolk4', 'Townsfolk'),
-    makeChar('townsfolk5', 'Townsfolk'),
-    makeChar('townsfolk6', 'Townsfolk'),
-    makeChar('townsfolk7', 'Townsfolk'),
-    makeChar('townsfolk8', 'Townsfolk'),
-    makeChar('townsfolk9', 'Townsfolk'),
-    makeChar('townsfolk10', 'Townsfolk'),
-    // Outsiders (4)
-    makeChar('outsider1', 'Outsider'),
-    makeChar('outsider2', 'Outsider'),
-    makeChar('outsider3', 'Outsider'),
-    makeChar('outsider4', 'Outsider'),
-    // Minions (4)
-    makeChar('minion1', 'Minion'),
-    makeChar('minion2', 'Minion'),
-    makeChar('minion3', 'Minion'),
-    makeChar('minion4', 'Minion'),
-    // Demons (3)
-    makeChar('demon1', 'Demon'),
-    makeChar('demon2', 'Demon'),
-    makeChar('demon3', 'Demon'),
+    ...Array.from({ length: 10 }, (_, i) => makeChar(`townsfolk${i + 1}`, 'Townsfolk')),
+    ...Array.from({ length: 4 }, (_, i) => makeChar(`outsider${i + 1}`, 'Outsider')),
+    ...Array.from({ length: 4 }, (_, i) => makeChar(`minion${i + 1}`, 'Minion')),
+    ...Array.from({ length: 3 }, (_, i) => makeChar(`demon${i + 1}`, 'Demon')),
   ];
 }
 
-// ── Tests ──
+function assign(
+  participants: Participant[],
+  pool: CharacterDef[],
+  distribution: Distribution,
+): Record<PlayerId, PlayerGameState> {
+  return randomlyAssignCharacters(participants, makePlayerState(participants), pool, distribution);
+}
 
 describe('filterPlayerAssignableCharacters', () => {
   it('excludes Travellers, Fabled, and Loric setup powers from player assignment pools', () => {
@@ -94,207 +81,178 @@ describe('filterPlayerAssignableCharacters', () => {
 describe('randomlyAssignCharacters', () => {
   const pool = makePool();
 
-  describe('correct number of characters per type', () => {
-    it('assigns correct counts for 5-player distribution', () => {
-      const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
-      const players = Array.from({ length: 5 }, (_, i) => makePlayer(i + 1));
+  it('assigns correct counts for a 5-player distribution', () => {
+    const distribution: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
+    const participants = Array.from({ length: 5 }, (_, i) => makeParticipant(i + 1));
 
-      const result = randomlyAssignCharacters(players, pool, dist);
-      const assigned = result.filter((p) => p.characterId !== '');
+    const result = assign(participants, pool, distribution);
+    const assignedChars = assignedStates(result).map(
+      (player) => pool.find((c) => c.id === player.characterId)!,
+    );
 
-      expect(assigned).toHaveLength(5);
-
-      const assignedChars = assigned.map((p) => pool.find((c) => c.id === p.characterId)!);
-      const townsfolk = assignedChars.filter((c) => c.type === 'Townsfolk');
-      const outsiders = assignedChars.filter((c) => c.type === 'Outsider');
-      const minions = assignedChars.filter((c) => c.type === 'Minion');
-      const demons = assignedChars.filter((c) => c.type === 'Demon');
-
-      expect(townsfolk).toHaveLength(3);
-      expect(outsiders).toHaveLength(0);
-      expect(minions).toHaveLength(1);
-      expect(demons).toHaveLength(1);
-    });
-
-    it('assigns correct counts for 10-player distribution', () => {
-      const dist: Distribution = { townsfolk: 7, outsiders: 0, minions: 2, demons: 1 };
-      const players = Array.from({ length: 10 }, (_, i) => makePlayer(i + 1));
-
-      const result = randomlyAssignCharacters(players, pool, dist);
-      const assigned = result.filter((p) => p.characterId !== '');
-
-      expect(assigned).toHaveLength(10);
-
-      const assignedChars = assigned.map((p) => pool.find((c) => c.id === p.characterId)!);
-      const townsfolk = assignedChars.filter((c) => c.type === 'Townsfolk');
-      const minions = assignedChars.filter((c) => c.type === 'Minion');
-      const demons = assignedChars.filter((c) => c.type === 'Demon');
-
-      expect(townsfolk).toHaveLength(7);
-      expect(minions).toHaveLength(2);
-      expect(demons).toHaveLength(1);
-    });
+    expect(assignedChars.filter((c) => c.type === 'Townsfolk')).toHaveLength(3);
+    expect(assignedChars.filter((c) => c.type === 'Outsider')).toHaveLength(0);
+    expect(assignedChars.filter((c) => c.type === 'Minion')).toHaveLength(1);
+    expect(assignedChars.filter((c) => c.type === 'Demon')).toHaveLength(1);
   });
 
-  it('all assigned characters come from the provided script', () => {
-    const dist: Distribution = { townsfolk: 3, outsiders: 1, minions: 1, demons: 1 };
-    const players = Array.from({ length: 6 }, (_, i) => makePlayer(i + 1));
+  it('assigns correct counts for a 10-player distribution', () => {
+    const distribution: Distribution = { townsfolk: 7, outsiders: 0, minions: 2, demons: 1 };
+    const participants = Array.from({ length: 10 }, (_, i) => makeParticipant(i + 1));
+
+    const result = assign(participants, pool, distribution);
+    const assignedChars = assignedStates(result).map(
+      (player) => pool.find((c) => c.id === player.characterId)!,
+    );
+
+    expect(assignedChars.filter((c) => c.type === 'Townsfolk')).toHaveLength(7);
+    expect(assignedChars.filter((c) => c.type === 'Minion')).toHaveLength(2);
+    expect(assignedChars.filter((c) => c.type === 'Demon')).toHaveLength(1);
+  });
+
+  it('only assigns characters from the provided script', () => {
+    const distribution: Distribution = { townsfolk: 3, outsiders: 1, minions: 1, demons: 1 };
+    const participants = Array.from({ length: 6 }, (_, i) => makeParticipant(i + 1));
     const poolIds = new Set(pool.map((c) => c.id));
 
-    const result = randomlyAssignCharacters(players, pool, dist);
-
-    result.forEach((p) => {
-      if (p.characterId !== '') {
-        expect(poolIds.has(p.characterId)).toBe(true);
-      }
-    });
+    for (const state of assignedStates(assign(participants, pool, distribution))) {
+      expect(poolIds.has(state.characterId)).toBe(true);
+    }
   });
 
-  it('no character is assigned more than once', () => {
-    const dist: Distribution = { townsfolk: 5, outsiders: 2, minions: 1, demons: 1 };
-    const players = Array.from({ length: 9 }, (_, i) => makePlayer(i + 1));
+  it('does not assign a character more than once', () => {
+    const distribution: Distribution = { townsfolk: 5, outsiders: 2, minions: 1, demons: 1 };
+    const participants = Array.from({ length: 9 }, (_, i) => makeParticipant(i + 1));
 
-    const result = randomlyAssignCharacters(players, pool, dist);
-    const charIds = result.map((p) => p.characterId).filter((id) => id !== '');
-    const unique = new Set(charIds);
+    const charIds = assignedStates(assign(participants, pool, distribution)).map(
+      (p) => p.characterId,
+    );
 
-    expect(unique.size).toBe(charIds.length);
+    expect(new Set(charIds).size).toBe(charIds.length);
   });
 
-  it('returns PlayerSeat[] with same length as input', () => {
-    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
-    const players = Array.from({ length: 5 }, (_, i) => makePlayer(i + 1));
+  it('returns state for the same player ids without mutating unrelated identity data', () => {
+    const distribution: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
+    const participants = Array.from({ length: 5 }, (_, i) => makeParticipant(i + 1));
 
-    const result = randomlyAssignCharacters(players, pool, dist);
+    const result = assign(participants, pool, distribution);
 
-    expect(result).toHaveLength(players.length);
-    result.forEach((p) => {
-      expect(p).toHaveProperty('seat');
-      expect(p).toHaveProperty('playerName');
-      expect(p).toHaveProperty('characterId');
-      expect(p).toHaveProperty('alive');
-    });
+    expect(Object.keys(result)).toEqual(participants.map((participant) => participant.playerId));
+    expect(assignedStates(result)).toHaveLength(5);
   });
 
   it('sets alignment to Evil for Minions and Demons', () => {
-    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
-    const players = Array.from({ length: 5 }, (_, i) => makePlayer(i + 1));
+    const distribution: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
+    const participants = Array.from({ length: 5 }, (_, i) => makeParticipant(i + 1));
 
-    const result = randomlyAssignCharacters(players, pool, dist);
-
-    result.forEach((p) => {
-      if (p.characterId === '') return;
-      const char = pool.find((c) => c.id === p.characterId)!;
-      if (char.type === 'Minion' || char.type === 'Demon') {
-        expect(p.actualAlignment).toBe(Alignment.Evil);
-        expect(p.startingAlignment).toBe(Alignment.Evil);
+    for (const state of assignedStates(assign(participants, pool, distribution))) {
+      const character = pool.find((c) => c.id === state.characterId)!;
+      if (character.type === 'Minion' || character.type === 'Demon') {
+        expect(state.actualAlignment).toBe(Alignment.Evil);
+        expect(state.startingAlignment).toBe(Alignment.Evil);
       }
-    });
+    }
   });
 
   it('sets alignment to Good for Townsfolk and Outsiders', () => {
-    const dist: Distribution = { townsfolk: 3, outsiders: 1, minions: 1, demons: 1 };
-    const players = Array.from({ length: 6 }, (_, i) => makePlayer(i + 1));
+    const distribution: Distribution = { townsfolk: 3, outsiders: 1, minions: 1, demons: 1 };
+    const participants = Array.from({ length: 6 }, (_, i) => makeParticipant(i + 1));
 
-    const result = randomlyAssignCharacters(players, pool, dist);
-
-    result.forEach((p) => {
-      if (p.characterId === '') return;
-      const char = pool.find((c) => c.id === p.characterId)!;
-      if (char.type === 'Townsfolk' || char.type === 'Outsider') {
-        expect(p.actualAlignment).toBe(Alignment.Good);
-        expect(p.startingAlignment).toBe(Alignment.Good);
+    for (const state of assignedStates(assign(participants, pool, distribution))) {
+      const character = pool.find((c) => c.id === state.characterId)!;
+      if (character.type === 'Townsfolk' || character.type === 'Outsider') {
+        expect(state.actualAlignment).toBe(Alignment.Good);
+        expect(state.startingAlignment).toBe(Alignment.Good);
       }
+    }
+  });
+
+  it('resets visible alignment and apparent character for assigned players', () => {
+    const distribution: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
+    const participants = Array.from({ length: 5 }, (_, i) => makeParticipant(i + 1));
+    const initialState = makePlayerState(participants);
+    initialState['player-1'] = makeState({
+      visibleAlignment: Alignment.Good,
+      apparentCharacterId: 'drunk',
     });
+
+    const result = randomlyAssignCharacters(participants, initialState, pool, distribution);
+
+    for (const state of assignedStates(result)) {
+      expect(state.visibleAlignment).toBe(Alignment.Unknown);
+      expect(state.apparentCharacterId).toBe('');
+    }
   });
 
-  it('sets visibleAlignment to Unknown for all assigned players', () => {
-    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
-    const players = Array.from({ length: 5 }, (_, i) => makePlayer(i + 1));
+  it('handles minimum players', () => {
+    const distribution: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
+    const participants = Array.from({ length: 5 }, (_, i) => makeParticipant(i + 1));
 
-    const result = randomlyAssignCharacters(players, pool, dist);
-
-    result.forEach((p) => {
-      if (p.characterId !== '') {
-        expect(p.visibleAlignment).toBe(Alignment.Unknown);
-      }
-    });
+    expect(assignedStates(assign(participants, pool, distribution))).toHaveLength(5);
   });
 
-  it('handles minimum players (5)', () => {
-    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
-    const players = Array.from({ length: 5 }, (_, i) => makePlayer(i + 1));
+  it('handles maximum players', () => {
+    const distribution: Distribution = { townsfolk: 9, outsiders: 2, minions: 3, demons: 1 };
+    const participants = Array.from({ length: 15 }, (_, i) => makeParticipant(i + 1));
 
-    const result = randomlyAssignCharacters(players, pool, dist);
-    const assigned = result.filter((p) => p.characterId !== '');
-
-    expect(assigned).toHaveLength(5);
+    expect(assignedStates(assign(participants, pool, distribution))).toHaveLength(15);
   });
 
-  it('handles maximum players (15)', () => {
-    const dist: Distribution = { townsfolk: 9, outsiders: 2, minions: 3, demons: 1 };
-    const players = Array.from({ length: 15 }, (_, i) => makePlayer(i + 1));
-
-    const result = randomlyAssignCharacters(players, pool, dist);
-    const assigned = result.filter((p) => p.characterId !== '');
-
-    expect(assigned).toHaveLength(15);
-  });
-
-  it('throws when there are not enough Townsfolk in the pool', () => {
+  it('assigns best-effort and leaves players unassigned when pool lacks Townsfolk', () => {
     const smallPool = [makeChar('townsfolk1', 'Townsfolk'), makeChar('demon1', 'Demon')];
-    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 0, demons: 1 };
-    const players = Array.from({ length: 4 }, (_, i) => makePlayer(i + 1));
+    const distribution: Distribution = { townsfolk: 3, outsiders: 0, minions: 0, demons: 1 };
+    const participants = Array.from({ length: 4 }, (_, i) => makeParticipant(i + 1));
 
-    expect(() => randomlyAssignCharacters(players, smallPool, dist)).toThrow(
-      'Not enough Townsfolk',
-    );
+    const result = assign(participants, smallPool, distribution);
+    const assigned = assignedStates(result);
+    expect(assigned.length).toBe(2);
+    expect(assigned.map((p) => p.characterId).sort()).toEqual(['demon1', 'townsfolk1']);
   });
 
-  it('throws when there are not enough Outsiders in the pool', () => {
+  it('assigns best-effort and leaves players unassigned when pool lacks Outsiders', () => {
     const smallPool = [makeChar('townsfolk1', 'Townsfolk'), makeChar('demon1', 'Demon')];
-    const dist: Distribution = { townsfolk: 1, outsiders: 2, minions: 0, demons: 1 };
-    const players = Array.from({ length: 4 }, (_, i) => makePlayer(i + 1));
+    const distribution: Distribution = { townsfolk: 1, outsiders: 2, minions: 0, demons: 1 };
+    const participants = Array.from({ length: 4 }, (_, i) => makeParticipant(i + 1));
 
-    expect(() => randomlyAssignCharacters(players, smallPool, dist)).toThrow(
-      'Not enough Outsiders',
-    );
+    const result = assign(participants, smallPool, distribution);
+    const assigned = assignedStates(result);
+    expect(assigned.length).toBe(2);
   });
 
-  it('throws when there are not enough Minions in the pool', () => {
+  it('assigns best-effort and leaves players unassigned when pool lacks Minions', () => {
     const smallPool = [makeChar('townsfolk1', 'Townsfolk'), makeChar('demon1', 'Demon')];
-    const dist: Distribution = { townsfolk: 1, outsiders: 0, minions: 2, demons: 1 };
-    const players = Array.from({ length: 4 }, (_, i) => makePlayer(i + 1));
+    const distribution: Distribution = { townsfolk: 1, outsiders: 0, minions: 2, demons: 1 };
+    const participants = Array.from({ length: 4 }, (_, i) => makeParticipant(i + 1));
 
-    expect(() => randomlyAssignCharacters(players, smallPool, dist)).toThrow('Not enough Minions');
+    const result = assign(participants, smallPool, distribution);
+    const assigned = assignedStates(result);
+    expect(assigned.length).toBe(2);
   });
 
-  it('throws when there are not enough Demons in the pool', () => {
+  it('assigns best-effort and leaves players unassigned when pool lacks Demons', () => {
     const smallPool = [makeChar('townsfolk1', 'Townsfolk')];
-    const dist: Distribution = { townsfolk: 1, outsiders: 0, minions: 0, demons: 1 };
-    const players = Array.from({ length: 2 }, (_, i) => makePlayer(i + 1));
+    const distribution: Distribution = { townsfolk: 1, outsiders: 0, minions: 0, demons: 1 };
+    const participants = Array.from({ length: 2 }, (_, i) => makeParticipant(i + 1));
 
-    expect(() => randomlyAssignCharacters(players, smallPool, dist)).toThrow('Not enough Demons');
+    const result = assign(participants, smallPool, distribution);
+    const assigned = assignedStates(result);
+    expect(assigned.length).toBe(1);
+    expect(assigned[0].characterId).toBe('townsfolk1');
   });
 
-  it('random assignment produces valid distributions across multiple runs', () => {
-    const dist: Distribution = { townsfolk: 3, outsiders: 1, minions: 1, demons: 1 };
-    const players = Array.from({ length: 6 }, (_, i) => makePlayer(i + 1));
+  it('produces valid distributions across multiple random runs', () => {
+    const distribution: Distribution = { townsfolk: 3, outsiders: 1, minions: 1, demons: 1 };
+    const participants = Array.from({ length: 6 }, (_, i) => makeParticipant(i + 1));
+    const poolIds = new Set(pool.map((c) => c.id));
 
-    // Run 10 times and verify invariants each time
-    for (let run = 0; run < 10; run++) {
-      const result = randomlyAssignCharacters(players, pool, dist);
-      const charIds = result.map((p) => p.characterId).filter((id) => id !== '');
-
-      // No duplicates
-      expect(new Set(charIds).size).toBe(charIds.length);
-
-      // All from pool
-      const poolIds = new Set(pool.map((c) => c.id));
-      charIds.forEach((id) => expect(poolIds.has(id)).toBe(true));
-
-      // Correct type counts
+    for (let run = 0; run < 10; run += 1) {
+      const charIds = assignedStates(assign(participants, pool, distribution)).map(
+        (p) => p.characterId,
+      );
       const assignedChars = charIds.map((id) => pool.find((c) => c.id === id)!);
+
+      expect(new Set(charIds).size).toBe(charIds.length);
+      charIds.forEach((id) => expect(poolIds.has(id)).toBe(true));
       expect(assignedChars.filter((c) => c.type === 'Townsfolk')).toHaveLength(3);
       expect(assignedChars.filter((c) => c.type === 'Outsider')).toHaveLength(1);
       expect(assignedChars.filter((c) => c.type === 'Minion')).toHaveLength(1);
@@ -302,34 +260,20 @@ describe('randomlyAssignCharacters', () => {
     }
   });
 
-  it('skips traveller players during assignment', () => {
-    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
-    const players = [
-      makePlayer(1),
-      makePlayer(2),
-      makePlayer(3, { isTraveller: true }),
-      makePlayer(4),
-      makePlayer(5),
-      makePlayer(6),
+  it('skips traveller participants during assignment', () => {
+    const distribution: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
+    const participants = [
+      makeParticipant(1),
+      makeParticipant(2),
+      makeParticipant(3, true),
+      makeParticipant(4),
+      makeParticipant(5),
+      makeParticipant(6),
     ];
 
-    const result = randomlyAssignCharacters(players, pool, dist);
-    const traveller = result.find((p) => p.seat === 3)!;
+    const result = assign(participants, pool, distribution);
 
-    expect(traveller.isTraveller).toBe(true);
-    // Traveller should not get a character from the distribution
-    expect(traveller.characterId).toBe('');
-  });
-
-  it('preserves seat numbers and player names', () => {
-    const dist: Distribution = { townsfolk: 3, outsiders: 0, minions: 1, demons: 1 };
-    const players = Array.from({ length: 5 }, (_, i) => makePlayer(i + 1));
-
-    const result = randomlyAssignCharacters(players, pool, dist);
-
-    result.forEach((p, i) => {
-      expect(p.seat).toBe(i + 1);
-      expect(p.playerName).toBe(`Player ${i + 1}`);
-    });
+    expect(result['player-3'].characterId).toBe('');
+    expect(assignedStates(result)).toHaveLength(5);
   });
 });

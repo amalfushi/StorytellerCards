@@ -7,7 +7,7 @@ import { CharacterType, Alignment, NightChoiceType, Edition } from '@/types/inde
 const validCharacterTypes = Object.values(CharacterType) as string[];
 const validAlignments = Object.values(Alignment) as string[];
 const validNightChoiceTypes = Object.values(NightChoiceType) as string[];
-const validEditions = Object.values(Edition) as string[];
+const validEditions = Object.values(Edition) as Edition[];
 
 // ── Expected type→alignment mapping ──
 

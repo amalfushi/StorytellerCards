@@ -6,7 +6,7 @@
  * can still import the builder directly.
  */
 
-import type { CharacterDef, PlayerSeat } from '@/types/index.ts';
+import type { CharacterDef, Participant, PlayerGameState, PlayerId } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
 import { getSetupModifiers } from '@/utils/setupModifiers.ts';
 import { getRequiredCharacters, getSetupPrompts } from '@/utils/requiredCharacters.ts';
@@ -32,7 +32,8 @@ export interface SetupChecklistItem {
  * Build checklist items from the current game state.
  */
 export function buildChecklistItems(
-  players: PlayerSeat[],
+  participants: Participant[],
+  playerState: Record<PlayerId, PlayerGameState>,
   inPlayCharacterIds: string[],
   scriptCharacterIds: string[],
 ): SetupChecklistItem[] {
@@ -134,10 +135,11 @@ export function buildChecklistItems(
   // 7. Global reminder placements needed
   for (const char of inPlayChars) {
     if (char.remindersGlobal && char.remindersGlobal.length > 0) {
-      // Check if any player has had the apparent character set (for Marionette/Drunk)
-      const hasApparentAssignment = players.some(
-        (p) => p.characterId === char.id && p.apparentCharacterId,
-      );
+      // Check if any participant has had the apparent character set (for Marionette/Drunk)
+      const hasApparentAssignment = participants.some((participant) => {
+        const state = playerState[participant.playerId];
+        return state?.characterId === char.id && !!state.apparentCharacterId;
+      });
       if (!hasApparentAssignment) {
         items.push({
           id: `reminder-global-${char.id}`,
