@@ -5,9 +5,9 @@
     "pct": 79.32
   },
   "branches": {
-    "total": 4032,
-    "covered": 2813,
-    "pct": 69.77
+    "total": 4034,
+    "covered": 2815,
+    "pct": 69.78
   },
   "functions": {
     "total": 1331,
