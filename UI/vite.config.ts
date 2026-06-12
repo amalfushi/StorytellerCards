@@ -26,4 +26,15 @@ export default defineConfig({
       '/health': 'http://localhost:3001',
     },
   },
+  // Pre-crawl story + test files so Vite discovers their dependencies during
+  // cold-start dep-optimization, rather than mid-test. Without this, the
+  // first storybook test that pulls in MUI / dnd-kit / etc. triggers a
+  // dep-reoptimization → page reload → in-flight dynamic imports (e.g. the
+  // a11y addon's axe-core chunk) fail with "Failed to fetch dynamically
+  // imported module" and the test errors out. See the vitest warning:
+  // "Vite unexpectedly reloaded a test. … add mentioned dependencies to
+  // your config's `optimizeDeps.include` field manually."
+  optimizeDeps: {
+    entries: ['src/**/*.stories.@(js|jsx|mjs|ts|tsx)', 'src/**/*.test.@(ts|tsx)', 'index.html'],
+  },
 });
