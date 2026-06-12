@@ -152,4 +152,48 @@ describe('RollForCharacterDialog', () => {
     expect(onApplyRandom).not.toHaveBeenCalled();
     expect(screen.getByTestId('roll-for-character-result')).toBeTruthy();
   });
+
+  it('shows the large icon, ability short, and detailed rules in the result panel', async () => {
+    const scriptWithDetailed: CharacterDef[] = [
+      {
+        ...makeChar('imp', 'Imp', CharacterType.Demon),
+        abilityDetailed:
+          'Each night*, the Imp may choose a living player: they die. If the Imp self-kills, a Minion becomes the new Imp.',
+      },
+    ];
+    render(
+      <RollForCharacterDialog
+        open
+        scriptCharacters={scriptWithDetailed}
+        preAssignedCharacterId="imp"
+        playerName="Alice"
+        onApplyRandom={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('roll-for-character-spin'));
+    await flushSpin();
+    expect(screen.getByTestId('roll-for-character-result-icon')).toBeTruthy();
+    expect(screen.getByTestId('roll-for-character-ability-short').textContent).toContain(
+      'Imp ability',
+    );
+    const detailed = screen.getByTestId('roll-for-character-ability-detailed');
+    expect(detailed.textContent).toContain('Minion becomes the new Imp');
+  });
+
+  it('omits the detailed rules section when the character has no abilityDetailed', async () => {
+    render(
+      <RollForCharacterDialog
+        open
+        scriptCharacters={scriptCharacters}
+        preAssignedCharacterId="imp"
+        playerName="Alice"
+        onApplyRandom={vi.fn()}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(screen.getByTestId('roll-for-character-spin'));
+    await flushSpin();
+    expect(screen.queryByTestId('roll-for-character-ability-detailed')).toBeNull();
+  });
 });

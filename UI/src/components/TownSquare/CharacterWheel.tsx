@@ -21,8 +21,8 @@ import type { CharacterDef } from '@/types/index.ts';
 import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 
-export const WHEEL_ROW_HEIGHT_PX = 56;
-export const WHEEL_VISIBLE_ROWS = 5;
+export const WHEEL_ROW_HEIGHT_PX = 72;
+export const WHEEL_VISIBLE_ROWS = 7;
 const STRIP_REPEATS = 11; // odd so there is a clean middle repeat
 const CENTER_REPEAT_INDEX = Math.floor(STRIP_REPEATS / 2);
 const SETTLE_SNAP_DELAY_MS = 80;
@@ -134,7 +134,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
       sx={{
         position: 'relative',
         width: '100%',
-        maxWidth: 420,
+        maxWidth: 520,
         height: visibleHeight,
         overflow: 'hidden',
         bgcolor: '#1a1a1a',
@@ -175,12 +175,14 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
                 alt=""
                 aria-hidden="true"
                 sx={{
-                  width: 36,
-                  height: 36,
+                  width: 48,
+                  height: 48,
                   borderRadius: '50%',
                   border: `2px solid ${typeColor}`,
-                  bgcolor: 'rgba(255,255,255,0.05)',
+                  bgcolor: '#fff',
                   flexShrink: 0,
+                  objectFit: 'contain',
+                  padding: '2px',
                 }}
               />
               <Typography

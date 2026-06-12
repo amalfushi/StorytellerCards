@@ -26,6 +26,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import type { CharacterDef } from '@/types/index.ts';
 import { filterPlayerAssignableCharacters } from '@/utils/characterAssignment.ts';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import { getCharacterIconPath } from '@/utils/characterIcon.ts';
 import {
   CharacterWheel,
   type CharacterWheelHandle,
@@ -191,7 +192,7 @@ export function RollForCharacterDialog({
         startIcon={<CasinoIcon />}
         onClick={() => void handleSpin()}
         disabled={isSpinning || wheelPool.length === 0}
-        sx={{ minWidth: 220, fontWeight: 700, fontSize: '1.1rem' }}
+        sx={{ minWidth: 220, fontWeight: 700, fontSize: '1.1rem', flexShrink: 0 }}
         data-testid="roll-for-character-spin"
       >
         {isSpinning ? 'Spinning…' : 'Spin the wheel'}
@@ -200,39 +201,123 @@ export function RollForCharacterDialog({
       {resultChar && !isSpinning && (
         <Box
           sx={{
-            textAlign: 'center',
             mt: 1,
-            p: 2,
+            p: { xs: 2, sm: 3 },
             borderRadius: 2,
-            border: '1px solid',
+            border: '2px solid',
             borderColor: getCharacterTypeColor(resultChar.type),
             bgcolor: 'rgba(255,255,255,0.03)',
-            maxWidth: 480,
             width: '100%',
+            maxWidth: 640,
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            alignItems: { xs: 'center', sm: 'flex-start' },
+            gap: 3,
+            // Allow the result to occupy remaining vertical space so the
+            // detailed-rules section can scroll inside it on small screens.
+            minHeight: 0,
+            flex: '1 1 auto',
+            overflow: 'hidden',
           }}
           data-testid="roll-for-character-result"
         >
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            Result
-          </Typography>
-          <Typography
-            variant="h5"
-            sx={{ fontWeight: 700, color: getCharacterTypeColor(resultChar.type) }}
+          {/* ── Large icon ── (always visible) */}
+          <Box
+            component="img"
+            src={getCharacterIconPath(resultChar.id)}
+            alt=""
+            aria-hidden="true"
+            sx={{
+              width: { xs: 120, sm: 140 },
+              height: { xs: 120, sm: 140 },
+              borderRadius: '50%',
+              border: `3px solid ${getCharacterTypeColor(resultChar.type)}`,
+              bgcolor: '#fff',
+              objectFit: 'contain',
+              padding: '6px',
+              flexShrink: 0,
+              boxShadow: `0 0 20px ${getCharacterTypeColor(resultChar.type)}55`,
+            }}
+            data-testid="roll-for-character-result-icon"
+          />
+
+          {/* ── Text column ── */}
+          <Box
+            sx={{
+              flex: '1 1 auto',
+              minWidth: 0,
+              minHeight: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 1,
+              textAlign: { xs: 'center', sm: 'left' },
+              width: '100%',
+              overflow: 'hidden',
+            }}
           >
-            {resultChar.name}
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-            {resultChar.abilityShort}
-          </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary', letterSpacing: 1 }}>
+              {resultChar.type.toUpperCase()}
+            </Typography>
+            <Typography
+              variant="h4"
+              sx={{
+                fontWeight: 700,
+                color: getCharacterTypeColor(resultChar.type),
+                lineHeight: 1.1,
+              }}
+            >
+              {resultChar.name}
+            </Typography>
+            {/* Ability short — always visible, no truncation */}
+            <Typography
+              variant="body1"
+              sx={{ color: 'rgba(255,255,255,0.92)', fontWeight: 500, mt: 0.5 }}
+              data-testid="roll-for-character-ability-short"
+            >
+              {resultChar.abilityShort}
+            </Typography>
+            {/* Detailed rules — scrollable overflow if long */}
+            {resultChar.abilityDetailed && (
+              <Box
+                sx={{
+                  mt: 1.5,
+                  pt: 1.5,
+                  borderTop: '1px solid rgba(255,255,255,0.15)',
+                  flex: '1 1 auto',
+                  minHeight: 0,
+                  overflow: 'auto',
+                  pr: 1,
+                  // Custom scrollbar so it's discoverable on a dark bg.
+                  '&::-webkit-scrollbar': { width: 6 },
+                  '&::-webkit-scrollbar-thumb': {
+                    bgcolor: 'rgba(255,255,255,0.25)',
+                    borderRadius: 3,
+                  },
+                }}
+                data-testid="roll-for-character-ability-detailed"
+              >
+                <Typography
+                  variant="caption"
+                  sx={{ color: 'text.secondary', display: 'block', mb: 0.5, letterSpacing: 0.5 }}
+                >
+                  DETAILED RULES
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{ color: 'rgba(255,255,255,0.85)', whiteSpace: 'pre-wrap', lineHeight: 1.5 }}
+                >
+                  {resultChar.abilityDetailed}
+                </Typography>
+              </Box>
+            )}
+          </Box>
         </Box>
       )}
-
-      <Box sx={{ flexGrow: 1 }} />
 
       <Button
         onClick={handleClose}
         disabled={isSpinning}
-        sx={{ color: 'rgba(255,255,255,0.7)' }}
+        sx={{ color: 'rgba(255,255,255,0.7)', flexShrink: 0 }}
         data-testid="roll-for-character-done"
       >
         Done
