@@ -18,6 +18,7 @@ import DoNotDisturbIcon from '@mui/icons-material/DoNotDisturb';
 import PersonRemoveIcon from '@mui/icons-material/PersonRemove';
 import TokenIcon from '@mui/icons-material/Token';
 import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
+import CasinoIcon from '@mui/icons-material/Casino';
 import type { CharacterDef, Alignment, PlayerId } from '@/types/index.ts';
 import type { TownSquarePlayer } from '@/components/TownSquare/PlayerToken.tsx';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
@@ -83,6 +84,11 @@ export interface PlayerActionsModalProps {
   onSaveCharacter: SaveCharacterHandler;
   onSwapWith?: PlayerActionHandler;
   onChangeBluff?: (oldBluffId: string, newBluffId: string) => void;
+  /**
+   * Open the slot-machine "Roll for Character" overlay for this player.
+   * When omitted, the Roll button is hidden (e.g. on legacy or read-only views).
+   */
+  onRollForCharacter?: PlayerActionHandler;
 }
 
 export function PlayerActionsModal({
@@ -104,6 +110,7 @@ export function PlayerActionsModal({
   onSaveCharacter,
   onSwapWith,
   onChangeBluff,
+  onRollForCharacter,
 }: PlayerActionsModalProps) {
   if (!player || !open) return null;
 
@@ -127,6 +134,7 @@ export function PlayerActionsModal({
       onSaveCharacter={onSaveCharacter}
       onSwapWith={onSwapWith}
       onChangeBluff={onChangeBluff}
+      onRollForCharacter={onRollForCharacter}
     />
   );
 }
@@ -149,6 +157,7 @@ function PlayerActionsModalInner({
   onSaveCharacter,
   onSwapWith,
   onChangeBluff,
+  onRollForCharacter,
 }: Omit<PlayerActionsModalProps, 'open'> & { player: TownSquarePlayer }) {
   const [characterId, setCharacterId] = useState(player.characterId ?? '');
   const [actualAlignment, setActualAlignment] = useState<Alignment>(
@@ -210,6 +219,13 @@ function PlayerActionsModalInner({
   const handleSwapWith = () => {
     if (onSwapWith) {
       invokePlayerAction(onSwapWith, player);
+      onClose();
+    }
+  };
+
+  const handleRollForCharacter = () => {
+    if (onRollForCharacter) {
+      invokePlayerAction(onRollForCharacter, player);
       onClose();
     }
   };
@@ -279,6 +295,22 @@ function PlayerActionsModalInner({
               fullWidth
             >
               Swap with…
+            </Button>
+          </>
+        )}
+
+        {onRollForCharacter && !player.isTraveller && (
+          <>
+            <Divider />
+            <Button
+              variant="outlined"
+              color="warning"
+              startIcon={<CasinoIcon />}
+              onClick={handleRollForCharacter}
+              fullWidth
+              data-testid="player-actions-roll-for-character"
+            >
+              Roll for Character
             </Button>
           </>
         )}

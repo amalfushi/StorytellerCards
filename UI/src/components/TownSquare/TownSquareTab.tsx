@@ -24,6 +24,7 @@ import type { TokenSize, TownSquarePlayer } from '@/components/TownSquare/Player
 import { TownSquareLayout } from '@/components/TownSquare/TownSquareLayout.tsx';
 import type { TokenPosition } from '@/components/TownSquare/TownSquareLayout.tsx';
 import { PlayerActionsModal } from '@/components/TownSquare/PlayerActionsModal.tsx';
+import { RollForCharacterDialog } from '@/components/TownSquare/RollForCharacterDialog.tsx';
 import { TokenManager, TokenBadges } from '@/components/TownSquare/TokenManager.tsx';
 import { buildAvailableTokens } from '@/utils/buildAvailableTokens.ts';
 import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
@@ -228,6 +229,32 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
 
   const [tokenPlayerId, setTokenPlayerId] = useState<PlayerId | null>(null);
   const tokenPlayer = tokenPlayerId ? (playersById.get(tokenPlayerId) ?? null) : null;
+
+  const [rollPlayerId, setRollPlayerId] = useState<PlayerId | null>(null);
+  const rollPlayer = rollPlayerId ? (playersById.get(rollPlayerId) ?? null) : null;
+
+  const handleRollForCharacter = useCallback((playerId: PlayerId) => {
+    setRollPlayerId(playerId);
+  }, []);
+
+  const handleRollClose = useCallback(() => {
+    setRollPlayerId(null);
+  }, []);
+
+  const handleRollRandomResult = useCallback(
+    (characterId: string) => {
+      if (!rollPlayerId) return;
+      const character = getCharacter(characterId);
+      const nextIsTraveller = character?.type === CharacterType.Traveller;
+      const participant = state.game?.participants.find((p) => p.playerId === rollPlayerId);
+      const currentIsTraveller = participant?.isTraveller ?? false;
+      if (nextIsTraveller !== currentIsTraveller) {
+        setParticipantTraveller(rollPlayerId, nextIsTraveller);
+      }
+      updatePlayerState(rollPlayerId, { characterId });
+    },
+    [getCharacter, rollPlayerId, setParticipantTraveller, state.game, updatePlayerState],
+  );
 
   const handleTokenClick = useCallback(
     (player: TownSquarePlayer, _event: React.MouseEvent<HTMLElement>) => {
@@ -439,7 +466,19 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         onSaveCharacter={handleSaveCharacter}
         onSwapWith={handleSwapWith}
         onChangeBluff={handleChangeBluff}
+        onRollForCharacter={handleRollForCharacter}
       />
+
+      {rollPlayer && (
+        <RollForCharacterDialog
+          open
+          scriptCharacters={scriptCharacters}
+          preAssignedCharacterId={rollPlayer.characterId ?? null}
+          playerName={rollPlayer.name ?? `Seat ${rollPlayer.seatNumber}`}
+          onApplyRandom={handleRollRandomResult}
+          onClose={handleRollClose}
+        />
+      )}
 
       <Tooltip
         title={effectiveLayout === 'radial' ? 'Switch to linear tokens' : 'Switch to radial tokens'}

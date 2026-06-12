@@ -9,6 +9,7 @@
     "dev:ui": "cd UI && npm run dev",
     "dev:ui:localonly": "cd UI && npx vite --mode localonly",
     "dev:api": "cd API && go run ./cmd/server",
+    "dev:tunnel": "concurrently --names UI,API,TUNNEL --prefix-colors cyan,green,magenta \"cd UI && cross-env VITE_ALLOW_ALL_HOSTS=1 npm run dev\" \"cd API && go run ./cmd/server\" \"npx --yes localtunnel --port 5173 --print-requests\"",
     "test": "concurrently --names UI,API \"cd UI && npm test\" \"cd API && go test ./...\"",
     "test:ui": "cd UI && npm test",
     "test:api": "cd API && go test ./...",
@@ -21,6 +22,8 @@
     "test:all": "npm run test:ui && npm run test:api && npm run test:storybook && npm run test:e2e && npm run test:e2e:sync"
   },
   "devDependencies": {
-    "concurrently": "^9.0.0"
+    "concurrently": "^9.0.0",
+    "cross-env": "^7.0.3",
+    "localtunnel": "^2.0.2"
   }
 }
