@@ -219,10 +219,13 @@ export function RollForCharacterDialog({
             maxWidth: 640,
             display: 'flex',
             flexDirection: { xs: 'column', sm: 'row' },
-            alignItems: { xs: 'center', sm: 'flex-start' },
+            // Stretch so the text column fills the panel's cross-axis height
+            // (row layout) — otherwise it shrinks to the icon's height and the
+            // inner detailed-rules box has nothing to push against, so it
+            // overflows the panel and the bottom is clipped instead of
+            // scrolling.
+            alignItems: 'stretch',
             gap: 3,
-            // Allow the result to occupy remaining vertical space so the
-            // detailed-rules section can scroll inside it on small screens.
             minHeight: 0,
             flex: '1 1 auto',
             overflow: 'hidden',
@@ -244,6 +247,7 @@ export function RollForCharacterDialog({
               objectFit: 'contain',
               padding: '6px',
               flexShrink: 0,
+              alignSelf: 'center',
               boxShadow: `0 0 20px ${getCharacterTypeColor(resultChar.type)}55`,
             }}
             data-testid="roll-for-character-result-icon"
