@@ -106,3 +106,72 @@ See SQL `todos` table for the live list. High-level phases match §2 above.
 - [x] `docs/milestones/40 - seating template rework/milestone40.md` — Status row
       notes M41 has integrated and the playground is removed.
 - [x] `AGENTS.md` — refresh test/coverage stats only if they drift.
+
+---
+
+## 6. Follow-ups (post-merge fun pack)
+
+After M41 shipped, two small follow-ups were tacked on in branch
+`m41/followups`:
+
+### 6.1 Roll for Character (slot-machine overlay)
+
+A new action on `PlayerActionsModal` — "Roll for Character" — opens a
+fullscreen slot-machine wheel of every player-assignable character in the
+script (Townsfolk → Outsider → Minion → Demon, alpha within type;
+Travellers / Fabled / Loric are filtered out so the wheel reveals nothing
+about who is in play).
+
+- **Predetermined mode:** when the player already has a character assigned,
+  the spin is theatrical only and lands on that character. The storyteller
+  is the only person who knows.
+- **Random mode:** when no character is assigned, a single random pick from
+  the wheel pool is applied via `updatePlayerState` on settle. A storyteller
+  warning is rendered explicitly noting that the single-player random pick
+  does **not** respect full setup-distribution rules — for proper
+  distributions, the bulk randomizer in the assignment pane should be used.
+- **Availability:** unconditional from the actions modal (except for
+  Travellers, who use a different assignment path). This satisfies the
+  "must be available before the game has officially started" requirement
+  without adding a separate `Phase.Setup`.
+
+New files:
+
+- `UI/src/components/TownSquare/CharacterWheel.tsx` — imperative
+  `spinTo(id)` ref handle, vertical translateY animation, 11 repeats of the
+  character strip so the wheel always travels several revolutions before
+  settling. Snaps back (no transition) to the centre repeat after each spin
+  so the next call can travel either way.
+- `UI/src/components/TownSquare/RollForCharacterDialog.tsx` — fullscreen
+  Dialog wrapping the wheel. Computes the target id before delegating to
+  `spinTo`, surfaces the result card, gates random-branch warnings.
+- `*.test.tsx` for both, plus a one-line `onRollForCharacter` prop added to
+  `PlayerActionsModal` and wired from `TownSquareTab`.
+
+### 6.2 `npm run dev:tunnel` — public dev URL
+
+A new root script exposes the local UI + API to the public internet via
+[`localtunnel`](https://github.com/localtunnel/localtunnel) without any
+account or signup:
+
+```
+npm run dev:tunnel
+```
+
+This runs UI (with `VITE_ALLOW_ALL_HOSTS=1`), API (`go run ./cmd/server`),
+and a `localtunnel` process pointed at port 5173 concurrently. Vite's
+existing `/api` and `/health` proxies forward to `localhost:3001` on the
+same machine, so the API is reachable transparently through the public
+`*.loca.lt` URL — no separate tunnel is needed for the backend.
+
+Implementation:
+
+- `package.json` — added `dev:tunnel` script, plus `cross-env` and
+  `localtunnel` to `devDependencies`.
+- `UI/vite.config.ts` — when `VITE_ALLOW_ALL_HOSTS=1`, sets
+  `server.allowedHosts: true` so Vite 7 doesn't reject the tunnel host.
+  Local dev (`npm run dev`) is unaffected.
+
+`localtunnel` may prompt visitors for the tunnel-server IP password on
+first visit; that's a property of the public service, not the script.
+
