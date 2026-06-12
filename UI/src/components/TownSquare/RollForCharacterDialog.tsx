@@ -134,6 +134,14 @@ export function RollForCharacterDialog({
             justifyContent: 'flex-start',
             p: { xs: 2, sm: 4 },
             gap: 3,
+            // CRITICAL: the paper must constrain its height and forbid its
+            // own overflow so the result panel below can claim the remaining
+            // space and scroll its detailed-rules section internally rather
+            // than letting the whole dialog overflow.
+            height: '100%',
+            maxHeight: '100vh',
+            overflow: 'hidden',
+            minHeight: 0,
           },
         },
       }}
