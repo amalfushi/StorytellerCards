@@ -8,24 +8,39 @@
 Session
 ├── id, name, createdAt
 ├── defaultScriptId
-├── defaultPlayers: [{seat, playerName}]
+├── players: Player[]                 # reusable session roster
+├── defaultParticipantIds: PlayerId[] # explicit lineup for new games
+├── template.slots: Slot[]            # default seat/spacer/ST arrangement
+├── propagationDefault
 ├── gameIds: string[]
 │
 └── Game
     ├── id, sessionId, scriptId
-     ├── currentDay, currentPhase (Day|Night)
+    ├── currentDay, currentPhase (Day|Night)
     ├── isFirstNight: boolean
+    ├── slots: Slot[]                  # game-specific seating
+    ├── participants: Participant[]    # game-specific lineup
+    ├── playerState: Record<PlayerId, PlayerGameState>
+    ├── inPlayCharacterIds: string[]   # selected character pool
+    ├── seatingConfirmed: boolean      # first-start confirmation
     ├── nightHistory: NightHistoryEntry[]
-    │
-    └── PlayerSeat
-        ├── seat (1–20), playerName
-        ├── characterId (lowercase no-space key)
-        ├── alive, ghostVoteUsed
-        ├── visibleAlignment, actualAlignment, startingAlignment
-        ├── activeReminders: string[]
-        ├── isTraveller: boolean
-        └── tokens: PlayerToken[]
 ```
+
+Session roster, default lineup, game participants, selected characters,
+character assignments, and seating are intentionally separate. New games use
+the persisted `Session.defaultParticipantIds` lineup while snapshotting the
+current session seating template, so temporary changes in one game never
+silently redefine later games.
+
+`Slot` is a discriminated union of `seat`, `spacer`, and `storyteller`. Only
+seat slots can hold a `PlayerId`; display seat numbers are derived from slot
+order while skipping non-seat slots.
+
+Applying the session seating template to a game changes only that unstarted
+game's layout. Its target participant lineup and per-player state are
+preserved, including parked participants, and template assignments for players
+outside that lineup are cleared. Once a game has started, its seating cannot be
+overwritten by individual or bulk template application.
 
 ## Script Format
 
@@ -64,19 +79,21 @@ The first element has `id: "_meta"` with script metadata. All other elements are
 ## Character Types and Alignments
 
 ### Types (`CharacterType`)
+
 Defined as `as const` objects (not enums):
 
-| Type | Default Alignment | Color |
-|------|-------------------|-------|
-| `Townsfolk` | Good | `#1976d2` (blue) |
-| `Outsider` | Good | `#42a5f5` (lighter blue) |
-| `Minion` | Evil | `#d32f2f` (red) |
-| `Demon` | Evil | `#b71c1c` (dark red) |
-| `Traveller` | Unknown (assigned by ST) | Split blue/red |
-| `Fabled` | — | Orange-gold gradient |
-| `Loric` | Good | `#558b2f` (mossy green) |
+| Type        | Default Alignment        | Color                    |
+| ----------- | ------------------------ | ------------------------ |
+| `Townsfolk` | Good                     | `#1976d2` (blue)         |
+| `Outsider`  | Good                     | `#42a5f5` (lighter blue) |
+| `Minion`    | Evil                     | `#d32f2f` (red)          |
+| `Demon`     | Evil                     | `#b71c1c` (dark red)     |
+| `Traveller` | Unknown (assigned by ST) | Split blue/red           |
+| `Fabled`    | —                        | Orange-gold gradient     |
+| `Loric`     | Good                     | `#558b2f` (mossy green)  |
 
 ### Alignments (`Alignment`)
+
 - `Good`, `Evil`, `Unknown`
 - A player has three alignment fields: `startingAlignment`, `actualAlignment`, `visibleAlignment`
 - This supports characters like the Drunk (thinks they're a Townsfolk but is actually the Drunk) or alignment-changing effects
@@ -87,8 +104,8 @@ Defined as individual TypeScript files in [`UI/src/data/characters/`](../UI/src/
 
 ```typescript
 interface CharacterDef {
-  id: string;           // e.g. "nodashii"
-  name: string;         // e.g. "No Dashii"
+  id: string; // e.g. "nodashii"
+  name: string; // e.g. "No Dashii"
   type: CharacterType;
   defaultAlignment: Alignment;
   abilityShort: string; // one-line ability description
@@ -100,10 +117,10 @@ interface CharacterDef {
   reminders: ReminderToken[];
 
   // ── M6 extensions (all optional) ──
-  setupModification?: SetupModification;   // e.g., Baron: +2 Outsiders
-  storytellerSetup?: StorytellerSetup[];   // pre-game ST decisions
-  gameRuleOverrides?: GameRuleOverride[];  // Fabled/Loric rule changes
-  jinxes?: Jinx[];                         // character interactions (M5 stub)
+  setupModification?: SetupModification; // e.g., Baron: +2 Outsiders
+  storytellerSetup?: StorytellerSetup[]; // pre-game ST decisions
+  gameRuleOverrides?: GameRuleOverride[]; // Fabled/Loric rule changes
+  jinxes?: Jinx[]; // character interactions (M5 stub)
 }
 ```
 
@@ -114,7 +131,7 @@ interface NightAction {
   order: number;
   helpText: string;
   subActions: NightSubAction[];
-  choices?: NightChoice[];  // declarative night choices (M6)
+  choices?: NightChoice[]; // declarative night choices (M6)
 }
 ```
 
@@ -122,14 +139,14 @@ Unknown characters (not in the character registry) are handled by `getFallbackCh
 
 ### M6 Extension Types
 
-| Type | Purpose | Example |
-|------|---------|---------|
-| `SetupModification` | Character modifies player-count distribution | Baron: `{ description: "+2 Outsiders, -2 Townsfolk" }` |
-| `StorytellerSetup` | Pre-game decision the ST must make | Drunk: ST assigns a Townsfolk identity |
-| `GameRuleOverride` | Fabled/Loric rule changes | Spirit of Ivory: game rule modification |
-| `Jinx` | Interaction between two characters | Spy + Damsel interaction (stub for M5) |
-| `NightChoice` | Declarative choice selector for night actions | Fortune Teller: `{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }` |
-| `NightChoiceType` | `as const` object for choice types | `'player'`, `'livingPlayer'`, `'deadPlayer'`, `'character'`, `'alignment'`, `'yesno'` |
+| Type                | Purpose                                       | Example                                                                               |
+| ------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------- |
+| `SetupModification` | Character modifies player-count distribution  | Baron: `{ description: "+2 Outsiders, -2 Townsfolk" }`                                |
+| `StorytellerSetup`  | Pre-game decision the ST must make            | Drunk: ST assigns a Townsfolk identity                                                |
+| `GameRuleOverride`  | Fabled/Loric rule changes                     | Spirit of Ivory: game rule modification                                               |
+| `Jinx`              | Interaction between two characters            | Spy + Damsel interaction (stub for M5)                                                |
+| `NightChoice`       | Declarative choice selector for night actions | Fortune Teller: `{ type: 'player', maxSelections: 2, label: 'Choose 2 players' }`     |
+| `NightChoiceType`   | `as const` object for choice types            | `'player'`, `'livingPlayer'`, `'deadPlayer'`, `'character'`, `'alignment'`, `'yesno'` |
 
 ## Night Order Structure
 
@@ -138,16 +155,17 @@ Night order is **derived** from character definitions via [`buildNightOrder()`](
 Structural entries (Minion Info, Demon Info) are defined in [`_nightOrder.ts`](../UI/src/data/characters/_nightOrder.ts). The `buildNightOrder()` function merges character entries with structural entries and sorts by order.
 
 Each entry is either:
+
 - **`structural`**: Phase markers like `minioninfo`, `demoninfo`
 - **`character`**: An actual character's night action
 
 ```typescript
 interface NightOrderEntry {
-  order: number;        // sequential position
-  type: 'structural' | 'character';
-  id: string;           // character ID or structural ID
-  name: string;         // display name
-  helpText: string;     // full storyteller instructions
+  order: number; // sequential position
+  type: "structural" | "character";
+  id: string; // character ID or structural ID
+  name: string; // display name
+  helpText: string; // full storyteller instructions
   subActions: NightSubAction[];
 }
 ```
@@ -157,22 +175,24 @@ The [`nightOrderFilter.ts`](../UI/src/utils/nightOrderFilter.ts) utility filters
 ## Night Progress & History
 
 ### `NightProgress` — In-flight walkthrough
+
 ```typescript
 interface NightProgress {
   currentCardIndex: number;
-  subActionStates: Record<string, boolean[]>;  // characterId → checkmarks
-  notes: Record<string, string>;               // characterId → free text
+  subActionStates: Record<string, boolean[]>; // characterId → checkmarks
+  notes: Record<string, string>; // characterId → free text
   selections: Record<string, string | string[]>; // characterId → dropdown choices
   totalCards: number;
 }
 ```
 
 ### `NightHistoryEntry` — Saved completed night
+
 ```typescript
 interface NightHistoryEntry {
   dayNumber: number;
   isFirstNight: boolean;
-  completedAt: string;          // ISO timestamp
+  completedAt: string; // ISO timestamp
   subActionStates: Record<string, boolean[]>;
   notes: Record<string, string>;
   selections: Record<string, string | string[]>;
@@ -188,17 +208,25 @@ Defined in [`playerCountRules.ts`](../UI/src/data/playerCountRules.ts). For each
 ## Phase Flow
 
 ```
-Day ←→ Night
+Pre-game Day --(valid + confirmed seating)--> Night ←→ Day
 ```
 
 Phases are `Day` and `Night` only — a simple toggle. Dawn and Dusk were removed in M3-4 as they added no value to the Storyteller's workflow.
+
+Seating is intentionally not required for planning. The Storyteller may create
+a game, change participation, select characters, and assign characters while
+players remain parked. The first transition into Night validates that every
+participant has exactly one seat. Valid inherited seating receives a concise,
+game-specific confirmation; invalid seating routes to Town Square Edit Seating.
+Pre-game lineup/seating changes clear `seatingConfirmed`. Once play has started,
+explicit seating corrections do not reintroduce the pre-game gate.
 
 ## Player Tokens
 
 ```typescript
 interface PlayerToken {
   id: string;
-  type: 'drunk' | 'poisoned' | 'custom';
+  type: "drunk" | "poisoned" | "custom";
   label: string;
   sourceCharacterId?: string;
   color?: string;

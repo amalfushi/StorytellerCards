@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { filterPlayerAssignableCharacters, randomlyAssignCharacters } from './characterAssignment';
+import {
+  apparentCharacterIdAfterAssignment,
+  countCharacterCopies,
+  filterPlayerAssignableCharacters,
+  isCharacterUnavailableForAssignment,
+  randomlyAssignCharacters,
+} from './characterAssignment';
 import type { CharacterDef, Participant, PlayerGameState, PlayerId } from '@/types/index';
 import { Alignment } from '@/types/index';
 import type { Distribution } from '@/data/playerCountRules';
@@ -75,6 +81,43 @@ describe('filterPlayerAssignableCharacters', () => {
       'noble',
       'imp',
     ]);
+  });
+
+  describe('character assignment copy limits', () => {
+    const participants = [makeParticipant(1), makeParticipant(2)];
+    const playerState = {
+      'player-1': makeState(),
+      'player-2': makeState({ characterId: 'imp' }),
+    };
+
+    it('blocks a unique character already assigned to another participant', () => {
+      const counts = countCharacterCopies([makeChar('imp', 'Demon')]);
+      expect(
+        isCharacterUnavailableForAssignment('imp', 'player-1', participants, playerState, counts),
+      ).toBe(true);
+    });
+
+    it('allows the current assignment and available duplicate copies', () => {
+      const counts = countCharacterCopies([makeChar('imp', 'Demon'), makeChar('imp', 'Demon')]);
+      expect(
+        isCharacterUnavailableForAssignment('imp', 'player-2', participants, playerState, counts),
+      ).toBe(false);
+      expect(
+        isCharacterUnavailableForAssignment('imp', 'player-1', participants, playerState, counts),
+      ).toBe(false);
+    });
+  });
+
+  describe('apparentCharacterIdAfterAssignment', () => {
+    it('preserves an apparent identity for concealment roles', () => {
+      expect(apparentCharacterIdAfterAssignment('washerwoman', 'drunk')).toBe('washerwoman');
+      expect(apparentCharacterIdAfterAssignment('empath', 'marionette')).toBe('empath');
+    });
+
+    it('clears stale apparent identity when clearing or changing to a normal role', () => {
+      expect(apparentCharacterIdAfterAssignment('washerwoman', '')).toBe('');
+      expect(apparentCharacterIdAfterAssignment('washerwoman', 'imp')).toBe('');
+    });
   });
 });
 

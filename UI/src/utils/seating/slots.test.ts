@@ -1,13 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
-import type { Slot } from '@/types/index.ts';
+import type { Participant, Player, Slot } from '@/types/index.ts';
 import {
   clearPlayerFromSlots,
   findSeatForPlayer,
+  hasGameStarted,
   moveSlot,
   seatedPlayerIds,
   seatSlotsOnly,
   setSeatPlayer,
+  validateGameSeating,
 } from './slots.ts';
 
 const seat = (id: string, playerId: string | null = null): Slot => ({
@@ -118,5 +120,71 @@ describe('seatSlotsOnly', () => {
   it('filters out spacers and storyteller markers', () => {
     const slots: Slot[] = [seat('s1'), spacer('sp'), seat('s2'), storyteller('st')];
     expect(seatSlotsOnly(slots).map((s) => s.id)).toEqual(['s1', 's2']);
+  });
+});
+
+describe('hasGameStarted', () => {
+  it('recognizes the first Night transition as live play', () => {
+    expect(hasGameStarted({ currentPhase: 'Night', isFirstNight: true, nightHistory: [] })).toBe(
+      true,
+    );
+  });
+
+  it('keeps a completed first night classified as started after returning to Day', () => {
+    expect(hasGameStarted({ currentPhase: 'Day', isFirstNight: false, nightHistory: [{}] })).toBe(
+      true,
+    );
+  });
+
+  it('returns false during pre-game Day setup', () => {
+    expect(hasGameStarted({ currentPhase: 'Day', isFirstNight: true, nightHistory: [] })).toBe(
+      false,
+    );
+  });
+});
+
+describe('validateGameSeating', () => {
+  const roster: Player[] = [
+    { id: 'p1', name: 'Alice' },
+    { id: 'p2', name: 'Bob' },
+    { id: 'p3', name: 'Carol' },
+  ];
+  const participants: Participant[] = [
+    { playerId: 'p1', isTraveller: false },
+    { playerId: 'p2', isTraveller: false },
+  ];
+
+  it('accepts fully seated participants while allowing empty seats and layout markers', () => {
+    const result = validateGameSeating(
+      [seat('s1', 'p1'), spacer('gap'), seat('s2', 'p2'), seat('s3'), storyteller('st')],
+      participants,
+      roster,
+    );
+
+    expect(result).toEqual({
+      isValid: true,
+      unseatedParticipantIds: [],
+      duplicatePlayerIds: [],
+      nonParticipantPlayerIds: [],
+      missingRosterPlayerIds: [],
+    });
+  });
+
+  it('reports unseated, duplicate, non-participant, and missing-roster players', () => {
+    const result = validateGameSeating(
+      [seat('s1', 'p1'), seat('s2', 'p1'), seat('s3', 'p3')],
+      [...participants, { playerId: 'missing', isTraveller: false }],
+      roster,
+    );
+
+    expect(result.isValid).toBe(false);
+    expect(result.unseatedParticipantIds).toEqual(['p2', 'missing']);
+    expect(result.duplicatePlayerIds).toEqual(['p1']);
+    expect(result.nonParticipantPlayerIds).toEqual(['p3']);
+    expect(result.missingRosterPlayerIds).toEqual(['missing']);
+  });
+
+  it('requires at least one participant before play starts', () => {
+    expect(validateGameSeating([seat('s1')], [], roster).isValid).toBe(false);
   });
 });

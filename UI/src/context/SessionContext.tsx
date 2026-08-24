@@ -21,6 +21,7 @@ import {
   moveSlot,
   setSeatPlayer,
   clearPlayerFromSlots,
+  hasGameStarted,
 } from '@/utils/seating/index.ts';
 import { SessionContext } from './useSession.ts';
 
@@ -36,6 +37,7 @@ function getSetupPowersForScript(scriptId: string): Pick<Game, 'activeFabled' | 
       if (character?.type === 'Fabled') activeFabled.push(characterId);
       if (character?.type === 'Loric') activeLoric.push(characterId);
     }
+
     return {
       activeFabled: activeFabled.length > 0 ? activeFabled : undefined,
       activeLoric: activeLoric.length > 0 ? activeLoric : undefined,
@@ -43,6 +45,14 @@ function getSetupPowersForScript(scriptId: string): Pick<Game, 'activeFabled' | 
   } catch {
     return {};
   }
+}
+
+function getDefaultParticipantIds(session: Session): PlayerId[] {
+  const rosterIds = new Set(session.players.map((player) => player.id));
+  const storedIds =
+    session.defaultParticipantIds ??
+    initialParticipantsFromSlots(session.template.slots).map((participant) => participant.playerId);
+  return storedIds.filter((playerId) => rosterIds.has(playerId));
 }
 
 // ──────────────────────────────────────────────
@@ -83,9 +93,16 @@ type SessionAction =
         defaultScriptId?: string;
       };
     }
-  | { type: 'ADD_PLAYER'; payload: { sessionId: string; player: Player } }
+  | {
+      type: 'ADD_PLAYER';
+      payload: { sessionId: string; player: Player; slotId: SlotId };
+    }
   | { type: 'RENAME_PLAYER'; payload: { sessionId: string; playerId: PlayerId; name: string } }
   | { type: 'REMOVE_PLAYER'; payload: { sessionId: string; playerId: PlayerId } }
+  | {
+      type: 'SET_DEFAULT_PARTICIPANT';
+      payload: { sessionId: string; playerId: PlayerId; included: boolean };
+    }
   | { type: 'ADD_TEMPLATE_SEAT'; payload: { sessionId: string; slotId: SlotId } }
   | { type: 'ADD_TEMPLATE_SPACER'; payload: { sessionId: string; slotId: SlotId } }
   | { type: 'ADD_TEMPLATE_STORYTELLER'; payload: { sessionId: string; slotId: SlotId } }
@@ -95,12 +112,13 @@ type SessionAction =
       type: 'ASSIGN_TEMPLATE_SEAT';
       payload: { sessionId: string; slotId: SlotId; playerId: PlayerId | null };
     }
+  | { type: 'REPLACE_TEMPLATE_SLOTS'; payload: { sessionId: string; slots: Slot[] } }
   | {
       type: 'SET_PROPAGATION_DEFAULT';
       payload: { sessionId: string; pref: Partial<PropagationPreference> };
     }
   | { type: 'ADD_GAME_TO_SESSION'; payload: { sessionId: string; game: Game } }
-  | { type: 'APPLY_TEMPLATE_TO_GAME'; payload: { sessionId: string; gameId: string } }
+  | { type: 'APPLY_TEMPLATE_TO_GAME'; payload: { sessionId: string; game: Game } }
   | { type: 'HYDRATE'; payload: SessionState }
   | { type: 'DELETE_GAME'; payload: { sessionId: string; gameId: string } }
   | { type: 'SYNC_SESSION'; payload: { session: Session } }
@@ -118,6 +136,52 @@ function mapSession(
   return {
     ...state,
     sessions: state.sessions.map((s) => (s.id === sessionId ? fn(s) : s)),
+  };
+}
+
+function buildGameFromTemplate(session: Session, existing: Game): Game | null {
+  if (hasGameStarted(existing)) return null;
+
+  const slotIdMap: Record<string, string> = {};
+  for (const slot of session.template.slots) slotIdMap[slot.id] = generateId();
+  const templateSlots = snapshotTemplateSlots(session.template.slots, slotIdMap);
+  const existingParticipants =
+    existing.participants ??
+    getDefaultParticipantIds(session).map((playerId) => ({
+      playerId,
+      isTraveller: false,
+    }));
+  const rosterIds = new Set(session.players.map((player) => player.id));
+  const participants = [...existingParticipants];
+  const participantIds = new Set(existingParticipants.map((participant) => participant.playerId));
+  for (const slot of templateSlots) {
+    if (
+      slot.kind === 'seat' &&
+      slot.playerId !== null &&
+      rosterIds.has(slot.playerId) &&
+      !participantIds.has(slot.playerId)
+    ) {
+      participants.push({ playerId: slot.playerId, isTraveller: false });
+      participantIds.add(slot.playerId);
+    }
+  }
+  const slots = templateSlots.map((slot) =>
+    slot.kind === 'seat' && slot.playerId !== null && !participantIds.has(slot.playerId)
+      ? { ...slot, playerId: null }
+      : slot,
+  );
+  const preservedPlayerState: Record<PlayerId, ReturnType<typeof makeDefaultPlayerGameState>> = {};
+  for (const participant of participants) {
+    preservedPlayerState[participant.playerId] =
+      existing.playerState?.[participant.playerId] ?? makeDefaultPlayerGameState();
+  }
+
+  return {
+    ...existing,
+    slots,
+    participants,
+    playerState: preservedPlayerState,
+    seatingConfirmed: false,
   };
 }
 
@@ -139,6 +203,7 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
         createdAt: new Date().toISOString(),
         defaultScriptId: scriptId,
         players,
+        defaultParticipantIds: players.map((player) => player.id),
         template: { slots },
         propagationDefault: { ...DEFAULT_PROPAGATION },
         gameIds: [],
@@ -193,11 +258,18 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
     }
 
     case 'ADD_PLAYER': {
-      const { sessionId, player } = action.payload;
-      return mapSession(state, sessionId, (s) => ({
-        ...s,
-        players: [...s.players, player],
-      }));
+      const { sessionId, player, slotId } = action.payload;
+      return mapSession(state, sessionId, (s) => {
+        const defaultParticipantIds = getDefaultParticipantIds(s);
+        return {
+          ...s,
+          players: [...s.players, player],
+          defaultParticipantIds: [...defaultParticipantIds, player.id],
+          template: {
+            slots: [...s.template.slots, { kind: 'seat', id: slotId, playerId: player.id }],
+          },
+        };
+      });
     }
 
     case 'RENAME_PLAYER': {
@@ -213,8 +285,23 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       return mapSession(state, sessionId, (s) => ({
         ...s,
         players: s.players.filter((p) => p.id !== playerId),
+        defaultParticipantIds: getDefaultParticipantIds(s).filter((id) => id !== playerId),
         template: { slots: clearPlayerFromSlots(s.template.slots, playerId) },
       }));
+    }
+
+    case 'SET_DEFAULT_PARTICIPANT': {
+      const { sessionId, playerId, included } = action.payload;
+      return mapSession(state, sessionId, (s) => {
+        if (included && !s.players.some((player) => player.id === playerId)) return s;
+        const current = getDefaultParticipantIds(s);
+        const defaultParticipantIds = included
+          ? current.includes(playerId)
+            ? current
+            : [...current, playerId]
+          : current.filter((id) => id !== playerId);
+        return { ...s, defaultParticipantIds };
+      });
     }
 
     case 'ADD_TEMPLATE_SEAT': {
@@ -267,6 +354,14 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
       }));
     }
 
+    case 'REPLACE_TEMPLATE_SLOTS': {
+      const { sessionId, slots } = action.payload;
+      return mapSession(state, sessionId, (s) => ({
+        ...s,
+        template: { slots },
+      }));
+    }
+
     case 'SET_PROPAGATION_DEFAULT': {
       const { sessionId, pref } = action.payload;
       return mapSession(state, sessionId, (s) => ({
@@ -289,32 +384,9 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
     }
 
     case 'APPLY_TEMPLATE_TO_GAME': {
-      const { sessionId, gameId } = action.payload;
-      const session = state.sessions.find((s) => s.id === sessionId);
-      if (!session) return state;
+      const { sessionId, game } = action.payload;
       try {
-        const raw = localStorage.getItem(`storyteller-game-${gameId}`);
-        if (!raw) return state;
-        const existing = JSON.parse(raw) as Game;
-        const slotIdMap: Record<string, string> = {};
-        for (const s of session.template.slots) slotIdMap[s.id] = generateId();
-        const slots = snapshotTemplateSlots(session.template.slots, slotIdMap);
-        const participants = initialParticipantsFromSlots(slots);
-        const preservedPlayerState: Record<
-          PlayerId,
-          ReturnType<typeof makeDefaultPlayerGameState>
-        > = {};
-        for (const p of participants) {
-          preservedPlayerState[p.playerId] =
-            existing.playerState?.[p.playerId] ?? makeDefaultPlayerGameState();
-        }
-        const updated: Game = {
-          ...existing,
-          slots,
-          participants,
-          playerState: preservedPlayerState,
-        };
-        localStorage.setItem(`storyteller-game-${gameId}`, JSON.stringify(updated));
+        localStorage.setItem(`storyteller-game-${game.id}`, JSON.stringify(game));
       } catch {
         // Silently ignore storage errors
       }
@@ -404,6 +476,7 @@ export interface SessionContextValue {
   addPlayer: (sessionId: string, name: string) => Player;
   renamePlayer: (sessionId: string, playerId: PlayerId, name: string) => void;
   removePlayer: (sessionId: string, playerId: PlayerId) => void;
+  setDefaultParticipant: (sessionId: string, playerId: PlayerId, included: boolean) => void;
   addTemplateSeat: (sessionId: string) => SlotId;
   addTemplateSpacer: (sessionId: string) => SlotId;
   addTemplateStoryteller: (sessionId: string) => SlotId;
@@ -433,6 +506,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const {
     syncSession: apiPushSession,
+    syncGame: apiPushGame,
     fetchSessions: apiFetchSessions,
     deleteSession: apiDeleteSession,
     deleteGame: apiDeleteGame,
@@ -503,7 +577,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 
   const addPlayer = useCallback((sessionId: string, name: string): Player => {
     const player: Player = { id: generateId(), name };
-    dispatch({ type: 'ADD_PLAYER', payload: { sessionId, player } });
+    dispatch({
+      type: 'ADD_PLAYER',
+      payload: { sessionId, player, slotId: generateId() },
+    });
     return player;
   }, []);
 
@@ -514,6 +591,16 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   const removePlayer = useCallback((sessionId: string, playerId: PlayerId) => {
     dispatch({ type: 'REMOVE_PLAYER', payload: { sessionId, playerId } });
   }, []);
+
+  const setDefaultParticipant = useCallback(
+    (sessionId: string, playerId: PlayerId, included: boolean) => {
+      dispatch({
+        type: 'SET_DEFAULT_PARTICIPANT',
+        payload: { sessionId, playerId, included },
+      });
+    },
+    [],
+  );
 
   const addTemplateSeat = useCallback((sessionId: string): SlotId => {
     const slotId = generateId();
@@ -564,7 +651,10 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       const slotIdMap: Record<string, string> = {};
       for (const s of session.template.slots) slotIdMap[s.id] = generateId();
       const slots = snapshotTemplateSlots(session.template.slots, slotIdMap);
-      const participants = initialParticipantsFromSlots(slots);
+      const participants = getDefaultParticipantIds(session).map((playerId) => ({
+        playerId,
+        isTraveller: false,
+      }));
       const playerState: Record<PlayerId, ReturnType<typeof makeDefaultPlayerGameState>> = {};
       for (const p of participants) {
         playerState[p.playerId] = makeDefaultPlayerGameState();
@@ -583,6 +673,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
         participants,
         playerState,
         playerCountOverride: null,
+        seatingConfirmed: false,
         nightHistory: [],
         ...setupPowers,
       };
@@ -600,9 +691,24 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [apiDeleteGame],
   );
 
-  const applyTemplateToGame = useCallback((sessionId: string, gameId: string) => {
-    dispatch({ type: 'APPLY_TEMPLATE_TO_GAME', payload: { sessionId, gameId } });
-  }, []);
+  const applyTemplateToGame = useCallback(
+    (sessionId: string, gameId: string) => {
+      const session = state.sessions.find((candidate) => candidate.id === sessionId);
+      if (!session) return;
+
+      try {
+        const raw = localStorage.getItem(`storyteller-game-${gameId}`);
+        if (!raw) return;
+        const game = buildGameFromTemplate(session, JSON.parse(raw) as Game);
+        if (!game) return;
+        dispatch({ type: 'APPLY_TEMPLATE_TO_GAME', payload: { sessionId, game } });
+        apiPushGame(game);
+      } catch {
+        // Ignore invalid or unavailable local game state.
+      }
+    },
+    [apiPushGame, state.sessions],
+  );
 
   const getActiveSession = useCallback((): Session | null => {
     if (!state.activeSessionId) return null;
@@ -636,6 +742,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     addPlayer,
     renamePlayer,
     removePlayer,
+    setDefaultParticipant,
     addTemplateSeat,
     addTemplateSpacer,
     addTemplateStoryteller,

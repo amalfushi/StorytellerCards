@@ -58,6 +58,7 @@ func TestSessionRoundtrip(t *testing.T) {
 			{ID: "p-bob", Name: "Bob"},
 			{ID: "p-charlie", Name: "Charlie"},
 		},
+		DefaultParticipantIDs: []string{"p-alice", "p-bob"},
 		Template: models.SeatingTemplate{
 			Slots: []models.Slot{
 				{Kind: models.SlotSeat, ID: "s-1", PlayerID: "p-alice"},
@@ -99,6 +100,7 @@ func TestSessionRoundtrip(t *testing.T) {
 	assertEq(t, "session.name", got.Name, "Friday Night BotC")
 	assertEq(t, "session.createdAt", got.CreatedAt, "2025-06-15T19:30:00Z")
 	assertEq(t, "session.defaultScriptId", got.DefaultScriptID, "trouble-brewing")
+	assertStrSlice(t, "session.defaultParticipantIds", got.DefaultParticipantIDs, sent.DefaultParticipantIDs)
 	assertEq(t, "session.version", got.Version, 6)
 
 	if got.UpdatedAt == "" {
@@ -181,6 +183,7 @@ func TestGameRoundtripFull(t *testing.T) {
 			},
 		},
 		PlayerCountOverride: &override,
+		SeatingConfirmed:    true,
 		NightHistory: []models.NightHistoryEntry{
 			{
 				DayNumber:    1,
@@ -250,6 +253,7 @@ func TestGameRoundtripFull(t *testing.T) {
 	assertEq(t, "game.currentDay", got.CurrentDay, 3)
 	assertEq(t, "game.currentPhase", string(got.CurrentPhase), "Night")
 	assertEq(t, "game.isFirstNight", got.IsFirstNight, false)
+	assertEq(t, "game.seatingConfirmed", got.SeatingConfirmed, true)
 	assertEq(t, "game.version", got.Version, 1)
 	if got.UpdatedAt == "" {
 		t.Error("game.updatedAt should be set by server")
@@ -471,7 +475,7 @@ func TestGameRoundtripJSONKeys(t *testing.T) {
 	gameKeys := []string{
 		"id", "sessionId", "scriptId", "currentDay", "currentPhase",
 		"isFirstNight", "slots", "participants", "playerState",
-		"playerCountOverride", "nightHistory",
+		"playerCountOverride", "seatingConfirmed", "nightHistory",
 		"activeFabled", "activeLoric", "inPlayCharacterIds",
 		"demonBluffs", "lunaticBluffs", "playerBluffs",
 		"customPlayerMessages", "version", "updatedAt",

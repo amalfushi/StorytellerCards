@@ -31,6 +31,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T | null
       console.warn(`[API] ${options?.method ?? 'GET'} ${url} → ${res.status}`);
       return null;
     }
+    if (res.status === 204) return null;
     return (await res.json()) as T;
   } catch (err) {
     console.warn(`[API] ${options?.method ?? 'GET'} ${url} → network error:`, err);
@@ -62,6 +63,29 @@ function useDebouncedFn<Args extends unknown[]>(fn: (...args: Args) => void, del
       timer.current = setTimeout(() => fn(...args), delay);
     },
     [fn, delay],
+  );
+}
+
+function useDebouncedFnByKey<Args extends unknown[]>(
+  fn: (...args: Args) => void,
+  getKey: (...args: Args) => string,
+  delay: number,
+) {
+  const timers = useRef(new Map<string, ReturnType<typeof setTimeout>>());
+  return useCallback(
+    (...args: Args) => {
+      const key = getKey(...args);
+      const existing = timers.current.get(key);
+      if (existing) clearTimeout(existing);
+      timers.current.set(
+        key,
+        setTimeout(() => {
+          timers.current.delete(key);
+          fn(...args);
+        }, delay),
+      );
+    },
+    [fn, getKey, delay],
   );
 }
 
@@ -101,7 +125,8 @@ export function useApiSync(): ApiSyncHook {
   }, []);
 
   const syncSession = useDebouncedFn(syncSessionImmediate, DEBOUNCE_MS);
-  const syncGame = useDebouncedFn(syncGameImmediate, DEBOUNCE_MS);
+  const getGameSyncKey = useCallback((game: Game) => game.id, []);
+  const syncGame = useDebouncedFnByKey(syncGameImmediate, getGameSyncKey, DEBOUNCE_MS);
 
   const fetchSession = useCallback((id: string) => {
     if (isSyncDisabled) return Promise.resolve(null);
@@ -129,7 +154,7 @@ export function useApiSync(): ApiSyncHook {
     void request(`/api/sessions/${sessionId}/games/${gameId}`, { method: 'DELETE' });
   }, []);
 
-  const syncScriptDirect= useCallback((script: Script) => {
+  const syncScriptDirect = useCallback((script: Script) => {
     if (isSyncDisabled) return;
     void request<Script>('/api/scripts/import', {
       method: 'POST',

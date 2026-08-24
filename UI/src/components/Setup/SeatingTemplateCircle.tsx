@@ -26,6 +26,8 @@ import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward';
+import NavigateBeforeIcon from '@mui/icons-material/NavigateBefore';
+import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import type { ReactNode } from 'react';
@@ -61,6 +63,8 @@ interface Props {
   shape?: 'circle' | 'ovoid';
   onRemoveSlot: (slotId: SlotId) => void;
   onAssignSeat: (slotId: SlotId, playerId: PlayerId | null) => void;
+  /** Optional tap-first alternative to dragging a slot around the circle. */
+  onMoveSlot?: (slotId: SlotId, toIndex: number) => void;
 }
 
 export function SeatingTemplateCircle({
@@ -71,6 +75,7 @@ export function SeatingTemplateCircle({
   shape = 'circle',
   onRemoveSlot,
   onAssignSeat,
+  onMoveSlot,
 }: Props) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const [size, setSize] = useState<{ w: number; h: number }>({ w: 0, h: 0 });
@@ -148,13 +153,23 @@ export function SeatingTemplateCircle({
         const y = cy + ry * Math.sin(angle);
 
         return (
-          <SlotPositionWrapper key={slot.id} slotId={slot.id} x={x} y={y} tileSize={tileSize}>
-            {({ dragHandle }) =>
+          <SlotPositionWrapper
+            key={slot.id}
+            slotId={slot.id}
+            slotIndex={i}
+            slotCount={n}
+            x={x}
+            y={y}
+            tileSize={tileSize}
+            onMoveSlot={onMoveSlot}
+          >
+            {({ dragHandle, moveControls }) =>
               slot.kind === 'spacer' ? (
                 <SpacerCell
                   index={i}
                   onRemove={() => onRemoveSlot(slot.id)}
                   dragHandle={dragHandle}
+                  moveControls={moveControls}
                 />
               ) : slot.kind === 'storyteller' ? (
                 <StorytellerCell
@@ -162,6 +177,7 @@ export function SeatingTemplateCircle({
                   angle={angle}
                   onRemove={() => onRemoveSlot(slot.id)}
                   dragHandle={dragHandle}
+                  moveControls={moveControls}
                 />
               ) : (
                 <SeatCell
@@ -173,6 +189,7 @@ export function SeatingTemplateCircle({
                   onRemove={() => onRemoveSlot(slot.id)}
                   onAssign={(pid) => onAssignSeat(slot.id, pid)}
                   dragHandle={dragHandle}
+                  moveControls={moveControls}
                 />
               )
             }
@@ -191,16 +208,22 @@ interface DragHandleSlotProps {
 
 function SlotPositionWrapper({
   slotId,
+  slotIndex,
+  slotCount,
   x,
   y,
   tileSize,
+  onMoveSlot,
   children,
 }: {
   slotId: SlotId;
+  slotIndex: number;
+  slotCount: number;
   x: number;
   y: number;
   tileSize: number;
-  children: (args: { dragHandle: ReactNode }) => ReactNode;
+  onMoveSlot?: (slotId: SlotId, toIndex: number) => void;
+  children: (args: { dragHandle: ReactNode; moveControls?: ReactNode }) => ReactNode;
 }) {
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `${SLOT_POSITION_DROPPABLE_PREFIX}${slotId}`,
@@ -242,6 +265,33 @@ function SlotPositionWrapper({
         dragHandle: (
           <SlotDragHandle listeners={listeners} attributes={attributes} isDragging={isDragging} />
         ),
+        moveControls:
+          onMoveSlot && slotCount > 1 ? (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                mt: 0.25,
+              }}
+            >
+              <IconButton
+                size="small"
+                aria-label={`move slot ${slotIndex + 1} counterclockwise`}
+                onClick={() => onMoveSlot(slotId, slotIndex === 0 ? slotCount - 1 : slotIndex - 1)}
+                sx={{ width: 36, height: 36 }}
+              >
+                <NavigateBeforeIcon fontSize="small" />
+              </IconButton>
+              <IconButton
+                size="small"
+                aria-label={`move slot ${slotIndex + 1} clockwise`}
+                onClick={() => onMoveSlot(slotId, slotIndex === slotCount - 1 ? 0 : slotIndex + 1)}
+                sx={{ width: 36, height: 36 }}
+              >
+                <NavigateNextIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          ) : undefined,
       })}
     </Box>
   );
@@ -280,10 +330,12 @@ function SpacerCell({
   index,
   onRemove,
   dragHandle,
+  moveControls,
 }: {
   index: number;
   onRemove: () => void;
   dragHandle: ReactNode;
+  moveControls?: ReactNode;
 }) {
   return (
     <Box
@@ -300,6 +352,7 @@ function SpacerCell({
     >
       {dragHandle}
       <Chip size="small" label="spacer" />
+      {moveControls}
       <IconButton
         size="small"
         onClick={onRemove}
@@ -317,11 +370,13 @@ function StorytellerCell({
   angle,
   onRemove,
   dragHandle,
+  moveControls,
 }: {
   index: number;
   angle: number;
   onRemove: () => void;
   dragHandle: ReactNode;
+  moveControls?: ReactNode;
 }) {
   // Rotate the arrow so it points toward the circle center.
   const rotationRad = angle + (3 * Math.PI) / 2;
@@ -345,6 +400,7 @@ function StorytellerCell({
       <Typography variant="caption" component="div" color="text.secondary">
         ST
       </Typography>
+      {moveControls}
       <IconButton
         size="small"
         onClick={onRemove}
@@ -366,6 +422,7 @@ function SeatCell({
   onRemove,
   onAssign,
   dragHandle,
+  moveControls,
 }: {
   seatNumber: number;
   slot: Extract<Slot, { kind: 'seat' }>;
@@ -375,6 +432,7 @@ function SeatCell({
   onRemove: () => void;
   onAssign: (playerId: PlayerId | null) => void;
   dragHandle: ReactNode;
+  moveControls?: ReactNode;
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: `${SEAT_DROPPABLE_PREFIX}${slot.id}` });
   const assignedColor = slot.playerId ? getPlayerColorById(slot.playerId, playerIdsInOrder) : null;
@@ -422,6 +480,7 @@ function SeatCell({
           );
         })}
       </Select>
+      {moveControls}
       <IconButton
         size="small"
         onClick={onRemove}

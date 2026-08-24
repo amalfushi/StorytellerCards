@@ -27,6 +27,7 @@ function renderCircle(overrides: Partial<React.ComponentProps<typeof SeatingTemp
   const handlers = {
     onRemoveSlot: vi.fn(),
     onAssignSeat: vi.fn(),
+    onMoveSlot: vi.fn(),
   };
   const slots = overrides.slots ?? mixedSlots;
   const view = wrap(
@@ -89,5 +90,15 @@ describe('SeatingTemplateCircle', () => {
       within(screen.getByRole('listbox')).getByRole('option', { name: /\(empty\)/i }),
     );
     expect(onAssignSeat).toHaveBeenCalledWith('s1', null);
+  });
+
+  it('provides touch-safe buttons for moving slots in either direction', () => {
+    const { onMoveSlot } = renderCircle();
+
+    fireEvent.click(screen.getByRole('button', { name: /move slot 1 clockwise/i }));
+    expect(onMoveSlot).toHaveBeenCalledWith('s1', 1);
+
+    fireEvent.click(screen.getByRole('button', { name: /move slot 1 counterclockwise/i }));
+    expect(onMoveSlot).toHaveBeenCalledWith('s1', mixedSlots.length - 1);
   });
 });

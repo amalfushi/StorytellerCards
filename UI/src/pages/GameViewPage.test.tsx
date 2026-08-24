@@ -87,6 +87,7 @@ const mockLoadGame = vi.fn();
 const mockSetPhase = vi.fn();
 const mockNavigate = vi.fn();
 const mockUpdatePlayerState = vi.fn();
+const mockSetSeatingConfirmed = vi.fn();
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
@@ -119,6 +120,7 @@ vi.mock('@/context/useGame.ts', () => ({
     setPlayerCountOverride: vi.fn(),
     addToken: vi.fn(),
     removeToken: vi.fn(),
+    setSeatingConfirmed: mockSetSeatingConfirmed,
   }),
 }));
 
@@ -189,7 +191,18 @@ vi.mock('@/components/PhaseBar/PhaseBar.tsx', () => ({
   },
 }));
 vi.mock('@/components/TownSquare/TownSquareTab.tsx', () => ({
-  TownSquareTab: () => <div data-testid="town-square-tab">Town Square</div>,
+  TownSquareTab: ({
+    editMode,
+    onEditModeChange,
+  }: {
+    editMode?: boolean;
+    onEditModeChange?: (editing: boolean) => void;
+  }) => (
+    <div data-testid="town-square-tab" data-edit-mode={editMode ? 'true' : 'false'}>
+      Town Square
+      <button onClick={() => onEditModeChange?.(false)}>Save seating</button>
+    </div>
+  ),
 }));
 vi.mock('@/components/PlayerList/PlayerListTab.tsx', () => ({
   PlayerListTab: () => <div data-testid="player-list-tab">Player List</div>,
@@ -228,7 +241,10 @@ vi.mock('@/components/Timer/DayTimerFab.tsx', () => ({
 vi.mock('@/components/NightPhase/NightChoiceSelector.tsx', () => ({
   NightChoiceSelector: () => null,
 }));
-vi.mock('@/components/Setup/CharacterSelection.tsx', () => ({ CharacterSelection: () => null }));
+vi.mock('@/components/Setup/CharacterSelection.tsx', () => ({
+  CharacterSelection: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="char-selection-dialog">Selection</div> : null,
+}));
 vi.mock('@/components/Setup/DemonBluffSelection.tsx', () => ({ DemonBluffSelection: () => null }));
 vi.mock('@/components/Setup/SetupChecklist.tsx', () => ({ SetupChecklist: () => null }));
 
@@ -269,6 +285,18 @@ describe('GameViewPage', () => {
     expect(screen.getByTestId('night-order-tab')).toBeInTheDocument();
   });
 
+  it('opens the Town Square editor from the AppBar chair action', () => {
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /players tab/i }));
+    expect(screen.getByTestId('player-list-tab')).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /edit seating/i }));
+
+    expect(screen.getByTestId('town-square-tab')).toHaveAttribute('data-edit-mode', 'true');
+    expect(screen.queryByTestId('player-list-tab')).not.toBeInTheDocument();
+  });
+
   it('shows night history controls only when history exists', () => {
     render(<GameViewPage />);
     expect(screen.getByRole('button', { name: /night history/i })).toBeInTheDocument();
@@ -303,6 +331,27 @@ describe('GameViewPage', () => {
     expect(screen.getByText(/Characters haven't been assigned yet/)).toBeInTheDocument();
   });
 
+  it('redirects assignment to Character Selection until the game has a character pool', () => {
+    const unassignedPlayerState = Object.fromEntries(
+      Object.entries(playerState).map(([playerId, state]) => [
+        playerId,
+        { ...state, characterId: '' },
+      ]),
+    );
+    mockGame = {
+      ...baseGame,
+      playerState: unassignedPlayerState,
+      inPlayCharacterIds: [],
+    };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /select characters first/i }));
+
+    expect(screen.getByTestId('char-selection-dialog')).toBeInTheDocument();
+    expect(screen.queryByTestId('char-assign-dialog')).not.toBeInTheDocument();
+  });
+
   it('switches between day and night views using PhaseBar callbacks', () => {
     render(<GameViewPage />);
     expect(capturedPhaseBarProps?.activeView).toBe('Day');
@@ -314,6 +363,48 @@ describe('GameViewPage', () => {
 
     fireEvent.click(screen.getByTestId('day-chip'));
     expect(screen.getByTestId('town-square-tab')).toBeInTheDocument();
+  });
+
+  it('asks for concise game-specific confirmation before the first start', () => {
+    mockGame = {
+      ...baseGame,
+      currentDay: 1,
+      isFirstNight: true,
+      nightHistory: [],
+      seatingConfirmed: false,
+    };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByTestId('night-chip'));
+    expect(screen.getByRole('dialog')).toHaveTextContent('Confirm Game 1 seating');
+    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /confirm & start night/i }));
+    expect(mockSetSeatingConfirmed).toHaveBeenCalledWith(true);
+    expect(screen.getByTestId('night-tab-panel')).toBeInTheDocument();
+  });
+
+  it('routes invalid first-start seating into Town Square edit mode', () => {
+    mockGame = {
+      ...baseGame,
+      currentDay: 1,
+      isFirstNight: true,
+      nightHistory: [],
+      seatingConfirmed: false,
+      slots: [
+        { kind: 'seat', id: 'slot-1', playerId: 'player-1' },
+        { kind: 'seat', id: 'slot-2', playerId: null },
+      ],
+    };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByTestId('night-chip'));
+
+    expect(screen.getByTestId('town-square-tab')).toHaveAttribute('data-edit-mode', 'true');
+    expect(screen.queryByTestId('night-tab-panel')).not.toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('passes night progress state to PhaseBar and exits night view on completion', () => {

@@ -38,7 +38,10 @@ import { getRequiredCharacters, getSetupPrompts } from '@/utils/requiredCharacte
 import { getSeatingWarnings, getMarionetteValidSeats } from '@/utils/seatingConstraints.ts';
 import { getDefaultCharacterIconPath } from '@/utils/characterIcon.ts';
 import {
+  apparentCharacterIdAfterAssignment,
+  countCharacterCopies,
   filterPlayerAssignableCharacters,
+  isCharacterUnavailableForAssignment,
   randomlyAssignCharacters,
 } from '@/utils/characterAssignment.ts';
 import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
@@ -281,11 +284,7 @@ export function CharacterAssignmentDialog({
   }, [availableCharacters, assignedCounts]);
 
   const totalAvailableCounts = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const ch of availableCharacters) {
-      counts.set(ch.id, (counts.get(ch.id) ?? 0) + 1);
-    }
-    return counts;
+    return countCharacterCopies(availableCharacters);
   }, [availableCharacters]);
 
   const dropdownCharacters = useMemo(() => {
@@ -347,9 +346,10 @@ export function CharacterAssignmentDialog({
             characterId,
             actualAlignment: alignment,
             startingAlignment: alignment,
-            apparentCharacterId: CONCEALMENT_CHARACTERS.has(characterId)
-              ? current.apparentCharacterId
-              : '',
+            apparentCharacterId: apparentCharacterIdAfterAssignment(
+              current.apparentCharacterId,
+              characterId,
+            ),
           },
         };
       });
@@ -694,11 +694,14 @@ export function CharacterAssignmentDialog({
                       <em>None</em>
                     </MenuItem>
                     {dropdownCharacters.map((c) => {
-                      const assignedCount = assignedCounts.get(c.id) ?? 0;
-                      const isCurrentPlayer = characterId === c.id;
-                      const isDisabled = inPlayCharacterIds
-                        ? !isCurrentPlayer && assignedCount >= (totalAvailableCounts.get(c.id) ?? 0)
-                        : assignedCount > 0 && !isCurrentPlayer && !duplicateAllowedIds.has(c.id);
+                      const isDisabled = isCharacterUnavailableForAssignment(
+                        c.id,
+                        participant.playerId,
+                        participants,
+                        localPlayerState,
+                        totalAvailableCounts,
+                        inPlayCharacterIds ? undefined : duplicateAllowedIds,
+                      );
                       return (
                         <MenuItem
                           key={c.id}

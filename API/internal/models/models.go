@@ -63,16 +63,16 @@ type ReminderToken struct {
 }
 
 type CharacterDef struct {
-	ID               string         `json:"id"`
-	Name             string         `json:"name"`
-	Type             CharacterType  `json:"type"`
-	DefaultAlignment Alignment      `json:"defaultAlignment"`
-	AbilityShort     string         `json:"abilityShort"`
-	AbilityDetailed  string         `json:"abilityDetailed,omitempty"`
-	WikiLink         string         `json:"wikiLink,omitempty"`
-	FirstNight       *NightAction   `json:"firstNight"`
-	OtherNights      *NightAction   `json:"otherNights"`
-	Icon             *CharacterIcon `json:"icon,omitempty"`
+	ID               string          `json:"id"`
+	Name             string          `json:"name"`
+	Type             CharacterType   `json:"type"`
+	DefaultAlignment Alignment       `json:"defaultAlignment"`
+	AbilityShort     string          `json:"abilityShort"`
+	AbilityDetailed  string          `json:"abilityDetailed,omitempty"`
+	WikiLink         string          `json:"wikiLink,omitempty"`
+	FirstNight       *NightAction    `json:"firstNight"`
+	OtherNights      *NightAction    `json:"otherNights"`
+	Icon             *CharacterIcon  `json:"icon,omitempty"`
 	Reminders        []ReminderToken `json:"reminders"`
 }
 
@@ -167,17 +167,17 @@ type GainedAbility struct {
 // PlayerGameState is per-player per-game state, keyed in Game.PlayerState by
 // PlayerID. Splits "who plays" (Participant) from "what state are they in".
 type PlayerGameState struct {
-	Alive              bool              `json:"alive"`
-	GhostVoteUsed      bool              `json:"ghostVoteUsed"`
-	VisibleAlignment   Alignment         `json:"visibleAlignment"`
-	ActualAlignment    Alignment         `json:"actualAlignment"`
-	StartingAlignment  Alignment         `json:"startingAlignment"`
-	ActiveReminders    []string          `json:"activeReminders"`
-	Tokens             []PlayerToken     `json:"tokens,omitempty"`
-	ApparentCharacterID string           `json:"apparentCharacterId,omitempty"`
-	AlignmentHistory   []AlignmentChange `json:"alignmentHistory,omitempty"`
-	GainedAbility      *GainedAbility    `json:"gainedAbility,omitempty"`
-	CharacterID        string            `json:"characterId,omitempty"`
+	Alive               bool              `json:"alive"`
+	GhostVoteUsed       bool              `json:"ghostVoteUsed"`
+	VisibleAlignment    Alignment         `json:"visibleAlignment"`
+	ActualAlignment     Alignment         `json:"actualAlignment"`
+	StartingAlignment   Alignment         `json:"startingAlignment"`
+	ActiveReminders     []string          `json:"activeReminders"`
+	Tokens              []PlayerToken     `json:"tokens,omitempty"`
+	ApparentCharacterID string            `json:"apparentCharacterId,omitempty"`
+	AlignmentHistory    []AlignmentChange `json:"alignmentHistory,omitempty"`
+	GainedAbility       *GainedAbility    `json:"gainedAbility,omitempty"`
+	CharacterID         string            `json:"characterId,omitempty"`
 }
 
 // ──────────────────────────────────────────────
@@ -209,6 +209,7 @@ type Game struct {
 	Participants         []Participant              `json:"participants"`
 	PlayerState          map[string]PlayerGameState `json:"playerState"`
 	PlayerCountOverride  *int                       `json:"playerCountOverride,omitempty"`
+	SeatingConfirmed     bool                       `json:"seatingConfirmed"`
 	NightHistory         []NightHistoryEntry        `json:"nightHistory"`
 	ActiveFabled         []string                   `json:"activeFabled,omitempty"`
 	ActiveLoric          []string                   `json:"activeLoric,omitempty"`
@@ -226,16 +227,17 @@ type Game struct {
 // ──────────────────────────────────────────────
 
 type Session struct {
-	ID                 string                `json:"id"`
-	Name               string                `json:"name"`
-	CreatedAt          string                `json:"createdAt"`
-	DefaultScriptID    string                `json:"defaultScriptId"`
-	Players            []Player              `json:"players"`
-	Template           SeatingTemplate       `json:"template"`
-	PropagationDefault PropagationPreference `json:"propagationDefault"`
-	GameIDs            []string              `json:"gameIds"`
-	Version            int                   `json:"version"`
-	UpdatedAt          string                `json:"updatedAt,omitempty"`
+	ID                    string                `json:"id"`
+	Name                  string                `json:"name"`
+	CreatedAt             string                `json:"createdAt"`
+	DefaultScriptID       string                `json:"defaultScriptId"`
+	Players               []Player              `json:"players"`
+	DefaultParticipantIDs []string              `json:"defaultParticipantIds"`
+	Template              SeatingTemplate       `json:"template"`
+	PropagationDefault    PropagationPreference `json:"propagationDefault"`
+	GameIDs               []string              `json:"gameIds"`
+	Version               int                   `json:"version"`
+	UpdatedAt             string                `json:"updatedAt,omitempty"`
 }
 
 // ──────────────────────────────────────────────

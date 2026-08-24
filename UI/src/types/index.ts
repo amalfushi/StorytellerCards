@@ -382,6 +382,12 @@ export interface Game {
    * from `participants.length`. Useful when planning for travellers separately.
    */
   playerCountOverride: number | null;
+  /**
+   * True after the Storyteller has confirmed this game's current seating for
+   * the first transition into live play. Pre-game lineup or seating changes
+   * reset it; corrections after play starts do not.
+   */
+  seatingConfirmed?: boolean;
   nightHistory: NightHistoryEntry[];
   /** Character IDs of active Fabled game modifiers. */
   activeFabled?: string[];
@@ -415,6 +421,11 @@ export interface Session {
   defaultScriptId: string;
   /** Roster of named players that can be seated in the template or any game. */
   players: Player[];
+  /**
+   * Explicit session-level default lineup for newly-created games. Optional
+   * only for persisted M41 data, which falls back to occupied template seats.
+   */
+  defaultParticipantIds?: PlayerId[];
   /** Seating template copied into each new game at creation. */
   template: SeatingTemplate;
   /** Sticky default for propagation checkboxes inside games. */

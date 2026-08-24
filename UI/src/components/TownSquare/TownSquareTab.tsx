@@ -1,12 +1,10 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import IconButton from '@mui/material/IconButton';
 import Tooltip from '@mui/material/Tooltip';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import ScatterPlotIcon from '@mui/icons-material/ScatterPlot';
 import LinearScaleIcon from '@mui/icons-material/LinearScale';
-import SwapHorizIcon from '@mui/icons-material/SwapHoriz';
 import type {
   CharacterDef,
   Alignment,
@@ -28,12 +26,17 @@ import { RollForCharacterDialog } from '@/components/TownSquare/RollForCharacter
 import { TokenManager, TokenBadges } from '@/components/TownSquare/TokenManager.tsx';
 import { buildAvailableTokens } from '@/utils/buildAvailableTokens.ts';
 import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import { TownSquareEditMode } from '@/components/TownSquare/TownSquareEditMode.tsx';
 
 /** Persisted layout preference — `'auto'` defers to viewport size. */
 type TokenLayoutPref = 'radial' | 'linear' | 'auto';
 
 interface TownSquareTabProps {
   scriptCharacterIds: string[];
+  editMode?: boolean;
+  onEditModeChange?: (editing: boolean) => void;
+  onSelectCharacters?: () => void;
+  onAssignCharacters?: () => void;
 }
 
 /** Derive token size from player count. */
@@ -45,23 +48,28 @@ function tokenSizeForCount(count: number): TokenSize {
 
 /** Half-side of the token square (used as padding inset for the layout). */
 const TOKEN_HALF = { large: 60, medium: 55, small: 50 } as const;
-const GAME_ONLY_PROPAGATION = { toTemplate: false, toOtherGames: false } as const;
 
 /**
  * Town Square tab — the signature circular / ovoid "clock face" layout.
  */
-export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
+export function TownSquareTab({
+  scriptCharacterIds,
+  editMode,
+  onEditModeChange,
+  onSelectCharacters,
+  onAssignCharacters,
+}: TownSquareTabProps) {
   const {
     state,
     updatePlayerState,
     removeParticipant,
     addToken,
     removeToken,
-    assignGameSeat,
     setPlayerBluffs,
     setParticipantTraveller,
+    applyGameSetupDraft,
   } = useGame();
-  const { state: sessionState } = useSession();
+  const { state: sessionState, setPropagationDefault } = useSession();
   const { getCharacter, getCharactersByIds, allCharacters } = useCharacterLookup();
 
   const game = state.game;
@@ -82,6 +90,19 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
 
   const effectiveLayout: 'radial' | 'linear' =
     layoutPref === 'auto' ? (isSmallViewport ? 'linear' : 'radial') : layoutPref;
+
+  const [internalEditMode, setInternalEditMode] = useState(false);
+  const isEditMode = editMode ?? internalEditMode;
+  const setEditMode = useCallback(
+    (editing: boolean) => {
+      if (onEditModeChange) {
+        onEditModeChange(editing);
+      } else {
+        setInternalEditMode(editing);
+      }
+    },
+    [onEditModeChange],
+  );
 
   const handleToggleLayout = useCallback(() => {
     setLayoutPref((prev) => (prev === 'linear' ? 'radial' : 'linear'));
@@ -184,11 +205,10 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
 
     ro.observe(el);
     return () => ro.disconnect();
-  }, []);
+  }, [isEditMode]);
 
   const [selectedPlayerId, setSelectedPlayerId] = useState<PlayerId | null>(null);
   const [actionsPlayerId, setActionsPlayerId] = useState<PlayerId | null>(null);
-  const [swapSourcePlayerId, setSwapSourcePlayerId] = useState<PlayerId | null>(null);
   const actionsPlayer = actionsPlayerId ? (playersById.get(actionsPlayerId) ?? null) : null;
 
   const actionsPlayerCharDef = actionsPlayer?.characterId
@@ -258,20 +278,10 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
 
   const handleTokenClick = useCallback(
     (player: TownSquarePlayer, _event: React.MouseEvent<HTMLElement>) => {
-      if (swapSourcePlayerId !== null) {
-        const source = playersById.get(swapSourcePlayerId);
-        if (source && source.playerId !== player.playerId) {
-          assignGameSeat(player.slotId, source.playerId, GAME_ONLY_PROPAGATION);
-          assignGameSeat(source.slotId, player.playerId, GAME_ONLY_PROPAGATION);
-        }
-        setSwapSourcePlayerId(null);
-        setSelectedPlayerId(null);
-        return;
-      }
       setActionsPlayerId(player.playerId);
       setSelectedPlayerId(player.playerId);
     },
-    [swapSourcePlayerId, playersById, assignGameSeat],
+    [],
   );
 
   const handleActionsClose = useCallback(() => {
@@ -323,11 +333,6 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
     },
     [getCharacter, setParticipantTraveller, state.game, updatePlayerState],
   );
-
-  const handleSwapWith = useCallback((playerId: PlayerId) => {
-    setSwapSourcePlayerId(playerId);
-    setSelectedPlayerId(playerId);
-  }, []);
 
   const handleManageTokens = useCallback((playerId: PlayerId) => {
     setTokenPlayerId(playerId);
@@ -396,6 +401,25 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
     ],
   );
 
+  if (isEditMode && game && session) {
+    return (
+      <TownSquareEditMode
+        game={game}
+        sessionPlayers={session.players}
+        scriptCharacters={scriptCharacters}
+        propagationDefault={session.propagationDefault}
+        onCancel={() => setEditMode(false)}
+        onSave={(slots, participants, playerState, propagation) => {
+          setPropagationDefault(session.id, propagation);
+          applyGameSetupDraft(slots, participants, playerState, propagation);
+          setEditMode(false);
+        }}
+        onOpenCharacterSelection={() => onSelectCharacters?.()}
+        onOpenCharacterAssignment={() => onAssignCharacters?.()}
+      />
+    );
+  }
+
   return (
     <Box
       ref={containerRef}
@@ -409,26 +433,6 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         overflow: 'hidden',
       }}
     >
-      {swapSourcePlayerId !== null && (
-        <Chip
-          icon={<SwapHorizIcon />}
-          label={`Tap a player to swap with Seat ${playersById.get(swapSourcePlayerId)?.seatNumber ?? '?'}`}
-          onDelete={() => {
-            setSwapSourcePlayerId(null);
-            setSelectedPlayerId(null);
-          }}
-          color="warning"
-          sx={{
-            position: 'absolute',
-            top: 8,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 20,
-          }}
-          data-testid="swap-mode-indicator"
-        />
-      )}
-
       {dims.width > 0 && dims.height > 0 && game && (
         <TownSquareLayout
           slots={game.slots}
@@ -464,7 +468,6 @@ export function TownSquareTab({ scriptCharacterIds }: TownSquareTabProps) {
         onRemoveParticipant={handleRemoveParticipant}
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
-        onSwapWith={handleSwapWith}
         onChangeBluff={handleChangeBluff}
         onRollForCharacter={handleRollForCharacter}
       />

@@ -15,6 +15,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Divider from '@mui/material/Divider';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import Grid from '@mui/material/Grid';
 import IconButton from '@mui/material/IconButton';
 import List from '@mui/material/List';
@@ -24,6 +25,7 @@ import Accordion from '@mui/material/Accordion';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import TextField from '@mui/material/TextField';
+import Switch from '@mui/material/Switch';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
@@ -55,11 +57,29 @@ import {
   SLOT_DRAGGABLE_PREFIX,
   SLOT_POSITION_DROPPABLE_PREFIX,
 } from '@/components/Setup/SeatingTemplateCircle.tsx';
-import type { Player, Script } from '@/types/index.ts';
-import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import type { Game, Player, Script } from '@/types/index.ts';
+import {
+  buildDisplaySeatNumberMap,
+  hasGameStarted,
+  initialParticipantsFromSlots,
+} from '@/utils/seating/index.ts';
 import { getPlayerColorById } from '@/utils/playerColor.ts';
 
 const MAX_PLAYERS = 20;
+
+function getStoredGame(gameId: string): Game | null {
+  try {
+    const raw = localStorage.getItem(`storyteller-game-${gameId}`);
+    return raw ? (JSON.parse(raw) as Game) : null;
+  } catch {
+    return null;
+  }
+}
+
+function canApplyTemplate(gameId: string): boolean {
+  const game = getStoredGame(gameId);
+  return game !== null && !hasGameStarted(game);
+}
 
 export function SessionSetupPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
@@ -70,6 +90,7 @@ export function SessionSetupPage() {
     addPlayer,
     renamePlayer,
     removePlayer,
+    setDefaultParticipant,
     addTemplateSeat,
     addTemplateSpacer,
     addTemplateStoryteller,
@@ -148,6 +169,16 @@ export function SessionSetupPage() {
       ),
     [session?.template.slots],
   );
+  const defaultParticipantIds = useMemo(
+    () =>
+      new Set(
+        session?.defaultParticipantIds ??
+          initialParticipantsFromSlots(session?.template.slots ?? []).map(
+            (participant) => participant.playerId,
+          ),
+      ),
+    [session?.defaultParticipantIds, session?.template.slots],
+  );
 
   const parkedPlayers = useMemo(
     () => session?.players.filter((player) => !seatedPlayerIds.has(player.id)) ?? [],
@@ -212,7 +243,9 @@ export function SessionSetupPage() {
 
   const handleApplyTemplateToAllGames = () => {
     if (!sessionId || !session) return;
-    session.gameIds.forEach((gid) => applyTemplateToGame(sessionId, gid));
+    session.gameIds
+      .filter((gameId) => canApplyTemplate(gameId))
+      .forEach((gameId) => applyTemplateToGame(sessionId, gameId));
   };
 
   const handleImportClick = () => {
@@ -393,9 +426,13 @@ export function SessionSetupPage() {
                   key={player.id}
                   player={player}
                   seated={seatedPlayerIds.has(player.id)}
+                  defaultParticipant={defaultParticipantIds.has(player.id)}
                   rosterIds={session.players.map((p) => p.id)}
                   onNameChange={(name) => renamePlayer(session.id, player.id, name)}
                   onRemove={() => removePlayer(session.id, player.id)}
+                  onDefaultParticipantChange={(included) =>
+                    setDefaultParticipant(session.id, player.id, included)
+                  }
                 />
               ))}
             </Grid>
@@ -548,15 +585,19 @@ export function SessionSetupPage() {
 function RosterPlayerItem({
   player,
   seated,
+  defaultParticipant,
   rosterIds,
   onNameChange,
   onRemove,
+  onDefaultParticipantChange,
 }: {
   player: Player;
   seated: boolean;
+  defaultParticipant: boolean;
   rosterIds: string[];
   onNameChange: (name: string) => void;
   onRemove: () => void;
+  onDefaultParticipantChange: (included: boolean) => void;
 }) {
   const color = getPlayerColorById(player.id, rosterIds);
   return (
@@ -578,6 +619,23 @@ function RosterPlayerItem({
           variant="outlined"
           value={player.name}
           onChange={(e) => onNameChange(e.target.value)}
+        />
+        <FormControlLabel
+          control={
+            <Switch
+              checked={defaultParticipant}
+              onChange={(_, checked) => onDefaultParticipantChange(checked)}
+              size="small"
+            />
+          }
+          label={`Include ${player.name} in new games`}
+          sx={{
+            m: 0,
+            '& .MuiFormControlLabel-label': {
+              fontSize: '0.7rem',
+              color: 'text.secondary',
+            },
+          }}
         />
         <IconButton
           size="small"
@@ -606,18 +664,11 @@ function GameListItem({
   onApplyTemplate: () => void;
 }) {
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [phase] = useState<string>(() => {
-    try {
-      const raw = localStorage.getItem(`storyteller-game-${gameId}`);
-      if (raw) {
-        const game = JSON.parse(raw) as { currentPhase?: string; currentDay?: number };
-        return game.currentPhase ? `Day ${game.currentDay ?? 1} · ${game.currentPhase}` : '';
-      }
-    } catch {
-      // Ignore
-    }
-    return '';
-  });
+  const [storedGame] = useState<Game | null>(() => getStoredGame(gameId));
+  const phase = storedGame?.currentPhase
+    ? `Day ${storedGame.currentDay ?? 1} · ${storedGame.currentPhase}`
+    : '';
+  const templateLocked = storedGame ? hasGameStarted(storedGame) : true;
 
   return (
     <ListItem disablePadding>
@@ -639,8 +690,13 @@ function GameListItem({
               color="primary"
               aria-label={`apply template to game ${gameNumber}`}
               onClick={onApplyTemplate}
+              disabled={templateLocked}
               data-testid={`apply-template-${gameId}`}
-              title="Apply current template to this game"
+              title={
+                templateLocked
+                  ? 'Started games keep their current seating'
+                  : 'Apply current template to this game'
+              }
             >
               <SyncIcon fontSize="small" />
             </IconButton>
