@@ -99,4 +99,9 @@ describe('CharacterWheel', () => {
     expect(stripEl).not.toBeNull();
     expect(stripEl!.style.transform).toMatch(/translateY\(-\d+(\.\d+)?px\)/);
   });
+
+  it('renders a shorter wheel in compact mode', () => {
+    const { getByTestId } = render(<CharacterWheel characters={chars} compact />);
+    expect(getByTestId('character-wheel')).toHaveStyle({ height: '280px' });
+  });
 });

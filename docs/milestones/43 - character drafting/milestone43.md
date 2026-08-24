@@ -187,6 +187,17 @@ good bluffs unless another information rule changes that flow.
 8. Storyteller secretly edits and confirms seating, then performs ordered
    information reveals and normal first-night setup.
 
+### Standalone draft simulator
+
+The home page exposes a draft simulator that exercises the production offer
+generator and player presentation without creating a session or game. It
+supports official base scripts, custom script JSON import, player count and
+setup-mode selection, normal choices, mandatory mulligans, offer regeneration,
+and Storyteller-only diagnostics showing how each commitment changes the legal
+candidate pool. A blocked state is explicit when fewer than four distinct legal
+branches remain, because three choices plus a different mulligan cannot be
+honestly generated from that state.
+
 ## Player experience
 
 - Reuse the existing full-screen slot-machine presentation.
@@ -255,6 +266,8 @@ reset confirmation.
 
 ### Phase 2 — Persistent draft workflow
 
+- [x] Add a standalone ephemeral simulator backed by production draft logic.
+- [x] Add reusable offer generation and draft-session transitions.
 - [ ] Add `CharacterDraftState` to the game model and API roundtrip.
 - [ ] Add reducer actions for planning, board editing, reveal, choice,
       mulligan, reset, cancel, and completion.
@@ -271,8 +284,8 @@ reset confirmation.
 
 ### Phase 4 — Player draft presentation
 
-- [ ] Build the three-column slot-machine draft dialog.
-- [ ] Add irreversible one-column mulligan animation.
+- [x] Build the reusable three-column slot-machine draft presentation.
+- [x] Add irreversible one-column mulligan animation.
 - [ ] Add private handoff and accessibility-safe reduced-motion behavior.
 - [ ] Add hidden-identity illusion drafts.
 

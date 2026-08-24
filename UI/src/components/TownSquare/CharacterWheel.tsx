@@ -41,17 +41,21 @@ interface Props {
   characters: CharacterDef[];
   /** Default spin duration in ms. Each call to spinTo can override. */
   defaultSpinDurationMs?: number;
+  /** Uses a shorter five-row wheel suitable for side-by-side draft columns. */
+  compact?: boolean;
 }
 
 export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function CharacterWheel(
-  { characters, defaultSpinDurationMs = 3500 },
+  { characters, defaultSpinDurationMs = 3500, compact = false },
   ref,
 ) {
   const stripRef = useRef<HTMLDivElement | null>(null);
   const [isSpinning, setIsSpinning] = useState(false);
 
-  const visibleHeight = WHEEL_ROW_HEIGHT_PX * WHEEL_VISIBLE_ROWS;
-  const centerOffsetPx = (visibleHeight - WHEEL_ROW_HEIGHT_PX) / 2;
+  const rowHeight = compact ? 56 : WHEEL_ROW_HEIGHT_PX;
+  const visibleRows = compact ? 5 : WHEEL_VISIBLE_ROWS;
+  const visibleHeight = rowHeight * visibleRows;
+  const centerOffsetPx = (visibleHeight - rowHeight) / 2;
 
   const stripChars = characters;
   const stripCount = stripChars.length;
@@ -59,8 +63,8 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
 
   /** Y offset (px) that places row `rowIndex` of the long strip in the highlight band. */
   const yForRowIndex = useCallback(
-    (rowIndex: number) => rowIndex * WHEEL_ROW_HEIGHT_PX - centerOffsetPx,
-    [centerOffsetPx],
+    (rowIndex: number) => rowIndex * rowHeight - centerOffsetPx,
+    [centerOffsetPx, rowHeight],
   );
 
   // Resting position: middle repeat, first character — gives a stable initial layout.
@@ -134,7 +138,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
       sx={{
         position: 'relative',
         width: '100%',
-        maxWidth: 520,
+        maxWidth: compact ? 320 : 520,
         height: visibleHeight,
         overflow: 'hidden',
         bgcolor: '#1a1a1a',
@@ -161,7 +165,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
             <Box
               key={`${rowIndex}-${char.id}`}
               sx={{
-                height: WHEEL_ROW_HEIGHT_PX,
+                height: rowHeight,
                 display: 'flex',
                 alignItems: 'center',
                 gap: 1.5,
@@ -175,8 +179,8 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
                 alt=""
                 aria-hidden="true"
                 sx={{
-                  width: 48,
-                  height: 48,
+                  width: compact ? 38 : 48,
+                  height: compact ? 38 : 48,
                   borderRadius: '50%',
                   border: `2px solid ${typeColor}`,
                   bgcolor: '#fff',
@@ -186,7 +190,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
                 }}
               />
               <Typography
-                variant="h6"
+                variant={compact ? 'body2' : 'h6'}
                 sx={{
                   color: typeColor,
                   fontWeight: 700,
@@ -212,7 +216,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
           top: centerOffsetPx,
           left: 0,
           right: 0,
-          height: WHEEL_ROW_HEIGHT_PX,
+          height: rowHeight,
           borderTop: '2px solid',
           borderBottom: '2px solid',
           borderColor: 'warning.light',
