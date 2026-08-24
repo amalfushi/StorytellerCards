@@ -11,6 +11,13 @@ interface TestIds {
   gameId: string;
 }
 
+const PLAYER_IDS = {
+  alice: 'player-alice',
+  bob: 'player-bob',
+  charlie: 'player-charlie',
+  diana: 'player-diana',
+} as const;
+
 /** Create a session + game via the API (much faster than clicking through UI). */
 async function seedSessionAndGame(): Promise<TestIds> {
   const sessionId = `e2e-session-${Date.now()}`;
@@ -22,7 +29,21 @@ async function seedSessionAndGame(): Promise<TestIds> {
     name: 'E2E Sync Test',
     createdAt: now,
     defaultScriptId: '',
-    defaultPlayers: [],
+    players: [
+      { id: PLAYER_IDS.alice, name: 'Alice' },
+      { id: PLAYER_IDS.bob, name: 'Bob' },
+      { id: PLAYER_IDS.charlie, name: 'Charlie' },
+      { id: PLAYER_IDS.diana, name: 'Diana' },
+    ],
+    defaultParticipantIds: [PLAYER_IDS.alice, PLAYER_IDS.bob, PLAYER_IDS.charlie],
+    template: {
+      slots: [
+        makeSeat('template-seat-1', PLAYER_IDS.alice),
+        makeSeat('template-seat-2', PLAYER_IDS.bob),
+        makeSeat('template-seat-3', PLAYER_IDS.charlie),
+      ],
+    },
+    propagationDefault: { toTemplate: true, toOtherGames: true },
     gameIds: [gameId],
   };
 
@@ -33,11 +54,23 @@ async function seedSessionAndGame(): Promise<TestIds> {
     currentDay: 1,
     currentPhase: 'Day',
     isFirstNight: true,
-    players: [
-      makeSeat(1, 'Alice', 'washerwoman'),
-      makeSeat(2, 'Bob', 'librarian'),
-      makeSeat(3, 'Charlie', 'imp'),
+    slots: [
+      makeSeat('game-seat-1', PLAYER_IDS.alice),
+      makeSeat('game-seat-2', PLAYER_IDS.bob),
+      makeSeat('game-seat-3', PLAYER_IDS.charlie),
     ],
+    participants: [
+      { playerId: PLAYER_IDS.alice, isTraveller: false },
+      { playerId: PLAYER_IDS.bob, isTraveller: false },
+      { playerId: PLAYER_IDS.charlie, isTraveller: false },
+    ],
+    playerState: {
+      [PLAYER_IDS.alice]: makePlayerState('washerwoman'),
+      [PLAYER_IDS.bob]: makePlayerState('librarian'),
+      [PLAYER_IDS.charlie]: makePlayerState('imp', 'Evil'),
+    },
+    playerCountOverride: null,
+    seatingConfirmed: true,
     nightHistory: [],
     demonBluffs: [],
   };
@@ -59,18 +92,22 @@ async function seedSessionAndGame(): Promise<TestIds> {
   return { sessionId, gameId };
 }
 
-function makeSeat(seat: number, playerName: string, characterId: string): Record<string, unknown> {
+function makeSeat(id: string, playerId: string): Record<string, unknown> {
+  return { kind: 'seat', id, playerId };
+}
+
+function makePlayerState(
+  characterId: string,
+  alignment: 'Good' | 'Evil' = 'Good',
+): Record<string, unknown> {
   return {
-    seat,
-    playerName,
     characterId,
     alive: true,
     ghostVoteUsed: false,
-    visibleAlignment: 'Good',
-    actualAlignment: seat === 3 ? 'Evil' : 'Good',
-    startingAlignment: seat === 3 ? 'Evil' : 'Good',
+    visibleAlignment: alignment,
+    actualAlignment: alignment,
+    startingAlignment: alignment,
     activeReminders: [],
-    isTraveller: false,
     tokens: [],
   };
 }
@@ -147,12 +184,15 @@ test.describe('Cross-Device Sync', () => {
 
     // ── 3. Device A: Kill Alice via API (simulates a game action) ──
     const currentGame = await fetchGame(sessionId, gameId);
-    const updatedPlayers = currentGame.players.map((p: { seat: number }) =>
-      p.seat === 1 ? { ...p, alive: false } : p,
-    );
     await putGame(sessionId, gameId, {
       ...currentGame,
-      players: updatedPlayers,
+      playerState: {
+        ...currentGame.playerState,
+        [PLAYER_IDS.alice]: {
+          ...currentGame.playerState[PLAYER_IDS.alice],
+          alive: false,
+        },
+      },
     });
 
     // ── 4. Device B: Wait for SSE to deliver the change ──
@@ -205,25 +245,24 @@ test.describe('Cross-Device Sync', () => {
 
     // Device A adds a "poisoned" token to Bob (seat 2) via API
     const currentGame = await fetchGame(sessionId, gameId);
-    const updatedPlayers = currentGame.players.map((p: { seat: number; tokens?: unknown[] }) =>
-      p.seat === 2
-        ? {
-            ...p,
-            tokens: [
-              ...(p.tokens ?? []),
-              {
-                id: `token-e2e-${Date.now()}`,
-                type: 'poisoned',
-                label: 'Poisoned',
-                sourceCharacterId: 'poisoner',
-              },
-            ],
-          }
-        : p,
-    );
+    const bobState = currentGame.playerState[PLAYER_IDS.bob];
     await putGame(sessionId, gameId, {
       ...currentGame,
-      players: updatedPlayers,
+      playerState: {
+        ...currentGame.playerState,
+        [PLAYER_IDS.bob]: {
+          ...bobState,
+          tokens: [
+            ...(bobState.tokens ?? []),
+            {
+              id: `token-e2e-${Date.now()}`,
+              type: 'poisoned',
+              label: 'Poisoned',
+              sourceCharacterId: 'poisoner',
+            },
+          ],
+        },
+      },
     });
 
     // Wait for SSE to deliver the token change to Device B.
@@ -234,7 +273,7 @@ test.describe('Cross-Device Sync', () => {
         const raw = localStorage.getItem(`storyteller-game-${gid}`);
         if (!raw) return false;
         const g = JSON.parse(raw);
-        const bob = g.players?.find((p: { seat: number }) => p.seat === 2);
+        const bob = g.playerState?.['player-bob'];
         return bob?.tokens?.length > 0 && bob.tokens[0].type === 'poisoned';
       },
       gameId,
@@ -243,7 +282,7 @@ test.describe('Cross-Device Sync', () => {
 
     // Also verify via API as an authoritative cross-check
     const refreshedGame = await fetchGame(sessionId, gameId);
-    const bob = refreshedGame.players.find((p: { seat: number }) => p.seat === 2);
+    const bob = refreshedGame.playerState[PLAYER_IDS.bob];
     expect(bob.tokens).toHaveLength(1);
     expect(bob.tokens[0].type).toBe('poisoned');
     expect(bob.tokens[0].label).toBe('Poisoned');
@@ -289,11 +328,11 @@ test.describe('Cross-Device Sync', () => {
     let game = await fetchGame(sessionId, gameId);
 
     // Update 1: Kill Alice
-    game.players[0].alive = false;
+    game.playerState[PLAYER_IDS.alice].alive = false;
     game = await putGame(sessionId, gameId, game);
 
     // Update 2: Kill Bob
-    game.players[1].alive = false;
+    game.playerState[PLAYER_IDS.bob].alive = false;
     game = await putGame(sessionId, gameId, game);
 
     // Update 3: Advance to Day 2
@@ -302,8 +341,8 @@ test.describe('Cross-Device Sync', () => {
 
     // Verify API has all 3 changes
     const finalGame = await fetchGame(sessionId, gameId);
-    expect(finalGame.players[0].alive).toBe(false);
-    expect(finalGame.players[1].alive).toBe(false);
+    expect(finalGame.playerState[PLAYER_IDS.alice].alive).toBe(false);
+    expect(finalGame.playerState[PLAYER_IDS.bob].alive).toBe(false);
     expect(finalGame.currentDay).toBe(2);
 
     // Device B opens the game — should fetch fresh state from API
@@ -341,10 +380,12 @@ test.describe('Cross-Device Sync', () => {
     await pageA.waitForTimeout(4_000);
     await pageB.waitForTimeout(500);
 
-    // Add a 4th player "Diana" via API (simulates Context A adding a player)
-    const game = await fetchGame(sessionId, gameId);
-    game.players.push(makeSeat(4, 'Diana', 'chef'));
-    await putGame(sessionId, gameId, game);
+    // Context A adds the existing roster player to this game through Town Square editing.
+    await pageA.getByLabel('edit seating').click();
+    await pageA.getByTestId(`add-player-${PLAYER_IDS.diana}`).click();
+    await pageA.getByRole('button', { name: /review & save/i }).click();
+    await pageA.getByRole('button', { name: /save changes/i }).click();
+    await expect(pageA.getByText('Diana')).toBeVisible();
 
     // Context B should see "Diana" within a generous window.
     // SSE delivers version-changed → client fetches fresh state → DOM updates.
@@ -464,7 +505,7 @@ test.describe('Cross-Device Sync', () => {
 
     // Context B kills Alice via API (simulates B making a change)
     const game = await fetchGame(sessionId, gameId);
-    game.players[0].alive = false;
+    game.playerState[PLAYER_IDS.alice].alive = false;
     await putGame(sessionId, gameId, game);
 
     // Context A should see the dead marker via SSE sync
@@ -575,7 +616,7 @@ test.describe('Cross-Device Sync', () => {
 
     // ── 2. Make a change while Device B's SSE is closed ──
     const game = await fetchGame(sessionId, gameId);
-    game.players[0].alive = false;
+    game.playerState[PLAYER_IDS.alice].alive = false;
     await putGame(sessionId, gameId, game);
 
     // Verify Device B does NOT see the change (SSE closed, no polling)

@@ -11,15 +11,23 @@ interface TestIds {
   gameId: string;
 }
 
-function makeSeat(
-  seat: number,
-  playerName: string,
+const PLAYER_IDS = {
+  alice: 'player-alice',
+  bob: 'player-bob',
+  charlie: 'player-charlie',
+  diana: 'player-diana',
+  eve: 'player-eve',
+} as const;
+
+function makeSeat(id: string, playerId: string): Record<string, unknown> {
+  return { kind: 'seat', id, playerId };
+}
+
+function makePlayerState(
   characterId: string,
   alignment: 'Good' | 'Evil' = 'Good',
 ): Record<string, unknown> {
   return {
-    seat,
-    playerName,
     characterId,
     alive: true,
     ghostVoteUsed: false,
@@ -27,7 +35,6 @@ function makeSeat(
     actualAlignment: alignment,
     startingAlignment: alignment,
     activeReminders: [],
-    isTraveller: false,
     tokens: [],
   };
 }
@@ -46,7 +53,20 @@ async function seedSessionAndGame(): Promise<TestIds> {
     name: 'Full Journey Test',
     createdAt: now,
     defaultScriptId: '',
-    defaultPlayers: [],
+    players: [
+      { id: PLAYER_IDS.alice, name: 'Alice' },
+      { id: PLAYER_IDS.bob, name: 'Bob' },
+      { id: PLAYER_IDS.charlie, name: 'Charlie' },
+      { id: PLAYER_IDS.diana, name: 'Diana' },
+      { id: PLAYER_IDS.eve, name: 'Eve' },
+    ],
+    defaultParticipantIds: Object.values(PLAYER_IDS),
+    template: {
+      slots: Object.values(PLAYER_IDS).map((playerId, index) =>
+        makeSeat(`template-seat-${index + 1}`, playerId),
+      ),
+    },
+    propagationDefault: { toTemplate: true, toOtherGames: true },
     gameIds: [gameId],
   };
 
@@ -57,13 +77,22 @@ async function seedSessionAndGame(): Promise<TestIds> {
     currentDay: 1,
     currentPhase: 'Day',
     isFirstNight: true,
-    players: [
-      makeSeat(1, 'Alice', 'washerwoman'),
-      makeSeat(2, 'Bob', 'librarian'),
-      makeSeat(3, 'Charlie', 'empath'),
-      makeSeat(4, 'Diana', 'chef'),
-      makeSeat(5, 'Eve', 'imp', 'Evil'),
-    ],
+    slots: Object.values(PLAYER_IDS).map((playerId, index) =>
+      makeSeat(`game-seat-${index + 1}`, playerId),
+    ),
+    participants: Object.values(PLAYER_IDS).map((playerId) => ({
+      playerId,
+      isTraveller: false,
+    })),
+    playerState: {
+      [PLAYER_IDS.alice]: makePlayerState('washerwoman'),
+      [PLAYER_IDS.bob]: makePlayerState('librarian'),
+      [PLAYER_IDS.charlie]: makePlayerState('empath'),
+      [PLAYER_IDS.diana]: makePlayerState('chef'),
+      [PLAYER_IDS.eve]: makePlayerState('imp', 'Evil'),
+    },
+    playerCountOverride: null,
+    seatingConfirmed: true,
     nightHistory: [],
     demonBluffs: [],
   };
@@ -206,21 +235,19 @@ test.describe('Full Journey — Bidirectional Sync', () => {
     const reminderTokenId = `washerwoman-townsfolk-${Date.now()}`;
 
     // Device B adds a "Townsfolk" reminder (from Washerwoman) to Bob (seat 2)
-    game.players = game.players.map((p: { seat: number; activeReminders: string[] }) =>
-      p.seat === 2 ? { ...p, activeReminders: [...p.activeReminders, reminderTokenId] } : p,
-    );
+    game.playerState[PLAYER_IDS.bob].activeReminders.push(reminderTokenId);
     await putGame(sessionId, gameId, game);
 
     // Device A verifies the reminder appeared in its localStorage
     await waitForLocalGame(
       pageA,
       gameId,
-      `g.players.find(p => p.seat === 2)?.activeReminders?.length > 0`,
+      `g.playerState?.['player-bob']?.activeReminders?.length > 0`,
     );
 
     // Cross-check via API
     const afterReminder = await fetchGame(sessionId, gameId);
-    const bobAfterReminder = afterReminder.players.find((p: { seat: number }) => p.seat === 2);
+    const bobAfterReminder = afterReminder.playerState[PLAYER_IDS.bob];
     expect(bobAfterReminder.activeReminders).toContain(reminderTokenId);
 
     /* ================================================================
@@ -274,76 +301,58 @@ test.describe('Full Journey — Bidirectional Sync', () => {
 
     // Device B: Kill Diana (seat 4) — mark as dead
     game = await fetchGame(sessionId, gameId);
-    game.players = game.players.map((p: { seat: number }) =>
-      p.seat === 4 ? { ...p, alive: false } : p,
-    );
+    game.playerState[PLAYER_IDS.diana].alive = false;
     await putGame(sessionId, gameId, game);
 
     // Device A verifies Diana is dead via localStorage
-    await waitForLocalGame(pageA, gameId, `g.players.find(p => p.seat === 4)?.alive === false`);
+    await waitForLocalGame(pageA, gameId, `g.playerState?.['player-diana']?.alive === false`);
 
     // Device B: Add a "drunk" status token to Charlie (seat 3)
     game = await fetchGame(sessionId, gameId);
-    game.players = game.players.map((p: { seat: number; tokens?: Record<string, unknown>[] }) =>
-      p.seat === 3
-        ? {
-            ...p,
-            tokens: [
-              ...(p.tokens ?? []),
-              {
-                id: `token-drunk-${Date.now()}`,
-                type: 'drunk',
-                label: 'Drunk',
-                sourceCharacterId: 'empath',
-              },
-            ],
-          }
-        : p,
-    );
+    game.playerState[PLAYER_IDS.charlie].tokens = [
+      ...(game.playerState[PLAYER_IDS.charlie].tokens ?? []),
+      {
+        id: `token-drunk-${Date.now()}`,
+        type: 'drunk',
+        label: 'Drunk',
+        sourceCharacterId: 'empath',
+      },
+    ];
     await putGame(sessionId, gameId, game);
 
     // Device A verifies Charlie has the drunk token via localStorage
     await waitForLocalGame(
       pageA,
       gameId,
-      `g.players.find(p => p.seat === 3)?.tokens?.some(t => t.type === 'drunk')`,
+      `g.playerState?.['player-charlie']?.tokens?.some(t => t.type === 'drunk')`,
     );
 
     // Cross-check both changes in API
     const afterPhase4 = await fetchGame(sessionId, gameId);
-    expect(afterPhase4.players.find((p: { seat: number }) => p.seat === 4).alive).toBe(false);
-    expect(afterPhase4.players.find((p: { seat: number }) => p.seat === 3).tokens).toHaveLength(1);
-    expect(afterPhase4.players.find((p: { seat: number }) => p.seat === 3).tokens[0].type).toBe(
-      'drunk',
-    );
+    expect(afterPhase4.playerState[PLAYER_IDS.diana].alive).toBe(false);
+    expect(afterPhase4.playerState[PLAYER_IDS.charlie].tokens).toHaveLength(1);
+    expect(afterPhase4.playerState[PLAYER_IDS.charlie].tokens[0].type).toBe('drunk');
 
     /* ================================================================
      * PHASE 5: Device A adds a poisoned token to Eve → Device B verifies
      * ================================================================ */
     game = await fetchGame(sessionId, gameId);
-    game.players = game.players.map((p: { seat: number; tokens?: Record<string, unknown>[] }) =>
-      p.seat === 5
-        ? {
-            ...p,
-            tokens: [
-              ...(p.tokens ?? []),
-              {
-                id: `token-poisoned-${Date.now()}`,
-                type: 'poisoned',
-                label: 'Poisoned',
-                sourceCharacterId: 'poisoner',
-              },
-            ],
-          }
-        : p,
-    );
+    game.playerState[PLAYER_IDS.eve].tokens = [
+      ...(game.playerState[PLAYER_IDS.eve].tokens ?? []),
+      {
+        id: `token-poisoned-${Date.now()}`,
+        type: 'poisoned',
+        label: 'Poisoned',
+        sourceCharacterId: 'poisoner',
+      },
+    ];
     await putGame(sessionId, gameId, game);
 
     // Device B verifies Eve has the poisoned token
     await waitForLocalGame(
       pageB,
       gameId,
-      `g.players.find(p => p.seat === 5)?.tokens?.some(t => t.type === 'poisoned')`,
+      `g.playerState?.['player-eve']?.tokens?.some(t => t.type === 'poisoned')`,
     );
 
     /* ================================================================
@@ -386,23 +395,19 @@ test.describe('Full Journey — Bidirectional Sync', () => {
     game = await fetchGame(sessionId, gameId);
 
     // Device B: Swap Charlie's character from empath to fortuneteller
-    game.players = game.players.map((p: { seat: number }) =>
-      p.seat === 3 ? { ...p, characterId: 'fortuneteller' } : p,
-    );
+    game.playerState[PLAYER_IDS.charlie].characterId = 'fortuneteller';
     await putGame(sessionId, gameId, game);
 
     // Device A verifies the character change
     await waitForLocalGame(
       pageA,
       gameId,
-      `g.players.find(p => p.seat === 3)?.characterId === 'fortuneteller'`,
+      `g.playerState?.['player-charlie']?.characterId === 'fortuneteller'`,
     );
 
     // Cross-check via API
     const afterSwap = await fetchGame(sessionId, gameId);
-    expect(afterSwap.players.find((p: { seat: number }) => p.seat === 3).characterId).toBe(
-      'fortuneteller',
-    );
+    expect(afterSwap.playerState[PLAYER_IDS.charlie].characterId).toBe('fortuneteller');
 
     /* ================================================================
      * PHASE 8: Device A kills another player → Device B verifies
@@ -410,13 +415,15 @@ test.describe('Full Journey — Bidirectional Sync', () => {
     game = await fetchGame(sessionId, gameId);
 
     // Device A: Kill Alice (seat 1) — the Imp's Night 2 kill
-    game.players = game.players.map((p: { seat: number }) =>
-      p.seat === 1 ? { ...p, alive: false } : p,
-    );
+    game.playerState[PLAYER_IDS.alice].alive = false;
     await putGame(sessionId, gameId, game);
 
     // Device B verifies two dead players now visible via localStorage
-    await waitForLocalGame(pageB, gameId, `g.players.filter(p => p.alive === false).length >= 2`);
+    await waitForLocalGame(
+      pageB,
+      gameId,
+      `Object.values(g.playerState ?? {}).filter(p => p.alive === false).length >= 2`,
+    );
 
     /* ================================================================
      * PHASE 9: Device B completes Night 3 with extensive notes
@@ -482,13 +489,13 @@ test.describe('Full Journey — Bidirectional Sync', () => {
       );
 
       // Verify player states match
-      const localAlice = localGame.players.find((p: { seat: number }) => p.seat === 1);
+      const localAlice = localGame.playerState[PLAYER_IDS.alice];
       expect(localAlice.alive, `${label} Alice dead`).toBe(false);
 
-      const localDiana = localGame.players.find((p: { seat: number }) => p.seat === 4);
+      const localDiana = localGame.playerState[PLAYER_IDS.diana];
       expect(localDiana.alive, `${label} Diana dead`).toBe(false);
 
-      const localCharlie = localGame.players.find((p: { seat: number }) => p.seat === 3);
+      const localCharlie = localGame.playerState[PLAYER_IDS.charlie];
       expect(localCharlie.characterId, `${label} Charlie swapped`).toBe('fortuneteller');
     }
   });
