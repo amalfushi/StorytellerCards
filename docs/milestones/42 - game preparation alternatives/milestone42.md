@@ -15,6 +15,9 @@ planning invasive.
 **Decision status:** Option 3 was selected as the most intuitive of the four M42
 alternatives and promoted from prototype to the completed implementation.
 
+See [`proposal.md`](proposal.md) for the four evaluated alternatives, Mermaid
+flows, comparison matrix, and final decision record.
+
 ## Product behavior
 
 - [x] Keep session roster, game participants, selected characters, character assignments, and seating distinct.

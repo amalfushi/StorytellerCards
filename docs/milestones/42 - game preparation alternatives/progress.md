@@ -11,3 +11,6 @@ Option 3 was the most intuitive prototype in side-by-side evaluation and is the
 completed M42 product direction. Its final implementation keeps seating editing
 inside each game's Town Square while preserving separate participant, character
 selection, and character assignment stages.
+
+See [`proposal.md`](proposal.md) for the alternatives and decision record, and
+[`milestone42.md`](milestone42.md) for the completed implementation checklist.
