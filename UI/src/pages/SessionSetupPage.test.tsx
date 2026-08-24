@@ -61,6 +61,7 @@ const mockDeleteGame = vi.fn();
 const mockAddPlayer = vi.fn();
 const mockRenamePlayer = vi.fn();
 const mockRemovePlayer = vi.fn();
+const mockSetDefaultParticipant = vi.fn();
 const mockAddTemplateSeat = vi.fn();
 const mockAddTemplateSpacer = vi.fn();
 const mockAddTemplateStoryteller = vi.fn();
@@ -68,6 +69,7 @@ const mockRemoveTemplateSlot = vi.fn();
 const mockMoveTemplateSlot = vi.fn();
 const mockAssignTemplateSeat = vi.fn();
 const mockSetPropagationDefault = vi.fn();
+const mockApplyTemplateToGame = vi.fn();
 
 let mockSessions: Session[];
 let mockSessionId: string;
@@ -84,6 +86,7 @@ vi.mock('@/context/useSession.ts', () => ({
     addPlayer: mockAddPlayer,
     renamePlayer: mockRenamePlayer,
     removePlayer: mockRemovePlayer,
+    setDefaultParticipant: mockSetDefaultParticipant,
     addTemplateSeat: mockAddTemplateSeat,
     addTemplateSpacer: mockAddTemplateSpacer,
     addTemplateStoryteller: mockAddTemplateStoryteller,
@@ -92,6 +95,7 @@ vi.mock('@/context/useSession.ts', () => ({
     assignTemplateSeat: mockAssignTemplateSeat,
     setPropagationDefault: mockSetPropagationDefault,
     addGameToSession: mockAddGameToSession,
+    applyTemplateToGame: mockApplyTemplateToGame,
     selectGame: mockSelectGame,
     deleteGame: mockDeleteGame,
   }),
@@ -123,6 +127,7 @@ import { SessionSetupPage } from '@/pages/SessionSetupPage.tsx';
 describe('SessionSetupPage', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    localStorage.clear();
     mockSessions = [mockSession, emptySession];
     mockSessionId = 'session-1';
   });
@@ -173,14 +178,67 @@ describe('SessionSetupPage', () => {
     expect(screen.getByDisplayValue('Eve')).toBeInTheDocument();
   });
 
+  it('edits the explicit default lineup independently for future games', () => {
+    render(<SessionSetupPage />);
+    fireEvent.click(screen.getByRole('switch', { name: /include alice in new games/i }));
+    expect(mockSetDefaultParticipant).toHaveBeenCalledWith(
+      'session-1',
+      'session-1-player-1',
+      false,
+    );
+  });
+
   it('shows Add Seat button', () => {
     render(<SessionSetupPage />);
     expect(screen.getByRole('button', { name: /^add seat$/i })).toBeInTheDocument();
   });
 
+  it('adds a named player through the roster action', () => {
+    render(<SessionSetupPage />);
+
+    fireEvent.change(screen.getByLabelText(/new player name/i), {
+      target: { value: 'Frank' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /^add$/i }));
+
+    expect(mockAddPlayer).toHaveBeenCalledWith('session-1', 'Frank');
+    expect(screen.getByLabelText(/new player name/i)).toHaveValue('');
+  });
+
   it('shows Games section with New Game button', () => {
     render(<SessionSetupPage />);
     expect(screen.getByRole('button', { name: /new game/i })).toBeInTheDocument();
+  });
+
+  it('bulk-applies the template only to games that have not started', () => {
+    localStorage.setItem(
+      'storyteller-game-game-1',
+      JSON.stringify({
+        id: 'game-1',
+        currentDay: 1,
+        currentPhase: 'Day',
+        isFirstNight: true,
+        nightHistory: [],
+      }),
+    );
+    localStorage.setItem(
+      'storyteller-game-game-2',
+      JSON.stringify({
+        id: 'game-2',
+        currentDay: 1,
+        currentPhase: 'Night',
+        isFirstNight: true,
+        nightHistory: [],
+      }),
+    );
+    render(<SessionSetupPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /apply template to all games/i }));
+
+    expect(mockApplyTemplateToGame).toHaveBeenCalledTimes(1);
+    expect(mockApplyTemplateToGame).toHaveBeenCalledWith('session-1', 'game-1');
+    expect(screen.getByRole('button', { name: /apply template to game 1/i })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /apply template to game 2/i })).toBeDisabled();
   });
 
   it('creates a new game for the active session', () => {

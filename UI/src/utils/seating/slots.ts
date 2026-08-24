@@ -6,7 +6,15 @@
  * deterministic for tests.
  */
 
-import type { PlayerId, Slot, SlotId } from '../../types/index.ts';
+import type { Participant, Player, PlayerId, Slot, SlotId } from '../../types/index.ts';
+
+export interface GameSeatingValidation {
+  isValid: boolean;
+  unseatedParticipantIds: PlayerId[];
+  duplicatePlayerIds: PlayerId[];
+  nonParticipantPlayerIds: PlayerId[];
+  missingRosterPlayerIds: PlayerId[];
+}
 
 /** Clear any `seat` slots that reference the given playerId; other kinds untouched. */
 export function clearPlayerFromSlots(slots: Slot[], playerId: PlayerId): Slot[] {
@@ -58,4 +66,59 @@ export function seatedPlayerIds(slots: Slot[]): PlayerId[] {
 /** Filter slots down to seat kind only. */
 export function seatSlotsOnly(slots: Slot[]): Extract<Slot, { kind: 'seat' }>[] {
   return slots.filter((s): s is Extract<Slot, { kind: 'seat' }> => s.kind === 'seat');
+}
+
+/** True once a game has entered live play, even if its current view later returns to Day. */
+export function hasGameStarted(game: {
+  currentPhase: string;
+  isFirstNight: boolean;
+  nightHistory: unknown[];
+}): boolean {
+  return game.currentPhase === 'Night' || !game.isFirstNight || game.nightHistory.length > 0;
+}
+
+/**
+ * Validate the game-specific relationship between lineup and seating.
+ * Empty seats and non-seat slots are valid; every participant must occupy
+ * exactly one seat and every occupied seat must belong to a roster participant.
+ */
+export function validateGameSeating(
+  slots: Slot[],
+  participants: Participant[],
+  rosterPlayers: Player[],
+): GameSeatingValidation {
+  const participantIds = new Set(participants.map((participant) => participant.playerId));
+  const rosterIds = new Set(rosterPlayers.map((player) => player.id));
+  const seatCounts = new Map<PlayerId, number>();
+
+  for (const slot of slots) {
+    if (slot.kind !== 'seat' || slot.playerId === null) continue;
+    seatCounts.set(slot.playerId, (seatCounts.get(slot.playerId) ?? 0) + 1);
+  }
+
+  const unseatedParticipantIds = participants
+    .map((participant) => participant.playerId)
+    .filter((playerId) => !seatCounts.has(playerId));
+  const duplicatePlayerIds = [...seatCounts.entries()]
+    .filter(([, count]) => count > 1)
+    .map(([playerId]) => playerId);
+  const nonParticipantPlayerIds = [...seatCounts.keys()].filter(
+    (playerId) => !participantIds.has(playerId),
+  );
+  const missingRosterPlayerIds = participants
+    .map((participant) => participant.playerId)
+    .filter((playerId) => !rosterIds.has(playerId));
+
+  return {
+    isValid:
+      participants.length > 0 &&
+      unseatedParticipantIds.length === 0 &&
+      duplicatePlayerIds.length === 0 &&
+      nonParticipantPlayerIds.length === 0 &&
+      missingRosterPlayerIds.length === 0,
+    unseatedParticipantIds,
+    duplicatePlayerIds,
+    nonParticipantPlayerIds,
+    missingRosterPlayerIds,
+  };
 }

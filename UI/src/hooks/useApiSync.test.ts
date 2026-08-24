@@ -280,7 +280,7 @@ describe('useApiSync', () => {
       );
     });
 
-    it('resets the debounce timer on subsequent calls', async () => {
+    it('debounces different games independently', async () => {
       const { result } = renderHook(() => useApiSync());
       const game1 = makeGame({ id: 'game-1' });
       const game2 = makeGame({ id: 'game-2' });
@@ -294,30 +294,66 @@ describe('useApiSync', () => {
         await vi.advanceTimersByTimeAsync(500);
       });
 
-      // Another call resets the timer
       act(() => {
         result.current.syncGame(game2);
       });
 
-      // Advance another 500ms — should NOT have fired yet (timer was reset)
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/api/sessions/${game1.sessionId}/games/${game1.id}`),
+        expect.objectContaining({
+          method: 'PUT',
+          body: JSON.stringify(game1),
+        }),
+      );
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(600);
+      });
+
+      expect(mockFetch).toHaveBeenCalledTimes(2);
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining(`/api/sessions/${game2.sessionId}/games/${game2.id}`),
+        expect.objectContaining({
+          method: 'PUT',
+          body: JSON.stringify(game2),
+        }),
+      );
+    });
+
+    it('resets the debounce timer for repeated updates to the same game', async () => {
+      const { result } = renderHook(() => useApiSync());
+      const initial = makeGame({ id: 'game-1', currentDay: 1 });
+      const updated = makeGame({ id: 'game-1', currentDay: 2 });
+
+      act(() => {
+        result.current.syncGame(initial);
+      });
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(500);
+      });
+      act(() => {
+        result.current.syncGame(updated);
+      });
       await act(async () => {
         await vi.advanceTimersByTimeAsync(500);
       });
 
       expect(mockFetch).not.toHaveBeenCalled();
 
-      // Advance the remaining 600ms for the reset timer
       await act(async () => {
         await vi.advanceTimersByTimeAsync(600);
       });
-
-      // Should fire with the second game only
       expect(mockFetch).toHaveBeenCalledTimes(1);
       expect(mockFetch).toHaveBeenCalledWith(
-        expect.stringContaining(`/api/sessions/${game2.sessionId}/games/${game2.id}`),
+        expect.stringContaining(`/api/sessions/${updated.sessionId}/games/${updated.id}`),
         expect.objectContaining({
           method: 'PUT',
-          body: JSON.stringify(game2),
+          body: JSON.stringify(updated),
         }),
       );
     });
@@ -434,6 +470,19 @@ describe('useApiSync', () => {
       );
     });
 
+    it('accepts a successful 204 response without parsing JSON', async () => {
+      const json = vi.fn();
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 204, json });
+      const { result } = renderHook(() => useApiSync());
+
+      await act(async () => {
+        result.current.deleteSession('session-1');
+        await Promise.resolve();
+      });
+
+      expect(json).not.toHaveBeenCalled();
+    });
+
     it('handles network errors gracefully (no throw)', async () => {
       mockFetch.mockRejectedValueOnce(new Error('Network error'));
       const { result } = renderHook(() => useApiSync());
@@ -458,6 +507,19 @@ describe('useApiSync', () => {
         expect.stringContaining('/api/sessions/session-1/games/game-1'),
         expect.objectContaining({ method: 'DELETE' }),
       );
+    });
+
+    it('accepts a successful 204 response without parsing JSON', async () => {
+      const json = vi.fn();
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 204, json });
+      const { result } = renderHook(() => useApiSync());
+
+      await act(async () => {
+        result.current.deleteGame('session-1', 'game-1');
+        await Promise.resolve();
+      });
+
+      expect(json).not.toHaveBeenCalled();
     });
 
     it('handles network errors gracefully (no throw)', async () => {

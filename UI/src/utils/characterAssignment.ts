@@ -38,6 +38,54 @@ export function filterCharacterDropdownOptions<T extends Pick<CharacterDef, 'typ
   return characters.filter(isCharacterDropdownOption);
 }
 
+const CONCEALMENT_CHARACTER_IDS = new Set(['marionette', 'drunk']);
+
+/**
+ * Preserve the apparent identity only while assigning a concealment role.
+ * Clearing the role or changing to any normal character removes stale secret
+ * identity state.
+ */
+export function apparentCharacterIdAfterAssignment(
+  currentApparentCharacterId: string | undefined,
+  nextCharacterId: string,
+): string {
+  return CONCEALMENT_CHARACTER_IDS.has(nextCharacterId) ? (currentApparentCharacterId ?? '') : '';
+}
+
+/** Count how many copies of each character are available in an assignment pool. */
+export function countCharacterCopies(
+  characters: ReadonlyArray<Pick<CharacterDef, 'id'>>,
+): Map<string, number> {
+  const counts = new Map<string, number>();
+  for (const character of characters) {
+    counts.set(character.id, (counts.get(character.id) ?? 0) + 1);
+  }
+  return counts;
+}
+
+/**
+ * Check whether assigning a character would exceed the pool's available copy
+ * count. The target player's current character remains selectable as a no-op.
+ */
+export function isCharacterUnavailableForAssignment(
+  characterId: string,
+  targetPlayerId: PlayerId,
+  participants: Participant[],
+  playerState: Record<PlayerId, PlayerGameState>,
+  availableCounts: ReadonlyMap<string, number>,
+  unlimitedCharacterIds: ReadonlySet<string> = new Set(),
+): boolean {
+  if (playerState[targetPlayerId]?.characterId === characterId) return false;
+  if (unlimitedCharacterIds.has(characterId)) return false;
+
+  const assignedCount = participants.reduce(
+    (count, participant) =>
+      playerState[participant.playerId]?.characterId === characterId ? count + 1 : count,
+    0,
+  );
+  return assignedCount >= (availableCounts.get(characterId) ?? 0);
+}
+
 /**
  * Shuffles an array in-place using the Fisher-Yates algorithm.
  * Returns the same array reference for chaining.

@@ -4,6 +4,7 @@ import type { ReactNode } from 'react';
 import { GameProvider } from './GameContext';
 import { SessionProvider } from './SessionContext';
 import { useGame } from './useGame';
+import { useSession } from './useSession';
 import type {
   Game,
   GainedAbility,
@@ -115,6 +116,10 @@ function renderGameHook() {
   return renderHook(() => useGame(), { wrapper });
 }
 
+function renderContextsHook() {
+  return renderHook(() => ({ game: useGame(), session: useSession() }), { wrapper });
+}
+
 function persistedGame(id: string): Game {
   const raw = localStorage.getItem(`storyteller-game-${id}`);
   expect(raw).not.toBeNull();
@@ -160,6 +165,7 @@ describe('GameContext', () => {
 
       expect(result.current.state.game).toEqual({
         ...game,
+        seatingConfirmed: false,
         showMessages: [],
         showTemplates: [],
       });
@@ -509,6 +515,187 @@ describe('GameContext', () => {
         result.current.setPlayerCountOverride(null);
       });
       expect(result.current.state.game?.playerCountOverride).toBeNull();
+    });
+
+    it('invalidates pre-game seating confirmation after lineup or slot changes', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame({
+          ...makeGameWithPlayers([makePlayer('player-1', 'Alice')]),
+          seatingConfirmed: true,
+        });
+      });
+
+      act(() => {
+        result.current.addParticipant('player-2');
+      });
+      expect(result.current.state.game?.seatingConfirmed).toBe(false);
+
+      act(() => {
+        result.current.setSeatingConfirmed(true);
+        result.current.addGameSpacer(localOnly);
+      });
+      expect(result.current.state.game?.seatingConfirmed).toBe(false);
+    });
+
+    it('keeps seating confirmation during live-game corrections', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame({
+          ...makeGameWithPlayers([makePlayer('player-1', 'Alice')]),
+          currentPhase: Phase.Night,
+          seatingConfirmed: true,
+        });
+      });
+
+      act(() => {
+        result.current.addGameSpacer(localOnly);
+        result.current.assignGameSeat('slot-1', null, localOnly);
+      });
+
+      expect(result.current.state.game?.seatingConfirmed).toBe(true);
+    });
+
+    it('applies a reviewed setup draft atomically', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame({
+          ...makeGameWithPlayers([makePlayer('player-1', 'Alice')]),
+          seatingConfirmed: true,
+        });
+      });
+      const nextState = {
+        'player-2': makePlayerState({ characterId: 'washerwoman' }),
+      };
+
+      act(() => {
+        result.current.applyGameSetupDraft(
+          [makeSeat('slot-2', 'player-2')],
+          [{ playerId: 'player-2', isTraveller: false }],
+          nextState,
+        );
+      });
+
+      expect(result.current.state.game).toEqual(
+        expect.objectContaining({
+          slots: [makeSeat('slot-2', 'player-2')],
+          participants: [{ playerId: 'player-2', isTraveller: false }],
+          playerState: nextState,
+          seatingConfirmed: false,
+        }),
+      );
+    });
+
+    it('propagates seating-only drafts only to compatible unstarted sibling games', () => {
+      const { result } = renderContextsHook();
+      act(() => {
+        result.current.session.createSession('Session', 'boozling', ['Alice', 'Bob']);
+      });
+      const sessionId = result.current.session.state.sessions[0].id;
+      act(() => {
+        result.current.session.addGameToSession(sessionId);
+        result.current.session.addGameToSession(sessionId);
+      });
+      const [currentGameId, siblingGameId] = result.current.session.state.sessions[0].gameIds;
+      const current = persistedGame(currentGameId);
+      act(() => {
+        result.current.game.loadGame(current);
+      });
+
+      act(() => {
+        result.current.game.applyGameSetupDraft(
+          [...current.slots, { kind: 'spacer', id: 'draft-spacer' }],
+          current.participants,
+          current.playerState,
+          { toTemplate: false, toOtherGames: true },
+        );
+      });
+
+      expect(persistedGame(siblingGameId).slots.at(-1)?.kind).toBe('spacer');
+
+      const startedSibling = {
+        ...persistedGame(siblingGameId),
+        currentPhase: Phase.Night,
+      };
+      localStorage.setItem(`storyteller-game-${siblingGameId}`, JSON.stringify(startedSibling));
+      const currentAfterFirstSave = result.current.game.state.game!;
+      act(() => {
+        result.current.game.applyGameSetupDraft(
+          [...currentAfterFirstSave.slots, { kind: 'storyteller', id: 'draft-storyteller' }],
+          currentAfterFirstSave.participants,
+          currentAfterFirstSave.playerState,
+          { toTemplate: false, toOtherGames: true },
+        );
+      });
+
+      expect(persistedGame(siblingGameId).slots).toEqual(startedSibling.slots);
+    });
+
+    it('does not propagate drafts that change lineup or player state', () => {
+      const { result } = renderContextsHook();
+      act(() => {
+        result.current.session.createSession('Session', 'boozling', ['Alice', 'Bob']);
+      });
+      const sessionId = result.current.session.state.sessions[0].id;
+      act(() => {
+        result.current.session.addGameToSession(sessionId);
+        result.current.session.addGameToSession(sessionId);
+      });
+      const [currentGameId, siblingGameId] = result.current.session.state.sessions[0].gameIds;
+      const current = persistedGame(currentGameId);
+      const siblingBefore = persistedGame(siblingGameId);
+      act(() => {
+        result.current.game.loadGame(current);
+      });
+
+      const participants = current.participants.slice(0, 1);
+      const playerState = {
+        [participants[0].playerId]: current.playerState[participants[0].playerId],
+      };
+      act(() => {
+        result.current.game.applyGameSetupDraft([current.slots[0]], participants, playerState, {
+          toTemplate: false,
+          toOtherGames: true,
+        });
+      });
+
+      expect(persistedGame(siblingGameId)).toEqual(siblingBefore);
+    });
+
+    it('skips unstarted siblings with a different participant lineup', () => {
+      const { result } = renderContextsHook();
+      act(() => {
+        result.current.session.createSession('Session', 'boozling', ['Alice', 'Bob']);
+      });
+      const sessionId = result.current.session.state.sessions[0].id;
+      act(() => {
+        result.current.session.addGameToSession(sessionId);
+        result.current.session.addGameToSession(sessionId);
+      });
+      const [currentGameId, siblingGameId] = result.current.session.state.sessions[0].gameIds;
+      const current = persistedGame(currentGameId);
+      const sibling = persistedGame(siblingGameId);
+      const divergentSibling = {
+        ...sibling,
+        participants: sibling.participants.slice(0, 1),
+        playerState: {
+          [sibling.participants[0].playerId]: sibling.playerState[sibling.participants[0].playerId],
+        },
+      };
+      localStorage.setItem(`storyteller-game-${siblingGameId}`, JSON.stringify(divergentSibling));
+      act(() => {
+        result.current.game.loadGame(current);
+      });
+      act(() => {
+        result.current.game.applyGameSetupDraft(
+          [...current.slots, { kind: 'spacer', id: 'draft-spacer' }],
+          current.participants,
+          current.playerState,
+          { toTemplate: false, toOtherGames: true },
+        );
+      });
+
+      expect(persistedGame(siblingGameId)).toEqual(divergentSibling);
     });
   });
 

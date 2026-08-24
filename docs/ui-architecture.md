@@ -4,11 +4,11 @@
 
 Defined in [`App.tsx`](../UI/src/App.tsx):
 
-| Path | Component | Purpose |
-|------|-----------|---------|
-| `/` | [`HomePage`](../UI/src/pages/HomePage.tsx) | Session list, create/delete sessions |
-| `/session/:sessionId` | [`SessionSetupPage`](../UI/src/pages/SessionSetupPage.tsx) | Script import, player setup, create games |
-| `/session/:sessionId/game/:gameId` | [`GameViewPage`](../UI/src/pages/GameViewPage.tsx) | Active game — the main view |
+| Path                               | Component                                                  | Purpose                                   |
+| ---------------------------------- | ---------------------------------------------------------- | ----------------------------------------- |
+| `/`                                | [`HomePage`](../UI/src/pages/HomePage.tsx)                 | Session list, create/delete sessions      |
+| `/session/:sessionId`              | [`SessionSetupPage`](../UI/src/pages/SessionSetupPage.tsx) | Script import, player setup, create games |
+| `/session/:sessionId/game/:gameId` | [`GameViewPage`](../UI/src/pages/GameViewPage.tsx)         | Active game — the main view               |
 
 All routes are wrapped in [`ErrorBoundary`](../UI/src/components/common/ErrorBoundary.tsx).
 
@@ -52,38 +52,63 @@ BrowserRouter
 ```
 
 ### PhaseBar
+
 [`PhaseBar.tsx`](../UI/src/components/PhaseBar/PhaseBar.tsx) — toggles between Day and Night. Dawn/Dusk were removed in M3-4.
 
 ### ShowCharactersToggle
+
 [`ShowCharactersToggle.tsx`](../UI/src/components/common/ShowCharactersToggle.tsx) — hides character info during Day phase so players can't see secrets on the Storyteller's device.
 
 ## The 4 Tabs
 
 ### 1. Town Square
+
 - [`TownSquareTab.tsx`](../UI/src/components/TownSquare/TownSquareTab.tsx) — container
 - [`TownSquareLayout.tsx`](../UI/src/components/TownSquare/TownSquareLayout.tsx) — ovoid/circle arrangement of player tokens
+- [`TownSquareEditMode.tsx`](../UI/src/components/TownSquare/TownSquareEditMode.tsx) — explicit mobile-first seating editor with local draft/review/save, radial drag + tap reorder controls, seat/spacer/storyteller editing, participant parking, focused player sheet, and links to the distinct character selection/assignment stages
 - [`PlayerToken.tsx`](../UI/src/components/TownSquare/PlayerToken.tsx) — individual token showing name, character, alive/dead
 - [`PlayerQuickActions.tsx`](../UI/src/components/TownSquare/PlayerQuickActions.tsx) — popup modal on token tap; includes kill/resurrect with proper `ghostVoteUsed` management (explicitly sets `ghostVoteUsed: false` on both kill and resurrect)
 - [`AddTravellerDialog.tsx`](../UI/src/components/TownSquare/AddTravellerDialog.tsx) — add mid-game travellers
 - [`TokenManager.tsx`](../UI/src/components/TownSquare/TokenManager.tsx) — `TokenBadges` component for visual token display using atan2 center-facing positioning with alternating clockwise/counterclockwise fan-out; `TokenManager` dialog for Drunk/Poisoned toggles, character-specific reminder tokens, and custom text tokens. Integrated into [`TownSquareTab.tsx`](../UI/src/components/TownSquare/TownSquareTab.tsx) with characterDef lookup.
 
+The first Night transition is gated in `GameViewPage`: valid unconfirmed
+seating opens a concise confirmation dialog, while missing/invalid seating
+opens Town Square Edit Seating with actionable guidance. Games already in
+progress bypass this one-time pre-game gate so live seating corrections remain
+fast.
+
+Sibling propagation is seating-only and conservative: lineup/player-state
+drafts disable it, and seating drafts update only compatible games that have
+not started. Started games and games with divergent participants are never
+rewritten.
+
+The focused player sheet shares copy-limit rules with
+`CharacterAssignmentDialog`: unique roles cannot be assigned twice, explicitly
+selected duplicate copies remain usable, and Traveller participants choose
+Traveller roles from the active script rather than the non-Traveller in-play
+pool.
+
 ### 2. Player List
+
 - [`PlayerListTab.tsx`](../UI/src/components/PlayerList/PlayerListTab.tsx) — table of all players
 - [`PlayerRow.tsx`](../UI/src/components/PlayerList/PlayerRow.tsx) — individual row with alignment mismatch detection (`actualAlignment !== defaultAlignment` shows contrasting border on type pill — e.g., Evil Townsfolk gets red border on blue pill). Stories: EvilTownsfolk, GoodDemon.
 - [`PlayerEditDialog.tsx`](../UI/src/components/PlayerList/PlayerEditDialog.tsx) — edit player details
 - Column order: Seat, Player, Type, CharIcon, Character, abilityShort, Alive, Alignment, Ghost Vote
 
 ### 3. Script Reference
+
 - [`ScriptReferenceTab.tsx`](../UI/src/components/ScriptViewer/ScriptReferenceTab.tsx) — scrollable list of script characters
 - [`CharacterCard.tsx`](../UI/src/components/ScriptViewer/CharacterCard.tsx) — character info card
 
 ### 4. Night Order
+
 - [`NightOrderTab.tsx`](../UI/src/components/NightOrder/NightOrderTab.tsx) — filtered night order for current script
 - [`NightOrderEntry.tsx`](../UI/src/components/NightOrder/NightOrderEntry.tsx) — single entry row
 
 ## Night Phase Overlay
 
 Triggered from the header bar button (moved from FAB in M3-5; uses `dismissed` flag pattern with `queueMicrotask`):
+
 - [`NightPhaseOverlay.tsx`](../UI/src/components/NightPhase/NightPhaseOverlay.tsx) — full-screen overlay
 - [`FlashcardCarousel.tsx`](../UI/src/components/NightPhase/FlashcardCarousel.tsx) — swipeable card stack
 - [`NightFlashcard.tsx`](../UI/src/components/NightPhase/NightFlashcard.tsx) — individual flashcard
@@ -135,6 +160,7 @@ UI/src/data/characters/
 ```
 
 The barrel file [`index.ts`](../UI/src/data/characters/index.ts) exports:
+
 - `allCharacters` — flat array of all 43 `CharacterDef` objects
 - `characterMap` — `Map<string, CharacterDef>` built once at module load
 - `getCharacter(id)` — lookup by ID (returns `undefined` if not found)
@@ -145,6 +171,7 @@ Night order is **derived** from character files, not stored separately. Each cha
 ### New M6 Types
 
 Added to [`types/index.ts`](../UI/src/types/index.ts):
+
 - `NightChoiceType` — `as const` object: `player`, `livingPlayer`, `deadPlayer`, `character`, `alignment`, `yesno`
 - `NightChoice` — declarative description of a night action choice (type, label, maxSelections)
 - `SetupModification` — how a character modifies player-count distribution
@@ -154,13 +181,13 @@ Added to [`types/index.ts`](../UI/src/types/index.ts):
 
 ## Key Hooks
 
-| Hook | File | Purpose |
-|------|------|---------|
-| `useCharacterLookup` | [`useCharacterLookup.ts`](../UI/src/hooks/useCharacterLookup.ts) | Character ID → CharacterDef lookup map (imports from barrel, no `useMemo` needed) |
-| `useNightOrder` | [`useNightOrder.ts`](../UI/src/hooks/useNightOrder.ts) | Filtered night order for active script (calls `buildNightOrder()` instead of importing JSON) |
-| `useTimer` | [`useTimer.ts`](../UI/src/hooks/useTimer.ts) | Countdown timer logic |
-| `useLocalStorage` | [`useLocalStorage.ts`](../UI/src/hooks/useLocalStorage.ts) | Persistent state in localStorage |
-| `useApiSync` | [`useApiSync.ts`](../UI/src/hooks/useApiSync.ts) | Sync localStorage state with Go API |
+| Hook                 | File                                                             | Purpose                                                                                      |
+| -------------------- | ---------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `useCharacterLookup` | [`useCharacterLookup.ts`](../UI/src/hooks/useCharacterLookup.ts) | Character ID → CharacterDef lookup map (imports from barrel, no `useMemo` needed)            |
+| `useNightOrder`      | [`useNightOrder.ts`](../UI/src/hooks/useNightOrder.ts)           | Filtered night order for active script (calls `buildNightOrder()` instead of importing JSON) |
+| `useTimer`           | [`useTimer.ts`](../UI/src/hooks/useTimer.ts)                     | Countdown timer logic                                                                        |
+| `useLocalStorage`    | [`useLocalStorage.ts`](../UI/src/hooks/useLocalStorage.ts)       | Persistent state in localStorage                                                             |
+| `useApiSync`         | [`useApiSync.ts`](../UI/src/hooks/useApiSync.ts)                 | Sync localStorage state with Go API                                                          |
 
 ## Theme
 

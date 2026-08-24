@@ -21,10 +21,12 @@ import { useApiSync } from '@/hooks/useApiSync.ts';
 import { useSseSync } from '@/hooks/useSseSync.ts';
 import { useSession } from './useSession.ts';
 import {
+  arePlayerStatesEqual,
   moveSlot,
   setSeatPlayer,
   clearPlayerFromSlots,
   makeDefaultPlayerGameState,
+  hasGameStarted,
 } from '@/utils/seating/index.ts';
 import { generateId } from '@/utils/idGenerator.ts';
 
@@ -63,9 +65,44 @@ function createShowToPlayerId(prefix: string): string {
 function normalizeGame(game: Game): Game {
   return {
     ...game,
+    seatingConfirmed: game.seatingConfirmed ?? false,
     showMessages: game.showMessages ?? [],
     showTemplates: game.showTemplates ?? [],
   };
+}
+
+function invalidatePreGameSeating(game: Game, updated: Game): Game {
+  return hasGameStarted(game) ? updated : { ...updated, seatingConfirmed: false };
+}
+
+function cloneSlotsWithFreshIds(slots: Slot[]): Slot[] {
+  return slots.map((slot) => {
+    if (slot.kind === 'seat') {
+      return { kind: 'seat', id: generateId(), playerId: slot.playerId };
+    }
+
+    if (slot.kind === 'spacer') {
+      return { kind: 'spacer', id: generateId() };
+    }
+    return { kind: 'storyteller', id: generateId() };
+  });
+}
+
+function slotsReferenceKnownParticipants(slots: Slot[], game: Game): boolean {
+  const participantIds = new Set(game.participants.map((participant) => participant.playerId));
+  return slots.every(
+    (slot) =>
+      slot.kind !== 'seat' ||
+      slot.playerId === null ||
+      (participantIds.has(slot.playerId) && game.playerState[slot.playerId] !== undefined),
+  );
+}
+
+function participantLineupKey(participants: Game['participants']): string {
+  return [...participants]
+    .sort((left, right) => left.playerId.localeCompare(right.playerId))
+    .map((participant) => `${participant.playerId}:${participant.isTraveller}`)
+    .join('|');
 }
 
 function updatePlayerStateInGame(
@@ -138,6 +175,15 @@ type GameAction =
       type: 'ASSIGN_GAME_SEAT';
       payload: { slotId: SlotId; playerId: PlayerId | null };
     }
+  | {
+      type: 'APPLY_GAME_SETUP_DRAFT';
+      payload: {
+        slots: Slot[];
+        participants: Game['participants'];
+        playerState: Game['playerState'];
+      };
+    }
+  | { type: 'SET_SEATING_CONFIRMED'; payload: { confirmed: boolean } }
   | { type: 'SET_PLAYER_COUNT_OVERRIDE'; payload: { count: number | null } }
   | { type: 'START_NIGHT'; payload: { totalCards: number } }
   | {
@@ -275,14 +321,14 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       }
       return {
         ...state,
-        game: {
+        game: invalidatePreGameSeating(state.game, {
           ...state.game,
           participants: [
             ...state.game.participants,
             { playerId, isTraveller: isTraveller ?? false },
           ],
           playerState: { ...state.game.playerState, [playerId]: baseState },
-        },
+        }),
       };
     }
 
@@ -295,25 +341,25 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       if (nextBluffs) delete nextBluffs[playerId];
       return {
         ...state,
-        game: {
+        game: invalidatePreGameSeating(state.game, {
           ...state.game,
           participants: state.game.participants.filter((p) => p.playerId !== playerId),
           playerState: nextPlayerState,
           slots: clearPlayerFromSlots(state.game.slots, playerId),
           playerBluffs: nextBluffs,
-        },
+        }),
       };
     }
 
     case 'SET_PARTICIPANT_TRAVELLER': {
       if (!state.game) return state;
       const { playerId, isTraveller, alignment } = action.payload;
-      const updatedGame: Game = {
+      const updatedGame: Game = invalidatePreGameSeating(state.game, {
         ...state.game,
         participants: state.game.participants.map((p) =>
           p.playerId === playerId ? { ...p, isTraveller } : p,
         ),
-      };
+      });
       if (alignment !== undefined) {
         return {
           ...state,
@@ -330,29 +376,47 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
     case 'ADD_GAME_SEAT': {
       if (!state.game) return state;
       const slot: Slot = { kind: 'seat', id: action.payload.slotId, playerId: null };
-      return { ...state, game: { ...state.game, slots: [...state.game.slots, slot] } };
+      return {
+        ...state,
+        game: invalidatePreGameSeating(state.game, {
+          ...state.game,
+          slots: [...state.game.slots, slot],
+        }),
+      };
     }
 
     case 'ADD_GAME_SPACER': {
       if (!state.game) return state;
       const slot: Slot = { kind: 'spacer', id: action.payload.slotId };
-      return { ...state, game: { ...state.game, slots: [...state.game.slots, slot] } };
+      return {
+        ...state,
+        game: invalidatePreGameSeating(state.game, {
+          ...state.game,
+          slots: [...state.game.slots, slot],
+        }),
+      };
     }
 
     case 'ADD_GAME_STORYTELLER': {
       if (!state.game) return state;
       const slot: Slot = { kind: 'storyteller', id: action.payload.slotId };
-      return { ...state, game: { ...state.game, slots: [...state.game.slots, slot] } };
+      return {
+        ...state,
+        game: invalidatePreGameSeating(state.game, {
+          ...state.game,
+          slots: [...state.game.slots, slot],
+        }),
+      };
     }
 
     case 'REMOVE_GAME_SLOT': {
       if (!state.game) return state;
       return {
         ...state,
-        game: {
+        game: invalidatePreGameSeating(state.game, {
           ...state.game,
           slots: state.game.slots.filter((s) => s.id !== action.payload.slotId),
-        },
+        }),
       };
     }
 
@@ -360,10 +424,10 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       if (!state.game) return state;
       return {
         ...state,
-        game: {
+        game: invalidatePreGameSeating(state.game, {
           ...state.game,
           slots: moveSlot(state.game.slots, action.payload.slotId, action.payload.toIndex),
-        },
+        }),
       };
     }
 
@@ -371,14 +435,32 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       if (!state.game) return state;
       return {
         ...state,
-        game: {
+        game: invalidatePreGameSeating(state.game, {
           ...state.game,
-          slots: setSeatPlayer(
-            state.game.slots,
-            action.payload.slotId,
-            action.payload.playerId,
-          ),
-        },
+          slots: setSeatPlayer(state.game.slots, action.payload.slotId, action.payload.playerId),
+        }),
+      };
+    }
+
+    case 'APPLY_GAME_SETUP_DRAFT': {
+      if (!state.game) return state;
+      const { slots, participants, playerState } = action.payload;
+      const lineupChanged =
+        JSON.stringify(participants) !== JSON.stringify(state.game.participants);
+      const seatingChanged = JSON.stringify(slots) !== JSON.stringify(state.game.slots);
+      const updated = { ...state.game, slots, participants, playerState };
+      return {
+        ...state,
+        game:
+          lineupChanged || seatingChanged ? invalidatePreGameSeating(state.game, updated) : updated,
+      };
+    }
+
+    case 'SET_SEATING_CONFIRMED': {
+      if (!state.game) return state;
+      return {
+        ...state,
+        game: { ...state.game, seatingConfirmed: action.payload.confirmed },
       };
     }
 
@@ -725,9 +807,7 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
         game: {
           ...state.game,
           showMessages: (state.game.showMessages ?? []).map((m) =>
-            m.id === action.payload.messageId
-              ? { ...m, lastShownAt: new Date().toISOString() }
-              : m,
+            m.id === action.payload.messageId ? { ...m, lastShownAt: new Date().toISOString() } : m,
           ),
         },
       };
@@ -858,7 +938,10 @@ export interface GameContextValue {
   advanceDay: () => void;
   toggleShowCharacters: () => void;
   updatePlayerState: (playerId: PlayerId, updates: PlayerStateUpdates) => void;
-  addParticipant: (playerId: PlayerId, opts?: { isTraveller?: boolean; characterId?: string }) => void;
+  addParticipant: (
+    playerId: PlayerId,
+    opts?: { isTraveller?: boolean; characterId?: string },
+  ) => void;
   removeParticipant: (playerId: PlayerId) => void;
   setParticipantTraveller: (
     playerId: PlayerId,
@@ -879,6 +962,13 @@ export interface GameContextValue {
     playerId: PlayerId | null,
     propagation?: Partial<PropagationPreference>,
   ) => void;
+  applyGameSetupDraft: (
+    slots: Slot[],
+    participants: Game['participants'],
+    playerState: Game['playerState'],
+    propagation?: Partial<PropagationPreference>,
+  ) => void;
+  setSeatingConfirmed: (confirmed: boolean) => void;
   setPlayerCountOverride: (count: number | null) => void;
   startNight: (totalCards: number) => void;
   updateNightProgress: (
@@ -1024,6 +1114,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     (
       pref: Pick<PropagationPreference, 'toOtherGames'>,
       mutator: (slots: Slot[]) => Slot[],
+      isEligible: (game: Game) => boolean = () => true,
     ) => {
       const game = gameRef.current;
       if (!game) return;
@@ -1036,8 +1127,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
           const raw = localStorage.getItem(`storyteller-game-${gid}`);
           if (!raw) continue;
           const other = JSON.parse(raw) as Game;
+          if (hasGameStarted(other) || !isEligible(other)) continue;
           const newSlots = mutator(other.slots);
-          const updated: Game = { ...other, slots: newSlots };
+          if (!slotsReferenceKnownParticipants(newSlots, other)) continue;
+          const updated: Game = invalidatePreGameSeating(other, { ...other, slots: newSlots });
           localStorage.setItem(`storyteller-game-${gid}`, JSON.stringify(updated));
           apiSyncGame(updated);
         } catch {
@@ -1258,6 +1351,50 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [resolvePropagation, session, propagateSlotMutation],
   );
 
+  const applyGameSetupDraft = useCallback(
+    (
+      slots: Slot[],
+      participants: Game['participants'],
+      playerState: Game['playerState'],
+      propagation?: Partial<PropagationPreference>,
+    ) => {
+      const game = gameRef.current;
+      if (!game) return;
+      const pref = resolvePropagation(propagation);
+      const lineupOrStateChanged =
+        JSON.stringify(participants) !== JSON.stringify(game.participants) ||
+        !arePlayerStatesEqual(playerState, game.playerState);
+      const effectiveToOtherGames = pref.toOtherGames && !lineupOrStateChanged;
+      dispatch({
+        type: 'APPLY_GAME_SETUP_DRAFT',
+        payload: { slots, participants, playerState },
+      });
+      const sess = sessionsRef.current.find((candidate) => candidate.id === game.sessionId);
+      if (sess && pref.toTemplate) {
+        session.dispatch({
+          type: 'REPLACE_TEMPLATE_SLOTS',
+          payload: {
+            sessionId: sess.id,
+            slots: cloneSlotsWithFreshIds(slots),
+          },
+        });
+      }
+      if (sess && effectiveToOtherGames) {
+        const sourceLineupKey = participantLineupKey(participants);
+        propagateSlotMutation(
+          { toOtherGames: true },
+          () => cloneSlotsWithFreshIds(slots),
+          (other) => participantLineupKey(other.participants) === sourceLineupKey,
+        );
+      }
+    },
+    [propagateSlotMutation, resolvePropagation, session],
+  );
+
+  const setSeatingConfirmed = useCallback((confirmed: boolean) => {
+    dispatch({ type: 'SET_SEATING_CONFIRMED', payload: { confirmed } });
+  }, []);
+
   const setPlayerCountOverride = useCallback((count: number | null) => {
     dispatch({ type: 'SET_PLAYER_COUNT_OVERRIDE', payload: { count } });
   }, []);
@@ -1445,6 +1582,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     removeGameSlot,
     moveGameSlot,
     assignGameSeat,
+    applyGameSetupDraft,
+    setSeatingConfirmed,
     setPlayerCountOverride,
     startNight,
     updateNightProgress,

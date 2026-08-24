@@ -158,6 +158,7 @@ const addToken = vi.fn();
 const removeToken = vi.fn();
 const assignGameSeat = vi.fn();
 const setPlayerBluffs = vi.fn();
+const applyGameSetupDraft = vi.fn();
 
 vi.mock('@/context/useGame.ts', () => ({
   useGame: () => ({
@@ -168,6 +169,8 @@ vi.mock('@/context/useGame.ts', () => ({
     removeToken,
     assignGameSeat,
     setPlayerBluffs,
+    setParticipantTraveller: vi.fn(),
+    applyGameSetupDraft,
   }),
 }));
 
@@ -260,5 +263,27 @@ describe('TownSquareTab', () => {
     render(<TownSquareTab scriptCharacterIds={['noble', 'imp', 'fortuneteller']} />);
     fireEvent.click(screen.getByTestId('player-token-1'));
     expect(screen.getByTestId('player-actions-modal')).toHaveTextContent('Alice');
+  });
+
+  it('measures and renders the Town Square after leaving controlled edit mode', () => {
+    const { rerender } = render(
+      <TownSquareTab
+        scriptCharacterIds={['noble', 'imp', 'fortuneteller']}
+        editMode
+        onEditModeChange={vi.fn()}
+      />,
+    );
+    expect(screen.getByTestId('town-square-edit-mode')).toBeInTheDocument();
+
+    rerender(
+      <TownSquareTab
+        scriptCharacterIds={['noble', 'imp', 'fortuneteller']}
+        editMode={false}
+        onEditModeChange={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('town-square-layout')).toBeInTheDocument();
+    expect(screen.getByTestId('player-token-1')).toHaveTextContent('Alice');
   });
 });

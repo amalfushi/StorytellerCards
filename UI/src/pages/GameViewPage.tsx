@@ -16,11 +16,16 @@ import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import Drawer from '@mui/material/Drawer';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
 import GroupsIcon from '@mui/icons-material/Groups';
 import HistoryIcon from '@mui/icons-material/History';
 import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
+import AirlineSeatReclineExtraIcon from '@mui/icons-material/AirlineSeatReclineExtra';
 import type {
   CharacterDef,
   Game,
@@ -52,7 +57,11 @@ import { LoadingState } from '@/components/common/LoadingState.tsx';
 import { useTimer } from '@/hooks/useTimer.ts';
 import { Phase as PhaseEnum } from '@/types/index.ts';
 import { DayTimerFab } from '@/components/Timer/DayTimerFab.tsx';
-import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
+import {
+  buildDisplaySeatNumberMap,
+  hasGameStarted,
+  validateGameSeating,
+} from '@/utils/seating/index.ts';
 
 interface GameViewPlayer extends PlayerGameState {
   playerId: string;
@@ -88,6 +97,7 @@ export function GameViewPage() {
     setPlayerCountOverride,
     addToken,
     removeToken,
+    setSeatingConfirmed,
   } = useGame();
   const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
 
@@ -98,6 +108,8 @@ export function GameViewPage() {
   const [bluffSelectionOpen, setBluffSelectionOpen] = useState(false);
   const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
+  const [seatingEditMode, setSeatingEditMode] = useState(false);
+  const [seatingConfirmationOpen, setSeatingConfirmationOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
   const [reminderPicker, setReminderPicker] = useState<{
     anchorEl: HTMLElement;
@@ -219,6 +231,13 @@ export function GameViewPage() {
 
   const game = gameState.game;
   const nightHistoryCount = game?.nightHistory.length ?? 0;
+  const hasCharacterPool = (game?.inPlayCharacterIds?.length ?? 0) > 0;
+  const gameNumber = session && game ? session.gameIds.indexOf(game.id) + 1 : 0;
+  const seatingValidation = useMemo(
+    () =>
+      game ? validateGameSeating(game.slots, game.participants, session?.players ?? []) : null,
+    [game, session?.players],
+  );
 
   // Build display rows for legacy child components until their Slot-based migration lands.
   const isFirstNight = game?.isFirstNight ?? true;
@@ -286,8 +305,16 @@ export function GameViewPage() {
   // Check if in-play character selection is needed (no inPlayCharacterIds yet)
   const needsCharacterSelection = useMemo(() => {
     if (!game) return false;
-    return needsCharacterAssignment && !game.inPlayCharacterIds?.length;
-  }, [game, needsCharacterAssignment]);
+    return needsCharacterAssignment && !hasCharacterPool;
+  }, [game, hasCharacterPool, needsCharacterAssignment]);
+
+  const handleOpenCharacterAssignment = useCallback(() => {
+    if (!hasCharacterPool) {
+      setCharSelectionOpen(true);
+      return;
+    }
+    setAssignDialogOpen(true);
+  }, [hasCharacterPool]);
 
   // Characters are assigned but first night hasn't been played yet — show setup checklist
   const showSetupChecklistBanner = useMemo(() => {
@@ -381,12 +408,28 @@ export function GameViewPage() {
   );
 
   // PhaseBar callbacks
+  const enterNightView = useCallback(() => {
+    setPhase(PhaseEnum.Night);
+    setViewMode('night');
+  }, [setPhase]);
+
   const handleNightClick = useCallback(() => {
-    if (viewMode !== 'night') {
-      setPhase(PhaseEnum.Night);
-      setViewMode('night');
+    if (viewMode === 'night' || !game) return;
+    if (hasGameStarted(game)) {
+      enterNightView();
+      return;
     }
-  }, [viewMode, setPhase]);
+    if (!seatingValidation?.isValid) {
+      setTabIndex(0);
+      setSeatingEditMode(true);
+      return;
+    }
+    if (!game.seatingConfirmed) {
+      setSeatingConfirmationOpen(true);
+      return;
+    }
+    enterNightView();
+  }, [enterNightView, game, seatingValidation?.isValid, viewMode]);
 
   const handleDayClick = useCallback(() => {
     if (viewMode !== 'day') {
@@ -547,6 +590,21 @@ export function GameViewPage() {
             {session?.name ?? 'Game'} — Day {game.currentDay}
           </Typography>
 
+          <Tooltip title="Edit Seating">
+            <IconButton
+              color="inherit"
+              aria-label="edit seating"
+              onClick={() => {
+                setViewMode('day');
+                setTabIndex(0);
+                setSeatingEditMode(true);
+              }}
+              sx={{ mr: 0.5 }}
+            >
+              <AirlineSeatReclineExtraIcon />
+            </IconButton>
+          </Tooltip>
+
           {nightHistoryCount > 0 && (
             <Tooltip title="Night History">
               <IconButton
@@ -605,9 +663,9 @@ export function GameViewPage() {
                 color="inherit"
                 size="small"
                 startIcon={<AssignmentIndIcon />}
-                onClick={() => setAssignDialogOpen(true)}
+                onClick={handleOpenCharacterAssignment}
               >
-                {needsCharacterSelection ? 'Skip to Assign' : 'Setup Characters'}
+                {needsCharacterSelection ? 'Select Characters First' : 'Assign Characters'}
               </Button>
             </Box>
           }
@@ -706,7 +764,15 @@ export function GameViewPage() {
             }}
           >
             <Box sx={{ flex: 1, overflow: 'auto' }}>
-              {tabIndex === 0 && <TownSquareTab scriptCharacterIds={scriptCharacterIds} />}
+              {tabIndex === 0 && (
+                <TownSquareTab
+                  scriptCharacterIds={scriptCharacterIds}
+                  editMode={seatingEditMode}
+                  onEditModeChange={setSeatingEditMode}
+                  onSelectCharacters={() => setCharSelectionOpen(true)}
+                  onAssignCharacters={handleOpenCharacterAssignment}
+                />
+              )}
               {tabIndex === 1 && <PlayerListTab scriptCharacterIds={scriptCharacterIds} />}
               {tabIndex === 2 && <ScriptReferenceTab scriptCharacterIds={scriptCharacterIds} />}
               {tabIndex === 3 && <NightOrderTab scriptCharacterIds={scriptCharacterIds} />}
@@ -756,6 +822,42 @@ export function GameViewPage() {
       {/* Night History Drawer */}
       <NightHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
 
+      <Dialog
+        open={seatingConfirmationOpen}
+        onClose={() => setSeatingConfirmationOpen(false)}
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle>Confirm Game {gameNumber || ''} seating</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2">
+            All {game.participants.length} participants have seats. Use this Town Square for the
+            first Night?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setSeatingConfirmationOpen(false);
+              setTabIndex(0);
+              setSeatingEditMode(true);
+            }}
+          >
+            Review seating
+          </Button>
+          <Button
+            variant="contained"
+            onClick={() => {
+              setSeatingConfirmed(true);
+              setSeatingConfirmationOpen(false);
+              enterNightView();
+            }}
+          >
+            Confirm &amp; start Night
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       <Popover
         open={!!reminderPicker}
         anchorEl={reminderPicker?.anchorEl}
@@ -796,7 +898,7 @@ export function GameViewPage() {
       {/* Character Assignment Dialog */}
       {game && (
         <CharacterAssignmentDialog
-          open={assignDialogOpen}
+          open={assignDialogOpen && hasCharacterPool}
           onClose={() => setAssignDialogOpen(false)}
           slots={game.slots}
           participants={game.participants}

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import type { APIRequestContext, Page } from '@playwright/test';
 import { fileURLToPath } from 'url';
 import path from 'path';
 
@@ -22,6 +23,81 @@ async function createAndOpenSession(page: import('@playwright/test').Page, name:
   // Session card appears on home page — click its name to navigate
   await page.getByText(name).first().click();
   await expect(page.getByRole('heading', { name: 'Session Setup' })).toBeVisible();
+}
+
+async function addRosterPlayer(page: Page, name: string, expectedCount: number) {
+  await page.getByLabel('New player name').fill(name);
+  await page.getByRole('button', { name: 'Add', exact: true }).click();
+  await expect(page.getByText(`Player Roster (${expectedCount})`)).toBeVisible();
+  const defaultLineupSwitch = page.getByRole('switch', {
+    name: `Include ${name} in new games`,
+  });
+  await expect(defaultLineupSwitch).toBeChecked();
+}
+
+async function assignSeat(page: Page, seatNumber: number, playerName: string) {
+  const seat = page.getByLabel(`assign player to seat ${seatNumber}`);
+  await seat.click();
+  await page.getByRole('option', { name: playerName }).click();
+  await expect(seat).toContainText(playerName);
+}
+
+async function saveTownSquareDraft(page: Page) {
+  await page.getByRole('button', { name: /review & save/i }).click();
+  await page.getByRole('button', { name: /save changes/i }).click();
+  await expect(page.getByTestId('town-square-edit-mode')).not.toBeVisible();
+}
+
+async function readSession(page: Page, sessionId: string) {
+  return page.evaluate((id) => {
+    const raw = localStorage.getItem('storyteller-sessions');
+    if (!raw) return null;
+    const state = JSON.parse(raw);
+    return state.sessions.find((session: { id: string }) => session.id === id) ?? null;
+  }, sessionId);
+}
+
+async function readGame(page: Page, gameId: string) {
+  return page.evaluate((id) => {
+    const raw = localStorage.getItem(`storyteller-game-${id}`);
+    return raw ? JSON.parse(raw) : null;
+  }, gameId);
+}
+
+async function readApiGame(request: APIRequestContext, sessionId: string, gameId: string) {
+  const response = await request.get(
+    `http://localhost:3001/api/sessions/${sessionId}/games/${gameId}`,
+  );
+  return response.ok() ? response.json() : null;
+}
+
+function occupiedSeatOrder(
+  game: {
+    slots: Array<{ kind: string; playerId?: string | null }>;
+  } | null,
+): Array<string | null> {
+  if (!game) return [];
+  return game.slots.filter((slot) => slot.kind === 'seat').map((slot) => slot.playerId ?? null);
+}
+
+async function expectApiSeatOrder(
+  request: APIRequestContext,
+  sessionId: string,
+  gameId: string,
+  expected: Array<string | null>,
+) {
+  await expect
+    .poll(
+      async () => {
+        const response = await request.get(
+          `http://localhost:3001/api/sessions/${sessionId}/games/${gameId}`,
+        );
+        if (!response.ok()) return null;
+        return occupiedSeatOrder(await response.json());
+      },
+      { timeout: 10_000 },
+    )
+    .toEqual(expected);
 }
 
 test.describe('Game Lifecycle', () => {
@@ -62,13 +138,12 @@ test.describe('Game Lifecycle', () => {
     await expect(page.getByText('Test Script')).toBeVisible();
 
     // ── Step 4: Add players (need 7 for the 7-char script; default is 5) ──
-    await expect(page.getByText('Default Players (5)')).toBeVisible();
-
-    await page.getByRole('button', { name: 'Add Player' }).click();
-    await expect(page.getByText('Default Players (6)')).toBeVisible();
-
-    await page.getByRole('button', { name: 'Add Player' }).click();
-    await expect(page.getByText('Default Players (7)')).toBeVisible();
+    await expect(page.getByText('Player Roster (5)')).toBeVisible();
+    await addRosterPlayer(page, 'Player 6', 6);
+    await addRosterPlayer(page, 'Player 7', 7);
+    await page.getByRole('button', { name: /add seats for all players/i }).click();
+    await assignSeat(page, 6, 'Player 6');
+    await assignSeat(page, 7, 'Player 7');
 
     // ── Step 5: Create a new game ──
     await expect(page.getByText('Games (0)')).toBeVisible();
@@ -111,7 +186,7 @@ test.describe('Game Lifecycle', () => {
     expect(sessionData.sessions).toHaveLength(1);
     expect(sessionData.sessions[0].name).toBe('E2E Test Session');
     expect(sessionData.sessions[0].gameIds).toHaveLength(1);
-    expect(sessionData.sessions[0].defaultPlayers).toHaveLength(7);
+    expect(sessionData.sessions[0].players).toHaveLength(7);
 
     const gameId = sessionData.sessions[0].gameIds[0];
     const gameData = await page.evaluate((gId: string) => {
@@ -120,7 +195,8 @@ test.describe('Game Lifecycle', () => {
     }, gameId);
 
     expect(gameData).not.toBeNull();
-    expect(gameData.players).toHaveLength(7);
+    expect(gameData.participants).toHaveLength(7);
+    expect(gameData.slots.filter((slot: { kind: string }) => slot.kind === 'seat')).toHaveLength(7);
     expect(gameData.currentDay).toBe(1);
   });
 
@@ -182,6 +258,45 @@ test.describe('Game Lifecycle', () => {
     await expect(page.getByText('Games (0)')).toBeVisible();
     await expect(page.getByText('No games yet')).toBeVisible();
   });
+
+  test('Town Square edit draft fixes invalid seating before the first Night', async ({ page }) => {
+    await createAndOpenSession(page, 'Town Square Edit Test');
+    await page.getByRole('button', { name: 'New Game' }).click();
+    await page.getByText('Game 1').click();
+    await expect(page.getByLabel('Town Square tab')).toBeVisible();
+
+    await page.getByRole('button', { name: /edit seating/i }).click();
+    await expect(page.getByText(/draft changes are not live until saved/i)).toBeVisible();
+
+    await page.getByLabel('assign player to seat 1').click();
+    await page.getByRole('option', { name: '(empty)' }).click();
+    await page.getByRole('button', { name: /review & save/i }).click();
+    await page.getByRole('button', { name: /save draft/i }).click();
+
+    const phaseNav = page.getByRole('navigation', { name: 'Game phase selector' });
+    await phaseNav.getByText('Night').click();
+    await expect(page.getByTestId('town-square-edit-mode')).toBeVisible();
+    await expect(page.getByText(/every game participant must be seated/i)).toBeVisible();
+
+    await page.getByLabel('assign player to seat 1').click();
+    await page.getByRole('option', { name: 'Player 1' }).click();
+    await page.getByRole('button', { name: /review & save/i }).click();
+    await page.getByRole('button', { name: /save changes/i }).click();
+
+    await phaseNav.getByText('Night').click();
+    await expect(page.getByRole('dialog')).toContainText('Confirm Game 1 seating');
+    await page.getByRole('button', { name: /confirm & start night/i }).click();
+    await expect(page.getByRole('dialog')).not.toBeVisible();
+    const startedGame = await page.evaluate(() => {
+      const sessions = JSON.parse(localStorage.getItem('storyteller-sessions') ?? '{}');
+      const gameId = sessions.sessions?.[0]?.gameIds?.[0];
+      return gameId
+        ? JSON.parse(localStorage.getItem(`storyteller-game-${gameId}`) ?? 'null')
+        : null;
+    });
+    expect(startedGame.seatingConfirmed).toBe(true);
+    expect(startedGame.currentPhase).toBe('Night');
+  });
 });
 
 test.describe('Game Lifecycle - API Integration', () => {
@@ -208,6 +323,249 @@ test.describe('Game Lifecycle - API Integration', () => {
     });
     await page.goto('/');
     await expect(page.getByRole('heading', { name: 'Storyteller Cards' })).toBeVisible();
+  });
+
+  test('Option 3 seating flows preserve template, game scope, refresh, and Traveller state', async ({
+    page,
+    request,
+  }, testInfo) => {
+    test.setTimeout(180_000);
+
+    const health = await request.get('http://localhost:3001/health');
+    test.skip(!health.ok(), 'API server not running — skipping seating integration verification');
+
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+    await page.route('**/api/sessions/*/events', (route) => route.abort());
+    await page.evaluate(() => localStorage.clear());
+    await page.goto('/');
+
+    const sessionName = `Option 3 Seating ${Date.now()}`;
+    let sessionId = '';
+
+    try {
+      // Create a session and deliberately change the session seating template.
+      await createAndOpenSession(page, sessionName);
+      sessionId = page.url().match(/\/session\/([^/]+)/)?.[1] ?? '';
+      expect(sessionId).toBeTruthy();
+
+      const initialSession = await readSession(page, sessionId);
+      const playerIds = Object.fromEntries(
+        initialSession.players.map((player: { id: string; name: string }) => [
+          player.name,
+          player.id,
+        ]),
+      ) as Record<string, string>;
+
+      await assignSeat(page, 1, '(empty)');
+      await assignSeat(page, 2, '(empty)');
+      await assignSeat(page, 1, 'Player 2');
+      await assignSeat(page, 2, 'Player 1');
+      const sessionArrangement = [
+        playerIds['Player 2'],
+        playerIds['Player 1'],
+        playerIds['Player 3'],
+        playerIds['Player 4'],
+        playerIds['Player 5'],
+      ];
+      await expect
+        .poll(async () =>
+          occupiedSeatOrder(await readSession(page, sessionId).then((session) => session.template)),
+        )
+        .toEqual(sessionArrangement);
+
+      // Game 1 inherits the session template. Editing it with the default scope
+      // updates the template that the next game will inherit.
+      await page.getByRole('button', { name: 'New Game' }).click();
+      await page.getByText('Game 1', { exact: true }).click();
+      const game1Id = page.url().match(/\/game\/([^/]+)/)?.[1] ?? '';
+      expect(game1Id).toBeTruthy();
+      expect(occupiedSeatOrder(await readGame(page, game1Id))).toEqual(sessionArrangement);
+
+      await page.getByRole('button', { name: /edit seating/i }).click();
+      await assignSeat(page, 2, '(empty)');
+      await assignSeat(page, 3, '(empty)');
+      await assignSeat(page, 2, 'Player 3');
+      await assignSeat(page, 3, 'Player 1');
+      await saveTownSquareDraft(page);
+
+      const game1Arrangement = [
+        playerIds['Player 2'],
+        playerIds['Player 3'],
+        playerIds['Player 1'],
+        playerIds['Player 4'],
+        playerIds['Player 5'],
+      ];
+      expect(occupiedSeatOrder(await readGame(page, game1Id))).toEqual(game1Arrangement);
+      await expect
+        .poll(async () =>
+          occupiedSeatOrder(await readSession(page, sessionId).then((session) => session.template)),
+        )
+        .toEqual(game1Arrangement);
+      await expectApiSeatOrder(request, sessionId, game1Id, game1Arrangement);
+
+      await page.getByRole('button', { name: 'back to session' }).click();
+      await page.getByRole('button', { name: 'New Game' }).click();
+      await expect(page.getByText('Game 2', { exact: true })).toBeVisible();
+      await page.getByText('Game 2', { exact: true }).click();
+      const game2Id = page.url().match(/\/game\/([^/]+)/)?.[1] ?? '';
+      expect(game2Id).toBeTruthy();
+      await expect
+        .poll(async () => occupiedSeatOrder(await readGame(page, game2Id)))
+        .toEqual(game1Arrangement);
+      await page.getByRole('button', { name: 'back to session' }).click();
+
+      // A session-level edit applied to all games replaces both unstarted layouts.
+      await assignSeat(page, 1, '(empty)');
+      await assignSeat(page, 2, '(empty)');
+      await assignSeat(page, 1, 'Player 3');
+      await assignSeat(page, 2, 'Player 2');
+      const appliedArrangement = [
+        playerIds['Player 3'],
+        playerIds['Player 2'],
+        playerIds['Player 1'],
+        playerIds['Player 4'],
+        playerIds['Player 5'],
+      ];
+      await page.getByRole('button', { name: /apply template to all games/i }).click();
+      await expect
+        .poll(async () => ({
+          game1: occupiedSeatOrder(await readGame(page, game1Id)),
+          game2: occupiedSeatOrder(await readGame(page, game2Id)),
+        }))
+        .toEqual({
+          game1: appliedArrangement,
+          game2: appliedArrangement,
+        });
+      await expectApiSeatOrder(request, sessionId, game1Id, appliedArrangement);
+      await expectApiSeatOrder(request, sessionId, game2Id, appliedArrangement);
+
+      // Game 2 can diverge without changing the session template or Game 1.
+      await page.getByText('Game 2', { exact: true }).click();
+      await page.getByRole('button', { name: /edit seating/i }).click();
+      const updateTemplate = page.getByRole('switch', { name: /update session template/i });
+      if (await updateTemplate.isChecked()) await updateTemplate.click();
+      const updateOtherGames = page.getByRole('switch', { name: /update other games/i });
+      if ((await updateOtherGames.isEnabled()) && (await updateOtherGames.isChecked())) {
+        await updateOtherGames.click();
+      }
+      await assignSeat(page, 1, '(empty)');
+      await assignSeat(page, 3, '(empty)');
+      await assignSeat(page, 1, 'Player 1');
+      await assignSeat(page, 3, 'Player 3');
+      await saveTownSquareDraft(page);
+
+      const game2Arrangement = [
+        playerIds['Player 1'],
+        playerIds['Player 2'],
+        playerIds['Player 3'],
+        playerIds['Player 4'],
+        playerIds['Player 5'],
+      ];
+      await expect
+        .poll(async () => ({
+          game1: occupiedSeatOrder(await readGame(page, game1Id)),
+          game2: occupiedSeatOrder(await readGame(page, game2Id)),
+          template: occupiedSeatOrder(
+            await readSession(page, sessionId).then((session) => session.template),
+          ),
+        }))
+        .toEqual({
+          game1: appliedArrangement,
+          game2: game2Arrangement,
+          template: appliedArrangement,
+        });
+      await expectApiSeatOrder(request, sessionId, game2Id, game2Arrangement);
+
+      // Remove the local game snapshot so reload must restore the expected state
+      // through the browser → API → Go persistence path.
+      await page.evaluate((id) => localStorage.removeItem(`storyteller-game-${id}`), game2Id);
+      await page.reload();
+      await expect(page.getByLabel('Town Square tab')).toBeVisible({ timeout: 10_000 });
+      await expect
+        .poll(async () => occupiedSeatOrder(await readGame(page, game2Id)))
+        .toEqual(game2Arrangement);
+
+      // Add a roster player after both games exist, then use the explicit Option 3
+      // action to add and mark that player as a Traveller in Game 2 only.
+      await page.getByRole('button', { name: 'back to session' }).click();
+      await addRosterPlayer(page, 'Traveller Terry', 6);
+      await expect
+        .poll(async () => {
+          const session = await readSession(page, sessionId);
+          return session?.players.some(
+            (player: { name: string }) => player.name === 'Traveller Terry',
+          );
+        })
+        .toBe(true);
+      const sessionWithTraveller = await readSession(page, sessionId);
+      const travellerId = sessionWithTraveller.players.find(
+        (player: { name: string }) => player.name === 'Traveller Terry',
+      ).id as string;
+
+      await page.getByText('Game 2', { exact: true }).click();
+      await page.getByRole('button', { name: /edit seating/i }).click();
+      await page.getByRole('button', { name: /add traveller terry to game/i }).click();
+      await page.getByTestId(`edit-player-${travellerId}`).click();
+      await page.getByRole('switch', { name: 'Traveller', exact: true }).click({
+        timeout: 5_000,
+      });
+      await page.getByRole('button', { name: 'Done', exact: true }).click();
+      await saveTownSquareDraft(page);
+
+      await expect
+        .poll(async () => {
+          const game1 = await readApiGame(request, sessionId, game1Id);
+          const game2 = await readGame(page, game2Id);
+          return {
+            game1HasTraveller:
+              game1?.participants.some(
+                (participant: { playerId: string }) => participant.playerId === travellerId,
+              ) ?? null,
+            game2Participant:
+              game2?.participants.find(
+                (participant: { playerId: string }) => participant.playerId === travellerId,
+              ) ?? null,
+            game2HasTravellerSeat: occupiedSeatOrder(game2).includes(travellerId),
+          };
+        })
+        .toEqual({
+          game1HasTraveller: false,
+          game2Participant: { playerId: travellerId, isTraveller: true },
+          game2HasTravellerSeat: true,
+        });
+
+      await expect
+        .poll(
+          async () => {
+            const response = await request.get(
+              `http://localhost:3001/api/sessions/${sessionId}/games/${game2Id}`,
+            );
+            if (!response.ok()) return null;
+            const game = await response.json();
+            return game.participants.find(
+              (participant: { playerId: string }) => participant.playerId === travellerId,
+            );
+          },
+          { timeout: 10_000 },
+        )
+        .toEqual({ playerId: travellerId, isTraveller: true });
+
+      await page.evaluate((id) => localStorage.removeItem(`storyteller-game-${id}`), game2Id);
+      await page.reload();
+      await expect(page.getByText('Traveller Terry', { exact: true }).first()).toBeVisible({
+        timeout: 10_000,
+      });
+      const restoredGame2 = await readGame(page, game2Id);
+      expect(restoredGame2.participants).toContainEqual({
+        playerId: travellerId,
+        isTraveller: true,
+      });
+    } finally {
+      if (sessionId && testInfo.status !== 'timedOut') {
+        const response = await request.delete(`http://localhost:3001/api/sessions/${sessionId}`);
+        expect(response.ok()).toBeTruthy();
+      }
+    }
   });
 
   test('full lifecycle: session → game → characters → bluffs → night → API verification', async ({
@@ -256,10 +614,11 @@ test.describe('Game Lifecycle - API Integration', () => {
     await expect(page.getByText('Extended Test Script')).toBeVisible();
 
     // ── Step 3: Add players (need 7 for the game, default is 5) ──
-    await page.getByRole('button', { name: 'Add Player' }).click();
-    await expect(page.getByText('Default Players (6)')).toBeVisible();
-    await page.getByRole('button', { name: 'Add Player' }).click();
-    await expect(page.getByText('Default Players (7)')).toBeVisible();
+    await addRosterPlayer(page, 'Player 6', 6);
+    await addRosterPlayer(page, 'Player 7', 7);
+    await page.getByRole('button', { name: /add seats for all players/i }).click();
+    await assignSeat(page, 6, 'Player 6');
+    await assignSeat(page, 7, 'Player 7');
 
     // ── Step 4: Create game ──
     await page.getByRole('button', { name: 'New Game' }).click();
@@ -282,7 +641,7 @@ test.describe('Game Lifecycle - API Integration', () => {
     );
     expect(gameResp.ok()).toBeTruthy();
     const apiGame = await gameResp.json();
-    expect(apiGame.players).toHaveLength(7);
+    expect(apiGame.participants).toHaveLength(7);
     expect(apiGame.sessionId).toBe(sessionId);
     expect(apiGame.scriptId).toBeTruthy();
 
@@ -296,7 +655,7 @@ test.describe('Game Lifecycle - API Integration', () => {
       'imp',
       'poisoner',
     ];
-    await page.getByRole('button', { name: 'Select Characters' }).click();
+    await page.getByRole('button', { name: 'Select Characters', exact: true }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
 
     for (const charId of inPlayChars) {
@@ -314,7 +673,9 @@ test.describe('Game Lifecycle - API Integration', () => {
     await page.getByTestId('confirm-bluffs').click();
 
     // ── Step 8: Assign characters via Randomize ──
-    await expect(page.getByText('Assign Characters')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('dialog', { name: 'Assign Characters' })).toBeVisible({
+      timeout: 5000,
+    });
     await page.getByRole('button', { name: /Randomize/i }).click();
     await page.getByRole('button', { name: 'Confirm' }).click();
 
@@ -329,7 +690,12 @@ test.describe('Game Lifecycle - API Integration', () => {
     const afterSetup = await afterSetupResp.json();
 
     // All players should have characters assigned
-    expect(afterSetup.players.every((p: { characterId: string }) => p.characterId)).toBeTruthy();
+    expect(
+      afterSetup.participants.every(
+        (participant: { playerId: string }) =>
+          afterSetup.playerState[participant.playerId]?.characterId,
+      ),
+    ).toBeTruthy();
 
     // Verify in-play character IDs
     expect(afterSetup.inPlayCharacterIds).toBeDefined();
@@ -353,7 +719,10 @@ test.describe('Game Lifecycle - API Integration', () => {
 
     expect(localGameAfterSetup).not.toBeNull();
     expect(
-      localGameAfterSetup.players.every((p: { characterId: string }) => p.characterId),
+      localGameAfterSetup.participants.every(
+        (participant: { playerId: string }) =>
+          localGameAfterSetup.playerState[participant.playerId]?.characterId,
+      ),
     ).toBeTruthy();
     expect(localGameAfterSetup.inPlayCharacterIds).toEqual(expect.arrayContaining(inPlayChars));
     expect(localGameAfterSetup.demonBluffs).toEqual(expect.arrayContaining(bluffChars));
@@ -361,6 +730,7 @@ test.describe('Game Lifecycle - API Integration', () => {
     // ── Step 11: Enter Night 1 ──
     const phaseNav = page.getByRole('navigation', { name: 'Game phase selector' });
     await phaseNav.getByText('Night').click();
+    await page.getByRole('button', { name: /confirm & start night/i }).click();
     await expect(page.getByTestId('night-tab-panel')).toBeVisible({ timeout: 5000 });
 
     // ── Step 12: Toggle a sub-action checkbox on the first card ──
@@ -445,10 +815,11 @@ test.describe('Game Lifecycle - API Integration', () => {
     await page.locator('input[type="file"]').setInputFiles(scriptFilePath);
     await expect(page.getByText('7 characters')).toBeVisible({ timeout: 5000 });
 
-    await page.getByRole('button', { name: 'Add Player' }).click();
-    await page.waitForTimeout(300);
-    await page.getByRole('button', { name: 'Add Player' }).click();
-    await page.waitForTimeout(300);
+    await addRosterPlayer(page, 'Player 6', 6);
+    await addRosterPlayer(page, 'Player 7', 7);
+    await page.getByRole('button', { name: /add seats for all players/i }).click();
+    await assignSeat(page, 6, 'Player 6');
+    await assignSeat(page, 7, 'Player 7');
     await page.getByRole('button', { name: 'New Game' }).click();
     await expect(page.getByText('Games (1)')).toBeVisible({ timeout: 5000 });
 
@@ -475,7 +846,7 @@ test.describe('Game Lifecycle - API Integration', () => {
     expect(gameResp.ok()).toBeTruthy();
     const game = await gameResp.json();
     expect(game.scriptId).toBe(scriptId);
-    expect(game.players).toHaveLength(7);
+    expect(game.participants).toHaveLength(7);
     expect(game.currentDay).toBe(1);
     expect(game.isFirstNight).toBe(true);
 
@@ -505,10 +876,11 @@ test.describe('Game Lifecycle - API Integration', () => {
     await page.locator('input[type="file"]').setInputFiles(scriptFilePath);
     await expect(page.getByText('7 characters')).toBeVisible({ timeout: 5000 });
 
-    await page.getByRole('button', { name: 'Add Player' }).click();
-    await expect(page.getByText('Default Players (6)')).toBeVisible({ timeout: 3000 });
-    await page.getByRole('button', { name: 'Add Player' }).click();
-    await expect(page.getByText('Default Players (7)')).toBeVisible({ timeout: 3000 });
+    await addRosterPlayer(page, 'Player 6', 6);
+    await addRosterPlayer(page, 'Player 7', 7);
+    await page.getByRole('button', { name: /add seats for all players/i }).click();
+    await assignSeat(page, 6, 'Player 6');
+    await assignSeat(page, 7, 'Player 7');
 
     await page.getByRole('button', { name: 'New Game' }).click();
     await expect(page.getByText('Games (1)')).toBeVisible({ timeout: 5000 });
@@ -537,7 +909,9 @@ test.describe('Game Lifecycle - API Integration', () => {
       expect(localGame.currentDay, `${label}: currentDay`).toBe(apiGame.currentDay);
       expect(localGame.isFirstNight, `${label}: isFirstNight`).toBe(apiGame.isFirstNight);
       expect(localGame.currentPhase, `${label}: currentPhase`).toBe(apiGame.currentPhase);
-      expect(localGame.players.length, `${label}: player count`).toBe(apiGame.players.length);
+      expect(localGame.participants.length, `${label}: participant count`).toBe(
+        apiGame.participants.length,
+      );
       expect(localGame.nightHistory.length, `${label}: nightHistory count`).toBe(
         apiGame.nightHistory.length,
       );
@@ -549,6 +923,7 @@ test.describe('Game Lifecycle - API Integration', () => {
     // Enter Night 1 directly (skip character assignment for this test)
     const phaseNav = page.getByRole('navigation', { name: 'Game phase selector' });
     await phaseNav.getByText('Night').click();
+    await page.getByRole('button', { name: /confirm & start night/i }).click();
     await expect(page.getByTestId('night-tab-panel')).toBeVisible({ timeout: 5000 });
 
     // Navigate dynamically to last card and complete the night
