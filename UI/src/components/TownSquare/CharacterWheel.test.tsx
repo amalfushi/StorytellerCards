@@ -71,6 +71,7 @@ describe('CharacterWheel', () => {
     });
     expect(wheel.getAttribute('data-spinning')).toBe('true');
     expect(strip.style.transform).toMatch(/translateY\(-\d+(\.\d+)?px\)/);
+    expect(strip.style.transform).toBe('translateY(-1800px)');
 
     await act(async () => {
       strip.dispatchEvent(new Event('transitionend'));

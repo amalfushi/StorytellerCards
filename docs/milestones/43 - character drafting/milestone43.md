@@ -43,9 +43,10 @@ The implementation combines three mechanisms:
    using open, secret-single-type, or secret-two-type presentation. Reduce the
    visible choice count when fewer than four legal branches remain rather than
    rejecting an otherwise completable game.
-3. **Persisted sequential Storyteller workflow:** save each offer before reveal,
-   show hidden actual/apparent outcomes only on the Storyteller board, and allow
-   regeneration of the current unrevealed offer.
+3. **Persisted Storyteller-directed workflow:** the Storyteller selects any
+   unresolved player, saves that offer before reveal, sees hidden
+   actual/apparent outcomes on the Storyteller board, and may regenerate the
+   current unrevealed offer.
 
 Probability weights rank only candidates already proven legal. They never
 decide legality.
@@ -176,9 +177,10 @@ good bluffs unless another information rule changes that flow.
 ## Draft workflow
 
 1. Storyteller selects participants, script, and drafting mode.
-2. Engine resolves the selected exceptional setup mode and creates a randomized
-   hidden player order.
-3. Engine generates and persists the current player offer, including its
+2. Engine resolves the selected exceptional setup mode and displays an
+   unresolved pill for every participating player.
+3. Storyteller selects any unresolved player. The engine generates and persists
+   that player's offer, including its
    adaptive options, mulligan result, type rolls, and hidden identity mapping.
 4. Storyteller reviews or regenerates the current unrevealed offer. Every
    generated result is checked by the exact solver.
@@ -186,10 +188,12 @@ good bluffs unless another information rule changes that flow.
    option or the mandatory mulligan.
 6. Hidden-identity players see only their apparent draft. The Storyteller sees
    and commits the actual role first.
-7. When all drafts are committed, the engine generates a randomized seating
+7. The Storyteller explicitly confirms the completed draft. The engine then
+   generates a randomized seating
    permutation satisfying hard adjacency/line constraints where possible.
-8. Storyteller secretly edits and confirms seating, then performs ordered
-   information reveals and normal first-night setup.
+8. Storyteller secretly reviews or edits and confirms seating. Demon bluff
+   selection does not begin until this confirmation, after which normal ordered
+   information reveals and first-night setup continue.
 
 ### Standalone draft simulator
 
@@ -210,7 +214,13 @@ required hidden post-draft Minion-conversion workflow is not implemented.
   character.
 - The player taps one character or **Mulligan**.
 - Mulligan: the three columns collapse to one, the predetermined fourth result
-  rolls, and no further choice is available.
+  rolls, remains visible with its ability summary, and must be explicitly
+  accepted; no further choice is available.
+- Display each offered character's short ability description below its name.
+- Use the player's stable Town Square color prominently on the private handoff
+  and Storyteller board.
+- Present the private handoff in an opaque full-screen dialog with a heavily
+  blurred backdrop so no Storyteller information remains readable.
 - Do not show public draft position, remaining role counts, rejected options,
   or other players' offers.
 - Clearly state that a mulligan is final before starting its animation.
@@ -227,6 +237,9 @@ interface CharacterDraftState {
   presentationMode: CharacterDraftPresentationMode;
   playerOrder: PlayerId[];
   currentPlayerIndex: number;
+  activePlayerId?: PlayerId;
+  variableModifierValues?: Record<string, number>;
+  characterCopyTargets?: Record<string, number>;
   entries: CharacterDraftEntry[];
   blockedReason?: string;
   revision: number;
@@ -254,7 +267,8 @@ reset confirmation.
 
 ## Information-leak mitigations
 
-- Randomize private draft order and hide turn numbers.
+- Let the Storyteller choose unresolved players in any order and hide turn
+  numbers.
 - Persist offers before reveal so refreshes and response timing do not reroll outcomes.
 - Prefer mixed character types when several legal branches support them.
 - Avoid repeatedly showing the same unselected character unless scarcity
@@ -315,10 +329,15 @@ acceptance criteria.
 
 ### Phase 3 — Storyteller draft board
 
-- [x] Generate offers sequentially from exact legal candidates.
+- [x] Generate offers for any Storyteller-selected unresolved player from exact
+      legal candidates.
 - [x] Display actual/apparent outcomes, viable candidate counts, and secret type rolls.
 - [x] Support legal regeneration of the current unresolved offer.
 - [x] Lock resolved entries.
+- [x] Color player pills by stable player color while active and by selected
+      character type when complete.
+- [x] Display target setup counts and expose Storyteller controls for supported
+      variable modifiers and Village Idiot copy targets.
 
 ### Phase 4 — Player draft presentation
 
@@ -326,6 +345,8 @@ acceptance criteria.
 - [x] Add irreversible one-column mulligan animation.
 - [x] Add private physical-device handoff.
 - [x] Add hidden-identity illusion drafts for Drunk, Lunatic, and Marionette.
+- [x] Show short ability descriptions for every option and final mulligan.
+- [x] Obscure the entire application behind the private handoff.
 
 ### Phase 5 — Seating and reveal orchestration
 
@@ -336,6 +357,8 @@ acceptance criteria.
       Marionette, and evil-team information through the existing setup
       checklist and first-night reveal workflows.
 - [x] Require confirmed final seating before play starts.
+- [x] Delay Demon bluff selection until the Storyteller reviews and confirms
+      randomized seating.
 
 ## Testing strategy
 
@@ -344,7 +367,9 @@ acceptance criteria.
   every offered choice and mulligan must have a complete legal continuation.
 - Adversarial tests that repeatedly choose the option with the scarcest type.
 - Permutation tests for draft order independence.
-- Duplicate tests for Village Idiot and Legion only.
+- Duplicate tests for Village Idiot and Legion only, including sequential
+  player selections of multiple Village Idiots and preference weighting after
+  the first copy is chosen.
 - Hidden-identity tests proving actual roles never enter player-visible props.
 - Persistence and API roundtrip tests proving generated offers are stable.
 - Component and Storybook interaction tests for choice, mulligan, private

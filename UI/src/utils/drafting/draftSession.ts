@@ -31,6 +31,8 @@ export interface DraftSessionConfig {
   scriptCharacters: readonly DraftCharacter[];
   setupMode: DraftSetupMode;
   presentationMode?: DraftPresentationMode;
+  variableModifierValues?: Readonly<Record<string, number>>;
+  characterCopyTargets?: Readonly<Record<string, number>>;
 }
 
 export interface DraftSessionState {
@@ -105,6 +107,7 @@ function getPresentationPool(
   candidateIds: readonly string[],
   config: DraftSessionConfig,
   random: DraftRandomSource,
+  preferredCharacterId?: string,
 ): { candidateIds: string[]; rolledCharacterTypes: DraftCharacter['type'][] } {
   const mode = config.presentationMode ?? DraftPresentationMode.Open;
   if (mode === DraftPresentationMode.Open) {
@@ -127,6 +130,14 @@ function getPresentationPool(
     ],
     random,
   );
+  const preferredType = preferredCharacterId ? typeById.get(preferredCharacterId) : undefined;
+  if (preferredType) {
+    const preferredTypeIndex = feasibleTypes.indexOf(preferredType);
+    if (preferredTypeIndex > 0) {
+      feasibleTypes.splice(preferredTypeIndex, 1);
+      feasibleTypes.unshift(preferredType);
+    }
+  }
   const typeCount = mode === DraftPresentationMode.SecretSingleType ? 1 : 2;
   const rolledCharacterTypes = feasibleTypes.slice(0, typeCount);
   const allowedTypes = new Set(rolledCharacterTypes);
@@ -135,8 +146,17 @@ function getPresentationPool(
     return type !== undefined && allowedTypes.has(type);
   });
 
+  const mixedCandidates = mixCandidateTypes(restrictedCandidates, config.scriptCharacters, random);
+  if (preferredCharacterId) {
+    const preferredIndex = mixedCandidates.indexOf(preferredCharacterId);
+    if (preferredIndex > 0) {
+      mixedCandidates.splice(preferredIndex, 1);
+      mixedCandidates.unshift(preferredCharacterId);
+    }
+  }
+
   return {
-    candidateIds: mixCandidateTypes(restrictedCandidates, config.scriptCharacters, random),
+    candidateIds: mixedCandidates,
     rolledCharacterTypes,
   };
 }
@@ -150,6 +170,8 @@ function toFeasibilityInput(
     scriptCharacters: config.scriptCharacters,
     committedCharacterIds,
     setupMode: config.setupMode,
+    variableModifierValues: config.variableModifierValues,
+    characterCopyTargets: config.characterCopyTargets,
   };
 }
 
@@ -170,10 +192,24 @@ export function generateDraftOffer(
     };
   }
 
-  const presentation = getPresentationPool(legalCandidateIds, config, random);
-  const optionCount = Math.min(3, Math.max(1, presentation.candidateIds.length - 1));
-  const offeredCharacterIds = presentation.candidateIds.slice(0, optionCount);
-  const mulliganCharacterId = presentation.candidateIds[optionCount] ?? null;
+  const villageIdiotCopies = committedCharacterIds.filter((id) => id === 'villageidiot').length;
+  const villageIdiotBias = villageIdiotCopies === 1 ? 0.55 : villageIdiotCopies >= 2 ? 0.75 : 0;
+  const preferredCharacterId =
+    legalCandidateIds.includes('villageidiot') && random() < villageIdiotBias
+      ? 'villageidiot'
+      : undefined;
+  const presentation = getPresentationPool(legalCandidateIds, config, random, preferredCharacterId);
+  const presentationCandidateIds =
+    preferredCharacterId &&
+    (config.presentationMode ?? DraftPresentationMode.Open) === DraftPresentationMode.Open
+      ? [
+          preferredCharacterId,
+          ...presentation.candidateIds.filter((id) => id !== preferredCharacterId),
+        ]
+      : presentation.candidateIds;
+  const optionCount = Math.min(3, Math.max(1, presentationCandidateIds.length - 1));
+  const offeredCharacterIds = presentationCandidateIds.slice(0, optionCount);
+  const mulliganCharacterId = presentationCandidateIds[optionCount] ?? null;
 
   return {
     offer: {

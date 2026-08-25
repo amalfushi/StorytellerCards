@@ -23,6 +23,8 @@ export interface DraftFeasibilityInput {
   scriptCharacters: readonly DraftCharacter[];
   committedCharacterIds: readonly string[];
   setupMode?: DraftSetupModeValue;
+  variableModifierValues?: Readonly<Record<string, number>>;
+  characterCopyTargets?: Readonly<Record<string, number>>;
 }
 
 export interface LegalDraftCandidateOptions {
@@ -100,7 +102,15 @@ function getCacheKey(input: DraftFeasibilityInput): string {
     .sort()
     .join(',');
   const committed = [...input.committedCharacterIds].sort().join(',');
-  return `${input.playerCount}|${input.setupMode ?? 'any'}|${script}|${committed}`;
+  const modifierValues = Object.entries(input.variableModifierValues ?? {})
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([id, value]) => `${id}:${value}`)
+    .join(',');
+  const copyTargets = Object.entries(input.characterCopyTargets ?? {})
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([id, value]) => `${id}:${value}`)
+    .join(',');
+  return `${input.playerCount}|${input.setupMode ?? 'any'}|${script}|${committed}|${modifierValues}|${copyTargets}`;
 }
 
 function countIds(ids: readonly string[]): Map<string, number> {
@@ -197,6 +207,17 @@ function canFillProfile(
     selected.set(id, Math.max(1, selected.get(id) ?? 0));
   for (const id of profile.setupCharacterIds) {
     if (isPlayerDraftable(id)) selected.set(id, Math.max(1, selected.get(id) ?? 0));
+  }
+  for (const [id, target] of Object.entries(input.characterCopyTargets ?? {})) {
+    const committedCopies = selected.get(id) ?? 0;
+    if (
+      !Number.isInteger(target) ||
+      target < committedCopies ||
+      target > getMaximumDraftCopies(id)
+    ) {
+      return false;
+    }
+    if (target > 0) selected.set(id, target);
   }
 
   for (const [id, copies] of selected) {
@@ -319,6 +340,7 @@ function applyModifiers(
 function enumerateModifierSelections(
   modifierIds: readonly string[],
   forcedIds: ReadonlySet<string>,
+  variableModifierValues: Readonly<Record<string, number>>,
   visit: (selectedValues: ReadonlyMap<string, readonly number[]>) => boolean,
 ): boolean {
   const selectedValues = new Map<string, readonly number[]>();
@@ -337,7 +359,12 @@ function enumerateModifierSelections(
       return result;
     }
 
-    for (const value of rules[ruleIndex].values) {
+    const configuredValue = variableModifierValues[id];
+    const ruleValues =
+      configuredValue !== undefined && rules[ruleIndex].values.length > 1
+        ? rules[ruleIndex].values.filter((value) => value === configuredValue)
+        : rules[ruleIndex].values;
+    for (const value of ruleValues) {
       values.push(value);
       if (enumerateValues(id, rules, ruleIndex + 1, values, done)) return true;
       values.pop();
@@ -402,28 +429,33 @@ function hasCompletionInMode(
   }
 
   for (const base of getBaseCounts(input.playerCount, mode)) {
-    const found = enumerateModifierSelections(modifierIds, forcedIds, (selectedValues) => {
-      const counts = applyModifiers(input.playerCount, base, selectedValues);
-      if (!counts) return false;
+    const found = enumerateModifierSelections(
+      modifierIds,
+      forcedIds,
+      input.variableModifierValues ?? {},
+      (selectedValues) => {
+        const counts = applyModifiers(input.playerCount, base, selectedValues);
+        if (!counts) return false;
 
-      const includedModifierIds = [...selectedValues.keys()];
-      const forbiddenCharacterIds = new Set(forbiddenModeIds);
-      modifierIds.forEach((id) => {
-        if (!selectedValues.has(id)) forbiddenCharacterIds.add(id);
-      });
+        const includedModifierIds = [...selectedValues.keys()];
+        const forbiddenCharacterIds = new Set(forbiddenModeIds);
+        modifierIds.forEach((id) => {
+          if (!selectedValues.has(id)) forbiddenCharacterIds.add(id);
+        });
 
-      return canFillProfile(
-        input,
-        {
-          mode,
-          counts,
-          includedModifierIds,
-          forbiddenCharacterIds,
-          setupCharacterIds,
-        },
-        scriptById,
-      );
-    });
+        return canFillProfile(
+          input,
+          {
+            mode,
+            counts,
+            includedModifierIds,
+            forbiddenCharacterIds,
+            setupCharacterIds,
+          },
+          scriptById,
+        );
+      },
+    );
     if (found) return true;
   }
   return false;
@@ -470,7 +502,8 @@ export function getLegalDraftCandidates(
       (character) =>
         !excludedIds.has(character.id) &&
         isPlayerDraftable(character.id) &&
-        (committedCounts.get(character.id) ?? 0) < getMaximumDraftCopies(character.id),
+        (committedCounts.get(character.id) ?? 0) <
+          (input.characterCopyTargets?.[character.id] ?? getMaximumDraftCopies(character.id)),
     )
     .filter((character) =>
       hasLegalDraftCompletion({

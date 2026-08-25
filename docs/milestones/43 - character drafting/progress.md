@@ -7,7 +7,8 @@
 Character drafting is now integrated into regular game setup as well as the
 standalone simulator. Draft progress persists on the game and through the Go
 API, player-visible identities remain separate from actual roles, and completed
-drafts atomically assign characters and randomize seating.
+drafts atomically assign characters before entering an explicit randomized
+seating review.
 
 The supported deployment scope includes Standard, Atheist, Legion, Lil'
 Monsta, and Summoner setups. Kazali remains intentionally unavailable because
@@ -36,6 +37,24 @@ its hidden post-draft Minion-conversion phase is not implemented.
 - Added persisted TypeScript and Go draft-state models and API roundtrip support.
 - Added the regular-game setup choice, Storyteller board, and private
   physical-device handoff.
+- Replaced fixed draft order with Storyteller-selected player pills. Undrafted
+  players remain grey, the active player uses their stable session color, and
+  completed players use the selected character type color.
+- Strengthened private handoff with a full-screen opaque blurred backdrop,
+  prominent player-color identification, and short ability descriptions for
+  every offered and mulligan character.
+- Kept the mandatory mulligan result visible until the player explicitly
+  accepts it.
+- Added advisory setup-count chips and Storyteller controls for variable setup
+  modifiers and the desired Village Idiot copy count.
+- Added exact Village Idiot copy-target feasibility, a sequential three-player
+  repeated-draft test, and increased follow-on presentation preference after a
+  Village Idiot is selected.
+- Corrected advisory Summoner counts to add one Townsfolk and remove the
+  starting Demon.
+- Moved slot-machine landing away from the terminal repeated strip so late
+  script characters such as Lord of Typhon no longer make following rows
+  briefly disappear.
 - Added actual/apparent identity masking for Drunk, Lunatic, and Marionette.
 - Blocked drafts when a hidden role cannot be given a safe, unique false
   identity instead of exposing its actual role.
@@ -45,18 +64,21 @@ its hidden post-draft Minion-conversion phase is not implemented.
   Monsta.
 - Added constrained randomized seating for Marionette, Lord of Typhon, and No
   Dashii, with secret manual repair fallback.
+- Added an explicit post-draft seating review and editable Town Square step.
+  Demon bluffs do not open until the Storyteller confirms the final seating.
 - Consolidated the duplicate pre-game character actions to one
   **Select Characters** action.
 - Gated Kazali in production and the simulator until its hidden post-draft
   Minion-conversion workflow exists.
 - Preserved the existing setup checklist, first-night reveal flow, Lunatic
   bluff flow, and mandatory seating confirmation after draft completion.
-- Added a regular-game lifecycle test covering private handoff, mulligan
-  animation, reload/resume, final assignment, persistence, and continuation to
-  Demon bluffs.
-- Passed the focused UI suite (150 tests), Storybook interaction tests and
-  production build, full Go API suite, app TypeScript build, and both drafting
-  and manual-selection lifecycle E2E paths.
+- Added a regular-game lifecycle test covering Storyteller-selected turns,
+  private handoff, mulligan animation and acceptance, reload/resume, final
+  assignment, persistence, editable randomized-seating review, seating
+  confirmation, and delayed Demon bluffs.
+- Passed the focused drafting and Game View UI suites, Storybook interaction
+  tests and production build, full Go API suite, app TypeScript check, Vite
+  production build, and the complete drafting lifecycle E2E path.
 
 ## Known deployment boundaries
 

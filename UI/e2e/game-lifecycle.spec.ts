@@ -102,9 +102,13 @@ async function expectApiSeatOrder(
 
 test.describe('Game Lifecycle', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage before page scripts run, and block API session fetch
-    // so remote data doesn't pollute local-only tests.
-    await page.addInitScript(() => localStorage.clear());
+    // Clear localStorage once per test context while preserving state across reloads.
+    await page.addInitScript(() => {
+      if (!sessionStorage.getItem('e2e-local-storage-initialized')) {
+        localStorage.clear();
+        sessionStorage.setItem('e2e-local-storage-initialized', 'true');
+      }
+    });
     await page.route('**/api/sessions', (route) => {
       if (route.request().method() === 'GET') {
         return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
@@ -319,34 +323,50 @@ test.describe('Game Lifecycle', () => {
     await page.getByRole('button', { name: 'Select Characters', exact: true }).click();
     await page.getByRole('button', { name: 'Start character draft' }).click();
     await page.getByRole('button', { name: 'Generate draft' }).click();
-
+    await page
+      .getByRole('button', { name: /Not drafted/ })
+      .first()
+      .click();
     const firstPlayerBoard = page.getByTestId('game-draft-current-player');
-    const firstPlayerText = await firstPlayerBoard.textContent();
-    await expect(firstPlayerBoard).toContainText('Next:');
+    await expect(firstPlayerBoard).toContainText('Drafting now:');
 
     await page.getByRole('button', { name: /Hand device to/ }).click();
     await page.getByTestId('draft-roll-options').click();
     await page.getByTestId('draft-mulligan').click();
     await page.getByTestId('confirm-draft-mulligan').click();
     await page.getByTestId('roll-draft-mulligan').click();
-    await expect(page.getByTestId('game-draft-current-player')).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByTestId('game-draft-current-player')).not.toHaveText(
-      firstPlayerText ?? '',
-    );
+    const acceptMulligan = page.getByTestId('accept-draft-mulligan');
+    await expect(acceptMulligan).toBeVisible({ timeout: 10_000 });
+    await acceptMulligan.click();
+    await expect(page.getByText('1 of 7 players complete')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: /Not drafted/ })).toHaveCount(6);
+    await expect(page.getByTestId('game-draft-current-player')).not.toBeVisible();
 
     await page.reload();
     await page.getByRole('button', { name: 'Select Characters', exact: true }).click();
     await page.getByRole('button', { name: 'Resume character draft' }).click();
-    await expect(page.getByTestId('game-draft-current-player')).toBeVisible();
+    await expect(page.getByText('1 of 7 players complete')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Not drafted/ })).toHaveCount(6);
 
     for (let remainingDrafts = 0; remainingDrafts < 7; remainingDrafts += 1) {
-      const handoffButton = page.getByRole('button', { name: /Hand device to/ });
-      if (!(await handoffButton.isVisible())) break;
+      let handoffButton = page.getByRole('button', { name: /Hand device to/ });
+      if (!(await handoffButton.isVisible())) {
+        const undraftedPlayer = page.getByRole('button', { name: /Not drafted/ }).first();
+        if (!(await undraftedPlayer.isVisible())) break;
+        await undraftedPlayer.click();
+        handoffButton = page.getByRole('button', { name: /Hand device to/ });
+      }
       await handoffButton.click();
       await page.getByTestId('draft-roll-options').click();
       await page.getByTestId('draft-choice-0').click();
     }
 
+    await page.getByRole('button', { name: /confirm draft and review seating/i }).click();
+    await saveTownSquareDraft(page);
+    await expect(page.getByRole('dialog')).toContainText(
+      'Confirm the randomized seating before continuing to Demon bluffs.',
+    );
+    await page.getByRole('button', { name: /^confirm seating$/i }).click();
     await expect(page.getByText('Select Demon Bluffs')).toBeVisible();
 
     const gameData = await page.evaluate(() => {

@@ -76,6 +76,21 @@ describe('draftSession', () => {
     expect(offeredTypes.size).toBeGreaterThan(1);
   });
 
+  it('prefers another Village Idiot after one has been committed without bypassing legality', () => {
+    const villageIdiotConfig: DraftSessionConfig = {
+      ...config,
+      scriptCharacters: [
+        ...config.scriptCharacters,
+        { id: 'villageidiot', type: CharacterType.Townsfolk },
+      ],
+      characterCopyTargets: { villageidiot: 3 },
+    };
+
+    const result = generateDraftOffer(villageIdiotConfig, ['villageidiot'], () => 0);
+    expect(result.offer?.offeredCharacterIds[0]).toBe('villageidiot');
+    expect(result.legalCandidateIds).toContain('villageidiot');
+  });
+
   it('forces a single legal character instead of blocking', () => {
     const narrowConfig: DraftSessionConfig = {
       playerCount: 5,

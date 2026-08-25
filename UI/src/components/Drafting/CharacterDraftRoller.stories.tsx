@@ -11,6 +11,7 @@ const meta = {
   parameters: { layout: 'padded' },
   args: {
     playerName: 'Player 1',
+    playerColor: '#1976d2',
     scriptCharacters,
     offer: {
       offeredCharacterIds: ['grandmother', 'lunatic', 'assassin'],

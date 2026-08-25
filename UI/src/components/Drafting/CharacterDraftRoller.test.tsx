@@ -61,7 +61,7 @@ describe('CharacterDraftRoller', () => {
     expect(screen.getAllByTestId('mock-character-wheel')).toHaveLength(3);
     expect(screen.queryByTestId('draft-choice-0')).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId('draft-roll-options'));
-    expect(await screen.findByTestId('draft-choice-0')).toHaveTextContent('CHEF');
+    expect(await screen.findByTestId('draft-choice-0')).toHaveTextContent('CHEFchef');
   });
 
   it('returns the selected offered character', async () => {
@@ -106,7 +106,26 @@ describe('CharacterDraftRoller', () => {
     fireEvent.click(screen.getByTestId('roll-draft-mulligan'));
 
     expect(spinTo).toHaveBeenCalledWith('imp');
+    expect(await screen.findByText('IMP')).toBeInTheDocument();
+    expect(screen.getByText('imp')).toBeInTheDocument();
+    expect(onMulligan).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByTestId('accept-draft-mulligan'));
     await waitFor(() => expect(onMulligan).toHaveBeenCalledWith('imp'));
+  });
+
+  it('uses the session player color on the private handoff', () => {
+    render(
+      <CharacterDraftRoller
+        playerName="Player 1"
+        playerColor="#123456"
+        scriptCharacters={characters}
+        offer={offer}
+        onChoose={vi.fn()}
+        onMulligan={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Player 1')).toHaveStyle({ color: '#123456' });
   });
 
   it('renders adaptive one- and two-column offers', () => {

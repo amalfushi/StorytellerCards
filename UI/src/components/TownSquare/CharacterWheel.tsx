@@ -103,9 +103,9 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
           // Force a reflow so the next style change actually animates.
           void el.offsetHeight;
 
-          // Land in the LAST repeat so we always travel a generous distance
-          // (several full revolutions of the visible window) before settling.
-          const landingRepeat = STRIP_REPEATS - 1;
+          // Leave one full repeat below the result so late-script characters do
+          // not expose the strip edge during the brief settle delay.
+          const landingRepeat = STRIP_REPEATS - 2;
           const landingRowIndex = landingRepeat * stripCount + targetIndex;
           const landingY = yForRowIndex(landingRowIndex);
 

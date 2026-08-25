@@ -198,14 +198,17 @@ type CharacterDraftEntry struct {
 }
 
 type CharacterDraftState struct {
-	Status             string                `json:"status"`
-	SetupMode          string                `json:"setupMode"`
-	PresentationMode   string                `json:"presentationMode"`
-	PlayerOrder        []string              `json:"playerOrder"`
-	CurrentPlayerIndex int                   `json:"currentPlayerIndex"`
-	Entries            []CharacterDraftEntry `json:"entries"`
-	BlockedReason      string                `json:"blockedReason,omitempty"`
-	Revision           int                   `json:"revision"`
+	Status                 string                `json:"status"`
+	SetupMode              string                `json:"setupMode"`
+	PresentationMode       string                `json:"presentationMode"`
+	PlayerOrder            []string              `json:"playerOrder"`
+	CurrentPlayerIndex     int                   `json:"currentPlayerIndex"`
+	ActivePlayerID         string                `json:"activePlayerId,omitempty"`
+	VariableModifierValues map[string]int        `json:"variableModifierValues,omitempty"`
+	CharacterCopyTargets   map[string]int        `json:"characterCopyTargets,omitempty"`
+	Entries                []CharacterDraftEntry `json:"entries"`
+	BlockedReason          string                `json:"blockedReason,omitempty"`
+	Revision               int                   `json:"revision"`
 }
 
 // ──────────────────────────────────────────────

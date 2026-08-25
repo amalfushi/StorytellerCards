@@ -64,6 +64,7 @@ import {
   validateGameSeating,
 } from '@/utils/seating/index.ts';
 import { randomizeConstrainedDraftSeating } from '@/utils/drafting/draftSeating.ts';
+import { getPlayerColorById } from '@/utils/playerColor.ts';
 
 interface GameViewPlayer extends PlayerGameState {
   playerId: string;
@@ -116,6 +117,9 @@ export function GameViewPage() {
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [seatingEditMode, setSeatingEditMode] = useState(false);
   const [seatingConfirmationOpen, setSeatingConfirmationOpen] = useState(false);
+  const [pendingDraftSetupMode, setPendingDraftSetupMode] = useState<
+    NonNullable<Game['characterDraft']>['setupMode'] | null
+  >(null);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
   const [reminderPicker, setReminderPicker] = useState<{
     anchorEl: HTMLElement;
@@ -306,6 +310,16 @@ export function GameViewPage() {
       ),
     [draftingPlayerIds, session?.players],
   );
+  const draftingPlayerColors = useMemo(
+    () =>
+      Object.fromEntries(
+        draftingPlayerIds.map((playerId) => [
+          playerId,
+          getPlayerColorById(playerId, draftingPlayerIds) ?? '#90a4ae',
+        ]),
+      ),
+    [draftingPlayerIds],
+  );
 
   const nightEntries = useNightOrder(
     scriptCharacterIds,
@@ -342,8 +356,8 @@ export function GameViewPage() {
       completeCharacterDraft(draft, seating.slots);
       setCharacterDraftOpen(false);
       setTabIndex(0);
-      setSeatingEditMode(!seating.constraintsSatisfied);
-      setBluffSelectionOpen(draft.setupMode !== 'atheist');
+      setPendingDraftSetupMode(draft.setupMode);
+      setSeatingEditMode(true);
     },
     [completeCharacterDraft, game, scriptCharacterDefs],
   );
@@ -794,7 +808,12 @@ export function GameViewPage() {
                 <TownSquareTab
                   scriptCharacterIds={scriptCharacterIds}
                   editMode={seatingEditMode}
-                  onEditModeChange={setSeatingEditMode}
+                  onEditModeChange={(editing) => {
+                    setSeatingEditMode(editing);
+                    if (!editing && pendingDraftSetupMode) {
+                      setSeatingConfirmationOpen(true);
+                    }
+                  }}
                   onSelectCharacters={() => setCharacterSetupOpen(true)}
                 />
               )}
@@ -856,8 +875,9 @@ export function GameViewPage() {
         <DialogTitle>Confirm Game {gameNumber || ''} seating</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
-            All {game.participants.length} participants have seats. Use this Town Square for the
-            first Night?
+            {pendingDraftSetupMode
+              ? 'Confirm the randomized seating before continuing to Demon bluffs.'
+              : `All ${game.participants.length} participants have seats. Use this Town Square for the first Night?`}
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -875,10 +895,17 @@ export function GameViewPage() {
             onClick={() => {
               setSeatingConfirmed(true);
               setSeatingConfirmationOpen(false);
-              enterNightView();
+              if (pendingDraftSetupMode) {
+                const setupMode = pendingDraftSetupMode;
+                setPendingDraftSetupMode(null);
+                setBluffSelectionOpen(setupMode !== 'atheist');
+                saveGame();
+              } else {
+                enterNightView();
+              }
             }}
           >
-            Confirm &amp; start Night
+            {pendingDraftSetupMode ? 'Confirm seating' : 'Confirm & start Night'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -989,6 +1016,7 @@ export function GameViewPage() {
           open={characterDraftOpen}
           playerIds={draftingPlayerIds}
           playerNames={draftingPlayerNames}
+          playerColors={draftingPlayerColors}
           scriptCharacters={scriptCharacterDefs}
           draftState={game.characterDraft}
           onClose={() => setCharacterDraftOpen(false)}

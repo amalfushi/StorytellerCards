@@ -218,6 +218,13 @@ func TestGameRoundtripFull(t *testing.T) {
 			PresentationMode:   "secret-two-types",
 			PlayerOrder:        []string{"p-alice", "p-bob"},
 			CurrentPlayerIndex: 1,
+			ActivePlayerID:     "p-bob",
+			VariableModifierValues: map[string]int{
+				"godfather": -1,
+			},
+			CharacterCopyTargets: map[string]int{
+				"villageidiot": 3,
+			},
 			Entries: []models.CharacterDraftEntry{
 				{
 					PlayerID: "p-alice",
@@ -349,6 +356,9 @@ func TestGameRoundtripFull(t *testing.T) {
 	assertEq(t, "game.characterDraft.status", got.CharacterDraft.Status, "drafting")
 	assertEq(t, "game.characterDraft.presentationMode", got.CharacterDraft.PresentationMode, "secret-two-types")
 	assertStrSlice(t, "game.characterDraft.playerOrder", got.CharacterDraft.PlayerOrder, []string{"p-alice", "p-bob"})
+	assertEq(t, "game.characterDraft.activePlayerId", got.CharacterDraft.ActivePlayerID, "p-bob")
+	assertEq(t, "game.characterDraft.variableModifierValues['godfather']", got.CharacterDraft.VariableModifierValues["godfather"], -1)
+	assertEq(t, "game.characterDraft.characterCopyTargets['villageidiot']", got.CharacterDraft.CharacterCopyTargets["villageidiot"], 3)
 	assertEq(t, "game.characterDraft.entries[0].actualCharacterId", got.CharacterDraft.Entries[0].ActualCharacterID, "washerwoman")
 	if got.CharacterDraft.Entries[0].Offer.MulliganCharacterID == nil {
 		t.Fatal("game.characterDraft.entries[0].offer.mulliganCharacterId should not be nil")

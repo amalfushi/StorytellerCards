@@ -6,6 +6,7 @@ import {
   maskDraftOfferIdentities,
   regenerateGameCharacterDraftOffer,
   resolveGameCharacterDraft,
+  selectGameCharacterDraftPlayer,
 } from '@/utils/drafting/gameCharacterDraft.ts';
 import type { DraftSessionConfig } from '@/utils/drafting/draftSession.ts';
 import type { DraftCharacter } from '@/utils/drafting/draftFeasibility.ts';
@@ -34,7 +35,15 @@ function completeDraft(configToComplete: DraftSessionConfig): CharacterDraftStat
   );
   let state = createGameCharacterDraft(playerIds, configToComplete, () => 0.37);
   while (state.status === 'drafting') {
-    const entry = state.entries[state.currentPlayerIndex];
+    const playerId = state.playerOrder.find(
+      (candidateId) =>
+        !state.entries.some(
+          (entry) => entry.playerId === candidateId && entry.actualCharacterId !== undefined,
+        ),
+    );
+    if (!playerId) throw new Error('Expected an unresolved player.');
+    state = selectGameCharacterDraftPlayer(state, configToComplete, playerId, () => 0.37);
+    const entry = state.entries.find((candidate) => candidate.playerId === playerId);
     if (!entry) throw new Error('Expected an active draft entry.');
     state = resolveGameCharacterDraft(
       state,
@@ -77,17 +86,22 @@ function exceptionalConfig(
 }
 
 describe('gameCharacterDraft', () => {
-  it('persists randomized player order and the first offer', () => {
+  it('starts with every player available for Storyteller-selected drafting', () => {
     const state = createGameCharacterDraft(['p1', 'p2', 'p3', 'p4', 'p5'], config, () => 0);
 
-    expect(state.playerOrder).toHaveLength(5);
-    expect(new Set(state.playerOrder).size).toBe(5);
-    expect(state.entries[0].playerId).toBe(state.playerOrder[0]);
-    expect(state.entries[0].offer.legalCandidateCount).toBeGreaterThan(0);
+    expect(state.playerOrder).toEqual(['p1', 'p2', 'p3', 'p4', 'p5']);
+    expect(state.entries).toEqual([]);
+    expect(state.activePlayerId).toBeUndefined();
+
+    const selected = selectGameCharacterDraftPlayer(state, config, 'p3', () => 0);
+    expect(selected.activePlayerId).toBe('p3');
+    expect(selected.entries[0].playerId).toBe('p3');
+    expect(selected.entries[0].offer.legalCandidateCount).toBeGreaterThan(0);
   });
 
   it('records a choice separately as actual and apparent identity', () => {
-    const state = createGameCharacterDraft(['p1', 'p2', 'p3', 'p4', 'p5'], config, () => 0);
+    const created = createGameCharacterDraft(['p1', 'p2', 'p3', 'p4', 'p5'], config, () => 0);
+    const state = selectGameCharacterDraftPlayer(created, config, 'p1', () => 0);
     const characterId = state.entries[0].offer.offeredCharacterIds[0];
     const next = resolveGameCharacterDraft(state, config, characterId, 'choice', () => 0);
 
@@ -98,6 +112,8 @@ describe('gameCharacterDraft', () => {
       resolution: 'choice',
     });
     expect(next.currentPlayerIndex).toBe(1);
+    expect(next.activePlayerId).toBeUndefined();
+    expect(next.entries).toHaveLength(1);
   });
 
   it('resolves a false identity choice to its hidden actual character', () => {
@@ -223,12 +239,9 @@ describe('gameCharacterDraft', () => {
       ],
     };
 
+    const created = createGameCharacterDraft(['p1', 'p2', 'p3', 'p4', 'p5'], unsafeLunaticConfig);
     const states = Array.from({ length: 20 }, (_, index) =>
-      createGameCharacterDraft(
-        ['p1', 'p2', 'p3', 'p4', 'p5'],
-        unsafeLunaticConfig,
-        () => index / 20,
-      ),
+      selectGameCharacterDraftPlayer(created, unsafeLunaticConfig, 'p1', () => index / 20),
     );
     const blocked = states.find((state) =>
       state.blockedReason?.includes('no unused valid false identity'),
@@ -281,11 +294,68 @@ describe('gameCharacterDraft', () => {
   });
 
   it('regenerates only the current unresolved offer', () => {
-    const state = createGameCharacterDraft(['p1', 'p2', 'p3', 'p4', 'p5'], config, () => 0);
+    const created = createGameCharacterDraft(['p1', 'p2', 'p3', 'p4', 'p5'], config, () => 0);
+    const state = selectGameCharacterDraftPlayer(created, config, 'p2', () => 0);
     const next = regenerateGameCharacterDraftOffer(state, config, () => 0.99);
 
     expect(next.playerOrder).toEqual(state.playerOrder);
-    expect(next.entries[0].offer).not.toEqual(state.entries[0].offer);
+    expect(next.entries.find((entry) => entry.playerId === 'p2')?.offer).not.toEqual(
+      state.entries.find((entry) => entry.playerId === 'p2')?.offer,
+    );
     expect(next.revision).toBe(state.revision + 1);
+  });
+
+  it('lets three players roll and choose Village Idiot when three copies are configured', () => {
+    const villageIdiotConfig: DraftSessionConfig = {
+      playerCount: 7,
+      setupMode: DraftSetupMode.Standard,
+      characterCopyTargets: { villageidiot: 3 },
+      scriptCharacters: [
+        { id: 'villageidiot', type: CharacterType.Townsfolk },
+        { id: 't1', type: CharacterType.Townsfolk },
+        { id: 't2', type: CharacterType.Townsfolk },
+        { id: 'm1', type: CharacterType.Minion },
+        { id: 'd1', type: CharacterType.Demon },
+      ],
+    };
+    let state = createGameCharacterDraft(
+      ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'],
+      villageIdiotConfig,
+    );
+
+    for (const playerId of ['p1', 'p2', 'p3']) {
+      let selected: CharacterDraftState | undefined;
+      for (let index = 0; index < 100; index += 1) {
+        const candidate = selectGameCharacterDraftPlayer(
+          state,
+          villageIdiotConfig,
+          playerId,
+          () => index / 100,
+        );
+        const offer = candidate.entries.find((entry) => entry.playerId === playerId)?.offer;
+        if (offer?.offeredCharacterIds.includes('villageidiot')) {
+          selected = candidate;
+          break;
+        }
+      }
+      expect(selected, `Village Idiot should be offered to ${playerId}`).toBeDefined();
+      state = resolveGameCharacterDraft(
+        selected!,
+        villageIdiotConfig,
+        'villageidiot',
+        'choice',
+        () => 0,
+      );
+    }
+
+    expect(state.entries.map((entry) => entry.actualCharacterId)).toEqual([
+      'villageidiot',
+      'villageidiot',
+      'villageidiot',
+    ]);
+    const fourth = selectGameCharacterDraftPlayer(state, villageIdiotConfig, 'p4', () => 0);
+    const fourthOffer = fourth.entries.find((entry) => entry.playerId === 'p4')?.offer;
+    expect(fourthOffer?.offeredCharacterIds).not.toContain('villageidiot');
+    expect(fourthOffer?.mulliganCharacterId).not.toBe('villageidiot');
   });
 });

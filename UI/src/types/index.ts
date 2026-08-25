@@ -393,6 +393,9 @@ export interface CharacterDraftState {
   presentationMode: CharacterDraftPresentationMode;
   playerOrder: PlayerId[];
   currentPlayerIndex: number;
+  activePlayerId?: PlayerId;
+  variableModifierValues?: Record<string, number>;
+  characterCopyTargets?: Record<string, number>;
   entries: CharacterDraftEntry[];
   blockedReason?: string;
   revision: number;

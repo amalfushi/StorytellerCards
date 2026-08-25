@@ -106,15 +106,6 @@ export function maskDraftOfferIdentities(
   };
 }
 
-function shuffle<T>(values: readonly T[], random: DraftRandomSource): T[] {
-  const result = [...values];
-  for (let index = result.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.min(index, Math.floor(Math.max(0, random()) * (index + 1)));
-    [result[index], result[randomIndex]] = [result[randomIndex], result[index]];
-  }
-  return result;
-}
-
 function toEntry(
   playerId: PlayerId,
   offer: DraftOffer,
@@ -165,7 +156,9 @@ function toSessionState(state: CharacterDraftState): DraftSessionState {
       resolution: DraftPick['resolution'];
     } => entry.selectedCharacterId !== undefined && entry.resolution !== undefined,
   );
-  const currentEntry = state.entries[state.currentPlayerIndex];
+  const currentEntry =
+    state.entries.find((entry) => entry.playerId === state.activePlayerId) ??
+    state.entries[state.currentPlayerIndex];
 
   return {
     committedCharacterIds: resolvedEntries.map(
@@ -194,35 +187,17 @@ function toSessionState(state: CharacterDraftState): DraftSessionState {
   };
 }
 
-function withNextSession(
+function withResolvedTurn(
   state: CharacterDraftState,
   session: DraftSessionState,
-  config: DraftSessionConfig,
-  random: DraftRandomSource,
 ): CharacterDraftState {
-  const nextIndex = session.picks.length;
-  const entries = [...state.entries];
-  if (session.status === 'drafting' && session.currentOffer) {
-    try {
-      entries[nextIndex] = toEntry(
-        state.playerOrder[nextIndex],
-        session.currentOffer,
-        session.legalCandidateIds.length,
-        config,
-        session.committedCharacterIds,
-        random,
-      );
-    } catch (error) {
-      return identityMaskFailure({ ...state, entries }, nextIndex, error);
-    }
-  }
-
+  const resolvedCount = state.entries.filter((entry) => entry.actualCharacterId).length;
   return {
     ...state,
-    status: session.status,
-    currentPlayerIndex: nextIndex,
-    entries,
-    blockedReason: session.blockedReason,
+    status: resolvedCount === state.playerOrder.length ? 'complete' : 'drafting',
+    currentPlayerIndex: resolvedCount,
+    activePlayerId: undefined,
+    blockedReason: resolvedCount === state.playerOrder.length ? undefined : session.blockedReason,
     revision: state.revision + 1,
   };
 }
@@ -232,36 +207,81 @@ export function createGameCharacterDraft(
   config: DraftSessionConfig,
   random: DraftRandomSource = Math.random,
 ): CharacterDraftState {
-  const playerOrder = shuffle(playerIds, random);
+  const playerOrder = [...playerIds];
   const session = createDraftSession(config, random);
   const state: CharacterDraftState = {
-    status: session.status,
+    status: session.status === 'blocked' ? 'blocked' : 'drafting',
     setupMode: config.setupMode,
     presentationMode: config.presentationMode ?? 'open',
     playerOrder,
     currentPlayerIndex: 0,
+    variableModifierValues: config.variableModifierValues
+      ? { ...config.variableModifierValues }
+      : undefined,
+    characterCopyTargets: config.characterCopyTargets
+      ? { ...config.characterCopyTargets }
+      : undefined,
     entries: [],
     blockedReason: session.blockedReason,
     revision: 1,
   };
-  if (!session.currentOffer || !playerOrder[0]) return state;
+  return state;
+}
 
-  try {
+export function selectGameCharacterDraftPlayer(
+  state: CharacterDraftState,
+  config: DraftSessionConfig,
+  playerId: PlayerId,
+  random: DraftRandomSource = Math.random,
+): CharacterDraftState {
+  if (state.status !== 'drafting') throw new Error('The draft is not accepting player turns.');
+  if (!state.playerOrder.includes(playerId))
+    throw new Error('The player is not part of this draft.');
+  if (state.entries.some((entry) => entry.playerId === playerId && entry.actualCharacterId)) {
+    throw new Error('The player has already completed their draft.');
+  }
+
+  const session = regenerateDraftOffer(
+    {
+      ...toSessionState({ ...state, activePlayerId: undefined }),
+      currentOffer: null,
+      status: 'drafting',
+    },
+    config,
+    random,
+  );
+  if (!session.currentOffer) {
     return {
       ...state,
-      entries: [
-        toEntry(
-          playerOrder[0],
-          session.currentOffer,
-          session.legalCandidateIds.length,
-          config,
-          session.committedCharacterIds,
-          random,
-        ),
-      ],
+      activePlayerId: undefined,
+      status: 'blocked',
+      blockedReason: session.blockedReason,
+      revision: state.revision + 1,
+    };
+  }
+
+  try {
+    const entry = toEntry(
+      playerId,
+      session.currentOffer,
+      session.legalCandidateIds.length,
+      config,
+      session.committedCharacterIds,
+      random,
+    );
+    return {
+      ...state,
+      activePlayerId: playerId,
+      entries: [...state.entries.filter((candidate) => candidate.playerId !== playerId), entry],
+      blockedReason: undefined,
+      revision: state.revision + 1,
     };
   } catch (error) {
-    return identityMaskFailure(state, 0, error);
+    return identityMaskFailure(
+      { ...state, activePlayerId: playerId },
+      state.currentPlayerIndex,
+      error,
+    );
   }
 }
 
@@ -272,7 +292,9 @@ export function resolveGameCharacterDraft(
   resolution: DraftPick['resolution'],
   random: DraftRandomSource = Math.random,
 ): CharacterDraftState {
-  const currentEntry = state.entries[state.currentPlayerIndex];
+  const currentEntry =
+    state.entries.find((entry) => entry.playerId === state.activePlayerId) ??
+    state.entries[state.currentPlayerIndex];
   if (!currentEntry) throw new Error('The game draft does not have an active player.');
   const actualCharacterId = actualCharacterIdForOffer(currentEntry, characterId);
 
@@ -284,7 +306,8 @@ export function resolveGameCharacterDraft(
     random,
   );
   const entries = [...state.entries];
-  entries[state.currentPlayerIndex] = {
+  const currentEntryIndex = entries.findIndex((entry) => entry.playerId === currentEntry.playerId);
+  entries[currentEntryIndex] = {
     ...currentEntry,
     selectedCharacterId: characterId,
     actualCharacterId,
@@ -292,7 +315,7 @@ export function resolveGameCharacterDraft(
     resolution,
   };
 
-  return withNextSession({ ...state, entries }, nextSession, config, random);
+  return withResolvedTurn({ ...state, entries }, nextSession);
 }
 
 export function regenerateGameCharacterDraftOffer(
@@ -302,12 +325,21 @@ export function regenerateGameCharacterDraftOffer(
 ): CharacterDraftState {
   const nextSession = regenerateDraftOffer(toSessionState(state), config, random);
   const currentOffer = nextSession.currentOffer;
-  if (!currentOffer) return withNextSession(state, nextSession, config, random);
+  if (!currentOffer) {
+    return {
+      ...state,
+      status: 'blocked',
+      blockedReason: nextSession.blockedReason,
+      revision: state.revision + 1,
+    };
+  }
 
   const entries = [...state.entries];
+  const activePlayerId = state.activePlayerId ?? state.playerOrder[state.currentPlayerIndex];
+  const currentEntryIndex = entries.findIndex((entry) => entry.playerId === activePlayerId);
   try {
-    entries[state.currentPlayerIndex] = toEntry(
-      state.playerOrder[state.currentPlayerIndex],
+    entries[currentEntryIndex] = toEntry(
+      activePlayerId,
       currentOffer,
       nextSession.legalCandidateIds.length,
       config,

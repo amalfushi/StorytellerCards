@@ -92,4 +92,37 @@ describe('CharacterDraftDialog', () => {
     expect(screen.getByTestId('private-draft')).toHaveTextContent('Alice');
     expect(screen.queryByText('Storyteller board')).not.toBeInTheDocument();
   });
+
+  it('lets the Storyteller choose any unresolved player', () => {
+    const onDraftChange = vi.fn();
+    render(
+      <CharacterDraftDialog
+        open
+        playerIds={['p1', 'p2', 'p3', 'p4', 'p5']}
+        playerNames={{ p1: 'Alice', p2: 'Bob', p3: 'Cara', p4: 'Dan', p5: 'Eve' }}
+        playerColors={{ p1: '#111111', p2: '#222222' }}
+        scriptCharacters={scriptCharacters}
+        draftState={{
+          status: 'drafting',
+          setupMode: 'standard',
+          presentationMode: 'open',
+          playerOrder: ['p1', 'p2', 'p3', 'p4', 'p5'],
+          currentPlayerIndex: 0,
+          entries: [],
+          revision: 1,
+        }}
+        onClose={vi.fn()}
+        onDraftChange={onDraftChange}
+        onDraftComplete={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('draft-player-p2'));
+    expect(onDraftChange).toHaveBeenCalledWith(
+      expect.objectContaining({
+        activePlayerId: 'p2',
+        entries: [expect.objectContaining({ playerId: 'p2' })],
+      }),
+    );
+  });
 });

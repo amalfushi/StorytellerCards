@@ -426,10 +426,13 @@ describe('GameViewPage', () => {
     fireEvent.click(screen.getByTestId('complete-character-draft'));
 
     expect(mockCompleteCharacterDraft).toHaveBeenCalledOnce();
+    expect(screen.getByTestId('town-square-tab')).toHaveAttribute('data-edit-mode', 'true');
+    fireEvent.click(screen.getByText('Save seating'));
+    fireEvent.click(screen.getByText('Confirm seating'));
     expect(screen.queryByTestId('demon-bluff-selection')).not.toBeInTheDocument();
   });
 
-  it('continues to Demon bluff selection after a standard draft', () => {
+  it('reviews randomized seating before continuing to Demon bluff selection', () => {
     const unassignedPlayerState = Object.fromEntries(
       Object.entries(playerState).map(([playerId, state]) => [
         playerId,
@@ -444,6 +447,13 @@ describe('GameViewPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /start character draft/i }));
     fireEvent.click(screen.getByTestId('complete-character-draft'));
 
+    expect(screen.queryByTestId('demon-bluff-selection')).not.toBeInTheDocument();
+    expect(screen.getByTestId('town-square-tab')).toHaveAttribute('data-edit-mode', 'true');
+    fireEvent.click(screen.getByText('Save seating'));
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      /confirm the randomized seating before continuing to demon bluffs/i,
+    );
+    fireEvent.click(screen.getByText('Confirm seating'));
     expect(screen.getByTestId('demon-bluff-selection')).toBeInTheDocument();
   });
 

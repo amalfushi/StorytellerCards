@@ -108,6 +108,34 @@ describe('hasLegalDraftCompletion', () => {
     }
   });
 
+  it('restricts a variable setup modifier to the Storyteller-selected value', () => {
+    const noOutsiderScript = makeStandardScript(characters('Minion', 'godfather')).filter(
+      (character) =>
+        character.type !== 'Outsider' &&
+        character.id !== 'fanggu' &&
+        character.id !== 'vigormortis',
+    );
+    const configured = {
+      playerCount: 7,
+      committedCharacterIds: ['godfather'],
+      scriptCharacters: noOutsiderScript,
+      setupMode: DraftSetupMode.Standard,
+    };
+
+    expect(
+      hasLegalDraftCompletion({
+        ...configured,
+        variableModifierValues: { godfather: -1 },
+      }),
+    ).toBe(true);
+    expect(
+      hasLegalDraftCompletion({
+        ...configured,
+        variableModifierValues: { godfather: 1 },
+      }),
+    ).toBe(false);
+  });
+
   it('supports Lord of Typhon only when the extra Minion can be filled', () => {
     const lord = characters('Demon', 'lordoftyphon');
     expect(hasLegalDraftCompletion(input(5, ['lordoftyphon'], lord))).toBe(true);
@@ -186,6 +214,23 @@ describe('hasLegalDraftCompletion', () => {
       ),
     ).toBe(false);
     expect(hasLegalDraftCompletion(input(7, ['chef', 'chef']))).toBe(false);
+  });
+
+  it('reserves an exact configured Village Idiot copy target', () => {
+    const extra = characters('Townsfolk', 'villageidiot');
+    const state = {
+      ...input(7, ['villageidiot', 'villageidiot', 'villageidiot'], extra),
+      characterCopyTargets: { villageidiot: 3 },
+    };
+
+    expect(hasLegalDraftCompletion(state)).toBe(true);
+    expect(getLegalDraftCandidates(state)).not.toContain('villageidiot');
+    expect(
+      hasLegalDraftCompletion({
+        ...state,
+        characterCopyTargets: { villageidiot: 4 },
+      }),
+    ).toBe(false);
   });
 
   it('enforces Heretic incompatibilities in either commit order', () => {

@@ -3,7 +3,7 @@
  * that respond to which characters are selected, handling all setup-affecting
  * characters including Baron, Fang Gu, Vigormortis, Balloonist, Hermit,
  * Godfather, Xaan, Kazali, Lord of Typhon, Sentinel, Legion, Atheist,
- * Lil' Monsta, and Village Idiot.
+ * Lil' Monsta, Summoner, and Village Idiot.
  *
  * Design principle: "Guide, don't gatekeep" — all targets are advisory.
  */
@@ -161,6 +161,17 @@ export function calculateAdaptiveTargets(
       characterId: 'lilmonsta',
       characterName: charName('lilmonsta'),
       description: 'Demon is a token, not a player (+1 Minion, 0 Demons)',
+    });
+  }
+
+  // ── Summoner: no starting Demon; one additional Townsfolk ──
+  if (idSet.has('summoner')) {
+    demons = 0;
+    townsfolk += 1;
+    modifiers.push({
+      characterId: 'summoner',
+      characterName: charName('summoner'),
+      description: 'No starting Demon (+1 Townsfolk, 0 Demons)',
     });
   }
 

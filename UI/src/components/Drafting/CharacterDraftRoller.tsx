@@ -21,13 +21,20 @@ import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts
 
 export interface CharacterDraftRollerProps {
   playerName: string;
+  playerColor?: string;
   scriptCharacters: CharacterDef[];
   offer: DraftOffer;
   onChoose: (characterId: string) => void;
   onMulligan: (characterId: string) => void;
 }
 
-type RollerPhase = 'ready' | 'spinning' | 'choosing' | 'mulligan-ready' | 'mulligan-spinning';
+type RollerPhase =
+  | 'ready'
+  | 'spinning'
+  | 'choosing'
+  | 'mulligan-ready'
+  | 'mulligan-spinning'
+  | 'mulligan-result';
 
 export function CharacterDraftRoller(props: CharacterDraftRollerProps) {
   const offerKey = `${props.offer.offeredCharacterIds.join('|')}|${props.offer.mulliganCharacterId}`;
@@ -36,6 +43,7 @@ export function CharacterDraftRoller(props: CharacterDraftRollerProps) {
 
 function CharacterDraftRollerOffer({
   playerName,
+  playerColor,
   scriptCharacters,
   offer,
   onChoose,
@@ -50,6 +58,9 @@ function CharacterDraftRollerOffer({
     () => new Map(scriptCharacters.map((character) => [character.id, character])),
     [scriptCharacters],
   );
+  const mulliganCharacter = offer.mulliganCharacterId
+    ? characterById.get(offer.mulliganCharacterId)
+    : undefined;
 
   const handleRoll = useCallback(async () => {
     if (phase !== 'ready') return;
@@ -74,25 +85,44 @@ function CharacterDraftRollerOffer({
     }
     setPhase('mulligan-spinning');
     await mulliganWheelRef.current.spinTo(offer.mulliganCharacterId);
-    onMulligan(offer.mulliganCharacterId);
-  }, [offer.mulliganCharacterId, onMulligan, phase]);
+    setPhase('mulligan-result');
+  }, [offer.mulliganCharacterId, phase]);
 
-  if (phase === 'mulligan-ready' || phase === 'mulligan-spinning') {
+  if (phase === 'mulligan-ready' || phase === 'mulligan-spinning' || phase === 'mulligan-result') {
     return (
       <Card data-testid="character-draft-roller">
         <CardContent>
           <Typography variant="overline" color="warning.main">
             Final Mulligan
           </Typography>
-          <Typography variant="h5" gutterBottom>
+          <Typography variant="h5" gutterBottom sx={{ color: playerColor }}>
             {playerName}
           </Typography>
           <Box sx={{ maxWidth: 360, mx: 'auto' }}>
             <CharacterWheel ref={mulliganWheelRef} characters={scriptCharacters} compact />
           </Box>
-          <Typography align="center" sx={{ mt: 2 }} color="text.secondary">
-            The mulligan result is mandatory.
-          </Typography>
+          {phase === 'mulligan-result' && mulliganCharacter ? (
+            <Stack spacing={1} alignItems="center" sx={{ mt: 2 }}>
+              <Typography variant="h5" fontWeight={900}>
+                {mulliganCharacter.name}
+              </Typography>
+              <Typography align="center" color="text.secondary">
+                {mulliganCharacter.abilityShort}
+              </Typography>
+              <Button
+                color="warning"
+                variant="contained"
+                onClick={() => onMulligan(mulliganCharacter.id)}
+                data-testid="accept-draft-mulligan"
+              >
+                Accept {mulliganCharacter.name}
+              </Button>
+            </Stack>
+          ) : (
+            <Typography align="center" sx={{ mt: 2 }} color="text.secondary">
+              The mulligan result is mandatory.
+            </Typography>
+          )}
           <Box sx={{ mt: 2, textAlign: 'center' }}>
             {phase === 'mulligan-ready' ? (
               <Button
@@ -104,11 +134,11 @@ function CharacterDraftRollerOffer({
               >
                 Roll final mulligan
               </Button>
-            ) : (
+            ) : phase === 'mulligan-spinning' ? (
               <Button color="warning" variant="contained" disabled>
                 Rolling final mulligan...
               </Button>
-            )}
+            ) : null}
           </Box>
         </CardContent>
       </Card>
@@ -121,7 +151,9 @@ function CharacterDraftRollerOffer({
         <Typography variant="overline" color="warning.main">
           Character Draft
         </Typography>
-        <Typography variant="h5">{playerName}</Typography>
+        <Typography variant="h5" sx={{ color: playerColor }}>
+          {playerName}
+        </Typography>
         <Typography color="text.secondary" sx={{ mb: 2 }}>
           Roll {offer.offeredCharacterIds.length === 1 ? 'your option' : 'your options'}, then{' '}
           {offer.mulliganCharacterId
@@ -160,7 +192,14 @@ function CharacterDraftRollerOffer({
                     }}
                     data-testid={`draft-choice-${index}`}
                   >
-                    {offer.mulliganCharacterId ? character.name : `Accept ${character.name}`}
+                    <Stack spacing={0.5}>
+                      <Typography component="span" fontWeight={800}>
+                        {offer.mulliganCharacterId ? character.name : `Accept ${character.name}`}
+                      </Typography>
+                      <Typography component="span" variant="caption" color="text.secondary">
+                        {character.abilityShort}
+                      </Typography>
+                    </Stack>
                   </Button>
                 )}
               </Stack>
