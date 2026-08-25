@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import CasinoIcon from '@mui/icons-material/Casino';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Box from '@mui/material/Box';
@@ -27,7 +27,7 @@ export interface CharacterDraftRollerProps {
   onMulligan: (characterId: string) => void;
 }
 
-type RollerPhase = 'ready' | 'spinning' | 'choosing' | 'mulligan-spinning';
+type RollerPhase = 'ready' | 'spinning' | 'choosing' | 'mulligan-ready' | 'mulligan-spinning';
 
 export function CharacterDraftRoller(props: CharacterDraftRollerProps) {
   const offerKey = `${props.offer.offeredCharacterIds.join('|')}|${props.offer.mulliganCharacterId}`;
@@ -46,17 +46,8 @@ function CharacterDraftRollerOffer({
   const thirdWheelRef = useRef<CharacterWheelHandle | null>(null);
   const wheelRefs = useMemo(() => [firstWheelRef, secondWheelRef, thirdWheelRef] as const, []);
   const mulliganWheelRef = useRef<CharacterWheelHandle | null>(null);
-  const mulliganStartedRef = useRef(false);
   const [phase, setPhase] = useState<RollerPhase>('ready');
   const [confirmMulligan, setConfirmMulligan] = useState(false);
-
-  useEffect(() => {
-    if (phase !== 'mulligan-spinning' || mulliganStartedRef.current) return;
-    mulliganStartedRef.current = true;
-    void mulliganWheelRef.current
-      ?.spinTo(offer.mulliganCharacterId)
-      .then(() => onMulligan(offer.mulliganCharacterId));
-  }, [offer.mulliganCharacterId, onMulligan, phase]);
 
   const characterById = useMemo(
     () => new Map(scriptCharacters.map((character) => [character.id, character])),
@@ -76,10 +67,17 @@ function CharacterDraftRollerOffer({
 
   const handleConfirmMulligan = useCallback(() => {
     setConfirmMulligan(false);
-    setPhase('mulligan-spinning');
+    setPhase('mulligan-ready');
   }, []);
 
-  if (phase === 'mulligan-spinning') {
+  const handleMulliganRoll = useCallback(async () => {
+    if (phase !== 'mulligan-ready' || !mulliganWheelRef.current) return;
+    setPhase('mulligan-spinning');
+    await mulliganWheelRef.current.spinTo(offer.mulliganCharacterId);
+    onMulligan(offer.mulliganCharacterId);
+  }, [offer.mulliganCharacterId, onMulligan, phase]);
+
+  if (phase === 'mulligan-ready' || phase === 'mulligan-spinning') {
     return (
       <Card data-testid="character-draft-roller">
         <CardContent>
@@ -95,6 +93,23 @@ function CharacterDraftRollerOffer({
           <Typography align="center" sx={{ mt: 2 }} color="text.secondary">
             The mulligan result is mandatory.
           </Typography>
+          <Box sx={{ mt: 2, textAlign: 'center' }}>
+            {phase === 'mulligan-ready' ? (
+              <Button
+                color="warning"
+                variant="contained"
+                startIcon={<CasinoIcon />}
+                onClick={() => void handleMulliganRoll()}
+                data-testid="roll-draft-mulligan"
+              >
+                Roll final mulligan
+              </Button>
+            ) : (
+              <Button color="warning" variant="contained" disabled>
+                Rolling final mulligan...
+              </Button>
+            )}
+          </Box>
         </CardContent>
       </Card>
     );
@@ -186,7 +201,7 @@ function CharacterDraftRollerOffer({
             onClick={handleConfirmMulligan}
             data-testid="confirm-draft-mulligan"
           >
-            Roll final mulligan
+            Continue to mulligan
           </Button>
         </DialogActions>
       </Dialog>
