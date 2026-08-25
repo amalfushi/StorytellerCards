@@ -37,8 +37,9 @@ const characters = [
   makeCharacter('imp', CharacterType.Demon),
 ];
 const offer = {
-  offeredCharacterIds: ['chef', 'empath', 'baron'] as [string, string, string],
+  offeredCharacterIds: ['chef', 'empath', 'baron'],
   mulliganCharacterId: 'imp',
+  rolledCharacterTypes: [],
 };
 
 describe('CharacterDraftRoller', () => {
@@ -106,5 +107,53 @@ describe('CharacterDraftRoller', () => {
 
     expect(spinTo).toHaveBeenCalledWith('imp');
     await waitFor(() => expect(onMulligan).toHaveBeenCalledWith('imp'));
+  });
+
+  it('renders adaptive one- and two-column offers', () => {
+    const { rerender } = render(
+      <CharacterDraftRoller
+        playerName="Player 1"
+        scriptCharacters={characters}
+        offer={{ ...offer, offeredCharacterIds: ['chef', 'empath'] }}
+        onChoose={vi.fn()}
+        onMulligan={vi.fn()}
+      />,
+    );
+    expect(screen.getAllByTestId('mock-character-wheel')).toHaveLength(2);
+
+    rerender(
+      <CharacterDraftRoller
+        playerName="Player 1"
+        scriptCharacters={characters}
+        offer={{
+          offeredCharacterIds: ['chef'],
+          mulliganCharacterId: null,
+          rolledCharacterTypes: ['Townsfolk'],
+        }}
+        onChoose={vi.fn()}
+        onMulligan={vi.fn()}
+      />,
+    );
+    expect(screen.getAllByTestId('mock-character-wheel')).toHaveLength(1);
+  });
+
+  it('omits mulligan for a mandatory single-character offer', async () => {
+    render(
+      <CharacterDraftRoller
+        playerName="Player 1"
+        scriptCharacters={characters}
+        offer={{
+          offeredCharacterIds: ['chef'],
+          mulliganCharacterId: null,
+          rolledCharacterTypes: ['Townsfolk'],
+        }}
+        onChoose={vi.fn()}
+        onMulligan={vi.fn()}
+      />,
+    );
+
+    fireEvent.click(screen.getByTestId('draft-roll-options'));
+    expect(await screen.findByTestId('draft-choice-0')).toHaveTextContent('Accept CHEF');
+    expect(screen.queryByTestId('draft-mulligan')).not.toBeInTheDocument();
   });
 });

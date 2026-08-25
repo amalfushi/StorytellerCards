@@ -15,6 +15,7 @@ const meta = {
     offer: {
       offeredCharacterIds: ['grandmother', 'lunatic', 'assassin'],
       mulliganCharacterId: 'po',
+      rolledCharacterTypes: [],
     },
     onChoose: fn(),
     onMulligan: fn(),
@@ -26,3 +27,25 @@ type Story = StoryObj<typeof meta>;
 
 /** Standard private player handoff with three unrevealed rolling columns. */
 export const StandardOffer: Story = {};
+
+/** Scarce legal pool with two visible choices and one mandatory mulligan branch. */
+export const TwoChoiceOffer: Story = {
+  args: {
+    offer: {
+      offeredCharacterIds: ['grandmother', 'lunatic'],
+      mulliganCharacterId: 'po',
+      rolledCharacterTypes: [],
+    },
+  },
+};
+
+/** Final forced role when only one legal completion remains. */
+export const MandatoryCharacter: Story = {
+  args: {
+    offer: {
+      offeredCharacterIds: ['grandmother'],
+      mulliganCharacterId: null,
+      rolledCharacterTypes: ['Townsfolk'],
+    },
+  },
+};

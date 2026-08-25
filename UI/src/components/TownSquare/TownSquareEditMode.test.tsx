@@ -292,9 +292,8 @@ describe('TownSquareEditMode', () => {
       },
     });
 
-    fireEvent.click(screen.getByRole('button', { name: /^assign characters$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /^select characters$/i }));
 
-    expect(screen.queryByRole('button', { name: /^select characters$/i })).not.toBeInTheDocument();
     expect(onOpenCharacterSelection).not.toHaveBeenCalled();
     expect(onOpenCharacterAssignment).toHaveBeenCalledOnce();
   });
@@ -320,7 +319,7 @@ describe('TownSquareEditMode', () => {
       <TownSquareEditMode
         game={{
           ...game,
-          startedAt: '2026-08-22T20:00:00.000Z',
+          currentPhase: 'Night',
           playerState: { ...game.playerState, p1: makeState() },
         }}
         sessionPlayers={players}

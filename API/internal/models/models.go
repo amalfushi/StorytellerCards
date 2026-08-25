@@ -180,6 +180,34 @@ type PlayerGameState struct {
 	CharacterID         string            `json:"characterId,omitempty"`
 }
 
+type CharacterDraftOffer struct {
+	OfferedCharacterIds           []string          `json:"offeredCharacterIds"`
+	MulliganCharacterID           *string           `json:"mulliganCharacterId"`
+	RolledCharacterTypes          []string          `json:"rolledCharacterTypes"`
+	LegalCandidateCount           int               `json:"legalCandidateCount"`
+	ActualCharacterIdsByOfferedID map[string]string `json:"actualCharacterIdsByOfferedId,omitempty"`
+}
+
+type CharacterDraftEntry struct {
+	PlayerID            string              `json:"playerId"`
+	Offer               CharacterDraftOffer `json:"offer"`
+	SelectedCharacterID string              `json:"selectedCharacterId,omitempty"`
+	ActualCharacterID   string              `json:"actualCharacterId,omitempty"`
+	ApparentCharacterID string              `json:"apparentCharacterId,omitempty"`
+	Resolution          string              `json:"resolution,omitempty"`
+}
+
+type CharacterDraftState struct {
+	Status             string                `json:"status"`
+	SetupMode          string                `json:"setupMode"`
+	PresentationMode   string                `json:"presentationMode"`
+	PlayerOrder        []string              `json:"playerOrder"`
+	CurrentPlayerIndex int                   `json:"currentPlayerIndex"`
+	Entries            []CharacterDraftEntry `json:"entries"`
+	BlockedReason      string                `json:"blockedReason,omitempty"`
+	Revision           int                   `json:"revision"`
+}
+
 // ──────────────────────────────────────────────
 // Night History
 // ──────────────────────────────────────────────
@@ -214,6 +242,7 @@ type Game struct {
 	ActiveFabled         []string                   `json:"activeFabled,omitempty"`
 	ActiveLoric          []string                   `json:"activeLoric,omitempty"`
 	InPlayCharacterIds   []string                   `json:"inPlayCharacterIds,omitempty"`
+	CharacterDraft       *CharacterDraftState       `json:"characterDraft,omitempty"`
 	DemonBluffs          []string                   `json:"demonBluffs,omitempty"`
 	LunaticBluffs        []string                   `json:"lunaticBluffs,omitempty"`
 	PlayerBluffs         map[string][]string        `json:"playerBluffs,omitempty"` // keyed by PlayerID

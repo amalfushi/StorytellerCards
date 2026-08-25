@@ -6,9 +6,18 @@ import {
 } from '@/utils/drafting/draftFeasibility.ts';
 import type { DraftSetupMode } from '@/utils/drafting/draftRules.ts';
 
+export const DraftPresentationMode = {
+  Open: 'open',
+  SecretSingleType: 'secret-single-type',
+  SecretTwoTypes: 'secret-two-types',
+} as const;
+export type DraftPresentationMode =
+  (typeof DraftPresentationMode)[keyof typeof DraftPresentationMode];
+
 export interface DraftOffer {
-  offeredCharacterIds: [string, string, string];
-  mulliganCharacterId: string;
+  offeredCharacterIds: string[];
+  mulliganCharacterId: string | null;
+  rolledCharacterTypes: DraftCharacter['type'][];
 }
 
 export interface DraftPick {
@@ -21,6 +30,7 @@ export interface DraftSessionConfig {
   playerCount: number;
   scriptCharacters: readonly DraftCharacter[];
   setupMode: DraftSetupMode;
+  presentationMode?: DraftPresentationMode;
 }
 
 export interface DraftSessionState {
@@ -91,6 +101,46 @@ function mixCandidateTypes(
   return mixed;
 }
 
+function getPresentationPool(
+  candidateIds: readonly string[],
+  config: DraftSessionConfig,
+  random: DraftRandomSource,
+): { candidateIds: string[]; rolledCharacterTypes: DraftCharacter['type'][] } {
+  const mode = config.presentationMode ?? DraftPresentationMode.Open;
+  if (mode === DraftPresentationMode.Open) {
+    return {
+      candidateIds: mixCandidateTypes(candidateIds, config.scriptCharacters, random),
+      rolledCharacterTypes: [],
+    };
+  }
+
+  const typeById = new Map(
+    config.scriptCharacters.map((character) => [character.id, character.type]),
+  );
+  const feasibleTypes = shuffle(
+    [
+      ...new Set(
+        candidateIds
+          .map((id) => typeById.get(id))
+          .filter((type): type is DraftCharacter['type'] => type !== undefined),
+      ),
+    ],
+    random,
+  );
+  const typeCount = mode === DraftPresentationMode.SecretSingleType ? 1 : 2;
+  const rolledCharacterTypes = feasibleTypes.slice(0, typeCount);
+  const allowedTypes = new Set(rolledCharacterTypes);
+  const restrictedCandidates = candidateIds.filter((id) => {
+    const type = typeById.get(id);
+    return type !== undefined && allowedTypes.has(type);
+  });
+
+  return {
+    candidateIds: mixCandidateTypes(restrictedCandidates, config.scriptCharacters, random),
+    rolledCharacterTypes,
+  };
+}
+
 function toFeasibilityInput(
   config: DraftSessionConfig,
   committedCharacterIds: readonly string[],
@@ -112,27 +162,24 @@ export function generateDraftOffer(
     toFeasibilityInput(config, committedCharacterIds),
   );
 
-  if (legalCandidateIds.length < 4) {
+  if (legalCandidateIds.length === 0) {
     return {
       offer: null,
       legalCandidateIds,
-      blockedReason:
-        legalCandidateIds.length === 0
-          ? 'No character leaves a legal completion from this draft state.'
-          : `Only ${legalCandidateIds.length} distinct legal character${legalCandidateIds.length === 1 ? ' remains' : 's remain'}. Three choices plus a different mulligan require at least four.`,
+      blockedReason: 'No character leaves a legal completion from this draft state.',
     };
   }
 
-  const [first, second, third, mulligan] = mixCandidateTypes(
-    legalCandidateIds,
-    config.scriptCharacters,
-    random,
-  );
+  const presentation = getPresentationPool(legalCandidateIds, config, random);
+  const optionCount = Math.min(3, Math.max(1, presentation.candidateIds.length - 1));
+  const offeredCharacterIds = presentation.candidateIds.slice(0, optionCount);
+  const mulliganCharacterId = presentation.candidateIds[optionCount] ?? null;
 
   return {
     offer: {
-      offeredCharacterIds: [first, second, third],
-      mulliganCharacterId: mulligan,
+      offeredCharacterIds,
+      mulliganCharacterId,
+      rolledCharacterTypes: presentation.rolledCharacterTypes,
     },
     legalCandidateIds,
   };
@@ -184,8 +231,14 @@ export function resolveDraftPick(
     throw new Error('The draft does not have an active offer.');
   }
 
+  if (resolution === 'mulligan' && offer.mulliganCharacterId === null) {
+    throw new Error('This offer does not have a mulligan.');
+  }
+
   const validCharacterIds =
-    resolution === 'mulligan' ? [offer.mulliganCharacterId] : offer.offeredCharacterIds;
+    resolution === 'mulligan' && offer.mulliganCharacterId
+      ? [offer.mulliganCharacterId]
+      : offer.offeredCharacterIds;
   if (!validCharacterIds.includes(characterId)) {
     throw new Error('The selected character is not valid for this offer.');
   }

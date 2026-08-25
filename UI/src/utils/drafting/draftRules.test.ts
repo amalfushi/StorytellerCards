@@ -8,6 +8,7 @@ import {
   getCharacterDraftRule,
   getMaximumDraftCopies,
   isPlayerDraftable,
+  isProductionDraftSetupMode,
 } from '@/utils/drafting/draftRules.ts';
 
 describe('character draft rules', () => {
@@ -17,6 +18,12 @@ describe('character draft rules', () => {
     expect(getCharacterDraftRule('lilmonsta')?.setupMode).toBe(DraftSetupMode.LilMonsta);
     expect(getCharacterDraftRule('summoner')?.setupMode).toBe(DraftSetupMode.Summoner);
     expect(getCharacterDraftRule('kazali')?.setupMode).toBe(DraftSetupMode.Kazali);
+  });
+
+  it('gates Kazali until its hidden conversion workflow is implemented', () => {
+    expect(isProductionDraftSetupMode(DraftSetupMode.Standard)).toBe(true);
+    expect(isProductionDraftSetupMode(DraftSetupMode.Atheist)).toBe(true);
+    expect(isProductionDraftSetupMode(DraftSetupMode.Kazali)).toBe(false);
   });
 
   it('keeps Lil Monsta out of player-owned draft options', () => {

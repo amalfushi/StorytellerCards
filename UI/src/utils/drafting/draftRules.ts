@@ -190,3 +190,7 @@ export function getMaximumDraftCopies(characterId: string): number {
 export function isPlayerDraftable(characterId: string): boolean {
   return CHARACTER_DRAFT_RULES[characterId]?.ownership !== DraftOwnership.SetupOnly;
 }
+
+export function isProductionDraftSetupMode(mode: DraftSetupMode): boolean {
+  return mode !== DraftSetupMode.Kazali;
+}

@@ -41,10 +41,7 @@ function CharacterDraftRollerOffer({
   onChoose,
   onMulligan,
 }: CharacterDraftRollerProps) {
-  const firstWheelRef = useRef<CharacterWheelHandle | null>(null);
-  const secondWheelRef = useRef<CharacterWheelHandle | null>(null);
-  const thirdWheelRef = useRef<CharacterWheelHandle | null>(null);
-  const wheelRefs = useMemo(() => [firstWheelRef, secondWheelRef, thirdWheelRef] as const, []);
+  const wheelRefs = useRef<(CharacterWheelHandle | null)[]>([]);
   const mulliganWheelRef = useRef<CharacterWheelHandle | null>(null);
   const [phase, setPhase] = useState<RollerPhase>('ready');
   const [confirmMulligan, setConfirmMulligan] = useState(false);
@@ -59,19 +56,22 @@ function CharacterDraftRollerOffer({
     setPhase('spinning');
     await Promise.all(
       offer.offeredCharacterIds.map((characterId, index) =>
-        wheelRefs[index].current?.spinTo(characterId),
+        wheelRefs.current[index]?.spinTo(characterId),
       ),
     );
     setPhase('choosing');
-  }, [offer.offeredCharacterIds, phase, wheelRefs]);
+  }, [offer.offeredCharacterIds, phase]);
 
   const handleConfirmMulligan = useCallback(() => {
+    if (!offer.mulliganCharacterId) return;
     setConfirmMulligan(false);
     setPhase('mulligan-ready');
-  }, []);
+  }, [offer.mulliganCharacterId]);
 
   const handleMulliganRoll = useCallback(async () => {
-    if (phase !== 'mulligan-ready' || !mulliganWheelRef.current) return;
+    if (phase !== 'mulligan-ready' || !mulliganWheelRef.current || !offer.mulliganCharacterId) {
+      return;
+    }
     setPhase('mulligan-spinning');
     await mulliganWheelRef.current.spinTo(offer.mulliganCharacterId);
     onMulligan(offer.mulliganCharacterId);
@@ -123,13 +123,18 @@ function CharacterDraftRollerOffer({
         </Typography>
         <Typography variant="h5">{playerName}</Typography>
         <Typography color="text.secondary" sx={{ mb: 2 }}>
-          Roll three options, then choose one or take the final mulligan.
+          Roll {offer.offeredCharacterIds.length === 1 ? 'your option' : 'your options'}, then{' '}
+          {offer.mulliganCharacterId
+            ? 'choose one or take the final mulligan.'
+            : 'accept the required character.'}
         </Typography>
 
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: { xs: 'repeat(3, minmax(0, 1fr))' },
+            gridTemplateColumns: {
+              xs: `repeat(${offer.offeredCharacterIds.length}, minmax(0, 1fr))`,
+            },
             gap: { xs: 0.5, sm: 2 },
           }}
         >
@@ -137,7 +142,13 @@ function CharacterDraftRollerOffer({
             const character = characterById.get(characterId);
             return (
               <Stack key={`${index}-${characterId}`} spacing={1} sx={{ minWidth: 0 }}>
-                <CharacterWheel ref={wheelRefs[index]} characters={scriptCharacters} compact />
+                <CharacterWheel
+                  ref={(handle) => {
+                    wheelRefs.current[index] = handle;
+                  }}
+                  characters={scriptCharacters}
+                  compact
+                />
                 {phase === 'choosing' && character && (
                   <Button
                     variant="outlined"
@@ -149,7 +160,7 @@ function CharacterDraftRollerOffer({
                     }}
                     data-testid={`draft-choice-${index}`}
                   >
-                    {character.name}
+                    {offer.mulliganCharacterId ? character.name : `Accept ${character.name}`}
                   </Button>
                 )}
               </Stack>
@@ -173,7 +184,7 @@ function CharacterDraftRollerOffer({
               Rolling...
             </Button>
           )}
-          {phase === 'choosing' && (
+          {phase === 'choosing' && offer.mulliganCharacterId && (
             <Button
               color="warning"
               variant="contained"
@@ -190,8 +201,9 @@ function CharacterDraftRollerOffer({
       <Dialog open={confirmMulligan} onClose={() => setConfirmMulligan(false)}>
         <DialogTitle>Take the mulligan?</DialogTitle>
         <DialogContent>
-          This replaces all three choices with one random character. The result is final and must be
-          played.
+          This replaces all {offer.offeredCharacterIds.length}{' '}
+          {offer.offeredCharacterIds.length === 1 ? 'choice' : 'choices'} with one random character.
+          The result is final and must be played.
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmMulligan(false)}>Keep my choices</Button>

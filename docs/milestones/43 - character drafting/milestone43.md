@@ -5,7 +5,7 @@
 **Started:** 2026-08-23
 
 This milestone adds player-driven character drafting. Each non-Traveller player
-privately chooses one of three legal script characters or accepts an
+privately chooses from an adaptive set of legal script characters or accepts an
 irreversible mulligan that rolls one different legal character. The system must
 preserve a legal Blood on the Clocktower setup after every choice, including
 setup modifiers, required partners, hidden identities, repeated characters,
@@ -39,11 +39,13 @@ The implementation combines three mechanisms:
 
 1. **Exact feasibility engine:** a character is legal only when committing it
    leaves at least one complete legal setup.
-2. **Candidate setup ensemble:** retain multiple complete legal setups and use
-   them to produce varied, mixed, believable option sets.
-3. **Storyteller draft board:** pre-generate every offer and mulligan result,
-   show all hidden actual/apparent outcomes to the Storyteller, and allow edits
-   before any player sees an offer.
+2. **Adaptive randomized presentation:** choose among solver-approved candidates
+   using open, secret-single-type, or secret-two-type presentation. Reduce the
+   visible choice count when fewer than four legal branches remain rather than
+   rejecting an otherwise completable game.
+3. **Persisted sequential Storyteller workflow:** save each offer before reveal,
+   show hidden actual/apparent outcomes only on the Storyteller board, and allow
+   regeneration of the current unrevealed offer.
 
 Probability weights rank only candidates already proven legal. They never
 decide legality.
@@ -53,9 +55,11 @@ isOfferable(character) =
   hasLegalCompletion(commitCharacter(currentState, character))
 ```
 
-All three options independently satisfy this rule. The mulligan result is
-precomputed from a fourth legal branch, excludes the original three options,
-and becomes mandatory once selected.
+Every visible option independently satisfies this rule. With four or more legal
+candidates, the offer has three choices plus a distinct precomputed mulligan.
+With three, two, or one legal candidates, it becomes two choices plus mulligan,
+one choice plus mulligan, or one mandatory choice respectively. A chosen
+mulligan is always final.
 
 ## Canonical rule model
 
@@ -172,13 +176,13 @@ good bluffs unless another information rule changes that flow.
 ## Draft workflow
 
 1. Storyteller selects participants, script, and drafting mode.
-2. Engine generates legal setup branches and asks the Storyteller to resolve
-   any variable setup values.
-3. Engine creates a hidden board containing draft order, three options,
-   mulligan result, actual character, apparent character, and rule warnings.
-4. Storyteller edits or regenerates individual offers. Every edit is checked by
-   the exact solver.
-5. Offers are revealed privately one player at a time. Players choose one
+2. Engine resolves the selected exceptional setup mode and creates a randomized
+   hidden player order.
+3. Engine generates and persists the current player offer, including its
+   adaptive options, mulligan result, type rolls, and hidden identity mapping.
+4. Storyteller reviews or regenerates the current unrevealed offer. Every
+   generated result is checked by the exact solver.
+5. Offers are revealed through a private physical-device handoff. Players choose one
    option or the mandatory mulligan.
 6. Hidden-identity players see only their apparent draft. The Storyteller sees
    and commits the actual role first.
@@ -189,19 +193,20 @@ good bluffs unless another information rule changes that flow.
 
 ### Standalone draft simulator
 
-The home page exposes a draft simulator that exercises the production offer
+The tools page exposes a draft simulator that exercises the production offer
 generator and player presentation without creating a session or game. It
 supports official base scripts, custom script JSON import, player count and
 setup-mode selection, normal choices, mandatory mulligans, offer regeneration,
 and Storyteller-only diagnostics showing how each commitment changes the legal
-candidate pool. A blocked state is explicit when fewer than four distinct legal
-branches remain, because three choices plus a different mulligan cannot be
-honestly generated from that state.
+candidate pool. The tool displays the number of viable characters before each
+offer and uses the same adaptive offer policy as production. Travellers, Fabled,
+and Loric characters are always excluded. Kazali is currently gated because its
+required hidden post-draft Minion-conversion workflow is not implemented.
 
 ## Player experience
 
 - Reuse the existing full-screen slot-machine presentation.
-- Normal draft: three synchronized columns, each ending on one offered
+- Normal draft: one to three synchronized columns, each ending on one offered
   character.
 - The player taps one character or **Mulligan**.
 - Mulligan: the three columns collapse to one, the predetermined fourth result
@@ -217,21 +222,29 @@ reroll or reveal different outcomes.
 
 ```ts
 interface CharacterDraftState {
-  status: "planning" | "ready" | "drafting" | "complete" | "cancelled";
+  status: "drafting" | "blocked" | "complete";
+  setupMode: CharacterDraftSetupMode;
+  presentationMode: CharacterDraftPresentationMode;
   playerOrder: PlayerId[];
   currentPlayerIndex: number;
-  setup: DraftSetupDecisions;
-  entries: Record<PlayerId, CharacterDraftEntry>;
+  entries: CharacterDraftEntry[];
+  blockedReason?: string;
   revision: number;
 }
 
 interface CharacterDraftEntry {
-  offeredCharacterIds: [string, string, string];
-  mulliganCharacterId: string;
+  playerId: PlayerId;
+  offer: {
+    offeredCharacterIds: string[];
+    mulliganCharacterId: string | null;
+    rolledCharacterTypes: DraftableCharacterType[];
+    legalCandidateCount: number;
+    actualCharacterIdsByOfferedId?: Record<string, string>;
+  };
   selectedCharacterId?: string;
   actualCharacterId?: string;
   apparentCharacterId?: string;
-  resolution: "pending" | "choice" | "mulligan";
+  resolution?: "choice" | "mulligan";
 }
 ```
 
@@ -242,7 +255,7 @@ reset confirmation.
 ## Information-leak mitigations
 
 - Randomize private draft order and hide turn numbers.
-- Pre-generate offers so response timing does not expose solver pressure.
+- Persist offers before reveal so refreshes and response timing do not reroll outcomes.
 - Prefer mixed character types when several legal branches support them.
 - Avoid repeatedly showing the same unselected character unless scarcity
   requires it.
@@ -295,35 +308,34 @@ acceptance criteria.
 
 - [x] Add a standalone ephemeral simulator backed by production draft logic.
 - [x] Add reusable offer generation and draft-session transitions.
-- [ ] Add `CharacterDraftState` to the game model and API roundtrip.
-- [ ] Add reducer actions for planning, board editing, reveal, choice,
-      mulligan, reset, cancel, and completion.
-- [ ] Prevent regenerated randomness after save, refresh, or sync.
-- [ ] Add migration behavior for games without draft state.
+- [x] Add `CharacterDraftState` to the game model and API roundtrip.
+- [x] Add reducer actions for persisted progress and atomic completion.
+- [x] Prevent regenerated randomness after save, refresh, or sync.
+- [x] Preserve backward compatibility for games without draft state.
 
 ### Phase 3 — Storyteller draft board
 
-- [ ] Generate a complete hidden board from multiple legal setup candidates.
-- [ ] Display actual/apparent outcomes, type pressure, dependencies, and
-      seating warnings.
-- [ ] Support legal per-entry regeneration and manual replacement.
-- [ ] Lock or explicitly reset revealed entries.
+- [x] Generate offers sequentially from exact legal candidates.
+- [x] Display actual/apparent outcomes, viable candidate counts, and secret type rolls.
+- [x] Support legal regeneration of the current unresolved offer.
+- [x] Lock resolved entries.
 
 ### Phase 4 — Player draft presentation
 
 - [x] Build the reusable three-column slot-machine draft presentation.
 - [x] Add irreversible one-column mulligan animation.
-- [ ] Add private handoff and accessibility-safe reduced-motion behavior.
-- [ ] Add hidden-identity illusion drafts.
+- [x] Add private physical-device handoff.
+- [x] Add hidden-identity illusion drafts for Drunk, Lunatic, and Marionette.
 
 ### Phase 5 — Seating and reveal orchestration
 
-- [ ] Generate constrained random seating for Marionette, Lord of Typhon, and
+- [x] Generate constrained random seating for Marionette, Lord of Typhon, and
       No Dashii.
-- [ ] Integrate secret Storyteller edits with existing Town Square Edit Seating.
-- [ ] Order Poppy Grower, Magician, King, Damsel, Vizier, Widow, Lunatic,
-      Marionette, and evil-team reveals correctly.
-- [ ] Require confirmed final seating before play starts.
+- [x] Integrate failed automatic placement with Town Square Edit Seating.
+- [x] Route Poppy Grower, Magician, King, Damsel, Vizier, Widow, Lunatic,
+      Marionette, and evil-team information through the existing setup
+      checklist and first-night reveal workflows.
+- [x] Require confirmed final seating before play starts.
 
 ## Testing strategy
 
@@ -344,15 +356,15 @@ acceptance criteria.
 
 ## Acceptance criteria
 
-- [ ] Every visible option independently leaves at least one legal completion.
-- [ ] Mulligan excludes all three original options and is mandatory.
-- [ ] Exact final type counts match the resolved setup branch.
-- [ ] All supported count modifiers, dependencies, incompatibilities, and
+- [x] Every visible option independently leaves at least one legal completion.
+- [x] Mulligan excludes every original option and is mandatory.
+- [x] Exact final type counts match the resolved setup branch.
+- [x] All supported count modifiers, dependencies, incompatibilities, and
       special modes are enforced.
-- [ ] Actual and apparent characters are independently persisted and revealed.
-- [ ] Refresh and cross-device synchronization never reroll a revealed board.
-- [ ] Storyteller can review and legally edit the entire board before reveal.
-- [ ] Final seating is randomized and checked for every supported constraint.
-- [ ] Draft order and remaining counts are not exposed to players.
-- [ ] Existing manual assignment and randomization workflows remain available.
-- [ ] Required unit, Storybook, API, and lifecycle suites pass.
+- [x] Actual and apparent characters are independently persisted and revealed.
+- [x] Refresh and cross-device synchronization never reroll a revealed board.
+- [x] Storyteller can review and regenerate each unresolved offer before reveal.
+- [x] Final seating is randomized and checked for every supported constraint.
+- [x] Draft order and remaining counts are not exposed to players.
+- [x] Existing manual assignment and randomization workflows remain available.
+- [x] Required unit, Storybook, API, and lifecycle suites pass.

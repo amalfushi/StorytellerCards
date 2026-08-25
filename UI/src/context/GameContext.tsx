@@ -14,6 +14,7 @@ import type {
   GainedAbility,
   SlotId,
   Slot,
+  CharacterDraftState,
 } from '@/types/index.ts';
 import { Phase, Alignment, CharacterType } from '@/types/index.ts';
 import { getCharacter } from '@/data/characters/index.ts';
@@ -214,6 +215,11 @@ type GameAction =
   | { type: 'ADD_LORIC'; payload: { characterId: string } }
   | { type: 'REMOVE_LORIC'; payload: { characterId: string } }
   | { type: 'SET_IN_PLAY_CHARACTERS'; payload: { characterIds: string[] } }
+  | { type: 'SET_CHARACTER_DRAFT'; payload: { draft: CharacterDraftState | undefined } }
+  | {
+      type: 'COMPLETE_CHARACTER_DRAFT';
+      payload: { draft: CharacterDraftState; slots: Slot[] };
+    }
   | { type: 'SET_APPARENT_CHARACTER'; payload: { playerId: PlayerId; apparentCharacterId: string } }
   | { type: 'SET_DEMON_BLUFFS'; payload: { characterIds: string[] } }
   | { type: 'SET_LUNATIC_BLUFFS'; payload: { characterIds: string[] } }
@@ -666,6 +672,47 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       return { ...state, game: { ...state.game, inPlayCharacterIds: action.payload.characterIds } };
     }
 
+    case 'SET_CHARACTER_DRAFT': {
+      if (!state.game) return state;
+      return { ...state, game: { ...state.game, characterDraft: action.payload.draft } };
+    }
+
+    case 'COMPLETE_CHARACTER_DRAFT': {
+      if (!state.game) return state;
+      const playerState = { ...state.game.playerState };
+      const inPlayCharacterIds: string[] =
+        action.payload.draft.setupMode === 'lilmonsta' ? ['lilmonsta'] : [];
+
+      for (const entry of action.payload.draft.entries) {
+        if (!entry.actualCharacterId || !playerState[entry.playerId]) continue;
+        const character = getCharacter(entry.actualCharacterId);
+        const alignment = character ? deriveAlignmentFromType(character.type) : undefined;
+        playerState[entry.playerId] = {
+          ...playerState[entry.playerId],
+          characterId: entry.actualCharacterId,
+          apparentCharacterId:
+            entry.apparentCharacterId && entry.apparentCharacterId !== entry.actualCharacterId
+              ? entry.apparentCharacterId
+              : undefined,
+          actualAlignment: alignment ?? playerState[entry.playerId].actualAlignment,
+          startingAlignment: alignment ?? playerState[entry.playerId].startingAlignment,
+        };
+        inPlayCharacterIds.push(entry.actualCharacterId);
+      }
+
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          slots: action.payload.slots,
+          playerState,
+          inPlayCharacterIds,
+          characterDraft: action.payload.draft,
+          seatingConfirmed: false,
+        },
+      };
+    }
+
     case 'SET_APPARENT_CHARACTER': {
       if (!state.game) return state;
       const { playerId, apparentCharacterId } = action.payload;
@@ -994,6 +1041,8 @@ export interface GameContextValue {
   addLoric: (characterId: string) => void;
   removeLoric: (characterId: string) => void;
   setInPlayCharacters: (characterIds: string[]) => void;
+  setCharacterDraft: (draft: CharacterDraftState | undefined) => void;
+  completeCharacterDraft: (draft: CharacterDraftState, slots: Slot[]) => void;
   setApparentCharacter: (playerId: PlayerId, apparentCharacterId: string) => void;
   setDemonBluffs: (characterIds: string[]) => void;
   setLunaticBluffs: (characterIds: string[]) => void;
@@ -1479,6 +1528,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_IN_PLAY_CHARACTERS', payload: { characterIds } });
   }, []);
 
+  const setCharacterDraft = useCallback((draft: CharacterDraftState | undefined) => {
+    dispatch({ type: 'SET_CHARACTER_DRAFT', payload: { draft } });
+  }, []);
+
+  const completeCharacterDraft = useCallback((draft: CharacterDraftState, slots: Slot[]) => {
+    dispatch({ type: 'COMPLETE_CHARACTER_DRAFT', payload: { draft, slots } });
+  }, []);
+
   const setApparentCharacter = useCallback((playerId: PlayerId, apparentCharacterId: string) => {
     dispatch({ type: 'SET_APPARENT_CHARACTER', payload: { playerId, apparentCharacterId } });
   }, []);
@@ -1600,6 +1657,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
     addLoric,
     removeLoric,
     setInPlayCharacters,
+    setCharacterDraft,
+    completeCharacterDraft,
     setApparentCharacter,
     setDemonBluffs,
     setLunaticBluffs,

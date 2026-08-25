@@ -3,11 +3,13 @@ import { Alignment, CharacterType, type CharacterDef } from '@/types/index.ts';
 import { DraftSetupMode } from '@/utils/drafting/draftRules.ts';
 import {
   createDraftSession,
+  DraftPresentationMode,
   generateDraftOffer,
   regenerateDraftOffer,
   resolveDraftPick,
   toDraftCharacters,
   type DraftSessionConfig,
+  type DraftSessionState,
 } from '@/utils/drafting/draftSession.ts';
 
 function makeCharacter(
@@ -59,7 +61,7 @@ describe('draftSession', () => {
     const result = generateDraftOffer(config, [], () => 0);
 
     expect(result.offer).not.toBeNull();
-    const ids = [...result.offer!.offeredCharacterIds, result.offer!.mulliganCharacterId];
+    const ids = [...result.offer!.offeredCharacterIds, result.offer!.mulliganCharacterId as string];
     expect(new Set(ids).size).toBe(4);
     expect(ids.every((id) => result.legalCandidateIds.includes(id))).toBe(true);
   });
@@ -74,7 +76,7 @@ describe('draftSession', () => {
     expect(offeredTypes.size).toBeGreaterThan(1);
   });
 
-  it('reports an explicit blocked state when four distinct branches are unavailable', () => {
+  it('forces a single legal character instead of blocking', () => {
     const narrowConfig: DraftSessionConfig = {
       playerCount: 5,
       setupMode: DraftSetupMode.Standard,
@@ -88,9 +90,64 @@ describe('draftSession', () => {
     };
 
     const result = generateDraftOffer(narrowConfig, ['t1', 't2', 't3', 'm1']);
-    expect(result.offer).toBeNull();
+    expect(result.offer).toEqual({
+      offeredCharacterIds: ['d1'],
+      mulliganCharacterId: null,
+      rolledCharacterTypes: [],
+    });
     expect(result.legalCandidateIds).toEqual(['d1']);
-    expect(result.blockedReason).toContain('require at least four');
+  });
+
+  it.each([
+    { candidates: 4, visible: 3, hasMulligan: true },
+    { candidates: 3, visible: 2, hasMulligan: true },
+    { candidates: 2, visible: 1, hasMulligan: true },
+    { candidates: 1, visible: 1, hasMulligan: false },
+  ])(
+    'uses $visible choices when $candidates legal candidates remain',
+    ({ candidates, visible, hasMulligan }) => {
+      const scriptCharacters = [
+        { id: 'base-t1', type: CharacterType.Townsfolk },
+        { id: 'base-t2', type: CharacterType.Townsfolk },
+        ...Array.from({ length: candidates }, (_, index) => ({
+          id: `t${index}`,
+          type: CharacterType.Townsfolk,
+        })),
+        { id: 'm1', type: CharacterType.Minion },
+        { id: 'd1', type: CharacterType.Demon },
+      ];
+      const adaptiveConfig: DraftSessionConfig = {
+        playerCount: 5,
+        scriptCharacters,
+        setupMode: DraftSetupMode.Standard,
+      };
+      const result = generateDraftOffer(
+        adaptiveConfig,
+        ['base-t1', 'base-t2', 'm1', 'd1'],
+        () => 0,
+      );
+
+      expect(result.offer?.offeredCharacterIds).toHaveLength(visible);
+      expect(result.offer?.mulliganCharacterId !== null).toBe(hasMulligan);
+    },
+  );
+
+  it('restricts secret type offers after exact legal candidates are known', () => {
+    const result = generateDraftOffer(
+      { ...config, presentationMode: DraftPresentationMode.SecretSingleType },
+      [],
+      () => 0,
+    );
+
+    expect(result.offer?.rolledCharacterTypes).toHaveLength(1);
+    const typeById = new Map(
+      config.scriptCharacters.map((character) => [character.id, character.type]),
+    );
+    expect(
+      result.offer?.offeredCharacterIds.every(
+        (id) => typeById.get(id) === result.offer?.rolledCharacterTypes[0],
+      ),
+    ).toBe(true);
   });
 
   it('commits a normal choice and generates the next offer', () => {
@@ -109,10 +166,39 @@ describe('draftSession', () => {
   it('commits only the predetermined mulligan character for a mulligan', () => {
     const state = createDraftSession(config, () => 0);
     const mulliganId = state.currentOffer!.mulliganCharacterId;
+    expect(mulliganId).not.toBeNull();
+    if (!mulliganId) throw new Error('Expected a mulligan character.');
     const next = resolveDraftPick(state, config, mulliganId, 'mulligan', () => 0);
 
     expect(next.committedCharacterIds).toEqual([mulliganId]);
     expect(next.picks[0].resolution).toBe('mulligan');
+  });
+
+  it('rejects a mulligan when only a mandatory character remains', () => {
+    const narrowConfig: DraftSessionConfig = {
+      playerCount: 5,
+      setupMode: DraftSetupMode.Standard,
+      scriptCharacters: [
+        { id: 't1', type: CharacterType.Townsfolk },
+        { id: 't2', type: CharacterType.Townsfolk },
+        { id: 't3', type: CharacterType.Townsfolk },
+        { id: 'm1', type: CharacterType.Minion },
+        { id: 'd1', type: CharacterType.Demon },
+      ],
+    };
+    const generated = generateDraftOffer(narrowConfig, ['t1', 't2', 't3', 'm1'], () => 0);
+    const forcedState: DraftSessionState = {
+      committedCharacterIds: ['t1', 't2', 't3', 'm1'],
+      picks: [],
+      currentOffer: generated.offer,
+      legalCandidateIds: generated.legalCandidateIds,
+      status: 'drafting',
+    };
+
+    expect(forcedState.currentOffer?.mulliganCharacterId).toBeNull();
+    expect(() => resolveDraftPick(forcedState, narrowConfig, 'd1', 'mulligan')).toThrow(
+      'does not have a mulligan',
+    );
   });
 
   it('rejects a selection outside the active branch', () => {

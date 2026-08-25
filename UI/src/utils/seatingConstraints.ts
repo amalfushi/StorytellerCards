@@ -136,9 +136,22 @@ function checkLordOfTyphonConstraint(assignments: SeatedAssignment[]): SeatingWa
   }
 
   if (evilSeats.length >= 3) {
-    const sorted = [...evilSeatNumbers].sort((a, b) => a - b);
-    const typhonIndex = sorted.indexOf(typhonSeat.seat);
-    const isMiddle = typhonIndex > 0 && typhonIndex < sorted.length - 1;
+    const evilSeatSet = new Set(evilSeatNumbers);
+    const isMiddle = Array.from({ length: totalSeats }, (_, start) =>
+      Array.from(
+        { length: evilSeatNumbers.length },
+        (_, offset) => ((start + offset) % totalSeats) + 1,
+      ),
+    ).some((line) => {
+      const middleIndexes =
+        line.length % 2 === 0
+          ? [line.length / 2 - 1, line.length / 2]
+          : [Math.floor(line.length / 2)];
+      return (
+        line.every((seat) => evilSeatSet.has(seat)) &&
+        middleIndexes.some((index) => line[index] === typhonSeat.seat)
+      );
+    });
 
     if (!isMiddle) {
       warnings.push({
@@ -153,13 +166,43 @@ function checkLordOfTyphonConstraint(assignments: SeatedAssignment[]): SeatingWa
   return warnings;
 }
 
+function checkNoDashiiConstraint(assignments: SeatedAssignment[]): SeatingWarning[] {
+  const noDashiiSeat = assignments.find(
+    (assignment) => assignment.state.characterId === 'nodashii',
+  );
+  if (!noDashiiSeat || assignments.length < 2) return [];
+  const [previousSeat, nextSeat] = getAdjacentSeats(noDashiiSeat.seat, assignments.length);
+  const neighbors = assignments.filter(
+    (assignment) => assignment.seat === previousSeat || assignment.seat === nextSeat,
+  );
+  const neighborsAreTownsfolk =
+    neighbors.length === 2 &&
+    neighbors.every(
+      (assignment) => getCharacter(assignment.state.characterId)?.type === CharacterType.Townsfolk,
+    );
+  if (neighborsAreTownsfolk) return [];
+
+  return [
+    {
+      characterId: 'nodashii',
+      characterName: getCharacter('nodashii')?.name ?? 'No Dashii',
+      message: 'No Dashii should sit between two Townsfolk',
+      seats: [noDashiiSeat.seat, previousSeat, nextSeat],
+    },
+  ];
+}
+
 /** Get advisory seating constraint warnings for the current player assignments. */
 export function getSeatingWarnings(
   slots: Slot[],
   playerState: Record<PlayerId, PlayerGameState>,
 ): SeatingWarning[] {
   const assignments = buildSeatedAssignments(slots, playerState);
-  return [...checkMarionetteConstraint(assignments), ...checkLordOfTyphonConstraint(assignments)];
+  return [
+    ...checkMarionetteConstraint(assignments),
+    ...checkLordOfTyphonConstraint(assignments),
+    ...checkNoDashiiConstraint(assignments),
+  ];
 }
 
 /** Get seats that are valid for Marionette placement (adjacent to any Demon). */

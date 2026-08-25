@@ -25,6 +25,7 @@ import { CharacterDraftRoller } from '@/components/Drafting/CharacterDraftRoller
 import { importScript } from '@/utils/scriptImporter.ts';
 import {
   createDraftSession,
+  DraftPresentationMode,
   regenerateDraftOffer,
   resolveDraftPick,
   toDraftCharacters,
@@ -32,7 +33,7 @@ import {
   type DraftSessionConfig,
   type DraftSessionState,
 } from '@/utils/drafting/draftSession.ts';
-import { DraftSetupMode } from '@/utils/drafting/draftRules.ts';
+import { DraftSetupMode, isProductionDraftSetupMode } from '@/utils/drafting/draftRules.ts';
 import type { CharacterDef, Edition, Script } from '@/types/index.ts';
 
 const BUILT_IN_SCRIPT_EDITIONS: readonly {
@@ -61,6 +62,12 @@ const MODE_CHARACTER_IDS: Readonly<Partial<Record<DraftSetupMode, string>>> = {
   kazali: 'kazali',
 };
 
+const PRESENTATION_MODE_LABELS: Readonly<Record<DraftPresentationMode, string>> = {
+  open: 'Open character draft',
+  'secret-single-type': 'Secret single character type',
+  'secret-two-types': 'Secret two character types',
+};
+
 function getBuiltInScript(edition: Edition, name: string): Script {
   return {
     id: edition,
@@ -83,6 +90,7 @@ function getScriptCharacters(script: Script): CharacterDef[] {
 function getAvailableModes(scriptCharacters: readonly CharacterDef[]): DraftSetupMode[] {
   const characterIds = new Set(scriptCharacters.map((character) => character.id));
   return Object.values(DraftSetupMode).filter((mode) => {
+    if (!isProductionDraftSetupMode(mode)) return false;
     if (mode === DraftSetupMode.Standard) return true;
     const characterId = MODE_CHARACTER_IDS[mode];
     return characterId !== undefined && characterIds.has(characterId);
@@ -96,6 +104,9 @@ export function CharacterDraftSimulatorPage() {
   const [scriptId, setScriptId] = useState('bmr');
   const [playerCount, setPlayerCount] = useState(7);
   const [setupMode, setSetupMode] = useState<DraftSetupMode>(DraftSetupMode.Standard);
+  const [presentationMode, setPresentationMode] = useState<DraftPresentationMode>(
+    DraftPresentationMode.Open,
+  );
   const [session, setSession] = useState<DraftSessionState | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
 
@@ -108,8 +119,8 @@ export function CharacterDraftSimulatorPage() {
   const draftCharacters = useMemo(() => toDraftCharacters(scriptCharacters), [scriptCharacters]);
   const availableModes = useMemo(() => getAvailableModes(scriptCharacters), [scriptCharacters]);
   const config: DraftSessionConfig = useMemo(
-    () => ({ playerCount, scriptCharacters: draftCharacters, setupMode }),
-    [draftCharacters, playerCount, setupMode],
+    () => ({ playerCount, scriptCharacters: draftCharacters, setupMode, presentationMode }),
+    [draftCharacters, playerCount, presentationMode, setupMode],
   );
 
   const handleConfigurationChange = () => setSession(null);
@@ -178,6 +189,24 @@ export function CharacterDraftSimulatorPage() {
                 {scripts.map((script) => (
                   <MenuItem key={script.id} value={script.id}>
                     {script.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel id="draft-presentation-mode-label">Drafting mode</InputLabel>
+              <Select
+                labelId="draft-presentation-mode-label"
+                label="Drafting mode"
+                value={presentationMode}
+                onChange={(event) => {
+                  setPresentationMode(event.target.value as DraftPresentationMode);
+                  handleConfigurationChange();
+                }}
+              >
+                {Object.values(DraftPresentationMode).map((mode) => (
+                  <MenuItem key={mode} value={mode}>
+                    {PRESENTATION_MODE_LABELS[mode]}
                   </MenuItem>
                 ))}
               </Select>
@@ -271,7 +300,9 @@ export function CharacterDraftSimulatorPage() {
           <CharacterDraftRoller
             key={`${session.picks.length}-${session.currentOffer.offeredCharacterIds.join('-')}`}
             playerName={`Player ${session.picks.length + 1}`}
-            scriptCharacters={scriptCharacters}
+            scriptCharacters={scriptCharacters.filter((character) =>
+              draftCharacters.some((draftCharacter) => draftCharacter.id === character.id),
+            )}
             offer={session.currentOffer}
             onChoose={(characterId) => handleResolve(characterId, 'choice')}
             onMulligan={(characterId) => handleResolve(characterId, 'mulligan')}
@@ -280,7 +311,7 @@ export function CharacterDraftSimulatorPage() {
 
         {session?.status === 'blocked' && (
           <Alert severity="warning" data-testid="draft-blocked">
-            <Typography fontWeight={700}>The draft cannot produce another full offer.</Typography>
+            <Typography fontWeight={700}>The draft cannot continue.</Typography>
             {session.blockedReason}
           </Alert>
         )}
@@ -298,6 +329,11 @@ export function CharacterDraftSimulatorPage() {
               {session.picks.length} of {playerCount} players committed ·{' '}
               {session.legalCandidateIds.length} legal candidates for the current player
             </Typography>
+            {session.currentOffer?.rolledCharacterTypes.length ? (
+              <Typography variant="body2" data-testid="draft-rolled-types" gutterBottom>
+                Secret type roll: {session.currentOffer.rolledCharacterTypes.join(' or ')}
+              </Typography>
+            ) : null}
             <Stack direction="row" useFlexGap flexWrap="wrap" gap={1}>
               {session.picks.map((pick) => {
                 const character = characterMap.get(pick.characterId);

@@ -36,7 +36,6 @@ interface TownSquareTabProps {
   editMode?: boolean;
   onEditModeChange?: (editing: boolean) => void;
   onSelectCharacters?: () => void;
-  onAssignCharacters?: () => void;
 }
 
 /** Derive token size from player count. */
@@ -57,7 +56,6 @@ export function TownSquareTab({
   editMode,
   onEditModeChange,
   onSelectCharacters,
-  onAssignCharacters,
 }: TownSquareTabProps) {
   const {
     state,
@@ -415,7 +413,7 @@ export function TownSquareTab({
           setEditMode(false);
         }}
         onOpenCharacterSelection={() => onSelectCharacters?.()}
-        onOpenCharacterAssignment={() => onAssignCharacters?.()}
+        onOpenCharacterAssignment={() => onSelectCharacters?.()}
       />
     );
   }

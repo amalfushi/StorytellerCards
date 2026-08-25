@@ -16,8 +16,8 @@ vi.mock('@/components/Drafting/CharacterDraftRoller.tsx', () => ({
   }: {
     playerName: string;
     offer: {
-      offeredCharacterIds: [string, string, string];
-      mulliganCharacterId: string;
+      offeredCharacterIds: string[];
+      mulliganCharacterId: string | null;
     };
     onChoose: (id: string) => void;
     onMulligan: (id: string) => void;
@@ -25,7 +25,9 @@ vi.mock('@/components/Drafting/CharacterDraftRoller.tsx', () => ({
     <div data-testid="mock-draft-roller">
       <span>{playerName}</span>
       <button onClick={() => onChoose(offer.offeredCharacterIds[0])}>Choose first</button>
-      <button onClick={() => onMulligan(offer.mulliganCharacterId)}>Take mulligan</button>
+      {offer.mulliganCharacterId && (
+        <button onClick={() => onMulligan(offer.mulliganCharacterId!)}>Take mulligan</button>
+      )}
     </div>
   ),
 }));
@@ -38,7 +40,16 @@ describe('CharacterDraftSimulatorPage', () => {
     expect(screen.getByText('Character Draft Simulator')).toBeInTheDocument();
     expect(screen.getByLabelText('Script')).toBeInTheDocument();
     expect(screen.getByLabelText('Players')).toBeInTheDocument();
+    expect(screen.getByLabelText('Drafting mode')).toBeInTheDocument();
     expect(screen.getByText(/does not create or modify a game/i)).toBeInTheDocument();
+  });
+
+  it('shows the viable candidate count for the active draft', () => {
+    render(<CharacterDraftSimulatorPage />);
+    fireEvent.click(screen.getByRole('button', { name: /start new draft/i }));
+    expect(screen.getByTestId('draft-diagnostics')).toHaveTextContent(
+      /legal candidates for the current player/i,
+    );
   });
 
   it('starts a draft and advances after a simulated choice', () => {

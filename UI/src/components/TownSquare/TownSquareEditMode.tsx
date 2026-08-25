@@ -17,7 +17,6 @@ import Typography from '@mui/material/Typography';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
-import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import ChecklistIcon from '@mui/icons-material/Checklist';
 import CloseIcon from '@mui/icons-material/Close';
 import GroupsIcon from '@mui/icons-material/Groups';
@@ -404,26 +403,18 @@ export function TownSquareEditMode({
         {!gameStarted && (needsCharacterSelection || needsCharacterAssignment) && (
           <>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1 }}>
-              {needsCharacterSelection && (
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<ChecklistIcon />}
-                  onClick={() => handleOpenPreparation(onOpenCharacterSelection)}
-                >
-                  Select Characters
-                </Button>
-              )}
-              {needsCharacterAssignment && (
-                <Button
-                  size="small"
-                  variant="outlined"
-                  startIcon={<AssignmentIndIcon />}
-                  onClick={() => handleOpenPreparation(onOpenCharacterAssignment)}
-                >
-                  Assign Characters
-                </Button>
-              )}
+              <Button
+                size="small"
+                variant="outlined"
+                startIcon={<ChecklistIcon />}
+                onClick={() =>
+                  handleOpenPreparation(
+                    needsCharacterSelection ? onOpenCharacterSelection : onOpenCharacterAssignment,
+                  )
+                }
+              >
+                Select Characters
+              </Button>
             </Box>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
               Finish the next preparation step before play. Your seating draft saves before it

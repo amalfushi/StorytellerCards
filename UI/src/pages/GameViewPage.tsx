@@ -51,6 +51,7 @@ import { NightHistoryDrawer } from '@/components/NightHistory/NightHistoryDrawer
 import { NightChoiceSelector } from '@/components/NightPhase/NightChoiceSelector.tsx';
 import { CharacterAssignmentDialog } from '@/components/CharacterAssignment/CharacterAssignmentDialog.tsx';
 import { CharacterSelection } from '@/components/Setup/CharacterSelection.tsx';
+import { CharacterDraftDialog } from '@/components/Drafting/CharacterDraftDialog.tsx';
 import { DemonBluffSelection } from '@/components/Setup/DemonBluffSelection.tsx';
 import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
@@ -62,6 +63,7 @@ import {
   hasGameStarted,
   validateGameSeating,
 } from '@/utils/seating/index.ts';
+import { randomizeConstrainedDraftSeating } from '@/utils/drafting/draftSeating.ts';
 
 interface GameViewPlayer extends PlayerGameState {
   playerId: string;
@@ -90,6 +92,8 @@ export function GameViewPage() {
     saveGame,
     setPhase,
     setInPlayCharacters,
+    setCharacterDraft,
+    completeCharacterDraft,
     setDemonBluffs,
     setLunaticBluffs,
     setPlayerBluffs,
@@ -104,7 +108,9 @@ export function GameViewPage() {
   const [tabIndex, setTabIndex] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [characterSetupOpen, setCharacterSetupOpen] = useState(false);
   const [charSelectionOpen, setCharSelectionOpen] = useState(false);
+  const [characterDraftOpen, setCharacterDraftOpen] = useState(false);
   const [bluffSelectionOpen, setBluffSelectionOpen] = useState(false);
   const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
@@ -283,6 +289,23 @@ export function GameViewPage() {
 
     return rows.sort((a, b) => a.seat - b.seat);
   }, [game, session?.players]);
+  const draftingPlayerIds = useMemo(
+    () =>
+      game?.participants
+        .filter((participant) => !participant.isTraveller)
+        .map((participant) => participant.playerId) ?? [],
+    [game?.participants],
+  );
+  const draftingPlayerNames = useMemo(
+    () =>
+      Object.fromEntries(
+        draftingPlayerIds.map((playerId) => [
+          playerId,
+          session?.players.find((player) => player.id === playerId)?.name ?? 'Unknown player',
+        ]),
+      ),
+    [draftingPlayerIds, session?.players],
+  );
 
   const nightEntries = useNightOrder(
     scriptCharacterIds,
@@ -302,19 +325,28 @@ export function GameViewPage() {
     );
   }, [game]);
 
-  // Check if in-play character selection is needed (no inPlayCharacterIds yet)
-  const needsCharacterSelection = useMemo(() => {
-    if (!game) return false;
-    return needsCharacterAssignment && !hasCharacterPool;
-  }, [game, hasCharacterPool, needsCharacterAssignment]);
-
-  const handleOpenCharacterAssignment = useCallback(() => {
-    if (!hasCharacterPool) {
-      setCharSelectionOpen(true);
-      return;
-    }
-    setAssignDialogOpen(true);
-  }, [hasCharacterPool]);
+  const handleCompleteCharacterDraft = useCallback(
+    (draft: NonNullable<Game['characterDraft']>) => {
+      if (!game) return;
+      const characterIdByPlayer = Object.fromEntries(
+        draft.entries.flatMap((entry) =>
+          entry.actualCharacterId ? [[entry.playerId, entry.actualCharacterId]] : [],
+        ),
+      );
+      const seating = randomizeConstrainedDraftSeating(
+        game.slots,
+        draft.playerOrder,
+        characterIdByPlayer,
+        scriptCharacterDefs,
+      );
+      completeCharacterDraft(draft, seating.slots);
+      setCharacterDraftOpen(false);
+      setTabIndex(0);
+      setSeatingEditMode(!seating.constraintsSatisfied);
+      setBluffSelectionOpen(draft.setupMode !== 'atheist');
+    },
+    [completeCharacterDraft, game, scriptCharacterDefs],
+  );
 
   // Characters are assigned but first night hasn't been played yet — show setup checklist
   const showSetupChecklistBanner = useMemo(() => {
@@ -353,11 +385,11 @@ export function GameViewPage() {
       setBluffSelectionOpen(false);
       if (lunaticIsInPlay) {
         setLunaticBluffSelectionOpen(true);
-      } else {
+      } else if (needsCharacterAssignment) {
         setAssignDialogOpen(true);
       }
     },
-    [setDemonBluffs, saveGame, lunaticIsInPlay],
+    [setDemonBluffs, saveGame, lunaticIsInPlay, needsCharacterAssignment],
   );
 
   // Handle confirming lunatic bluff selection
@@ -366,9 +398,11 @@ export function GameViewPage() {
       setLunaticBluffs(bluffIds);
       saveGame();
       setLunaticBluffSelectionOpen(false);
-      setAssignDialogOpen(true);
+      if (needsCharacterAssignment) {
+        setAssignDialogOpen(true);
+      }
     },
-    [setLunaticBluffs, saveGame],
+    [setLunaticBluffs, saveGame, needsCharacterAssignment],
   );
 
   // Template bluffs for distribution after assignment
@@ -655,17 +689,9 @@ export function GameViewPage() {
                 color="inherit"
                 size="small"
                 startIcon={<AssignmentIndIcon />}
-                onClick={() => setCharSelectionOpen(true)}
+                onClick={() => setCharacterSetupOpen(true)}
               >
-                {game.inPlayCharacterIds?.length ? 'Re-select Characters' : 'Select Characters'}
-              </Button>
-              <Button
-                color="inherit"
-                size="small"
-                startIcon={<AssignmentIndIcon />}
-                onClick={handleOpenCharacterAssignment}
-              >
-                {needsCharacterSelection ? 'Select Characters First' : 'Assign Characters'}
+                Select Characters
               </Button>
             </Box>
           }
@@ -769,8 +795,7 @@ export function GameViewPage() {
                   scriptCharacterIds={scriptCharacterIds}
                   editMode={seatingEditMode}
                   onEditModeChange={setSeatingEditMode}
-                  onSelectCharacters={() => setCharSelectionOpen(true)}
-                  onAssignCharacters={handleOpenCharacterAssignment}
+                  onSelectCharacters={() => setCharacterSetupOpen(true)}
                 />
               )}
               {tabIndex === 1 && <PlayerListTab scriptCharacterIds={scriptCharacterIds} />}
@@ -912,6 +937,41 @@ export function GameViewPage() {
         />
       )}
 
+      <Dialog open={characterSetupOpen} onClose={() => setCharacterSetupOpen(false)}>
+        <DialogTitle>Select Characters</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>
+            Choose the setup flow for this game.
+          </Typography>
+          <Box sx={{ display: 'grid', gap: 1.5, minWidth: { sm: 360 } }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setCharacterSetupOpen(false);
+                setCharSelectionOpen(true);
+              }}
+            >
+              Manual selection and assignment
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AssignmentIndIcon />}
+              onClick={() => {
+                setCharacterSetupOpen(false);
+                setCharacterDraftOpen(true);
+              }}
+            >
+              {game?.characterDraft?.status === 'drafting'
+                ? 'Resume character draft'
+                : 'Start character draft'}
+            </Button>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCharacterSetupOpen(false)}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Character Selection Dialog */}
       {game && (
         <CharacterSelection
@@ -924,6 +984,19 @@ export function GameViewPage() {
         />
       )}
 
+      {game && (
+        <CharacterDraftDialog
+          open={characterDraftOpen}
+          playerIds={draftingPlayerIds}
+          playerNames={draftingPlayerNames}
+          scriptCharacters={scriptCharacterDefs}
+          draftState={game.characterDraft}
+          onClose={() => setCharacterDraftOpen(false)}
+          onDraftChange={setCharacterDraft}
+          onDraftComplete={handleCompleteCharacterDraft}
+        />
+      )}
+
       {/* Demon Bluff Selection Dialog */}
       {game && game.inPlayCharacterIds && (
         <DemonBluffSelection
@@ -932,7 +1005,7 @@ export function GameViewPage() {
             setBluffSelectionOpen(false);
             if (lunaticIsInPlay) {
               setLunaticBluffSelectionOpen(true);
-            } else {
+            } else if (needsCharacterAssignment) {
               setAssignDialogOpen(true);
             }
           }}
@@ -949,7 +1022,9 @@ export function GameViewPage() {
           open={lunaticBluffSelectionOpen}
           onClose={() => {
             setLunaticBluffSelectionOpen(false);
-            setAssignDialogOpen(true);
+            if (needsCharacterAssignment) {
+              setAssignDialogOpen(true);
+            }
           }}
           scriptCharacters={scriptCharacterDefs}
           inPlayCharacterIds={game.inPlayCharacterIds}

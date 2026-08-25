@@ -57,7 +57,7 @@ import {
   SLOT_DRAGGABLE_PREFIX,
   SLOT_POSITION_DROPPABLE_PREFIX,
 } from '@/components/Setup/SeatingTemplateCircle.tsx';
-import type { Game, Player, Script } from '@/types/index.ts';
+import type { Game, Player, Script, Slot } from '@/types/index.ts';
 import {
   buildDisplaySeatNumberMap,
   hasGameStarted,
