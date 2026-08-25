@@ -45,8 +45,10 @@ its hidden post-draft Minion-conversion phase is not implemented.
   every offered and mulligan character.
 - Kept the mandatory mulligan result visible until the player explicitly
   accepts it.
-- Added advisory setup-count chips and Storyteller controls for variable setup
-  modifiers and the desired Village Idiot copy count.
+- Added advisory setup-count chips. Variable setup modifiers and the desired
+  Village Idiot copy count are requested only after the relevant character is
+  selected, and further drafting pauses until the Storyteller chooses a
+  still-feasible value.
 - Added exact Village Idiot copy-target feasibility, a sequential three-player
   repeated-draft test, and increased follow-on presentation preference after a
   Village Idiot is selected.

@@ -336,8 +336,9 @@ acceptance criteria.
 - [x] Lock resolved entries.
 - [x] Color player pills by stable player color while active and by selected
       character type when complete.
-- [x] Display target setup counts and expose Storyteller controls for supported
-      variable modifiers and Village Idiot copy targets.
+- [x] Display target setup counts and pause the Storyteller board for supported
+      variable modifiers or a Village Idiot copy target only after the relevant
+      character is selected.
 
 ### Phase 4 — Player draft presentation
 

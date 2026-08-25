@@ -36,6 +36,7 @@ import {
   resolveGameCharacterDraft,
   selectGameCharacterDraftPlayer,
 } from '@/utils/drafting/gameCharacterDraft.ts';
+import { hasLegalDraftCompletion } from '@/utils/drafting/draftFeasibility.ts';
 import { calculateAdaptiveTargets } from '@/utils/adaptiveDistribution.ts';
 
 const SETUP_MODE_LABELS: Readonly<Record<CharacterDraftSetupMode, string>> = {
@@ -101,8 +102,6 @@ export function CharacterDraftDialog({
   const [presentationMode, setPresentationMode] = useState<DraftPresentationMode>(
     DraftPresentationMode.Open,
   );
-  const [variableModifierValues, setVariableModifierValues] = useState<Record<string, number>>({});
-  const [villageIdiotCopies, setVillageIdiotCopies] = useState(1);
   const [privateHandoff, setPrivateHandoff] = useState(false);
 
   const draftCharacters = useMemo(() => toDraftCharacters(scriptCharacters), [scriptCharacters]);
@@ -128,21 +127,14 @@ export function CharacterDraftDialog({
     () => new Map(scriptCharacters.map((character) => [character.id, character])),
     [scriptCharacters],
   );
-  const activeModifierControls = useMemo(
-    () => Object.entries(VARIABLE_MODIFIER_OPTIONS).filter(([id]) => scriptCharacterIds.has(id)),
-    [scriptCharacterIds],
-  );
-
   const config: DraftSessionConfig = useMemo(
     () => ({
       playerCount: playerIds.length,
       scriptCharacters: draftCharacters,
       setupMode: (draftState?.setupMode ?? setupMode) as DraftSetupMode,
       presentationMode: draftState?.presentationMode ?? presentationMode,
-      variableModifierValues: draftState?.variableModifierValues ?? variableModifierValues,
-      characterCopyTargets:
-        draftState?.characterCopyTargets ??
-        (scriptCharacterIds.has('villageidiot') ? { villageidiot: villageIdiotCopies } : undefined),
+      variableModifierValues: draftState?.variableModifierValues,
+      characterCopyTargets: draftState?.characterCopyTargets,
     }),
     [
       draftCharacters,
@@ -152,10 +144,7 @@ export function CharacterDraftDialog({
       draftState?.variableModifierValues,
       playerIds.length,
       presentationMode,
-      scriptCharacterIds,
       setupMode,
-      variableModifierValues,
-      villageIdiotCopies,
     ],
   );
 
@@ -169,15 +158,90 @@ export function CharacterDraftDialog({
     : '';
   const completedCount =
     draftState?.entries.filter((entry) => entry.actualCharacterId !== undefined).length ?? 0;
-  const committedCharacterIds =
-    draftState?.entries
-      .map((entry) => entry.actualCharacterId)
-      .filter((id): id is string => id !== undefined) ?? [];
+  const committedCharacterIds = useMemo(
+    () =>
+      draftState?.entries
+        .map((entry) => entry.actualCharacterId)
+        .filter((id): id is string => id !== undefined) ?? [],
+    [draftState?.entries],
+  );
   const countMode = (draftState?.setupMode ?? setupMode) as CharacterDraftSetupMode;
   const modeCharacterId = SETUP_MODE_CHARACTER_IDS[countMode];
-  const configuredModifiers = draftState?.variableModifierValues ?? variableModifierValues;
-  const configuredVillageIdiotCopies =
-    draftState?.characterCopyTargets?.villageidiot ?? villageIdiotCopies;
+  const configuredModifiers = useMemo(
+    () => draftState?.variableModifierValues ?? {},
+    [draftState?.variableModifierValues],
+  );
+  const configuredVillageIdiotCopies = draftState?.characterCopyTargets?.villageidiot ?? 1;
+  const pendingModifierId = committedCharacterIds.find(
+    (id) =>
+      VARIABLE_MODIFIER_OPTIONS[id] !== undefined &&
+      draftState?.variableModifierValues?.[id] === undefined,
+  );
+  const pendingModifierControl = pendingModifierId
+    ? VARIABLE_MODIFIER_OPTIONS[pendingModifierId]
+    : undefined;
+  const villageIdiotCount = committedCharacterIds.filter((id) => id === 'villageidiot').length;
+  const needsVillageIdiotTarget =
+    villageIdiotCount > 0 && draftState?.characterCopyTargets?.villageidiot === undefined;
+  const hasPendingSetupChoice = pendingModifierControl !== undefined || needsVillageIdiotTarget;
+  const legalModifierValues = useMemo(
+    () =>
+      pendingModifierId && pendingModifierControl
+        ? pendingModifierControl.values.filter((value) =>
+            hasLegalDraftCompletion({
+              playerCount: playerIds.length,
+              scriptCharacters: draftCharacters,
+              committedCharacterIds,
+              setupMode: countMode as DraftSetupMode,
+              variableModifierValues: {
+                ...configuredModifiers,
+                [pendingModifierId]: value,
+              },
+              characterCopyTargets: draftState?.characterCopyTargets,
+            }),
+          )
+        : [],
+    [
+      committedCharacterIds,
+      configuredModifiers,
+      countMode,
+      draftCharacters,
+      draftState?.characterCopyTargets,
+      pendingModifierControl,
+      pendingModifierId,
+      playerIds.length,
+    ],
+  );
+  const legalVillageIdiotTargets = useMemo(
+    () =>
+      needsVillageIdiotTarget
+        ? [1, 2, 3].filter(
+            (copies) =>
+              copies >= villageIdiotCount &&
+              hasLegalDraftCompletion({
+                playerCount: playerIds.length,
+                scriptCharacters: draftCharacters,
+                committedCharacterIds,
+                setupMode: countMode as DraftSetupMode,
+                variableModifierValues: draftState?.variableModifierValues,
+                characterCopyTargets: {
+                  ...draftState?.characterCopyTargets,
+                  villageidiot: copies,
+                },
+              }),
+          )
+        : [],
+    [
+      committedCharacterIds,
+      countMode,
+      draftCharacters,
+      draftState?.characterCopyTargets,
+      draftState?.variableModifierValues,
+      needsVillageIdiotTarget,
+      playerIds.length,
+      villageIdiotCount,
+    ],
+  );
   const setupTargets = calculateAdaptiveTargets(
     playerIds.length,
     [...committedCharacterIds, ...(modeCharacterId ? [modeCharacterId] : [])],
@@ -193,8 +257,32 @@ export function CharacterDraftDialog({
   };
 
   const handleSelectPlayer = (playerId: PlayerId) => {
-    if (!draftState) return;
+    if (!draftState || hasPendingSetupChoice) return;
     onDraftChange(selectGameCharacterDraftPlayer(draftState, config, playerId));
+  };
+
+  const handleModifierValue = (characterId: string, value: number) => {
+    if (!draftState) return;
+    onDraftChange({
+      ...draftState,
+      variableModifierValues: {
+        ...draftState.variableModifierValues,
+        [characterId]: value,
+      },
+      revision: draftState.revision + 1,
+    });
+  };
+
+  const handleVillageIdiotTarget = (copies: number) => {
+    if (!draftState) return;
+    onDraftChange({
+      ...draftState,
+      characterCopyTargets: {
+        ...draftState.characterCopyTargets,
+        villageidiot: copies,
+      },
+      revision: draftState.revision + 1,
+    });
   };
 
   const handleResolve = (characterId: string, resolution: DraftPick['resolution']) => {
@@ -288,61 +376,6 @@ export function CharacterDraftDialog({
                 ))}
               </Select>
             </FormControl>
-            {scriptCharacterIds.has('villageidiot') && (
-              <FormControl fullWidth>
-                <InputLabel id="village-idiot-copy-target-label">Village Idiot copies</InputLabel>
-                <Select
-                  labelId="village-idiot-copy-target-label"
-                  label="Village Idiot copies"
-                  value={villageIdiotCopies}
-                  onChange={(event) => setVillageIdiotCopies(Number(event.target.value))}
-                >
-                  {[1, 2, 3].map((copies) => (
-                    <MenuItem key={copies} value={copies}>
-                      {copies}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            )}
-            {activeModifierControls.length > 0 && (
-              <Box>
-                <Typography variant="subtitle2" fontWeight={800} gutterBottom>
-                  Variable setup choices
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  These values are used only if the corresponding character enters play.
-                </Typography>
-                <Stack spacing={1}>
-                  {activeModifierControls.map(([id, control]) => (
-                    <FormControl fullWidth key={id}>
-                      <InputLabel id={`${id}-modifier-label`}>{control.label}</InputLabel>
-                      <Select
-                        labelId={`${id}-modifier-label`}
-                        label={control.label}
-                        value={variableModifierValues[id] ?? ''}
-                        onChange={(event) => {
-                          const value = String(event.target.value);
-                          setVariableModifierValues((current) => {
-                            const next = { ...current };
-                            if (value === '') delete next[id];
-                            else next[id] = Number(value);
-                            return next;
-                          });
-                        }}
-                      >
-                        <MenuItem value="">Automatic legal value</MenuItem>
-                        {control.values.map((value) => (
-                          <MenuItem key={value} value={value}>
-                            {value > 0 ? `+${value}` : value}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  ))}
-                </Stack>
-              </Box>
-            )}
             <Button variant="contained" startIcon={<CasinoIcon />} onClick={handleStart}>
               Generate draft
             </Button>
@@ -355,6 +388,62 @@ export function CharacterDraftDialog({
                 {completedCount} of {draftState.playerOrder.length} players complete
               </Typography>
             </Box>
+            {pendingModifierId && pendingModifierControl && (
+              <Alert severity="warning" data-testid="pending-variable-setup-choice">
+                <Stack spacing={1}>
+                  <Typography fontWeight={800}>
+                    {characterById.get(pendingModifierId)?.name ?? pendingModifierId} was selected.
+                    Choose its setup value before drafting another player.
+                  </Typography>
+                  <FormControl fullWidth>
+                    <InputLabel id={`${pendingModifierId}-modifier-label`}>
+                      {pendingModifierControl.label}
+                    </InputLabel>
+                    <Select
+                      labelId={`${pendingModifierId}-modifier-label`}
+                      label={pendingModifierControl.label}
+                      value=""
+                      onChange={(event) =>
+                        handleModifierValue(pendingModifierId, Number(event.target.value))
+                      }
+                    >
+                      {legalModifierValues.map((value) => (
+                        <MenuItem key={value} value={value}>
+                          {value > 0 ? `+${value}` : value}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Alert>
+            )}
+            {needsVillageIdiotTarget && (
+              <Alert severity="warning" data-testid="pending-village-idiot-copy-target">
+                <Stack spacing={1}>
+                  <Typography fontWeight={800}>
+                    Village Idiot was selected. Choose how many copies should be in play before
+                    drafting another player.
+                  </Typography>
+                  <FormControl fullWidth>
+                    <InputLabel id="village-idiot-copy-target-label">
+                      Village Idiot copies
+                    </InputLabel>
+                    <Select
+                      labelId="village-idiot-copy-target-label"
+                      label="Village Idiot copies"
+                      value=""
+                      onChange={(event) => handleVillageIdiotTarget(Number(event.target.value))}
+                    >
+                      {legalVillageIdiotTargets.map((copies) => (
+                        <MenuItem key={copies} value={copies}>
+                          {copies}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Stack>
+              </Alert>
+            )}
             <Stack direction="row" useFlexGap flexWrap="wrap" gap={1}>
               {draftState.playerOrder.map((playerId) => {
                 const entry = draftState.entries.find(
@@ -378,9 +467,15 @@ export function CharacterDraftDialog({
                 return (
                   <Chip
                     key={playerId}
-                    clickable={!selectedCharacter && draftState.status === 'drafting'}
+                    clickable={
+                      !selectedCharacter &&
+                      draftState.status === 'drafting' &&
+                      !hasPendingSetupChoice
+                    }
                     onClick={
-                      !selectedCharacter && draftState.status === 'drafting'
+                      !selectedCharacter &&
+                      draftState.status === 'drafting' &&
+                      !hasPendingSetupChoice
                         ? () => handleSelectPlayer(playerId)
                         : undefined
                     }
@@ -449,12 +544,12 @@ export function CharacterDraftDialog({
                 </Typography>
               </Alert>
             )}
-            {!currentEntry && draftState.status === 'drafting' && (
+            {!currentEntry && draftState.status === 'drafting' && !hasPendingSetupChoice && (
               <Alert severity="info">
                 Select any grey player pill to generate their private offer.
               </Alert>
             )}
-            {draftState.status === 'complete' && (
+            {draftState.status === 'complete' && !hasPendingSetupChoice && (
               <Alert severity="success">
                 Every player has drafted. Confirm the draft to randomize and review seating.
               </Alert>
@@ -477,7 +572,7 @@ export function CharacterDraftDialog({
             </Button>
           </>
         )}
-        {draftState?.status === 'complete' && (
+        {draftState?.status === 'complete' && !hasPendingSetupChoice && (
           <Button variant="contained" color="warning" onClick={() => onDraftComplete(draftState)}>
             Confirm draft and review seating
           </Button>
