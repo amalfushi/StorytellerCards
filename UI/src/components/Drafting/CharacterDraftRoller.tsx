@@ -90,7 +90,10 @@ function CharacterDraftRollerOffer({
 
   if (phase === 'mulligan-ready' || phase === 'mulligan-spinning' || phase === 'mulligan-result') {
     return (
-      <Card data-testid="character-draft-roller">
+      <Card
+        data-testid="character-draft-roller"
+        sx={{ bgcolor: '#050505', color: '#fff', backgroundImage: 'none' }}
+      >
         <CardContent>
           <Typography variant="overline" color="warning.main">
             Final Mulligan
@@ -99,16 +102,35 @@ function CharacterDraftRollerOffer({
             {playerName}
           </Typography>
           <Box sx={{ maxWidth: 360, mx: 'auto' }}>
-            <CharacterWheel ref={mulliganWheelRef} characters={scriptCharacters} compact />
+            <CharacterWheel
+              ref={mulliganWheelRef}
+              characters={scriptCharacters}
+              compact
+              surface="light"
+              defaultSpinDurationMs={2200}
+            />
           </Box>
           {phase === 'mulligan-result' && mulliganCharacter ? (
             <Stack spacing={1} alignItems="center" sx={{ mt: 2 }}>
               <Typography variant="h5" fontWeight={900}>
                 {mulliganCharacter.name}
               </Typography>
-              <Typography align="center" color="text.secondary">
-                {mulliganCharacter.abilityShort}
-              </Typography>
+              <Box
+                data-testid="draft-mulligan-description"
+                sx={{
+                  width: '100%',
+                  maxWidth: 520,
+                  minHeight: 88,
+                  display: 'grid',
+                  placeItems: 'center',
+                  bgcolor: '#fff',
+                  color: '#111',
+                  borderRadius: 1,
+                  p: 1.5,
+                }}
+              >
+                <Typography align="center">{mulliganCharacter.abilityShort}</Typography>
+              </Box>
               <Button
                 color="warning"
                 variant="contained"
@@ -119,7 +141,7 @@ function CharacterDraftRollerOffer({
               </Button>
             </Stack>
           ) : (
-            <Typography align="center" sx={{ mt: 2 }} color="text.secondary">
+            <Typography align="center" sx={{ mt: 2 }} color="grey.400">
               The mulligan result is mandatory.
             </Typography>
           )}
@@ -146,7 +168,10 @@ function CharacterDraftRollerOffer({
   }
 
   return (
-    <Card data-testid="character-draft-roller">
+    <Card
+      data-testid="character-draft-roller"
+      sx={{ bgcolor: '#050505', color: '#fff', backgroundImage: 'none' }}
+    >
       <CardContent>
         <Typography variant="overline" color="warning.main">
           Character Draft
@@ -154,7 +179,7 @@ function CharacterDraftRollerOffer({
         <Typography variant="h5" sx={{ color: playerColor }}>
           {playerName}
         </Typography>
-        <Typography color="text.secondary" sx={{ mb: 2 }}>
+        <Typography color="grey.400" sx={{ mb: 2 }}>
           Roll {offer.offeredCharacterIds.length === 1 ? 'your option' : 'your options'}, then{' '}
           {offer.mulliganCharacterId
             ? 'choose one or take the final mulligan.'
@@ -173,36 +198,64 @@ function CharacterDraftRollerOffer({
           {offer.offeredCharacterIds.map((characterId, index) => {
             const character = characterById.get(characterId);
             return (
-              <Stack key={`${index}-${characterId}`} spacing={1} sx={{ minWidth: 0 }}>
+              <Box
+                key={`${index}-${characterId}`}
+                sx={{
+                  minWidth: 0,
+                  display: 'grid',
+                  gridTemplateRows: 'auto 1fr auto',
+                  gap: 1,
+                }}
+              >
                 <CharacterWheel
                   ref={(handle) => {
                     wheelRefs.current[index] = handle;
                   }}
                   characters={scriptCharacters}
                   compact
+                  surface="light"
+                  defaultSpinDurationMs={2200}
                 />
                 {phase === 'choosing' && character && (
-                  <Button
-                    variant="outlined"
-                    onClick={() => onChoose(characterId)}
-                    sx={{
-                      minWidth: 0,
-                      borderColor: getCharacterTypeColor(character.type),
-                      color: getCharacterTypeColor(character.type),
-                    }}
-                    data-testid={`draft-choice-${index}`}
-                  >
-                    <Stack spacing={0.5}>
-                      <Typography component="span" fontWeight={800}>
-                        {offer.mulliganCharacterId ? character.name : `Accept ${character.name}`}
-                      </Typography>
-                      <Typography component="span" variant="caption" color="text.secondary">
+                  <>
+                    <Box
+                      data-testid={`draft-choice-description-${index}`}
+                      sx={{
+                        minWidth: 0,
+                        minHeight: 112,
+                        height: '100%',
+                        display: 'grid',
+                        alignContent: 'center',
+                        bgcolor: '#fff',
+                        color: '#111',
+                        borderRadius: 1,
+                        p: { xs: 1, sm: 1.5 },
+                      }}
+                    >
+                      <Typography align="center" variant="body2">
                         {character.abilityShort}
                       </Typography>
-                    </Stack>
-                  </Button>
+                    </Box>
+                    <Button
+                      variant="contained"
+                      onClick={() => onChoose(characterId)}
+                      sx={{
+                        minWidth: 0,
+                        bgcolor: getCharacterTypeColor(character.type),
+                        '&:hover': {
+                          bgcolor: getCharacterTypeColor(character.type),
+                          filter: 'brightness(0.9)',
+                        },
+                      }}
+                      data-testid={`draft-choice-${index}`}
+                    >
+                      {offer.mulliganCharacterId
+                        ? `Select ${character.name}`
+                        : `Accept ${character.name}`}
+                    </Button>
+                  </>
                 )}
-              </Stack>
+              </Box>
             );
           })}
         </Box>
@@ -237,7 +290,15 @@ function CharacterDraftRollerOffer({
         </Stack>
       </CardContent>
 
-      <Dialog open={confirmMulligan} onClose={() => setConfirmMulligan(false)}>
+      <Dialog
+        open={confirmMulligan}
+        onClose={() => setConfirmMulligan(false)}
+        slotProps={{
+          paper: {
+            sx: { bgcolor: '#050505', color: '#fff', backgroundImage: 'none' },
+          },
+        }}
+      >
         <DialogTitle>Take the mulligan?</DialogTitle>
         <DialogContent>
           This replaces all {offer.offeredCharacterIds.length}{' '}

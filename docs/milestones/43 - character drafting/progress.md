@@ -28,6 +28,9 @@ its hidden post-draft Minion-conversion phase is not implemented.
   choices under solver pressure, and one mandatory character as the final
   legal fallback.
 - Added open, secret-single-type, and secret-two-type presentation modes.
+- Persisted hidden type plans for every unresolved player in secret modes.
+  Plans regenerate after each selection and variable setup choice so the
+  remaining rolls track the updated expected character counts.
 - Added the reusable three-column slot-machine presentation and mandatory
   one-column mulligan flow.
 - Added `/tools/character-draft` with official base scripts, custom JSON import,
@@ -43,6 +46,9 @@ its hidden post-draft Minion-conversion phase is not implemented.
 - Strengthened private handoff with a full-screen opaque blurred backdrop,
   prominent player-color identification, and short ability descriptions for
   every offered and mulligan character.
+- Reduced repeated wheel content and removed forced synchronous layout before
+  spins. Private rolls now use white wheel surfaces, equal-height white ability
+  panels, and separate explicit selection buttons against a black handoff.
 - Kept the mandatory mulligan result visible until the player explicitly
   accepts it.
 - Added advisory setup-count chips. Variable setup modifiers and the desired
@@ -68,6 +74,8 @@ its hidden post-draft Minion-conversion phase is not implemented.
   Dashii, with secret manual repair fallback.
 - Added an explicit post-draft seating review and editable Town Square step.
   Demon bluffs do not open until the Storyteller confirms the final seating.
+- Added assigned actual/apparent character labels and constrained
+  re-randomization to the editable seating review.
 - Consolidated the duplicate pre-game character actions to one
   **Select Characters** action.
 - Gated Kazali in production and the simulator until its hidden post-draft

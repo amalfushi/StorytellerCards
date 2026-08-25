@@ -180,12 +180,15 @@ good bluffs unless another information rule changes that flow.
 2. Engine resolves the selected exceptional setup mode and displays an
    unresolved pill for every participating player.
 3. Storyteller selects any unresolved player. The engine generates and persists
-   that player's offer, including its
+   a hidden one- or two-type plan for every unresolved player, then generates
+   and persists the selected player's offer, including its
    adaptive options, mulligan result, type rolls, and hidden identity mapping.
 4. Storyteller reviews or regenerates the current unrevealed offer. Every
    generated result is checked by the exact solver.
 5. Offers are revealed through a private physical-device handoff. Players choose one
    option or the mandatory mulligan.
+   Variable setup choices regenerate the hidden type plans for every unresolved
+   player before another offer can be revealed.
 6. Hidden-identity players see only their apparent draft. The Storyteller sees
    and commits the actual role first.
 7. The Storyteller explicitly confirms the completed draft. The engine then
@@ -217,6 +220,10 @@ required hidden post-draft Minion-conversion workflow is not implemented.
   rolls, remains visible with its ability summary, and must be explicitly
   accepted; no further choice is available.
 - Display each offered character's short ability description below its name.
+- Keep ability descriptions in equal-height white panels, separate from explicit
+  character selection buttons.
+- Use white wheel and ability surfaces against the otherwise black private
+  handoff.
 - Use the player's stable Town Square color prominently on the private handoff
   and Storyteller board.
 - Present the private handoff in an opaque full-screen dialog with a heavily
@@ -339,6 +346,8 @@ acceptance criteria.
 - [x] Display target setup counts and pause the Storyteller board for supported
       variable modifiers or a Village Idiot copy target only after the relevant
       character is selected.
+- [x] Persist hidden type plans for unresolved players and regenerate them with
+      the displayed target counts after variable setup choices.
 
 ### Phase 4 — Player draft presentation
 
@@ -347,6 +356,8 @@ acceptance criteria.
 - [x] Add private physical-device handoff.
 - [x] Add hidden-identity illusion drafts for Drunk, Lunatic, and Marionette.
 - [x] Show short ability descriptions for every option and final mulligan.
+- [x] Separate equal-height ability panels from explicit selection buttons and
+      use high-contrast white wheel surfaces.
 - [x] Obscure the entire application behind the private handoff.
 
 ### Phase 5 — Seating and reveal orchestration
@@ -360,6 +371,8 @@ acceptance criteria.
 - [x] Require confirmed final seating before play starts.
 - [x] Delay Demon bluff selection until the Storyteller reviews and confirms
       randomized seating.
+- [x] Keep actual/apparent character assignments visible during seating edits
+      and allow constrained re-randomization before saving.
 
 ## Testing strategy
 

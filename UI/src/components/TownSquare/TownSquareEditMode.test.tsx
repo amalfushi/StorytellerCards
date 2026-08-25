@@ -166,6 +166,46 @@ describe('TownSquareEditMode', () => {
     );
   });
 
+  it('always shows assigned characters while editing seating', () => {
+    renderEditor();
+
+    expect(screen.getByTestId('seat-character-p1')).toHaveTextContent('Washerwoman');
+    expect(screen.getByTestId('seat-character-p2')).toHaveTextContent('Imp');
+  });
+
+  it('shows actual and apparent identities for illusion drafts', () => {
+    renderEditor({
+      ...game,
+      playerState: {
+        ...game.playerState,
+        p1: {
+          ...makeState('drunk'),
+          apparentCharacterId: 'washerwoman',
+        },
+      },
+    });
+
+    expect(screen.getByTestId('seat-character-p1')).toHaveTextContent(
+      'Drunk (appears Washerwoman)',
+    );
+  });
+
+  it('randomizes assigned seating locally before save', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const { onSave } = renderEditor();
+
+    fireEvent.click(screen.getByRole('button', { name: /randomize seating/i }));
+    expect(onSave).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: /review & save/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+    expect(onSave.mock.calls[0][0]).toEqual([
+      { kind: 'seat', id: 's1', playerId: 'p2' },
+      { kind: 'seat', id: 's2', playerId: 'p1' },
+    ]);
+    random.mockRestore();
+  });
+
   it('adds a roster player to the game with an assigned seat', () => {
     const { onSave } = renderEditor(game, {
       toTemplate: false,

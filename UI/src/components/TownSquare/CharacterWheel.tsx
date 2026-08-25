@@ -23,8 +23,8 @@ import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts
 
 export const WHEEL_ROW_HEIGHT_PX = 72;
 export const WHEEL_VISIBLE_ROWS = 7;
-const STRIP_REPEATS = 11; // odd so there is a clean middle repeat
-const CENTER_REPEAT_INDEX = Math.floor(STRIP_REPEATS / 2);
+export const WHEEL_STRIP_REPEATS = 7; // odd so there is a clean middle repeat
+const CENTER_REPEAT_INDEX = Math.floor(WHEEL_STRIP_REPEATS / 2);
 const SETTLE_SNAP_DELAY_MS = 80;
 
 export interface CharacterWheelHandle {
@@ -43,10 +43,12 @@ interface Props {
   defaultSpinDurationMs?: number;
   /** Uses a shorter five-row wheel suitable for side-by-side draft columns. */
   compact?: boolean;
+  /** Light surfaces are used for the private player drafting display. */
+  surface?: 'dark' | 'light';
 }
 
 export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function CharacterWheel(
-  { characters, defaultSpinDurationMs = 3500, compact = false },
+  { characters, defaultSpinDurationMs = 3500, compact = false, surface = 'dark' },
   ref,
 ) {
   const stripRef = useRef<HTMLDivElement | null>(null);
@@ -59,7 +61,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
 
   const stripChars = characters;
   const stripCount = stripChars.length;
-  const totalRows = stripCount * STRIP_REPEATS;
+  const totalRows = stripCount * WHEEL_STRIP_REPEATS;
 
   /** Y offset (px) that places row `rowIndex` of the long strip in the highlight band. */
   const yForRowIndex = useCallback(
@@ -100,18 +102,13 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
           // total travel distance is predictable across consecutive spins.
           el.style.transition = 'none';
           el.style.transform = `translateY(${-restingY}px)`;
-          // Force a reflow so the next style change actually animates.
-          void el.offsetHeight;
-
           // Leave one full repeat below the result so late-script characters do
           // not expose the strip edge during the brief settle delay.
-          const landingRepeat = STRIP_REPEATS - 2;
+          const landingRepeat = WHEEL_STRIP_REPEATS - 2;
           const landingRowIndex = landingRepeat * stripCount + targetIndex;
           const landingY = yForRowIndex(landingRowIndex);
 
           setIsSpinning(true);
-          el.style.transition = `transform ${durationMs}ms cubic-bezier(0.16, 1, 0.3, 1)`;
-          el.style.transform = `translateY(${-landingY}px)`;
 
           const onEnd = () => {
             el.removeEventListener('transitionend', onEnd);
@@ -126,6 +123,10 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
             }, SETTLE_SNAP_DELAY_MS);
           };
           el.addEventListener('transitionend', onEnd);
+          window.requestAnimationFrame(() => {
+            el.style.transition = `transform ${durationMs}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+            el.style.transform = `translateY(${-landingY}px)`;
+          });
         }),
     }),
     [defaultSpinDurationMs, restingY, stripChars, stripCount, yForRowIndex],
@@ -141,7 +142,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
         maxWidth: compact ? 320 : 520,
         height: visibleHeight,
         overflow: 'hidden',
-        bgcolor: '#1a1a1a',
+        bgcolor: surface === 'light' ? '#fff' : '#1a1a1a',
         border: '2px solid',
         borderColor: 'warning.main',
         borderRadius: 2,
@@ -170,7 +171,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
                 alignItems: 'center',
                 gap: 1.5,
                 px: 2,
-                color: '#fff',
+                color: surface === 'light' ? '#111' : '#fff',
               }}
             >
               <Box
@@ -195,7 +196,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
                   color: typeColor,
                   fontWeight: 700,
                   letterSpacing: 0.2,
-                  textShadow: '0 1px 2px rgba(0,0,0,0.6)',
+                  textShadow: surface === 'light' ? 'none' : '0 1px 2px rgba(0,0,0,0.6)',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
@@ -233,7 +234,10 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
           left: 0,
           right: 0,
           height: centerOffsetPx,
-          background: 'linear-gradient(to bottom, #1a1a1a 0%, rgba(26,26,26,0) 100%)',
+          background:
+            surface === 'light'
+              ? 'linear-gradient(to bottom, #fff 0%, rgba(255,255,255,0) 100%)'
+              : 'linear-gradient(to bottom, #1a1a1a 0%, rgba(26,26,26,0) 100%)',
           pointerEvents: 'none',
         }}
       />
@@ -246,7 +250,10 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
           left: 0,
           right: 0,
           height: centerOffsetPx,
-          background: 'linear-gradient(to top, #1a1a1a 0%, rgba(26,26,26,0) 100%)',
+          background:
+            surface === 'light'
+              ? 'linear-gradient(to top, #fff 0%, rgba(255,255,255,0) 100%)'
+              : 'linear-gradient(to top, #1a1a1a 0%, rgba(26,26,26,0) 100%)',
           pointerEvents: 'none',
         }}
       />

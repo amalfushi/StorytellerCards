@@ -21,6 +21,7 @@ import ChecklistIcon from '@mui/icons-material/Checklist';
 import CloseIcon from '@mui/icons-material/Close';
 import GroupsIcon from '@mui/icons-material/Groups';
 import PersonIcon from '@mui/icons-material/Person';
+import ShuffleIcon from '@mui/icons-material/Shuffle';
 import {
   DndContext,
   KeyboardSensor,
@@ -66,6 +67,7 @@ import {
   SLOT_POSITION_DROPPABLE_PREFIX,
   SeatingTemplateCircle,
 } from '@/components/Setup/SeatingTemplateCircle.tsx';
+import { randomizeConstrainedDraftSeating } from '@/utils/drafting/draftSeating.ts';
 
 export interface TownSquareEditModeProps {
   game: Game;
@@ -120,6 +122,7 @@ export function TownSquareEditMode({
   );
   const [focusedPlayerId, setFocusedPlayerId] = useState<PlayerId | null>(null);
   const [reviewOpen, setReviewOpen] = useState(false);
+  const [seatingRandomizationWarning, setSeatingRandomizationWarning] = useState(false);
   const [propagation, setPropagation] = useState<PropagationPreference>(propagationDefault);
   const theme = useTheme();
   const isSmallViewport = useMediaQuery(theme.breakpoints.down('sm'));
@@ -133,6 +136,31 @@ export function TownSquareEditMode({
   const rosterById = useMemo(
     () => new Map(sessionPlayers.map((player) => [player.id, player])),
     [sessionPlayers],
+  );
+  const characterById = useMemo(
+    () => new Map(scriptCharacters.map((character) => [character.id, character])),
+    [scriptCharacters],
+  );
+  const playerCharacterLabels = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(draftPlayerState).flatMap(([playerId, state]) => {
+          if (!state.characterId) return [];
+          const actualName = characterById.get(state.characterId)?.name ?? state.characterId;
+          const apparentName = state.apparentCharacterId
+            ? (characterById.get(state.apparentCharacterId)?.name ?? state.apparentCharacterId)
+            : '';
+          return [
+            [
+              playerId,
+              apparentName && state.apparentCharacterId !== state.characterId
+                ? `${actualName} (appears ${apparentName})`
+                : actualName,
+            ],
+          ];
+        }),
+      ),
+    [characterById, draftPlayerState],
   );
   const participantIds = useMemo(
     () => new Set(draftParticipants.map((participant) => participant.playerId)),
@@ -221,6 +249,23 @@ export function TownSquareEditMode({
   const handleMoveSlot = useCallback((slotId: SlotId, toIndex: number) => {
     setDraftSlots((current) => moveSlot(current, slotId, toIndex));
   }, []);
+
+  const handleRandomizeSeating = useCallback(() => {
+    const participatingPlayerIds = draftParticipants.map((participant) => participant.playerId);
+    const characterIdByPlayer = Object.fromEntries(
+      Object.entries(draftPlayerState).flatMap(([playerId, state]) =>
+        state.characterId ? [[playerId, state.characterId]] : [],
+      ),
+    );
+    const randomized = randomizeConstrainedDraftSeating(
+      draftSlots,
+      participatingPlayerIds,
+      characterIdByPlayer,
+      scriptCharacters,
+    );
+    setDraftSlots(randomized.slots);
+    setSeatingRandomizationWarning(!randomized.constraintsSatisfied);
+  }, [draftParticipants, draftPlayerState, draftSlots, scriptCharacters]);
 
   const handleDragEnd = useCallback((event: DragEndEvent) => {
     const { active, over } = event;
@@ -453,13 +498,29 @@ export function TownSquareEditMode({
           >
             Add Storyteller
           </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            startIcon={<ShuffleIcon />}
+            disabled={seatedPlayerIds.size < 2}
+            onClick={handleRandomizeSeating}
+          >
+            Randomize seating
+          </Button>
         </Box>
+        {seatingRandomizationWarning && (
+          <Alert severity="warning" sx={{ mb: 1 }}>
+            No randomized arrangement satisfied every character adjacency rule. Review this seating
+            manually before saving.
+          </Alert>
+        )}
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <Box sx={{ position: 'relative', width: '100%', height: { xs: 520, sm: 600 } }}>
             <SeatingTemplateCircle
               slots={draftSlots}
               players={participatingPlayers}
+              playerSubtitleById={playerCharacterLabels}
               displaySeatNumbers={displaySeatNumbers}
               shape={isSmallViewport ? 'ovoid' : 'circle'}
               tileSize={isSmallViewport ? 112 : 140}

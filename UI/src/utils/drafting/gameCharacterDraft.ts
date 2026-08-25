@@ -1,12 +1,15 @@
 import type {
   CharacterDraftEntry,
   CharacterDraftOfferSnapshot,
+  CharacterDraftSetupMode,
   CharacterDraftState,
+  DraftableCharacterType,
   PlayerId,
 } from '@/types/index.ts';
 import { CharacterType } from '@/types/index.ts';
 import {
   createDraftSession,
+  DraftPresentationMode,
   regenerateDraftOffer,
   resolveDraftPick,
   type DraftOffer,
@@ -17,6 +20,22 @@ import {
 } from '@/utils/drafting/draftSession.ts';
 import type { DraftCharacter } from '@/utils/drafting/draftFeasibility.ts';
 import { CHARACTER_DRAFT_RULES, DraftIdentityKind } from '@/utils/drafting/draftRules.ts';
+import { calculateAdaptiveTargets, type AdaptiveTargets } from '@/utils/adaptiveDistribution.ts';
+
+const DRAFTABLE_TYPES: DraftableCharacterType[] = [
+  CharacterType.Townsfolk,
+  CharacterType.Outsider,
+  CharacterType.Minion,
+  CharacterType.Demon,
+];
+
+const SETUP_MODE_CHARACTER_IDS: Partial<Record<CharacterDraftSetupMode, string>> = {
+  atheist: 'atheist',
+  legion: 'legion',
+  lilmonsta: 'lilmonsta',
+  summoner: 'summoner',
+  kazali: 'kazali',
+};
 
 function falseIdentityTypes(characterId: string): readonly CharacterType[] | null {
   const identity = CHARACTER_DRAFT_RULES[characterId]?.identity;
@@ -202,6 +221,118 @@ function withResolvedTurn(
   };
 }
 
+function shuffle<T>(values: readonly T[], random: DraftRandomSource): T[] {
+  const result = [...values];
+  for (let index = result.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.min(index, Math.floor(Math.max(0, random()) * (index + 1)));
+    [result[index], result[randomIndex]] = [result[randomIndex], result[index]];
+  }
+  return result;
+}
+
+function committedCharacterIds(state: CharacterDraftState): string[] {
+  return state.entries.flatMap((entry) =>
+    entry.actualCharacterId ? [entry.actualCharacterId] : [],
+  );
+}
+
+export function getDraftExpectedCharacterCounts(
+  state: CharacterDraftState,
+  playerCount: number,
+): AdaptiveTargets {
+  const selectedCharacterIds = committedCharacterIds(state);
+  const setupCharacterId = SETUP_MODE_CHARACTER_IDS[state.setupMode];
+  if (setupCharacterId && !selectedCharacterIds.includes(setupCharacterId)) {
+    selectedCharacterIds.push(setupCharacterId);
+  }
+  return calculateAdaptiveTargets(playerCount, selectedCharacterIds, {
+    variableModifierValues: state.variableModifierValues,
+    xaanX: state.variableModifierValues?.xaan,
+    extraVillageIdiots: Math.max(0, (state.characterCopyTargets?.villageidiot ?? 1) - 1),
+  });
+}
+
+export function replanGameCharacterDraftTypes(
+  state: CharacterDraftState,
+  config: DraftSessionConfig,
+  random: DraftRandomSource = Math.random,
+): CharacterDraftState {
+  if (state.presentationMode === DraftPresentationMode.Open || state.status === 'complete') {
+    return { ...state, plannedCharacterTypes: undefined };
+  }
+
+  const resolvedPlayerIds = new Set(
+    state.entries.filter((entry) => entry.actualCharacterId).map((entry) => entry.playerId),
+  );
+  const remainingPlayerIds = state.playerOrder.filter(
+    (playerId) => !resolvedPlayerIds.has(playerId),
+  );
+  const expected = getDraftExpectedCharacterCounts(state, config.playerCount);
+  const remainingByType = new Map<DraftableCharacterType, number>([
+    [CharacterType.Townsfolk, expected.townsfolk],
+    [CharacterType.Outsider, expected.outsiders],
+    [CharacterType.Minion, expected.minions],
+    [CharacterType.Demon, expected.demons],
+  ]);
+
+  for (const characterId of committedCharacterIds(state)) {
+    const type = config.scriptCharacters.find((character) => character.id === characterId)?.type;
+    if (type) remainingByType.set(type, Math.max(0, (remainingByType.get(type) ?? 0) - 1));
+  }
+
+  const primaryTypes = shuffle(
+    DRAFTABLE_TYPES.flatMap((type) =>
+      Array.from({ length: remainingByType.get(type) ?? 0 }, () => type),
+    ),
+    random,
+  );
+  if (primaryTypes.length !== remainingPlayerIds.length) {
+    return { ...state, plannedCharacterTypes: undefined };
+  }
+
+  const possibleSecondaryTypes = DRAFTABLE_TYPES.filter(
+    (type) => (remainingByType.get(type) ?? 0) > 0,
+  );
+  const plannedCharacterTypes: Partial<Record<PlayerId, DraftableCharacterType[]>> = {};
+  remainingPlayerIds.forEach((playerId, index) => {
+    const primaryType = primaryTypes[index];
+    const secondaryTypes =
+      state.presentationMode === DraftPresentationMode.SecretTwoTypes
+        ? shuffle(
+            possibleSecondaryTypes.filter((type) => type !== primaryType),
+            random,
+          ).slice(0, 1)
+        : [];
+    plannedCharacterTypes[playerId] = [primaryType, ...secondaryTypes];
+  });
+
+  return { ...state, plannedCharacterTypes };
+}
+
+export function updateGameCharacterDraftSetup(
+  state: CharacterDraftState,
+  config: DraftSessionConfig,
+  updates: {
+    variableModifierValues?: Record<string, number>;
+    characterCopyTargets?: Record<string, number>;
+  },
+  random: DraftRandomSource = Math.random,
+): CharacterDraftState {
+  return replanGameCharacterDraftTypes(
+    {
+      ...state,
+      ...updates,
+      revision: state.revision + 1,
+    },
+    {
+      ...config,
+      variableModifierValues: updates.variableModifierValues ?? state.variableModifierValues,
+      characterCopyTargets: updates.characterCopyTargets ?? state.characterCopyTargets,
+    },
+    random,
+  );
+}
+
 export function createGameCharacterDraft(
   playerIds: readonly PlayerId[],
   config: DraftSessionConfig,
@@ -225,7 +356,7 @@ export function createGameCharacterDraft(
     blockedReason: session.blockedReason,
     revision: 1,
   };
-  return state;
+  return replanGameCharacterDraftTypes(state, config, random);
 }
 
 export function selectGameCharacterDraftPlayer(
@@ -241,18 +372,25 @@ export function selectGameCharacterDraftPlayer(
     throw new Error('The player has already completed their draft.');
   }
 
+  const stateWithPlans = state.plannedCharacterTypes
+    ? state
+    : replanGameCharacterDraftTypes(state, config, random);
+  const playerConfig: DraftSessionConfig = {
+    ...config,
+    plannedCharacterTypes: stateWithPlans.plannedCharacterTypes?.[playerId],
+  };
   const session = regenerateDraftOffer(
     {
-      ...toSessionState({ ...state, activePlayerId: undefined }),
+      ...toSessionState({ ...stateWithPlans, activePlayerId: undefined }),
       currentOffer: null,
       status: 'drafting',
     },
-    config,
+    playerConfig,
     random,
   );
   if (!session.currentOffer) {
     return {
-      ...state,
+      ...stateWithPlans,
       activePlayerId: undefined,
       status: 'blocked',
       blockedReason: session.blockedReason,
@@ -265,12 +403,12 @@ export function selectGameCharacterDraftPlayer(
       playerId,
       session.currentOffer,
       session.legalCandidateIds.length,
-      config,
+      playerConfig,
       session.committedCharacterIds,
       random,
     );
     return {
-      ...state,
+      ...stateWithPlans,
       activePlayerId: playerId,
       entries: [...state.entries.filter((candidate) => candidate.playerId !== playerId), entry],
       blockedReason: undefined,
@@ -278,8 +416,8 @@ export function selectGameCharacterDraftPlayer(
     };
   } catch (error) {
     return identityMaskFailure(
-      { ...state, activePlayerId: playerId },
-      state.currentPlayerIndex,
+      { ...stateWithPlans, activePlayerId: playerId },
+      stateWithPlans.currentPlayerIndex,
       error,
     );
   }
@@ -315,7 +453,11 @@ export function resolveGameCharacterDraft(
     resolution,
   };
 
-  return withResolvedTurn({ ...state, entries }, nextSession);
+  return replanGameCharacterDraftTypes(
+    withResolvedTurn({ ...state, entries }, nextSession),
+    config,
+    random,
+  );
 }
 
 export function regenerateGameCharacterDraftOffer(
@@ -323,7 +465,12 @@ export function regenerateGameCharacterDraftOffer(
   config: DraftSessionConfig,
   random: DraftRandomSource = Math.random,
 ): CharacterDraftState {
-  const nextSession = regenerateDraftOffer(toSessionState(state), config, random);
+  const activePlayerId = state.activePlayerId ?? state.playerOrder[state.currentPlayerIndex];
+  const playerConfig: DraftSessionConfig = {
+    ...config,
+    plannedCharacterTypes: state.plannedCharacterTypes?.[activePlayerId],
+  };
+  const nextSession = regenerateDraftOffer(toSessionState(state), playerConfig, random);
   const currentOffer = nextSession.currentOffer;
   if (!currentOffer) {
     return {
@@ -335,14 +482,13 @@ export function regenerateGameCharacterDraftOffer(
   }
 
   const entries = [...state.entries];
-  const activePlayerId = state.activePlayerId ?? state.playerOrder[state.currentPlayerIndex];
   const currentEntryIndex = entries.findIndex((entry) => entry.playerId === activePlayerId);
   try {
     entries[currentEntryIndex] = toEntry(
       activePlayerId,
       currentOffer,
       nextSession.legalCandidateIds.length,
-      config,
+      playerConfig,
       nextSession.committedCharacterIds,
       random,
     );

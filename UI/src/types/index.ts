@@ -392,6 +392,7 @@ export interface CharacterDraftState {
   setupMode: CharacterDraftSetupMode;
   presentationMode: CharacterDraftPresentationMode;
   playerOrder: PlayerId[];
+  plannedCharacterTypes?: Partial<Record<PlayerId, DraftableCharacterType[]>>;
   currentPlayerIndex: number;
   activePlayerId?: PlayerId;
   variableModifierValues?: Record<string, number>;

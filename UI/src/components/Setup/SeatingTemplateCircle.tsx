@@ -48,6 +48,7 @@ const UNASSIGNED_BORDER_WIDTH = 2;
 interface Props {
   slots: Slot[];
   players: Player[];
+  playerSubtitleById?: Readonly<Partial<Record<PlayerId, string>>>;
   /** Built once in the parent via `buildDisplaySeatNumberMap`. */
   displaySeatNumbers: Map<SlotId, number>;
   /**
@@ -70,6 +71,7 @@ interface Props {
 export function SeatingTemplateCircle({
   slots,
   players,
+  playerSubtitleById,
   displaySeatNumbers,
   tileSize = DEFAULT_TILE_SIZE,
   shape = 'circle',
@@ -186,6 +188,7 @@ export function SeatingTemplateCircle({
                   players={players}
                   playerIdsInOrder={playerIdsInOrder}
                   seatedIds={seatedIds}
+                  playerSubtitle={slot.playerId ? playerSubtitleById?.[slot.playerId] : undefined}
                   onRemove={() => onRemoveSlot(slot.id)}
                   onAssign={(pid) => onAssignSeat(slot.id, pid)}
                   dragHandle={dragHandle}
@@ -419,6 +422,7 @@ function SeatCell({
   players,
   playerIdsInOrder,
   seatedIds,
+  playerSubtitle,
   onRemove,
   onAssign,
   dragHandle,
@@ -429,6 +433,7 @@ function SeatCell({
   players: Player[];
   playerIdsInOrder: PlayerId[];
   seatedIds: Set<PlayerId>;
+  playerSubtitle?: string;
   onRemove: () => void;
   onAssign: (playerId: PlayerId | null) => void;
   dragHandle: ReactNode;
@@ -480,6 +485,23 @@ function SeatCell({
           );
         })}
       </Select>
+      {playerSubtitle && (
+        <Typography
+          variant="caption"
+          component="div"
+          data-testid={`seat-character-${slot.playerId}`}
+          sx={{
+            mt: 0.25,
+            px: 0.25,
+            fontWeight: 800,
+            lineHeight: 1.15,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+          }}
+        >
+          {playerSubtitle}
+        </Typography>
+      )}
       {moveControls}
       <IconButton
         size="small"

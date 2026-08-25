@@ -61,7 +61,10 @@ describe('CharacterDraftRoller', () => {
     expect(screen.getAllByTestId('mock-character-wheel')).toHaveLength(3);
     expect(screen.queryByTestId('draft-choice-0')).not.toBeInTheDocument();
     fireEvent.click(screen.getByTestId('draft-roll-options'));
-    expect(await screen.findByTestId('draft-choice-0')).toHaveTextContent('CHEFchef');
+    const choice = await screen.findByTestId('draft-choice-0');
+    expect(choice).toHaveTextContent('Select CHEF');
+    expect(choice).not.toHaveTextContent('chef');
+    expect(screen.getByTestId('draft-choice-description-0')).toHaveTextContent('chef');
   });
 
   it('returns the selected offered character', async () => {

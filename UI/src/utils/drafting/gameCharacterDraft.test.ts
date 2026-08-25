@@ -7,6 +7,7 @@ import {
   regenerateGameCharacterDraftOffer,
   resolveGameCharacterDraft,
   selectGameCharacterDraftPlayer,
+  updateGameCharacterDraftSetup,
 } from '@/utils/drafting/gameCharacterDraft.ts';
 import type { DraftSessionConfig } from '@/utils/drafting/draftSession.ts';
 import type { DraftCharacter } from '@/utils/drafting/draftFeasibility.ts';
@@ -97,6 +98,83 @@ describe('gameCharacterDraft', () => {
     expect(selected.activePlayerId).toBe('p3');
     expect(selected.entries[0].playerId).toBe('p3');
     expect(selected.entries[0].offer.legalCandidateCount).toBeGreaterThan(0);
+  });
+
+  it('preplans the exact remaining type distribution for secret single-type drafts', () => {
+    const secretConfig: DraftSessionConfig = {
+      ...config,
+      presentationMode: 'secret-single-type',
+    };
+    const state = createGameCharacterDraft(['p1', 'p2', 'p3', 'p4', 'p5'], secretConfig, () => 0);
+    const plannedTypes = Object.values(state.plannedCharacterTypes ?? {}).flat();
+
+    expect(plannedTypes).toHaveLength(5);
+    expect(plannedTypes.filter((type) => type === CharacterType.Townsfolk)).toHaveLength(3);
+    expect(plannedTypes.filter((type) => type === CharacterType.Minion)).toHaveLength(1);
+    expect(plannedTypes.filter((type) => type === CharacterType.Demon)).toHaveLength(1);
+  });
+
+  it('replans undrafted type rolls after a Lord of Typhon setup choice', () => {
+    const lordOfTyphonConfig: DraftSessionConfig = {
+      playerCount: 7,
+      setupMode: DraftSetupMode.Standard,
+      presentationMode: 'secret-single-type',
+      scriptCharacters: [
+        ...Array.from({ length: 5 }, (_, index) => ({
+          id: `town${index}`,
+          type: CharacterType.Townsfolk,
+        })),
+        { id: 'outsider1', type: CharacterType.Outsider },
+        { id: 'outsider2', type: CharacterType.Outsider },
+        { id: 'minion1', type: CharacterType.Minion },
+        { id: 'minion2', type: CharacterType.Minion },
+        { id: 'lordoftyphon', type: CharacterType.Demon },
+      ],
+    };
+    const state: CharacterDraftState = {
+      status: 'drafting',
+      setupMode: 'standard',
+      presentationMode: 'secret-single-type',
+      playerOrder: ['p1', 'p2', 'p3', 'p4', 'p5', 'p6', 'p7'],
+      plannedCharacterTypes: {
+        p2: [CharacterType.Townsfolk],
+        p3: [CharacterType.Townsfolk],
+        p4: [CharacterType.Townsfolk],
+        p5: [CharacterType.Townsfolk],
+        p6: [CharacterType.Minion],
+        p7: [CharacterType.Minion],
+      },
+      currentPlayerIndex: 1,
+      entries: [
+        {
+          playerId: 'p1',
+          offer: {
+            offeredCharacterIds: ['lordoftyphon'],
+            mulliganCharacterId: null,
+            rolledCharacterTypes: [CharacterType.Demon],
+            legalCandidateCount: 1,
+          },
+          selectedCharacterId: 'lordoftyphon',
+          actualCharacterId: 'lordoftyphon',
+          apparentCharacterId: 'lordoftyphon',
+          resolution: 'choice',
+        },
+      ],
+      revision: 2,
+    };
+
+    const next = updateGameCharacterDraftSetup(
+      state,
+      lordOfTyphonConfig,
+      { variableModifierValues: { lordoftyphon: 1 } },
+      () => 0,
+    );
+    const plannedTypes = Object.values(next.plannedCharacterTypes ?? {}).flat();
+
+    expect(plannedTypes.filter((type) => type === CharacterType.Townsfolk)).toHaveLength(3);
+    expect(plannedTypes.filter((type) => type === CharacterType.Outsider)).toHaveLength(1);
+    expect(plannedTypes.filter((type) => type === CharacterType.Minion)).toHaveLength(2);
+    expect(next.variableModifierValues).toEqual({ lordoftyphon: 1 });
   });
 
   it('records a choice separately as actual and apparent identity', () => {

@@ -32,12 +32,13 @@ import {
 import { DraftSetupMode, isProductionDraftSetupMode } from '@/utils/drafting/draftRules.ts';
 import {
   createGameCharacterDraft,
+  getDraftExpectedCharacterCounts,
   regenerateGameCharacterDraftOffer,
   resolveGameCharacterDraft,
   selectGameCharacterDraftPlayer,
+  updateGameCharacterDraftSetup,
 } from '@/utils/drafting/gameCharacterDraft.ts';
 import { hasLegalDraftCompletion } from '@/utils/drafting/draftFeasibility.ts';
-import { calculateAdaptiveTargets } from '@/utils/adaptiveDistribution.ts';
 
 const SETUP_MODE_LABELS: Readonly<Record<CharacterDraftSetupMode, string>> = {
   standard: 'Standard',
@@ -166,12 +167,10 @@ export function CharacterDraftDialog({
     [draftState?.entries],
   );
   const countMode = (draftState?.setupMode ?? setupMode) as CharacterDraftSetupMode;
-  const modeCharacterId = SETUP_MODE_CHARACTER_IDS[countMode];
   const configuredModifiers = useMemo(
     () => draftState?.variableModifierValues ?? {},
     [draftState?.variableModifierValues],
   );
-  const configuredVillageIdiotCopies = draftState?.characterCopyTargets?.villageidiot ?? 1;
   const pendingModifierId = committedCharacterIds.find(
     (id) =>
       VARIABLE_MODIFIER_OPTIONS[id] !== undefined &&
@@ -242,15 +241,9 @@ export function CharacterDraftDialog({
       villageIdiotCount,
     ],
   );
-  const setupTargets = calculateAdaptiveTargets(
-    playerIds.length,
-    [...committedCharacterIds, ...(modeCharacterId ? [modeCharacterId] : [])],
-    {
-      variableModifierValues: configuredModifiers,
-      xaanX: configuredModifiers.xaan,
-      extraVillageIdiots: Math.max(0, configuredVillageIdiotCopies - 1),
-    },
-  );
+  const setupTargets = draftState
+    ? getDraftExpectedCharacterCounts(draftState, playerIds.length)
+    : null;
 
   const handleStart = () => {
     onDraftChange(createGameCharacterDraft(playerIds, config));
@@ -263,26 +256,26 @@ export function CharacterDraftDialog({
 
   const handleModifierValue = (characterId: string, value: number) => {
     if (!draftState) return;
-    onDraftChange({
-      ...draftState,
-      variableModifierValues: {
-        ...draftState.variableModifierValues,
-        [characterId]: value,
-      },
-      revision: draftState.revision + 1,
-    });
+    onDraftChange(
+      updateGameCharacterDraftSetup(draftState, config, {
+        variableModifierValues: {
+          ...draftState.variableModifierValues,
+          [characterId]: value,
+        },
+      }),
+    );
   };
 
   const handleVillageIdiotTarget = (copies: number) => {
     if (!draftState) return;
-    onDraftChange({
-      ...draftState,
-      characterCopyTargets: {
-        ...draftState.characterCopyTargets,
-        villageidiot: copies,
-      },
-      revision: draftState.revision + 1,
-    });
+    onDraftChange(
+      updateGameCharacterDraftSetup(draftState, config, {
+        characterCopyTargets: {
+          ...draftState.characterCopyTargets,
+          villageidiot: copies,
+        },
+      }),
+    );
   };
 
   const handleResolve = (characterId: string, resolution: DraftPick['resolution']) => {
@@ -502,10 +495,10 @@ export function CharacterDraftDialog({
               <Stack direction="row" useFlexGap flexWrap="wrap" gap={1}>
                 {(
                   [
-                    ['Townsfolk', setupTargets.townsfolk],
-                    ['Outsider', setupTargets.outsiders],
-                    ['Minion', setupTargets.minions],
-                    ['Demon', setupTargets.demons],
+                    ['Townsfolk', setupTargets?.townsfolk ?? 0],
+                    ['Outsider', setupTargets?.outsiders ?? 0],
+                    ['Minion', setupTargets?.minions ?? 0],
+                    ['Demon', setupTargets?.demons ?? 0],
                   ] as const
                 ).map(([type, count]) => (
                   <Chip

@@ -31,6 +31,7 @@ export interface DraftSessionConfig {
   scriptCharacters: readonly DraftCharacter[];
   setupMode: DraftSetupMode;
   presentationMode?: DraftPresentationMode;
+  plannedCharacterTypes?: DraftCharacter['type'][];
   variableModifierValues?: Readonly<Record<string, number>>;
   characterCopyTargets?: Readonly<Record<string, number>>;
 }
@@ -110,6 +111,23 @@ function getPresentationPool(
   preferredCharacterId?: string,
 ): { candidateIds: string[]; rolledCharacterTypes: DraftCharacter['type'][] } {
   const mode = config.presentationMode ?? DraftPresentationMode.Open;
+  if (config.plannedCharacterTypes?.length) {
+    const plannedTypes = new Set(config.plannedCharacterTypes);
+    const typeById = new Map(
+      config.scriptCharacters.map((character) => [character.id, character.type]),
+    );
+    return {
+      candidateIds: mixCandidateTypes(
+        candidateIds.filter((id) => {
+          const type = typeById.get(id);
+          return type !== undefined && plannedTypes.has(type);
+        }),
+        config.scriptCharacters,
+        random,
+      ),
+      rolledCharacterTypes: [...plannedTypes],
+    };
+  }
   if (mode === DraftPresentationMode.Open) {
     return {
       candidateIds: mixCandidateTypes(candidateIds, config.scriptCharacters, random),
