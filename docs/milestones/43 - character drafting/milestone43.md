@@ -252,6 +252,33 @@ reset confirmation.
 - Document that exact counts make zero-information drafting impossible; the
   goal is bounded, non-actionable leakage.
 
+### Possible future improvement — option-type composition
+
+A late offer containing three Demons is a particularly strong information leak:
+it can reveal that the setup still requires a Demon and may let players narrow
+the Demon to someone drafting at or after that point. The initial implementation
+will **not** add further controls for this case. It should first be playtested
+with the existing exact-legality and weighted-random generation so the design is
+guided by observed human behavior rather than speculative restrictions.
+
+If playtesting shows that same-type offers create actionable information, future
+iterations may consider:
+
+| Option                               | Approach                                                                                                                                        | Primary trade-off                                                                              |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Entropy-aware lookahead              | Penalize or reject choices whose legal continuations predict low-diversity future offers, especially three-Demon endpoints.                     | Reduces risk but cannot guarantee safety for every sequence of player choices.                 |
+| Evil-role deadlines                  | Increase pressure to commit required evil roles while several drafts remain, rather than allowing them to be deferred to the final players.     | Preserves immediate choices but may eventually force a role or expose the deadline indirectly. |
+| Complete setup ensembles             | Generate offers from several complete legal setups and retain only branches that preserve both legality and acceptable future option diversity. | Stronger planning at the cost of more computation and potentially fewer compatible scripts.    |
+| Storyteller preview and backtracking | Simulate the hidden draft board, flag type-revealing offers, and let the Storyteller reorder or regenerate them before reveal.                  | Practical human safeguard, but not a guarantee against every later player choice.              |
+| Ranked global resolution             | Have players privately rank their options, then assign the highest compatible selections after all rankings are collected.                      | Preserves mixed-type agency, but a player's apparent selection is provisional.                 |
+| Hidden type allocation               | Secretly allocate required character types first, then offer three characters of the allocated type.                                            | Makes same-type offers routine, but removes player agency over character type and alignment.   |
+| Mandatory-role fallback              | When only one type can legally satisfy the setup, present a single mandatory roll instead of three equivalent same-type choices.                | Honest and less theatrical, but suspends the normal three-choice draft.                        |
+
+Draft-order concealment, private handoff, and post-draft seating randomization
+remain useful regardless of whether any of these controls are later adopted.
+This section is a future-improvement catalog, not part of the current milestone
+acceptance criteria.
+
 ## Implementation phases
 
 ### Phase 1 — Rule and feasibility foundation
