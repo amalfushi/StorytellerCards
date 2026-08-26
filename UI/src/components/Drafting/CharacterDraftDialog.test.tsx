@@ -73,6 +73,7 @@ describe('CharacterDraftDialog', () => {
           presentationMode: 'open',
           playerOrder: ['p1'],
           currentPlayerIndex: 0,
+          activePlayerId: 'p1',
           entries: [
             {
               playerId: 'p1',

@@ -175,9 +175,7 @@ function toSessionState(state: CharacterDraftState): DraftSessionState {
       resolution: DraftPick['resolution'];
     } => entry.selectedCharacterId !== undefined && entry.resolution !== undefined,
   );
-  const currentEntry =
-    state.entries.find((entry) => entry.playerId === state.activePlayerId) ??
-    state.entries[state.currentPlayerIndex];
+  const currentEntry = state.entries.find((entry) => entry.playerId === state.activePlayerId);
 
   return {
     committedCharacterIds: resolvedEntries.map(
@@ -430,9 +428,7 @@ export function resolveGameCharacterDraft(
   resolution: DraftPick['resolution'],
   random: DraftRandomSource = Math.random,
 ): CharacterDraftState {
-  const currentEntry =
-    state.entries.find((entry) => entry.playerId === state.activePlayerId) ??
-    state.entries[state.currentPlayerIndex];
+  const currentEntry = state.entries.find((entry) => entry.playerId === state.activePlayerId);
   if (!currentEntry) throw new Error('The game draft does not have an active player.');
   const actualCharacterId = actualCharacterIdForOffer(currentEntry, characterId);
 
@@ -465,7 +461,8 @@ export function regenerateGameCharacterDraftOffer(
   config: DraftSessionConfig,
   random: DraftRandomSource = Math.random,
 ): CharacterDraftState {
-  const activePlayerId = state.activePlayerId ?? state.playerOrder[state.currentPlayerIndex];
+  const activePlayerId = state.activePlayerId;
+  if (!activePlayerId) throw new Error('The game draft does not have an active player.');
   const playerConfig: DraftSessionConfig = {
     ...config,
     plannedCharacterTypes: state.plannedCharacterTypes?.[activePlayerId],

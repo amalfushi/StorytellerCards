@@ -194,6 +194,97 @@ describe('gameCharacterDraft', () => {
     expect(next.entries).toHaveLength(1);
   });
 
+  it('does not implicitly activate an unresolved offer after another player resolves', () => {
+    let state = createGameCharacterDraft(['p1', 'p2', 'p3', 'p4', 'p5'], config, () => 0);
+    state = selectGameCharacterDraftPlayer(state, config, 'p1', () => 0);
+    state = selectGameCharacterDraftPlayer(state, config, 'p3', () => 0.5);
+    const activeEntry = state.entries.find((entry) => entry.playerId === 'p3');
+    if (!activeEntry) throw new Error('Expected an active draft entry.');
+
+    const resolved = resolveGameCharacterDraft(
+      state,
+      config,
+      activeEntry.offer.offeredCharacterIds[0],
+      'choice',
+      () => 0,
+    );
+
+    expect(resolved.activePlayerId).toBeUndefined();
+    expect(() =>
+      resolveGameCharacterDraft(
+        resolved,
+        config,
+        resolved.entries.find((entry) => entry.playerId === 'p1')!.offer.offeredCharacterIds[0],
+        'choice',
+        () => 0,
+      ),
+    ).toThrow('does not have an active player');
+  });
+
+  it('excludes Demons and unique characters already committed out of player order', () => {
+    let state = createGameCharacterDraft(['p1', 'p2', 'p3', 'p4', 'p5'], config, () => 0);
+    let demonOffer: CharacterDraftState | undefined;
+    for (let index = 0; index < 100; index += 1) {
+      const candidate = selectGameCharacterDraftPlayer(state, config, 'p3', () => index / 100);
+      const entry = candidate.entries.find((item) => item.playerId === 'p3');
+      if (entry?.offer.offeredCharacterIds.includes('d1')) {
+        demonOffer = candidate;
+        break;
+      }
+    }
+    expect(demonOffer).toBeDefined();
+
+    state = resolveGameCharacterDraft(demonOffer!, config, 'd1', 'choice', () => 0);
+    state = selectGameCharacterDraftPlayer(state, config, 'p1', () => 0);
+    const nextOffer = state.entries.find((entry) => entry.playerId === 'p1')!.offer;
+
+    expect(nextOffer.offeredCharacterIds).not.toContain('d1');
+    expect(nextOffer.offeredCharacterIds).not.toContain('d2');
+    expect(nextOffer.mulliganCharacterId).not.toBe('d1');
+    expect(nextOffer.mulliganCharacterId).not.toBe('d2');
+    expect(nextOffer.legalCandidateCount).toBeLessThan(config.scriptCharacters.length);
+  });
+
+  it('rejects a stale offer that became illegal after another player committed', () => {
+    const state: CharacterDraftState = {
+      status: 'drafting',
+      setupMode: 'standard',
+      presentationMode: 'open',
+      playerOrder: ['p1', 'p2', 'p3', 'p4', 'p5'],
+      currentPlayerIndex: 1,
+      activePlayerId: 'p1',
+      entries: [
+        {
+          playerId: 'p1',
+          offer: {
+            offeredCharacterIds: ['d2'],
+            mulliganCharacterId: null,
+            rolledCharacterTypes: [],
+            legalCandidateCount: config.scriptCharacters.length,
+          },
+        },
+        {
+          playerId: 'p3',
+          offer: {
+            offeredCharacterIds: ['d1'],
+            mulliganCharacterId: null,
+            rolledCharacterTypes: [],
+            legalCandidateCount: config.scriptCharacters.length,
+          },
+          selectedCharacterId: 'd1',
+          actualCharacterId: 'd1',
+          apparentCharacterId: 'd1',
+          resolution: 'choice',
+        },
+      ],
+      revision: 4,
+    };
+
+    expect(() => resolveGameCharacterDraft(state, config, 'd2', 'choice', () => 0)).toThrow(
+      'draft offer is stale',
+    );
+  });
+
   it('resolves a false identity choice to its hidden actual character', () => {
     const state: CharacterDraftState = {
       status: 'drafting',
@@ -201,6 +292,7 @@ describe('gameCharacterDraft', () => {
       presentationMode: 'open',
       playerOrder: ['p1', 'p2', 'p3', 'p4', 'p5'],
       currentPlayerIndex: 0,
+      activePlayerId: 'p1',
       entries: [
         {
           playerId: 'p1',
@@ -209,7 +301,7 @@ describe('gameCharacterDraft', () => {
             mulliganCharacterId: null,
             rolledCharacterTypes: [],
             legalCandidateCount: 1,
-            actualCharacterIdsByOfferedId: { t0: 'o1' },
+            actualCharacterIdsByOfferedId: { t0: 't1' },
           },
         },
       ],
@@ -220,7 +312,7 @@ describe('gameCharacterDraft', () => {
 
     expect(next.entries[0]).toMatchObject({
       selectedCharacterId: 't0',
-      actualCharacterId: 'o1',
+      actualCharacterId: 't1',
       apparentCharacterId: 't0',
     });
   });

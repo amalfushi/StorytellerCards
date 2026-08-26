@@ -151,9 +151,7 @@ export function CharacterDraftDialog({
 
   const currentEntry = draftState?.activePlayerId
     ? draftState.entries.find((entry) => entry.playerId === draftState.activePlayerId)
-    : draftState?.entries[draftState.currentPlayerIndex]?.actualCharacterId === undefined
-      ? draftState?.entries[draftState.currentPlayerIndex]
-      : undefined;
+    : undefined;
   const currentPlayerName = currentEntry
     ? (playerNames[currentEntry.playerId] ?? 'Unknown player')
     : '';

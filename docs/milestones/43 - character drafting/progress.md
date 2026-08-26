@@ -94,6 +94,12 @@ its hidden post-draft Minion-conversion phase is not implemented.
   confirmation, and delayed Demon bluffs.
 - Added a seven-player Boozling regression that carries a draft through all
   seven legal selections without blocking.
+- Fixed a saved-game corruption path where pre-generated unresolved offers
+  were implicitly promoted after another player resolved. Drafts now require
+  an explicitly active player, regenerate that player's offer against all
+  committed characters, and reject stale offers during resolution. This
+  prevents duplicate unique characters and excess Demons from bypassing the
+  exact-feasibility solver.
 - Made API data-root discovery independent of whether the server starts from
   the repository root, `API`, or `API/cmd/server`, with an explicit
   `STORYTELLER_DATA_DIR` override for deployments.

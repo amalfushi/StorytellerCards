@@ -297,6 +297,13 @@ export function resolveDraftPick(
     throw new Error('The selected character is not valid for this offer.');
   }
 
+  const legalCandidateIds = getLegalDraftCandidates(
+    toFeasibilityInput(config, state.committedCharacterIds),
+  );
+  if (!legalCandidateIds.includes(characterId)) {
+    throw new Error('This draft offer is stale. Regenerate it before choosing a character.');
+  }
+
   const committedCharacterIds = [...state.committedCharacterIds, characterId];
   const picks = [
     ...state.picks,
