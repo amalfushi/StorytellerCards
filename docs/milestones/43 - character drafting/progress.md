@@ -100,6 +100,11 @@ its hidden post-draft Minion-conversion phase is not implemented.
   committed characters, and reject stale offers during resolution. This
   prevents duplicate unique characters and excess Demons from bypassing the
   exact-feasibility solver.
+- Bound each private handoff to its active player and draft revision. If local
+  or remote synchronization replaces that offer while the handoff is open,
+  stale callbacks now close safely with a Storyteller warning instead of
+  throwing or resolving against another player. Resolution is also locked
+  after the first submission.
 - Made API data-root discovery independent of whether the server starts from
   the repository root, `API`, or `API/cmd/server`, with an explicit
   `STORYTELLER_DATA_DIR` override for deployments.

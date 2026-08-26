@@ -1,12 +1,21 @@
-import { fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Alignment, CharacterType, type CharacterDef } from '@/types/index.ts';
 import { CharacterDraftDialog } from '@/components/Drafting/CharacterDraftDialog.tsx';
 
+let privateDraftChoose: ((characterId: string) => void) | undefined;
+
 vi.mock('@/components/Drafting/CharacterDraftRoller.tsx', () => ({
-  CharacterDraftRoller: ({ playerName }: { playerName: string }) => (
-    <div data-testid="private-draft">{playerName}</div>
-  ),
+  CharacterDraftRoller: ({
+    playerName,
+    onChoose,
+  }: {
+    playerName: string;
+    onChoose: (characterId: string) => void;
+  }) => {
+    privateDraftChoose = onChoose;
+    return <div data-testid="private-draft">{playerName}</div>;
+  },
 }));
 
 function character(id: string, type: CharacterDef['type']): CharacterDef {
@@ -96,6 +105,58 @@ describe('CharacterDraftDialog', () => {
     fireEvent.click(screen.getByRole('button', { name: /hand device to alice/i }));
     expect(screen.getByTestId('private-draft')).toHaveTextContent('Alice');
     expect(screen.queryByText('Storyteller board')).not.toBeInTheDocument();
+  });
+
+  it('expires a private handoff safely when its active player is cleared', () => {
+    const onDraftChange = vi.fn();
+    const baseProps = {
+      open: true,
+      playerIds: ['p1'],
+      playerNames: { p1: 'Alice' },
+      scriptCharacters,
+      onClose: vi.fn(),
+      onDraftChange,
+      onDraftComplete: vi.fn(),
+    };
+    const activeDraft = {
+      status: 'drafting' as const,
+      setupMode: 'standard' as const,
+      presentationMode: 'open' as const,
+      playerOrder: ['p1'],
+      currentPlayerIndex: 0,
+      activePlayerId: 'p1',
+      entries: [
+        {
+          playerId: 'p1',
+          offer: {
+            offeredCharacterIds: ['t1'],
+            mulliganCharacterId: null,
+            rolledCharacterTypes: [],
+            legalCandidateCount: 1,
+          },
+        },
+      ],
+      revision: 2,
+    };
+    const { rerender } = render(
+      <CharacterDraftDialog {...baseProps} draftState={activeDraft} />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: /hand device to alice/i }));
+    expect(screen.getByTestId('private-draft')).toBeVisible();
+    const staleChoose = privateDraftChoose;
+
+    rerender(
+      <CharacterDraftDialog
+        {...baseProps}
+        draftState={{ ...activeDraft, activePlayerId: undefined, revision: 3 }}
+      />,
+    );
+
+    expect(screen.getByTestId('draft-offer-expired')).toBeVisible();
+    expect(() => act(() => staleChoose?.('t1'))).not.toThrow();
+    expect(onDraftChange).not.toHaveBeenCalled();
+    expect(screen.getByTestId('draft-offer-expired')).toHaveTextContent(/offer expired/i);
   });
 
   it('lets the Storyteller choose any unresolved player', () => {

@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import CasinoIcon from '@mui/icons-material/Casino';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Alert from '@mui/material/Alert';
@@ -103,7 +103,14 @@ export function CharacterDraftDialog({
   const [presentationMode, setPresentationMode] = useState<DraftPresentationMode>(
     DraftPresentationMode.Open,
   );
-  const [privateHandoff, setPrivateHandoff] = useState(false);
+  const [privateHandoff, setPrivateHandoff] = useState<{
+    playerId: PlayerId;
+    revision: number;
+  } | null>(null);
+  const [draftError, setDraftError] = useState<string>();
+  const draftStateRef = useRef(draftState);
+  const isResolvingRef = useRef(false);
+  draftStateRef.current = draftState;
 
   const draftCharacters = useMemo(() => toDraftCharacters(scriptCharacters), [scriptCharacters]);
   const draftableCharacters = useMemo(() => {
@@ -155,6 +162,13 @@ export function CharacterDraftDialog({
   const currentPlayerName = currentEntry
     ? (playerNames[currentEntry.playerId] ?? 'Unknown player')
     : '';
+  const privateHandoffEntry =
+    privateHandoff &&
+    draftState?.activePlayerId === privateHandoff.playerId &&
+    draftState.revision === privateHandoff.revision
+      ? currentEntry
+      : undefined;
+  const privateHandoffExpired = privateHandoff !== null && privateHandoffEntry === undefined;
   const completedCount =
     draftState?.entries.filter((entry) => entry.actualCharacterId !== undefined).length ?? 0;
   const committedCharacterIds = useMemo(
@@ -249,6 +263,9 @@ export function CharacterDraftDialog({
 
   const handleSelectPlayer = (playerId: PlayerId) => {
     if (!draftState || hasPendingSetupChoice) return;
+    isResolvingRef.current = false;
+    setPrivateHandoff(null);
+    setDraftError(undefined);
     onDraftChange(selectGameCharacterDraftPlayer(draftState, config, playerId));
   };
 
@@ -277,12 +294,38 @@ export function CharacterDraftDialog({
   };
 
   const handleResolve = (characterId: string, resolution: DraftPick['resolution']) => {
-    if (!draftState) return;
-    onDraftChange(resolveGameCharacterDraft(draftState, config, characterId, resolution));
-    setPrivateHandoff(false);
+    if (isResolvingRef.current) return;
+    isResolvingRef.current = true;
+
+    const latestDraftState = draftStateRef.current;
+    if (
+      !latestDraftState ||
+      !privateHandoff ||
+      latestDraftState.activePlayerId !== privateHandoff.playerId ||
+      latestDraftState.revision !== privateHandoff.revision
+    ) {
+      setDraftError('This private offer expired. Select the player again to generate a fresh offer.');
+      setPrivateHandoff(null);
+      return;
+    }
+
+    try {
+      onDraftChange(
+        resolveGameCharacterDraft(latestDraftState, config, characterId, resolution),
+      );
+      setDraftError(undefined);
+      setPrivateHandoff(null);
+    } catch (error) {
+      setDraftError(
+        error instanceof Error
+          ? error.message
+          : 'This character could not be selected. Generate a fresh offer and try again.',
+      );
+      setPrivateHandoff(null);
+    }
   };
 
-  if (privateHandoff && currentEntry) {
+  if (privateHandoffEntry) {
     return (
       <Dialog
         open={open}
@@ -307,9 +350,9 @@ export function CharacterDraftDialog({
           <Box sx={{ width: '100%', maxWidth: 1100 }}>
             <CharacterDraftRoller
               playerName={currentPlayerName}
-              playerColor={playerColors[currentEntry.playerId]}
+              playerColor={playerColors[privateHandoffEntry.playerId]}
               scriptCharacters={draftableCharacters}
-              offer={currentEntry.offer}
+              offer={privateHandoffEntry.offer}
               onChoose={(characterId) => handleResolve(characterId, 'choice')}
               onMulligan={(characterId) => handleResolve(characterId, 'mulligan')}
             />
@@ -514,6 +557,12 @@ export function CharacterDraftDialog({
             {draftState.status === 'blocked' && (
               <Alert severity="warning">{draftState.blockedReason}</Alert>
             )}
+            {(draftError || privateHandoffExpired) && (
+              <Alert severity="warning" data-testid="draft-offer-expired">
+                {draftError ??
+                  'This private offer expired. Select the player again to generate a fresh offer.'}
+              </Alert>
+            )}
             {currentEntry && draftState.status === 'drafting' && (
               <Alert
                 severity="info"
@@ -549,7 +598,15 @@ export function CharacterDraftDialog({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Close</Button>
+        <Button
+          onClick={() => {
+            setPrivateHandoff(null);
+            setDraftError(undefined);
+            onClose();
+          }}
+        >
+          Close
+        </Button>
         {draftState?.status === 'drafting' && currentEntry && (
           <>
             <Button
@@ -558,7 +615,17 @@ export function CharacterDraftDialog({
             >
               Regenerate offer
             </Button>
-            <Button variant="contained" onClick={() => setPrivateHandoff(true)}>
+            <Button
+              variant="contained"
+              onClick={() => {
+                isResolvingRef.current = false;
+                setDraftError(undefined);
+                setPrivateHandoff({
+                  playerId: currentEntry.playerId,
+                  revision: draftState.revision,
+                });
+              }}
+            >
               Hand device to {currentPlayerName}
             </Button>
           </>
