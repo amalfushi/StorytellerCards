@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import CasinoIcon from '@mui/icons-material/Casino';
 import RefreshIcon from '@mui/icons-material/Refresh';
 import Alert from '@mui/material/Alert';
@@ -110,7 +110,10 @@ export function CharacterDraftDialog({
   const [draftError, setDraftError] = useState<string>();
   const draftStateRef = useRef(draftState);
   const isResolvingRef = useRef(false);
-  draftStateRef.current = draftState;
+
+  useEffect(() => {
+    draftStateRef.current = draftState;
+  }, [draftState]);
 
   const draftCharacters = useMemo(() => toDraftCharacters(scriptCharacters), [scriptCharacters]);
   const draftableCharacters = useMemo(() => {
@@ -304,15 +307,15 @@ export function CharacterDraftDialog({
       latestDraftState.activePlayerId !== privateHandoff.playerId ||
       latestDraftState.revision !== privateHandoff.revision
     ) {
-      setDraftError('This private offer expired. Select the player again to generate a fresh offer.');
+      setDraftError(
+        'This private offer expired. Select the player again to generate a fresh offer.',
+      );
       setPrivateHandoff(null);
       return;
     }
 
     try {
-      onDraftChange(
-        resolveGameCharacterDraft(latestDraftState, config, characterId, resolution),
-      );
+      onDraftChange(resolveGameCharacterDraft(latestDraftState, config, characterId, resolution));
       setDraftError(undefined);
       setPrivateHandoff(null);
     } catch (error) {
