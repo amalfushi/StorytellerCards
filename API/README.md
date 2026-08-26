@@ -139,6 +139,8 @@ data/
 │       └── games/
 │           └── {game-id}.json     # Game state
 └── scripts/
+    ├── production/  # Official, imported, and milestone scripts
+    └── test/        # Integration-test-only scripts
     └── {script-id}.json           # Imported scripts
 ```
 

@@ -14,7 +14,7 @@
  * the canonical centre repeat so the next spin has room to travel in either
  * direction.
  */
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { forwardRef, memo, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import type { CharacterDef } from '@/types/index.ts';
@@ -47,12 +47,12 @@ interface Props {
   surface?: 'dark' | 'light';
 }
 
-export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function CharacterWheel(
+const CharacterWheelComponent = forwardRef<CharacterWheelHandle, Props>(function CharacterWheel(
   { characters, defaultSpinDurationMs = 3500, compact = false, surface = 'dark' },
   ref,
 ) {
+  const wheelRef = useRef<HTMLDivElement | null>(null);
   const stripRef = useRef<HTMLDivElement | null>(null);
-  const [isSpinning, setIsSpinning] = useState(false);
 
   const rowHeight = compact ? 56 : WHEEL_ROW_HEIGHT_PX;
   const visibleRows = compact ? 5 : WHEEL_VISIBLE_ROWS;
@@ -108,21 +108,32 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
           const landingRowIndex = landingRepeat * stripCount + targetIndex;
           const landingY = yForRowIndex(landingRowIndex);
 
-          setIsSpinning(true);
+          wheelRef.current?.setAttribute('data-spinning', 'true');
 
-          const onEnd = () => {
+          let settled = false;
+          let fallbackTimer = 0;
+          const settle = () => {
+            if (settled) return;
+            settled = true;
+            window.clearTimeout(fallbackTimer);
             el.removeEventListener('transitionend', onEnd);
+            el.removeEventListener('transitioncancel', onEnd);
             // Snap (without transition) back to the centre-repeat copy of the
             // same character so the next spin has room to travel either way.
             window.setTimeout(() => {
               const settleRowIndex = CENTER_REPEAT_INDEX * stripCount + targetIndex;
               el.style.transition = 'none';
               el.style.transform = `translateY(${-yForRowIndex(settleRowIndex)}px)`;
-              setIsSpinning(false);
+              wheelRef.current?.setAttribute('data-spinning', 'false');
               resolve();
             }, SETTLE_SNAP_DELAY_MS);
           };
+          const onEnd = (event: Event) => {
+            if (event.target === el) settle();
+          };
           el.addEventListener('transitionend', onEnd);
+          el.addEventListener('transitioncancel', onEnd);
+          fallbackTimer = window.setTimeout(settle, durationMs + 250);
           window.requestAnimationFrame(() => {
             el.style.transition = `transform ${durationMs}ms cubic-bezier(0.16, 1, 0.3, 1)`;
             el.style.transform = `translateY(${-landingY}px)`;
@@ -134,8 +145,9 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
 
   return (
     <Box
+      ref={wheelRef}
       data-testid="character-wheel"
-      data-spinning={isSpinning ? 'true' : 'false'}
+      data-spinning="false"
       sx={{
         position: 'relative',
         width: '100%',
@@ -179,6 +191,7 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
                 src={getCharacterIconPath(char.id)}
                 alt=""
                 aria-hidden="true"
+                decoding="async"
                 sx={{
                   width: compact ? 38 : 48,
                   height: compact ? 38 : 48,
@@ -260,3 +273,5 @@ export const CharacterWheel = forwardRef<CharacterWheelHandle, Props>(function C
     </Box>
   );
 });
+
+export const CharacterWheel = memo(CharacterWheelComponent);

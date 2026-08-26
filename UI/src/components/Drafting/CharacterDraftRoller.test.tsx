@@ -65,6 +65,11 @@ describe('CharacterDraftRoller', () => {
     expect(choice).toHaveTextContent('Select CHEF');
     expect(choice).not.toHaveTextContent('chef');
     expect(screen.getByTestId('draft-choice-description-0')).toHaveTextContent('chef');
+    expect(screen.getByTestId('draft-choice-column-0')).toHaveStyle({
+      width: '100%',
+      maxWidth: '320px',
+    });
+    expect(choice).toHaveStyle({ width: '100%' });
   });
 
   it('returns the selected offered character', async () => {
@@ -102,6 +107,10 @@ describe('CharacterDraftRoller', () => {
     fireEvent.click(screen.getByTestId('confirm-draft-mulligan'));
 
     expect(screen.getAllByTestId('mock-character-wheel')).toHaveLength(1);
+    expect(screen.getByTestId('draft-mulligan-column')).toHaveStyle({
+      width: '100%',
+      maxWidth: '320px',
+    });
     expect(screen.getByTestId('roll-draft-mulligan')).toBeInTheDocument();
     expect(spinTo).not.toHaveBeenCalledWith('imp');
     expect(onMulligan).not.toHaveBeenCalled();

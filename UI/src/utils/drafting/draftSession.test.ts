@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { Alignment, CharacterType, type CharacterDef } from '@/types/index.ts';
+import { characterMap } from '@/data/characters/index.ts';
 import { DraftSetupMode } from '@/utils/drafting/draftRules.ts';
 import {
   createDraftSession,
@@ -230,5 +231,55 @@ describe('draftSession', () => {
     expect(next.committedCharacterIds).toEqual(state.committedCharacterIds);
     expect(next.picks).toEqual(state.picks);
     expect(next.currentOffer).not.toEqual(state.currentOffer);
+  });
+
+  it('completes a seven-player Boozling draft without blocking', () => {
+    const boozlingIds = [
+      'noble',
+      'pixie',
+      'highpriestess',
+      'balloonist',
+      'fortuneteller',
+      'oracle',
+      'savant',
+      'philosopher',
+      'huntsman',
+      'fisherman',
+      'slayer',
+      'sage',
+      'cannibal',
+      'drunk',
+      'mutant',
+      'damsel',
+      'klutz',
+      'golem',
+      'baron',
+      'cerenovus',
+      'scarletwoman',
+      'marionette',
+      'nodashii',
+      'fanggu',
+      'imp',
+    ];
+    const boozlingConfig: DraftSessionConfig = {
+      playerCount: 7,
+      setupMode: DraftSetupMode.Standard,
+      scriptCharacters: toDraftCharacters(
+        boozlingIds.flatMap((id) => {
+          const character = characterMap.get(id);
+          return character ? [character] : [];
+        }),
+      ),
+    };
+
+    let state = createDraftSession(boozlingConfig, () => 0);
+    while (state.status === 'drafting') {
+      const characterId = state.currentOffer?.offeredCharacterIds[0];
+      if (!characterId) throw new Error('Expected Boozling to produce an offer.');
+      state = resolveDraftPick(state, boozlingConfig, characterId, 'choice', () => 0);
+    }
+
+    expect(state.status).toBe('complete');
+    expect(state.committedCharacterIds).toHaveLength(7);
   });
 });

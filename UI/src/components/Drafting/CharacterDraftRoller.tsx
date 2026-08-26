@@ -101,7 +101,10 @@ function CharacterDraftRollerOffer({
           <Typography variant="h5" gutterBottom sx={{ color: playerColor }}>
             {playerName}
           </Typography>
-          <Box sx={{ maxWidth: 360, mx: 'auto' }}>
+          <Box
+            data-testid="draft-mulligan-column"
+            sx={{ width: '100%', maxWidth: 320, mx: 'auto' }}
+          >
             <CharacterWheel
               ref={mulliganWheelRef}
               characters={scriptCharacters}
@@ -109,42 +112,42 @@ function CharacterDraftRollerOffer({
               surface="light"
               defaultSpinDurationMs={2200}
             />
-          </Box>
-          {phase === 'mulligan-result' && mulliganCharacter ? (
-            <Stack spacing={1} alignItems="center" sx={{ mt: 2 }}>
-              <Typography variant="h5" fontWeight={900}>
-                {mulliganCharacter.name}
+            {phase === 'mulligan-result' && mulliganCharacter ? (
+              <Stack spacing={1} alignItems="stretch" sx={{ mt: 2 }}>
+                <Typography variant="h5" fontWeight={900} align="center">
+                  {mulliganCharacter.name}
+                </Typography>
+                <Box
+                  data-testid="draft-mulligan-description"
+                  sx={{
+                    width: '100%',
+                    minHeight: 88,
+                    display: 'grid',
+                    placeItems: 'center',
+                    bgcolor: '#fff',
+                    color: '#111',
+                    borderRadius: 1,
+                    p: 1.5,
+                  }}
+                >
+                  <Typography align="center">{mulliganCharacter.abilityShort}</Typography>
+                </Box>
+                <Button
+                  fullWidth
+                  color="warning"
+                  variant="contained"
+                  onClick={() => onMulligan(mulliganCharacter.id)}
+                  data-testid="accept-draft-mulligan"
+                >
+                  Accept {mulliganCharacter.name}
+                </Button>
+              </Stack>
+            ) : (
+              <Typography align="center" sx={{ mt: 2 }} color="grey.400">
+                The mulligan result is mandatory.
               </Typography>
-              <Box
-                data-testid="draft-mulligan-description"
-                sx={{
-                  width: '100%',
-                  maxWidth: 520,
-                  minHeight: 88,
-                  display: 'grid',
-                  placeItems: 'center',
-                  bgcolor: '#fff',
-                  color: '#111',
-                  borderRadius: 1,
-                  p: 1.5,
-                }}
-              >
-                <Typography align="center">{mulliganCharacter.abilityShort}</Typography>
-              </Box>
-              <Button
-                color="warning"
-                variant="contained"
-                onClick={() => onMulligan(mulliganCharacter.id)}
-                data-testid="accept-draft-mulligan"
-              >
-                Accept {mulliganCharacter.name}
-              </Button>
-            </Stack>
-          ) : (
-            <Typography align="center" sx={{ mt: 2 }} color="grey.400">
-              The mulligan result is mandatory.
-            </Typography>
-          )}
+            )}
+          </Box>
           <Box sx={{ mt: 2, textAlign: 'center' }}>
             {phase === 'mulligan-ready' ? (
               <Button
@@ -200,8 +203,12 @@ function CharacterDraftRollerOffer({
             return (
               <Box
                 key={`${index}-${characterId}`}
+                data-testid={`draft-choice-column-${index}`}
                 sx={{
+                  width: '100%',
+                  maxWidth: 320,
                   minWidth: 0,
+                  justifySelf: 'center',
                   display: 'grid',
                   gridTemplateRows: 'auto 1fr auto',
                   gap: 1,
@@ -237,6 +244,7 @@ function CharacterDraftRollerOffer({
                       </Typography>
                     </Box>
                     <Button
+                      fullWidth
                       variant="contained"
                       onClick={() => onChoose(characterId)}
                       sx={{

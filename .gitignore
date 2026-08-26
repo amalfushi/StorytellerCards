@@ -208,8 +208,14 @@ UI/coverage/*
 # API
 # ============================================================
 
-# Data directory (JSON file storage)
-API/data/
+# Runtime JSON storage is local, but curated script catalogs deploy with the API.
+API/data/*
+!API/data/scripts/
+API/data/scripts/*
+!API/data/scripts/production/
+!API/data/scripts/test/
+!API/data/scripts/production/*.json
+!API/data/scripts/test/*.json
   
 # ============================================================  
 # Agent Context (AI handoff docs, not source code)  

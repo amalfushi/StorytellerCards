@@ -210,11 +210,28 @@ offer and uses the same adaptive offer policy as production. Travellers, Fabled,
 and Loric characters are always excluded. Kazali is currently gated because its
 required hidden post-draft Minion-conversion workflow is not implemented.
 
+### Script catalog and API loading
+
+Curated server scripts are stored below `API/data/scripts` in two categories:
+
+- `production` contains official base scripts, milestone scripts, and imported
+  scripts intended for regular games.
+- `test` contains integration-only scripts.
+
+The API resolves production before test and temporarily supports legacy flat
+script files. Its data root must resolve correctly when launched from the
+repository root, `API`, or `API/cmd/server`; deployments may override it with
+`STORYTELLER_DATA_DIR`.
+
 ## Player experience
 
 - Reuse the existing full-screen slot-machine presentation.
 - Normal draft: one to three synchronized columns, each ending on one offered
   character.
+- Keep wheel animation independent from React render state. Every spin must
+  settle on transition completion, transition cancellation, or a bounded
+  timeout so the workflow cannot remain permanently locked in its rolling
+  phase.
 - The player taps one character or **Mulligan**.
 - Mulligan: the three columns collapse to one, the predetermined fourth result
   rolls, remains visible with its ability summary, and must be explicitly
@@ -222,6 +239,8 @@ required hidden post-draft Minion-conversion workflow is not implemented.
 - Display each offered character's short ability description below its name.
 - Keep ability descriptions in equal-height white panels, separate from explicit
   character selection buttons.
+- Keep each wheel, description panel, and selection button at the same
+  responsive width.
 - Use white wheel and ability surfaces against the otherwise black private
   handoff.
 - Use the player's stable Town Square color prominently on the private handoff

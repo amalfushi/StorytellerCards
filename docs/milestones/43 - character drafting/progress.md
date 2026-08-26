@@ -49,6 +49,11 @@ its hidden post-draft Minion-conversion phase is not implemented.
 - Reduced repeated wheel content and removed forced synchronous layout before
   spins. Private rolls now use white wheel surfaces, equal-height white ability
   panels, and separate explicit selection buttons against a black handoff.
+- Removed React state updates from active wheel animation, memoized wheel trees,
+  and added transition-cancellation and timeout settlement. A browser that
+  omits `transitionend` can no longer leave the draft permanently spinning.
+- Constrained every wheel, ability panel, and selection button to the same
+  responsive 320px column width.
 - Kept the mandatory mulligan result visible until the player explicitly
   accepts it.
 - Added advisory setup-count chips. Variable setup modifiers and the desired
@@ -87,6 +92,15 @@ its hidden post-draft Minion-conversion phase is not implemented.
   private handoff, mulligan animation and acceptance, reload/resume, final
   assignment, persistence, editable randomized-seating review, seating
   confirmation, and delayed Demon bluffs.
+- Added a seven-player Boozling regression that carries a draft through all
+  seven legal selections without blocking.
+- Made API data-root discovery independent of whether the server starts from
+  the repository root, `API`, or `API/cmd/server`, with an explicit
+  `STORYTELLER_DATA_DIR` override for deployments.
+- Added a deployable script catalog split into `production` and `test`.
+  Production contains the three official base scripts and milestone scripts;
+  integration-only scripts live under `test`. Production lookup takes
+  precedence while legacy flat script files remain readable.
 - Passed the focused drafting and Game View UI suites, Storybook interaction
   tests and production build, full Go API suite, app TypeScript check, Vite
   production build, and the complete drafting lifecycle E2E path.

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createRef, useEffect } from 'react';
 import { act, render } from '@testing-library/react';
 import {
@@ -68,6 +68,7 @@ describe('CharacterWheel', () => {
       donePromise = ref.current!.spinTo('beta', 50);
       await new Promise((resolve) => setTimeout(resolve, 20));
     });
+
     expect(wheel.getAttribute('data-spinning')).toBe('true');
     expect(strip.style.transform).toMatch(/translateY\(-\d+(\.\d+)?px\)/);
     expect(strip.style.transform).toBe('translateY(-936px)');
@@ -80,6 +81,24 @@ describe('CharacterWheel', () => {
     });
 
     expect(wheel.getAttribute('data-spinning')).toBe('false');
+  });
+
+  it('settles if the browser does not emit transitionend', async () => {
+    vi.useFakeTimers();
+    const ref = createRef<CharacterWheelHandle>();
+    const { getByTestId } = render(<CharacterWheel ref={ref} characters={chars} />);
+    let resolved = false;
+
+    await act(async () => {
+      void ref.current!.spinTo('beta', 50).then(() => {
+        resolved = true;
+      });
+      await vi.advanceTimersByTimeAsync(400);
+    });
+
+    expect(resolved).toBe(true);
+    expect(getByTestId('character-wheel')).toHaveAttribute('data-spinning', 'false');
+    vi.useRealTimers();
     // Row height is exposed as a constant; sanity-check that the strip rows
     // are tall enough that the snap math is using it.
     expect(WHEEL_ROW_HEIGHT_PX).toBeGreaterThan(0);
