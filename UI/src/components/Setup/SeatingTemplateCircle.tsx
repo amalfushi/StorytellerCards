@@ -32,7 +32,10 @@ import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import type { ReactNode } from 'react';
 
-import type { Player, PlayerId, Slot, SlotId } from '@/types/index.ts';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
+import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
+import type { Alignment, CharacterType, Player, PlayerId, Slot, SlotId } from '@/types/index.ts';
+import { getAlignmentBorderColor } from '@/utils/characterIcon.ts';
 import { getPlayerColorById } from '@/utils/playerColor.ts';
 
 /** dnd-kit id prefixes — shared with parent `handleDragEnd`. */
@@ -48,7 +51,20 @@ const UNASSIGNED_BORDER_WIDTH = 2;
 interface Props {
   slots: Slot[];
   players: Player[];
-  playerSubtitleById?: Readonly<Partial<Record<PlayerId, string>>>;
+  playerCharacterById?: Readonly<
+    Partial<
+      Record<
+        PlayerId,
+        {
+          characterId: string;
+          characterName: string;
+          label: string;
+          type: CharacterType;
+          alignment: Alignment;
+        }
+      >
+    >
+  >;
   /** Built once in the parent via `buildDisplaySeatNumberMap`. */
   displaySeatNumbers: Map<SlotId, number>;
   /**
@@ -71,7 +87,7 @@ interface Props {
 export function SeatingTemplateCircle({
   slots,
   players,
-  playerSubtitleById,
+  playerCharacterById,
   displaySeatNumbers,
   tileSize = DEFAULT_TILE_SIZE,
   shape = 'circle',
@@ -188,7 +204,7 @@ export function SeatingTemplateCircle({
                   players={players}
                   playerIdsInOrder={playerIdsInOrder}
                   seatedIds={seatedIds}
-                  playerSubtitle={slot.playerId ? playerSubtitleById?.[slot.playerId] : undefined}
+                  playerCharacter={slot.playerId ? playerCharacterById?.[slot.playerId] : undefined}
                   onRemove={() => onRemoveSlot(slot.id)}
                   onAssign={(pid) => onAssignSeat(slot.id, pid)}
                   dragHandle={dragHandle}
@@ -226,7 +242,7 @@ function SlotPositionWrapper({
   y: number;
   tileSize: number;
   onMoveSlot?: (slotId: SlotId, toIndex: number) => void;
-  children: (args: { dragHandle: ReactNode; moveControls?: ReactNode }) => ReactNode;
+  children: (args: { dragHandle: ReactNode; moveControls?: SlotMoveControls }) => ReactNode;
 }) {
   const { setNodeRef: setDropRef, isOver } = useDroppable({
     id: `${SLOT_POSITION_DROPPABLE_PREFIX}${slotId}`,
@@ -269,33 +285,50 @@ function SlotPositionWrapper({
           <SlotDragHandle listeners={listeners} attributes={attributes} isDragging={isDragging} />
         ),
         moveControls:
-          onMoveSlot && slotCount > 1 ? (
-            <Box
-              sx={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                mt: 0.25,
-              }}
-            >
-              <IconButton
-                size="small"
-                aria-label={`move slot ${slotIndex + 1} counterclockwise`}
-                onClick={() => onMoveSlot(slotId, slotIndex === 0 ? slotCount - 1 : slotIndex - 1)}
-                sx={{ width: 36, height: 36 }}
-              >
-                <NavigateBeforeIcon fontSize="small" />
-              </IconButton>
-              <IconButton
-                size="small"
-                aria-label={`move slot ${slotIndex + 1} clockwise`}
-                onClick={() => onMoveSlot(slotId, slotIndex === slotCount - 1 ? 0 : slotIndex + 1)}
-                sx={{ width: 36, height: 36 }}
-              >
-                <NavigateNextIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          ) : undefined,
+          onMoveSlot && slotCount > 1
+            ? {
+                previous: (
+                  <IconButton
+                    size="small"
+                    aria-label={`move slot ${slotIndex + 1} counterclockwise`}
+                    onClick={() =>
+                      onMoveSlot(slotId, slotIndex === 0 ? slotCount - 1 : slotIndex - 1)
+                    }
+                    sx={{ width: 36, height: 36 }}
+                  >
+                    <NavigateBeforeIcon fontSize="small" />
+                  </IconButton>
+                ),
+                next: (
+                  <IconButton
+                    size="small"
+                    aria-label={`move slot ${slotIndex + 1} clockwise`}
+                    onClick={() =>
+                      onMoveSlot(slotId, slotIndex === slotCount - 1 ? 0 : slotIndex + 1)
+                    }
+                    sx={{ width: 36, height: 36 }}
+                  >
+                    <NavigateNextIcon fontSize="small" />
+                  </IconButton>
+                ),
+              }
+            : undefined,
       })}
+    </Box>
+  );
+}
+
+interface SlotMoveControls {
+  previous: ReactNode;
+  next: ReactNode;
+}
+
+function MoveControlsRow({ controls }: { controls?: SlotMoveControls }) {
+  if (!controls) return null;
+  return (
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 0.25 }}>
+      {controls.previous}
+      {controls.next}
     </Box>
   );
 }
@@ -338,7 +371,7 @@ function SpacerCell({
   index: number;
   onRemove: () => void;
   dragHandle: ReactNode;
-  moveControls?: ReactNode;
+  moveControls?: SlotMoveControls;
 }) {
   return (
     <Box
@@ -355,7 +388,7 @@ function SpacerCell({
     >
       {dragHandle}
       <Chip size="small" label="spacer" />
-      {moveControls}
+      <MoveControlsRow controls={moveControls} />
       <IconButton
         size="small"
         onClick={onRemove}
@@ -379,7 +412,7 @@ function StorytellerCell({
   angle: number;
   onRemove: () => void;
   dragHandle: ReactNode;
-  moveControls?: ReactNode;
+  moveControls?: SlotMoveControls;
 }) {
   // Rotate the arrow so it points toward the circle center.
   const rotationRad = angle + (3 * Math.PI) / 2;
@@ -403,7 +436,7 @@ function StorytellerCell({
       <Typography variant="caption" component="div" color="text.secondary">
         ST
       </Typography>
-      {moveControls}
+      <MoveControlsRow controls={moveControls} />
       <IconButton
         size="small"
         onClick={onRemove}
@@ -422,7 +455,7 @@ function SeatCell({
   players,
   playerIdsInOrder,
   seatedIds,
-  playerSubtitle,
+  playerCharacter,
   onRemove,
   onAssign,
   dragHandle,
@@ -433,11 +466,17 @@ function SeatCell({
   players: Player[];
   playerIdsInOrder: PlayerId[];
   seatedIds: Set<PlayerId>;
-  playerSubtitle?: string;
+  playerCharacter?: {
+    characterId: string;
+    characterName: string;
+    label: string;
+    type: CharacterType;
+    alignment: Alignment;
+  };
   onRemove: () => void;
   onAssign: (playerId: PlayerId | null) => void;
   dragHandle: ReactNode;
-  moveControls?: ReactNode;
+  moveControls?: SlotMoveControls;
 }) {
   const { isOver, setNodeRef } = useDroppable({ id: `${SEAT_DROPPABLE_PREFIX}${slot.id}` });
   const assignedColor = slot.playerId ? getPlayerColorById(slot.playerId, playerIdsInOrder) : null;
@@ -485,24 +524,53 @@ function SeatCell({
           );
         })}
       </Select>
-      {playerSubtitle && (
-        <Typography
-          variant="caption"
-          component="div"
-          data-testid={`seat-character-${slot.playerId}`}
+      {playerCharacter ? (
+        <Box
+          data-testid={`seat-character-controls-${slot.playerId}`}
           sx={{
-            mt: 0.25,
-            px: 0.25,
-            fontWeight: 800,
-            lineHeight: 1.15,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
+            display: 'grid',
+            gridTemplateColumns: moveControls ? '36px minmax(0, 1fr) 36px' : '1fr',
+            alignItems: 'center',
+            gap: 0.25,
+            mt: 0.5,
           }}
         >
-          {playerSubtitle}
-        </Typography>
+          {moveControls?.previous}
+          <Box
+            data-testid={`seat-character-${slot.playerId}`}
+            sx={{ minWidth: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          >
+            <CharacterIconImage
+              characterId={playerCharacter.characterId}
+              characterName={playerCharacter.characterName}
+              typeColor={getCharacterTypeColor(playerCharacter.type)}
+              size={48}
+              borderColor={getAlignmentBorderColor(
+                playerCharacter.alignment,
+                getCharacterTypeColor(playerCharacter.type),
+              )}
+              alignment={playerCharacter.alignment}
+            />
+            <Typography
+              variant="caption"
+              component="div"
+              sx={{
+                mt: 0.25,
+                px: 0.25,
+                width: '100%',
+                fontWeight: 800,
+                lineHeight: 1.15,
+                overflowWrap: 'anywhere',
+              }}
+            >
+              {playerCharacter.label}
+            </Typography>
+          </Box>
+          {moveControls?.next}
+        </Box>
+      ) : (
+        <MoveControlsRow controls={moveControls} />
       )}
-      {moveControls}
       <IconButton
         size="small"
         onClick={onRemove}

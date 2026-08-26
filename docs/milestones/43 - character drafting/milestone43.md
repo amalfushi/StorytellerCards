@@ -371,8 +371,9 @@ acceptance criteria.
 - [x] Require confirmed final seating before play starts.
 - [x] Delay Demon bluff selection until the Storyteller reviews and confirms
       randomized seating.
-- [x] Keep actual/apparent character assignments visible during seating edits
-      and allow constrained re-randomization before saving.
+- [x] Keep full actual-character portraits and actual/apparent assignment text
+      visible between the seating reorder controls, and allow constrained
+      re-randomization before saving.
 
 ## Testing strategy
 

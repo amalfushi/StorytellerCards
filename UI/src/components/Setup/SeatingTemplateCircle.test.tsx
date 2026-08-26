@@ -3,7 +3,7 @@ import { render, screen, fireEvent, within } from '@testing-library/react';
 import { DndContext } from '@dnd-kit/core';
 import { SeatingTemplateCircle } from '@/components/Setup/SeatingTemplateCircle.tsx';
 import { buildDisplaySeatNumberMap } from '@/utils/seating/index.ts';
-import type { Player, Slot } from '@/types/index.ts';
+import { Alignment, CharacterType, type Player, type Slot } from '@/types/index.ts';
 
 function wrap(ui: React.ReactElement) {
   return render(<DndContext>{ui}</DndContext>);
@@ -100,5 +100,28 @@ describe('SeatingTemplateCircle', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /move slot 1 counterclockwise/i }));
     expect(onMoveSlot).toHaveBeenCalledWith('s1', mixedSlots.length - 1);
+  });
+
+  it('places move controls on either side of the assigned character icon and text', () => {
+    renderCircle({
+      playerCharacterById: {
+        p1: {
+          characterId: 'washerwoman',
+          characterName: 'Washerwoman',
+          label: 'Washerwoman',
+          type: CharacterType.Townsfolk,
+          alignment: Alignment.Good,
+        },
+      },
+    });
+
+    const characterControls = screen.getByTestId('seat-character-controls-p1');
+    const children = Array.from(characterControls.children);
+    expect(children[0]).toHaveAttribute('aria-label', 'move slot 1 counterclockwise');
+    expect(
+      within(children[1] as HTMLElement).getByRole('img', { name: 'Washerwoman' }),
+    ).toHaveAttribute('src', '/icons/characters/washerwomanIcon_g.webp');
+    expect(children[1]).toHaveTextContent('Washerwoman');
+    expect(children[2]).toHaveAttribute('aria-label', 'move slot 1 clockwise');
   });
 });

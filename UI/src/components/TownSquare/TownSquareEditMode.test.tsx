@@ -171,6 +171,8 @@ describe('TownSquareEditMode', () => {
 
     expect(screen.getByTestId('seat-character-p1')).toHaveTextContent('Washerwoman');
     expect(screen.getByTestId('seat-character-p2')).toHaveTextContent('Imp');
+    expect(screen.getByRole('img', { name: 'Washerwoman' })).toBeVisible();
+    expect(screen.getByRole('img', { name: 'Imp' })).toBeVisible();
   });
 
   it('shows actual and apparent identities for illusion drafts', () => {

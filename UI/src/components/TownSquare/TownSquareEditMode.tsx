@@ -141,11 +141,13 @@ export function TownSquareEditMode({
     () => new Map(scriptCharacters.map((character) => [character.id, character])),
     [scriptCharacters],
   );
-  const playerCharacterLabels = useMemo(
+  const playerCharacterDisplays = useMemo(
     () =>
       Object.fromEntries(
         Object.entries(draftPlayerState).flatMap(([playerId, state]) => {
           if (!state.characterId) return [];
+          const character = characterById.get(state.characterId);
+          if (!character) return [];
           const actualName = characterById.get(state.characterId)?.name ?? state.characterId;
           const apparentName = state.apparentCharacterId
             ? (characterById.get(state.apparentCharacterId)?.name ?? state.apparentCharacterId)
@@ -153,9 +155,19 @@ export function TownSquareEditMode({
           return [
             [
               playerId,
-              apparentName && state.apparentCharacterId !== state.characterId
-                ? `${actualName} (appears ${apparentName})`
-                : actualName,
+              {
+                characterId: state.characterId,
+                characterName: actualName,
+                label:
+                  apparentName && state.apparentCharacterId !== state.characterId
+                    ? `${actualName} (appears ${apparentName})`
+                    : actualName,
+                type: character.type,
+                alignment:
+                  state.actualAlignment === Alignment.Unknown
+                    ? alignmentForCharacter(character)
+                    : state.actualAlignment,
+              },
             ],
           ];
         }),
@@ -520,7 +532,7 @@ export function TownSquareEditMode({
             <SeatingTemplateCircle
               slots={draftSlots}
               players={participatingPlayers}
-              playerSubtitleById={playerCharacterLabels}
+              playerCharacterById={playerCharacterDisplays}
               displaySeatNumbers={displaySeatNumbers}
               shape={isSmallViewport ? 'ovoid' : 'circle'}
               tileSize={isSmallViewport ? 112 : 140}

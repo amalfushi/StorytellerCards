@@ -94,6 +94,7 @@ export const RandomizedSeating: Story = {
   play: async ({ args, canvasElement }) => {
     const canvas = within(canvasElement);
     await expect(canvas.getByTestId('seat-character-p1')).toHaveTextContent('Washerwoman');
+    await expect(canvas.getByRole('img', { name: 'Washerwoman' })).toBeVisible();
     await userEvent.click(canvas.getByRole('button', { name: /randomize seating/i }));
     await expect(args.onSave).not.toHaveBeenCalled();
     await expect(canvas.getByTestId('seat-character-p1')).toBeVisible();

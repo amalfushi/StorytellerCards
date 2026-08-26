@@ -74,8 +74,9 @@ its hidden post-draft Minion-conversion phase is not implemented.
   Dashii, with secret manual repair fallback.
 - Added an explicit post-draft seating review and editable Town Square step.
   Demon bluffs do not open until the Storyteller confirms the final seating.
-- Added assigned actual/apparent character labels and constrained
-  re-randomization to the editable seating review.
+- Added full assigned-character portraits, actual/apparent labels flanked by
+  seating reorder controls, and constrained re-randomization to the editable
+  seating review.
 - Consolidated the duplicate pre-game character actions to one
   **Select Characters** action.
 - Gated Kazali in production and the simulator until its hidden post-draft
