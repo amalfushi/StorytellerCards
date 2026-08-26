@@ -206,9 +206,13 @@ supports official base scripts, custom script JSON import, player count and
 setup-mode selection, normal choices, mandatory mulligans, offer regeneration,
 and Storyteller-only diagnostics showing how each commitment changes the legal
 candidate pool. The tool displays the number of viable characters before each
-offer and uses the same adaptive offer policy as production. Travellers, Fabled,
-and Loric characters are always excluded. Kazali is currently gated because its
-required hidden post-draft Minion-conversion workflow is not implemented.
+offer and uses the same adaptive offer policy as production. A dedicated
+hidden-character test can force Drunk, Lunatic, or Marionette into the first
+offer using the production Storyteller board, false-identity masking, private
+handoff, and resolution flow, without modifying a real game. Travellers,
+Fabled, and Loric characters are always excluded. Kazali is currently gated
+because its required hidden post-draft Minion-conversion workflow is not
+implemented.
 
 ### Script catalog and API loading
 

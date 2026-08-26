@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 
 const mockNavigate = vi.fn();
@@ -52,6 +52,29 @@ describe('CharacterDraftSimulatorPage', () => {
     );
   });
 
+  it('imports the centralized script-catalog JSON format', async () => {
+    render(<CharacterDraftSimulatorPage />);
+    const file = {
+      text: vi.fn().mockResolvedValue(
+        JSON.stringify({
+          id: 'centralized-test',
+          name: 'Centralized Test',
+          author: 'Test',
+          characterIds: ['washerwoman', 'drunk', 'poisoner', 'imp'],
+        }),
+      ),
+    };
+
+    fireEvent.change(screen.getByTestId('draft-script-file'), {
+      target: { files: [file] },
+    });
+
+    await waitFor(() =>
+      expect(screen.getByLabelText('Script')).toHaveTextContent('Centralized Test'),
+    );
+    expect(screen.queryByRole('alert')).not.toHaveTextContent(/must be an array/i);
+  });
+
   it('starts a draft and advances after a simulated choice', () => {
     render(<CharacterDraftSimulatorPage />);
     fireEvent.click(screen.getByRole('button', { name: /start new draft/i }));
@@ -67,6 +90,28 @@ describe('CharacterDraftSimulatorPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Take mulligan' }));
 
     expect(screen.getByTestId('draft-diagnostics')).toHaveTextContent('(mulligan)');
+  });
+
+  it('forces a selected hidden character through the production Storyteller handoff', () => {
+    render(<CharacterDraftSimulatorPage />);
+
+    fireEvent.mouseDown(screen.getByLabelText('Hidden character'));
+    fireEvent.click(screen.getByRole('option', { name: 'Marionette' }));
+    fireEvent.click(screen.getByRole('button', { name: /test hidden draft/i }));
+
+    expect(screen.getByTestId('draft-player-hidden-warning-test-player-1')).toBeVisible();
+    expect(screen.getByTestId('current-player-hidden-identity-warning')).toHaveTextContent(
+      /marionette/i,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /hand device to test player 1/i }));
+    expect(screen.getByTestId('mock-draft-roller')).toHaveTextContent('Test Player 1');
+    expect(screen.queryByTestId('current-player-hidden-identity-warning')).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Marionette' })).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Choose first' }));
+    expect(screen.getByTestId('draft-player-test-player-1')).toHaveTextContent(
+      /marionette.*appears as/i,
+    );
   });
 
   it('returns to the home page', () => {

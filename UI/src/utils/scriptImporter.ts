@@ -27,6 +27,21 @@ function isMeta(value: unknown): value is ScriptMeta {
   );
 }
 
+/** Type-guard for the app's centralized script-catalog JSON format. */
+function isCentralizedScript(value: unknown): value is Script {
+  if (typeof value !== 'object' || value === null) return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.id === 'string' &&
+    candidate.id.length > 0 &&
+    typeof candidate.name === 'string' &&
+    candidate.name.length > 0 &&
+    typeof candidate.author === 'string' &&
+    Array.isArray(candidate.characterIds) &&
+    candidate.characterIds.every((characterId) => typeof characterId === 'string')
+  );
+}
+
 /**
  * Derive a stable, URL-safe ID from a script name.
  *
@@ -40,8 +55,8 @@ function normalizeId(name: string): string {
 }
 
 /**
- * Parse the official Blood on the Clocktower script JSON format into a
- * {@link Script} object.
+ * Parse either the official Blood on the Clocktower script-array format or the
+ * app's centralized script-catalog object format into a {@link Script} object.
  *
  * Expected format:
  * ```json
@@ -57,8 +72,17 @@ function normalizeId(name: string): string {
  *   header is missing / malformed.
  */
 export function importScript(json: unknown): Script {
+  if (isCentralizedScript(json)) {
+    return {
+      id: json.id,
+      name: json.name,
+      author: json.author,
+      characterIds: [...json.characterIds],
+    };
+  }
+
   if (!Array.isArray(json)) {
-    throw new Error('Script JSON must be an array.');
+    throw new Error('Script JSON must be an array or a centralized script object.');
   }
 
   if (json.length === 0) {

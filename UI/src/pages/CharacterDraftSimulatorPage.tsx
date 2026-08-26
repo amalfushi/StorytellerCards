@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import CasinoIcon from '@mui/icons-material/Casino';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import ScienceIcon from '@mui/icons-material/Science';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import Alert from '@mui/material/Alert';
 import AppBar from '@mui/material/AppBar';
@@ -21,6 +22,7 @@ import Stack from '@mui/material/Stack';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import { allCharacters, characterMap } from '@/data/characters/index.ts';
+import { CharacterDraftDialog } from '@/components/Drafting/CharacterDraftDialog.tsx';
 import { CharacterDraftRoller } from '@/components/Drafting/CharacterDraftRoller.tsx';
 import { importScript } from '@/utils/scriptImporter.ts';
 import {
@@ -29,12 +31,22 @@ import {
   regenerateDraftOffer,
   resolveDraftPick,
   toDraftCharacters,
+  type DraftOffer,
   type DraftPick,
   type DraftSessionConfig,
   type DraftSessionState,
 } from '@/utils/drafting/draftSession.ts';
-import { DraftSetupMode, isProductionDraftSetupMode } from '@/utils/drafting/draftRules.ts';
-import type { CharacterDef, Edition, Script } from '@/types/index.ts';
+import {
+  DraftIdentityKind,
+  DraftSetupMode,
+  getCharacterDraftRule,
+  isProductionDraftSetupMode,
+} from '@/utils/drafting/draftRules.ts';
+import {
+  createGameCharacterDraft,
+  maskDraftOfferIdentities,
+} from '@/utils/drafting/gameCharacterDraft.ts';
+import type { CharacterDef, CharacterDraftState, Edition, Script } from '@/types/index.ts';
 
 const BUILT_IN_SCRIPT_EDITIONS: readonly {
   id: Edition;
@@ -67,6 +79,33 @@ const PRESENTATION_MODE_LABELS: Readonly<Record<DraftPresentationMode, string>> 
   'secret-single-type': 'Secret single character type',
   'secret-two-types': 'Secret two character types',
 };
+
+const FALSE_IDENTITY_KINDS: ReadonlySet<DraftIdentityKind> = new Set([
+  DraftIdentityKind.FalseGood,
+  DraftIdentityKind.FalseTownsfolk,
+  DraftIdentityKind.FalseDemon,
+]);
+
+const HIDDEN_TEST_CHARACTERS = allCharacters.filter((character) =>
+  FALSE_IDENTITY_KINDS.has(
+    getCharacterDraftRule(character.id)?.identity ?? DraftIdentityKind.Actual,
+  ),
+);
+
+const HIDDEN_TEST_SCRIPT_CHARACTERS = (
+  [
+    ['Townsfolk', 12],
+    ['Outsider', 6],
+    ['Minion', 6],
+    ['Demon', 4],
+  ] as const
+).flatMap(([type, limit]) => {
+  const hiddenCharacters = HIDDEN_TEST_CHARACTERS.filter((character) => character.type === type);
+  const ordinaryCharacters = allCharacters.filter(
+    (character) => character.type === type && getCharacterDraftRule(character.id) === undefined,
+  );
+  return [...hiddenCharacters, ...ordinaryCharacters].slice(0, limit);
+});
 
 function getBuiltInScript(edition: Edition, name: string): Script {
   return {
@@ -109,6 +148,11 @@ export function CharacterDraftSimulatorPage() {
   );
   const [session, setSession] = useState<DraftSessionState | null>(null);
   const [importError, setImportError] = useState<string | null>(null);
+  const [hiddenTestCharacterId, setHiddenTestCharacterId] = useState(
+    HIDDEN_TEST_CHARACTERS[0]?.id ?? '',
+  );
+  const [hiddenTestDraft, setHiddenTestDraft] = useState<CharacterDraftState | null>(null);
+  const [hiddenTestError, setHiddenTestError] = useState<string | null>(null);
 
   const scripts = useMemo(
     () => (customScript ? [...BUILT_IN_SCRIPTS, customScript] : BUILT_IN_SCRIPTS),
@@ -123,7 +167,11 @@ export function CharacterDraftSimulatorPage() {
     [draftCharacters, playerCount, presentationMode, setupMode],
   );
 
-  const handleConfigurationChange = () => setSession(null);
+  const handleConfigurationChange = () => {
+    setSession(null);
+    setHiddenTestDraft(null);
+    setHiddenTestError(null);
+  };
 
   const handleScriptChange = (nextScriptId: string) => {
     setScriptId(nextScriptId);
@@ -151,6 +199,60 @@ export function CharacterDraftSimulatorPage() {
   const handleResolve = (characterId: string, resolution: DraftPick['resolution']) => {
     if (!session) return;
     setSession(resolveDraftPick(session, config, characterId, resolution));
+  };
+
+  const handleStartHiddenIdentityTest = () => {
+    setHiddenTestError(null);
+    const hiddenCharacter = characterMap.get(hiddenTestCharacterId);
+    if (!hiddenCharacter) {
+      setHiddenTestError('Select a hidden character to test.');
+      return;
+    }
+
+    const hiddenScriptCharacters = toDraftCharacters(HIDDEN_TEST_SCRIPT_CHARACTERS);
+    const hiddenConfig: DraftSessionConfig = {
+      playerCount,
+      scriptCharacters: hiddenScriptCharacters,
+      setupMode: DraftSetupMode.Standard,
+      presentationMode: DraftPresentationMode.Open,
+    };
+    const playerIds = Array.from({ length: playerCount }, (_, index) => `test-player-${index + 1}`);
+    const baseDraft = createGameCharacterDraft(playerIds, hiddenConfig, () => 0);
+    const initialSession = createDraftSession(hiddenConfig, () => 0);
+    if (
+      baseDraft.status === 'blocked' ||
+      !initialSession.legalCandidateIds.includes(hiddenCharacter.id)
+    ) {
+      setHiddenTestError(
+        `${hiddenCharacter.name} is not legal at the start of a ${playerCount}-player test draft.`,
+      );
+      return;
+    }
+
+    const supportingCandidates = initialSession.legalCandidateIds.filter((characterId) => {
+      if (characterId === hiddenCharacter.id) return false;
+      const identity = getCharacterDraftRule(characterId)?.identity ?? DraftIdentityKind.Actual;
+      return !FALSE_IDENTITY_KINDS.has(identity);
+    });
+    const forcedActualOffer: DraftOffer = {
+      offeredCharacterIds: [hiddenCharacter.id, ...supportingCandidates.slice(0, 2)],
+      mulliganCharacterId: supportingCandidates[2] ?? null,
+      rolledCharacterTypes: [],
+    };
+    const forcedVisibleOffer = maskDraftOfferIdentities(
+      forcedActualOffer,
+      initialSession.legalCandidateIds.length,
+      hiddenConfig,
+      [],
+      () => 0,
+    );
+
+    setHiddenTestDraft({
+      ...baseDraft,
+      activePlayerId: playerIds[0],
+      entries: [{ playerId: playerIds[0], offer: forcedVisibleOffer }],
+      revision: baseDraft.revision + 1,
+    });
   };
 
   return (
@@ -289,6 +391,52 @@ export function CharacterDraftSimulatorPage() {
           )}
         </Paper>
 
+        <Paper sx={{ p: 2, mb: 2 }} data-testid="hidden-identity-test-tool">
+          <Typography variant="h6" gutterBottom>
+            Hidden character test
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Force a false-identity character into Player 1's offer to verify the Storyteller
+            warning, private handoff, and secret actual-character resolution without changing a real
+            game.
+          </Typography>
+          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
+            <FormControl fullWidth>
+              <InputLabel id="hidden-test-character-label">Hidden character</InputLabel>
+              <Select
+                labelId="hidden-test-character-label"
+                label="Hidden character"
+                value={hiddenTestCharacterId}
+                onChange={(event) => {
+                  setHiddenTestCharacterId(event.target.value);
+                  setHiddenTestDraft(null);
+                  setHiddenTestError(null);
+                }}
+              >
+                {HIDDEN_TEST_CHARACTERS.map((character) => (
+                  <MenuItem key={character.id} value={character.id}>
+                    {character.name}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <Button
+              variant="contained"
+              color="warning"
+              startIcon={<ScienceIcon />}
+              onClick={handleStartHiddenIdentityTest}
+              sx={{ minWidth: { sm: 240 } }}
+            >
+              Test hidden draft
+            </Button>
+          </Stack>
+          {hiddenTestError && (
+            <Alert severity="warning" sx={{ mt: 2 }}>
+              {hiddenTestError}
+            </Alert>
+          )}
+        </Paper>
+
         {!session && (
           <Alert severity="info">
             This standalone tool does not create or modify a game. Start a draft to test how each
@@ -350,6 +498,24 @@ export function CharacterDraftSimulatorPage() {
           </Paper>
         )}
       </Container>
+
+      {hiddenTestDraft && (
+        <CharacterDraftDialog
+          open
+          playerIds={hiddenTestDraft.playerOrder}
+          playerNames={Object.fromEntries(
+            hiddenTestDraft.playerOrder.map((playerId, index) => [
+              playerId,
+              `Test Player ${index + 1}`,
+            ]),
+          )}
+          scriptCharacters={HIDDEN_TEST_SCRIPT_CHARACTERS}
+          draftState={hiddenTestDraft}
+          onClose={() => setHiddenTestDraft(null)}
+          onDraftChange={setHiddenTestDraft}
+          onDraftComplete={() => setHiddenTestDraft(null)}
+        />
+      )}
     </Box>
   );
 }

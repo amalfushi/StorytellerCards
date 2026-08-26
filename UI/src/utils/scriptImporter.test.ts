@@ -13,6 +13,28 @@ describe('importScript', () => {
     expect(result.characterIds).toEqual(['noble', 'pixie', 'chef']);
   });
 
+  it('parses the centralized script-catalog format', () => {
+    const json = {
+      id: 'boozling',
+      name: 'Boozling',
+      author: 'Lau',
+      characterIds: ['noble', 'pixie', 'chef'],
+    };
+
+    expect(importScript(json)).toEqual(json);
+  });
+
+  it('rejects a malformed centralized script object', () => {
+    expect(() =>
+      importScript({
+        id: 'boozling',
+        name: 'Boozling',
+        author: 'Lau',
+        characterIds: ['noble', 42],
+      }),
+    ).toThrow('centralized script object');
+  });
+
   it('throws for invalid format (no _meta)', () => {
     const json = ['noble', 'pixie'];
     expect(() => importScript(json)).toThrow('_meta');

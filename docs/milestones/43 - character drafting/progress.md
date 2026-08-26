@@ -69,6 +69,10 @@ its hidden post-draft Minion-conversion phase is not implemented.
   script characters such as Lord of Typhon no longer make following rows
   briefly disappear.
 - Added actual/apparent identity masking for Drunk, Lunatic, and Marionette.
+- Extended the standalone simulator with an explicit hidden-character test for
+  Drunk, Lunatic, and Marionette. It forces the selected role into Player 1's
+  offer while exercising the production Storyteller warning, private handoff,
+  and secret actual-character resolution flow.
 - Added prominent Storyteller-board warnings for false-identity offers. The
   affected player pill carries a warning icon, while the active **Drafting
   now** panel uses blaring error styling and shows the hidden character's icon
