@@ -152,7 +152,7 @@ describe('CharacterDraftDialog', () => {
     expect(currentPlayerWarning).toHaveTextContent(/hidden character.*storyteller eyes only/i);
     expect(within(currentPlayerWarning).getByRole('img', { name: 'Marionette' })).toBeVisible();
     expect(currentPlayerWarning).toHaveTextContent(
-      /player sees t1.*selecting it secretly assigns marionette/i,
+      /player's fake draft shows t1.*any selection secretly assigns marionette/i,
     );
 
     fireEvent.click(screen.getByRole('button', { name: /hand device to alice/i }));

@@ -47,6 +47,14 @@ function falseIdentityTypes(characterId: string): readonly CharacterType[] | nul
   return null;
 }
 
+function isValidFalseIdentity(actualCharacterId: string, falseIdentityId: string): boolean {
+  if (actualCharacterId === 'marionette') {
+    return falseIdentityId !== 'drunk' && falseIdentityId !== 'lunatic';
+  }
+  if (actualCharacterId === 'drunk') return falseIdentityId !== 'lunatic';
+  return true;
+}
+
 function pickFalseIdentity(
   actualCharacterId: string,
   scriptCharacters: readonly DraftCharacter[],
@@ -61,12 +69,14 @@ function pickFalseIdentity(
     (character) =>
       allowedTypes.includes(character.type) &&
       character.id !== actualCharacterId &&
+      isValidFalseIdentity(actualCharacterId, character.id) &&
       !excludedIds.has(character.id),
   );
   const fallbackCandidates = scriptCharacters.filter(
     (character) =>
       allowedTypes.includes(character.type) &&
       character.id !== actualCharacterId &&
+      isValidFalseIdentity(actualCharacterId, character.id) &&
       committedCharacterIds.has(character.id) &&
       !usedVisibleIds.has(character.id),
   );
@@ -115,6 +125,20 @@ export function maskDraftOfferIdentities(
     mapping[falseIdentityId] = actualCharacterId;
     return falseIdentityId;
   };
+  const forcedHiddenCharacterId = offer.offeredCharacterIds.find(
+    (characterId) => falseIdentityTypes(characterId) !== null,
+  );
+  if (forcedHiddenCharacterId) {
+    return {
+      offeredCharacterIds: offer.offeredCharacterIds.map(() =>
+        toVisibleId(forcedHiddenCharacterId),
+      ),
+      mulliganCharacterId: offer.mulliganCharacterId ? toVisibleId(forcedHiddenCharacterId) : null,
+      rolledCharacterTypes: [...offer.rolledCharacterTypes],
+      legalCandidateCount,
+      actualCharacterIdsByOfferedId: mapping,
+    };
+  }
 
   return {
     offeredCharacterIds: offer.offeredCharacterIds.map(toVisibleId),

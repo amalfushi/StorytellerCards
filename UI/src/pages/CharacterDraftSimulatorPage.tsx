@@ -46,7 +46,13 @@ import {
   createGameCharacterDraft,
   maskDraftOfferIdentities,
 } from '@/utils/drafting/gameCharacterDraft.ts';
-import type { CharacterDef, CharacterDraftState, Edition, Script } from '@/types/index.ts';
+import type {
+  CharacterDef,
+  CharacterDraftState,
+  CharacterType,
+  Edition,
+  Script,
+} from '@/types/index.ts';
 
 const BUILT_IN_SCRIPT_EDITIONS: readonly {
   id: Edition;
@@ -92,20 +98,23 @@ const HIDDEN_TEST_CHARACTERS = allCharacters.filter((character) =>
   ),
 );
 
-const HIDDEN_TEST_SCRIPT_CHARACTERS = (
-  [
-    ['Townsfolk', 12],
-    ['Outsider', 6],
-    ['Minion', 6],
-    ['Demon', 4],
-  ] as const
-).flatMap(([type, limit]) => {
-  const hiddenCharacters = HIDDEN_TEST_CHARACTERS.filter((character) => character.type === type);
-  const ordinaryCharacters = allCharacters.filter(
-    (character) => character.type === type && getCharacterDraftRule(character.id) === undefined,
-  );
-  return [...hiddenCharacters, ...ordinaryCharacters].slice(0, limit);
-});
+const HIDDEN_TEST_SCRIPT_CHARACTERS = [
+  ...(
+    [
+      ['Townsfolk', 12],
+      ['Outsider', 6],
+      ['Minion', 6],
+      ['Demon', 4],
+    ] as const
+  ).flatMap(([type, limit]) => {
+    const hiddenCharacters = HIDDEN_TEST_CHARACTERS.filter((character) => character.type === type);
+    const ordinaryCharacters = allCharacters.filter(
+      (character) => character.type === type && getCharacterDraftRule(character.id) === undefined,
+    );
+    return [...hiddenCharacters, ...ordinaryCharacters].slice(0, limit);
+  }),
+  characterMap.get('baron'),
+].filter((character): character is CharacterDef => character !== undefined);
 
 function getBuiltInScript(edition: Edition, name: string): Script {
   return {
@@ -229,10 +238,21 @@ export function CharacterDraftSimulatorPage() {
       return;
     }
 
+    const apparentTypes =
+      hiddenCharacter.id === 'lunatic'
+        ? new Set<CharacterType>(['Demon'])
+        : hiddenCharacter.id === 'drunk'
+          ? new Set<CharacterType>(['Townsfolk'])
+          : new Set<CharacterType>(['Townsfolk', 'Outsider']);
     const supportingCandidates = initialSession.legalCandidateIds.filter((characterId) => {
       if (characterId === hiddenCharacter.id) return false;
+      const character = characterMap.get(characterId);
       const identity = getCharacterDraftRule(characterId)?.identity ?? DraftIdentityKind.Actual;
-      return !FALSE_IDENTITY_KINDS.has(identity);
+      return (
+        character !== undefined &&
+        !apparentTypes.has(character.type) &&
+        !FALSE_IDENTITY_KINDS.has(identity)
+      );
     });
     const forcedActualOffer: DraftOffer = {
       offeredCharacterIds: [hiddenCharacter.id, ...supportingCandidates.slice(0, 2)],
@@ -244,7 +264,7 @@ export function CharacterDraftSimulatorPage() {
       initialSession.legalCandidateIds.length,
       hiddenConfig,
       [],
-      () => 0,
+      Math.random,
     );
 
     setHiddenTestDraft({

@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const mockNavigate = vi.fn();
 
@@ -24,6 +24,9 @@ vi.mock('@/components/Drafting/CharacterDraftRoller.tsx', () => ({
   }) => (
     <div data-testid="mock-draft-roller">
       <span>{playerName}</span>
+      <span data-testid="mock-draft-offer">
+        {[...offer.offeredCharacterIds, offer.mulliganCharacterId].filter(Boolean).join(',')}
+      </span>
       <button onClick={() => onChoose(offer.offeredCharacterIds[0])}>Choose first</button>
       {offer.mulliganCharacterId && (
         <button onClick={() => onMulligan(offer.mulliganCharacterId!)}>Take mulligan</button>
@@ -33,8 +36,14 @@ vi.mock('@/components/Drafting/CharacterDraftRoller.tsx', () => ({
 }));
 
 import { CharacterDraftSimulatorPage } from '@/pages/CharacterDraftSimulatorPage.tsx';
+import { allCharacters, characterMap } from '@/data/characters/index.ts';
+import { getCharacterDraftRule } from '@/utils/drafting/draftRules.ts';
 
 describe('CharacterDraftSimulatorPage', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('renders configuration without requiring a session or game', () => {
     render(<CharacterDraftSimulatorPage />);
     expect(screen.getByText('Character Draft Simulator')).toBeInTheDocument();
@@ -92,27 +101,60 @@ describe('CharacterDraftSimulatorPage', () => {
     expect(screen.getByTestId('draft-diagnostics')).toHaveTextContent('(mulligan)');
   });
 
-  it('forces a selected hidden character through the production Storyteller handoff', () => {
-    render(<CharacterDraftSimulatorPage />);
+  it.each([
+    ['Marionette', /^(Townsfolk|Outsider)$/, ['drunk', 'lunatic']],
+    ['Lunatic', /^Demon$/, []],
+    ['Drunk', /^Townsfolk$/, ['lunatic']],
+  ] as const)(
+    'forces %s through a type-constrained production illusion draft',
+    (hiddenCharacterName, allowedType, excludedIds) => {
+      vi.spyOn(Math, 'random').mockReturnValue(0.75);
+      render(<CharacterDraftSimulatorPage />);
 
-    fireEvent.mouseDown(screen.getByLabelText('Hidden character'));
-    fireEvent.click(screen.getByRole('option', { name: 'Marionette' }));
-    fireEvent.click(screen.getByRole('button', { name: /test hidden draft/i }));
+      fireEvent.mouseDown(screen.getByLabelText('Hidden character'));
+      fireEvent.click(screen.getByRole('option', { name: hiddenCharacterName }));
+      expect(screen.getByRole('combobox', { name: 'Hidden character' })).toHaveTextContent(
+        hiddenCharacterName,
+      );
+      fireEvent.click(screen.getByRole('button', { name: /test hidden draft/i }));
 
-    expect(screen.getByTestId('draft-player-hidden-warning-test-player-1')).toBeVisible();
-    expect(screen.getByTestId('current-player-hidden-identity-warning')).toHaveTextContent(
-      /marionette/i,
-    );
-    fireEvent.click(screen.getByRole('button', { name: /hand device to test player 1/i }));
-    expect(screen.getByTestId('mock-draft-roller')).toHaveTextContent('Test Player 1');
-    expect(screen.queryByTestId('current-player-hidden-identity-warning')).not.toBeInTheDocument();
-    expect(screen.queryByRole('img', { name: 'Marionette' })).not.toBeInTheDocument();
+      expect(screen.getByTestId('draft-player-hidden-warning-test-player-1')).toBeVisible();
+      expect(screen.getByTestId('current-player-hidden-identity-warning')).toHaveTextContent(
+        new RegExp(hiddenCharacterName, 'i'),
+      );
+      fireEvent.click(screen.getByRole('button', { name: /hand device to test player 1/i }));
+      expect(screen.getByTestId('mock-draft-roller')).toHaveTextContent('Test Player 1');
+      expect(
+        screen.queryByTestId('current-player-hidden-identity-warning'),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByRole('img', { name: hiddenCharacterName })).not.toBeInTheDocument();
+      const visibleCharacterIds = screen.getByTestId('mock-draft-offer').textContent!.split(',');
+      expect(visibleCharacterIds).toHaveLength(4);
+      expect(
+        visibleCharacterIds.every((characterId) =>
+          allowedType.test(characterMap.get(characterId)?.type ?? ''),
+        ),
+      ).toBe(true);
+      if (excludedIds.length > 0) {
+        expect(visibleCharacterIds).not.toEqual(expect.arrayContaining([...excludedIds]));
+      }
+      const firstFourEligibleIds = allCharacters
+        .filter(
+          (character) =>
+            allowedType.test(character.type) &&
+            !excludedIds.some((excludedId) => excludedId === character.id) &&
+            getCharacterDraftRule(character.id) === undefined,
+        )
+        .slice(0, 4)
+        .map((character) => character.id);
+      expect(visibleCharacterIds).not.toEqual(firstFourEligibleIds);
 
-    fireEvent.click(screen.getByRole('button', { name: 'Choose first' }));
-    expect(screen.getByTestId('draft-player-test-player-1')).toHaveTextContent(
-      /marionette.*appears as/i,
-    );
-  });
+      fireEvent.click(screen.getByRole('button', { name: 'Choose first' }));
+      expect(screen.getByTestId('draft-player-test-player-1')).toHaveTextContent(
+        new RegExp(`${hiddenCharacterName}.*appears as`, 'i'),
+      );
+    },
+  );
 
   it('returns to the home page', () => {
     render(<CharacterDraftSimulatorPage />);

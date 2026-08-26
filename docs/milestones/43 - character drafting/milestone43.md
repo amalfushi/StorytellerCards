@@ -122,10 +122,10 @@ Their setup tokens and in-game transformations remain normal post-draft setup.
 
 | Character | Required handling                                                                                                                                                             |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Drunk     | The actual character consumes an Outsider slot, but the player receives a false three-option draft and apparent Townsfolk result. Preserve both actual and apparent outcomes. |
+| Drunk     | The actual character consumes an Outsider slot, but the player receives three randomized Townsfolk choices plus a Townsfolk mulligan. Lunatic is excluded. Every apparent selection secretly assigns Drunk; preserve both actual and apparent outcomes. |
 | Hermit    | Storyteller chooses `-0` or `-1 Outsider`. It also has every Outsider ability on the script, so the draft board must flag unusually complex scripts.                          |
 | Heretic   | Cannot coexist with Baron, Godfather, Lleech, Pit-Hag, Spy, or Widow under the current official jinx data.                                                                    |
-| Lunatic   | The actual character consumes an Outsider slot, but the player receives a Demon-like draft and fake bluffs. The real Demon must know the Lunatic and their choices.           |
+| Lunatic   | The actual character consumes an Outsider slot, but the player receives three randomized Demon choices plus a Demon mulligan. Every apparent selection secretly assigns Lunatic. The real Demon must know the Lunatic and their choices.     |
 | Snitch    | Every Minion receives three bluffs. Validate or warn about the off-board good-character pool before reveal.                                                                   |
 
 Other Outsiders have no initial count or eligibility effect:
@@ -142,7 +142,7 @@ selects it.
 | Boffin     | Requires an eligible not-in-play good ability, known to Boffin and Demon. Some abilities are forbidden by jinx.                     |
 | Evil Twin  | Requires an opposing-alignment twin and a private paired reveal.                                                                    |
 | Godfather  | Storyteller chooses `-1` or `+1 Outsider`. Incompatible with Heretic.                                                               |
-| Marionette | Actual Minion with a false good draft. Must neighbor a Demon and must remain hidden from its player.                                |
+| Marionette | Actual Minion with three randomized good choices plus a good mulligan. Drunk and Lunatic are excluded. Every apparent selection secretly assigns Marionette. It must neighbor a Demon and remain hidden from its player. |
 | Pit-Hag    | Incompatible with Heretic. Its later character changes do not alter initial draft counts.                                           |
 | Spy        | Incompatible with Heretic. Registration as good does not alter its Minion slot.                                                     |
 | Summoner   | Starts with no Demon player, receives three bluffs, and creates a Demon on night three. The missing Demon slot becomes a good slot. |
@@ -209,7 +209,9 @@ candidate pool. The tool displays the number of viable characters before each
 offer and uses the same adaptive offer policy as production. A dedicated
 hidden-character test can force Drunk, Lunatic, or Marionette into the first
 offer using the production Storyteller board, false-identity masking, private
-handoff, and resolution flow, without modifying a real game. Travellers,
+handoff, and resolution flow, without modifying a real game. Its apparent
+choices are randomly sampled without replacement from the same role-specific
+pool used in production rather than taken in script or alphabetical order. Travellers,
 Fabled, and Loric characters are always excluded. Kazali is currently gated
 because its required hidden post-draft Minion-conversion workflow is not
 implemented.

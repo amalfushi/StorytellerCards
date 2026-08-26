@@ -349,6 +349,72 @@ describe('gameCharacterDraft', () => {
     },
   );
 
+  it.each([
+    ['marionette', [CharacterType.Townsfolk, CharacterType.Outsider], ['drunk', 'lunatic']],
+    ['lunatic', [CharacterType.Demon], []],
+    ['drunk', [CharacterType.Townsfolk], ['lunatic']],
+  ] as const)(
+    'turns an offered %s into a type-constrained illusion draft',
+    (actualId, allowedTypes, excludedIds) => {
+      const illusionConfig: DraftSessionConfig = {
+        ...config,
+        scriptCharacters: [
+          {
+            id: actualId,
+            type: actualId === 'marionette' ? CharacterType.Minion : CharacterType.Outsider,
+          },
+          { id: 'chef', type: CharacterType.Townsfolk },
+          { id: 'empath', type: CharacterType.Townsfolk },
+          { id: 'fortuneteller', type: CharacterType.Townsfolk },
+          { id: 'monk', type: CharacterType.Townsfolk },
+          { id: 'drunk', type: CharacterType.Outsider },
+          { id: 'lunatic', type: CharacterType.Outsider },
+          { id: 'butler', type: CharacterType.Outsider },
+          { id: 'recluse', type: CharacterType.Outsider },
+          { id: 'saint', type: CharacterType.Outsider },
+          { id: 'imp', type: CharacterType.Demon },
+          { id: 'po', type: CharacterType.Demon },
+          { id: 'shabaloth', type: CharacterType.Demon },
+          { id: 'vortox', type: CharacterType.Demon },
+          { id: 'nodashii', type: CharacterType.Demon },
+          { id: 'poisoner', type: CharacterType.Minion },
+        ],
+      };
+      const offer = maskDraftOfferIdentities(
+        {
+          offeredCharacterIds: [actualId, 'poisoner', 'imp'],
+          mulliganCharacterId: 'butler',
+          rolledCharacterTypes: [],
+        },
+        12,
+        illusionConfig,
+        [],
+        () => 0,
+      );
+      const visibleCharacterIds = [...offer.offeredCharacterIds, offer.mulliganCharacterId].filter(
+        (characterId): characterId is string => characterId !== null,
+      );
+      const characterTypes = new Map(
+        illusionConfig.scriptCharacters.map((character) => [character.id, character.type]),
+      );
+      const allowedTypeSet: ReadonlySet<CharacterType> = new Set(allowedTypes);
+
+      expect(visibleCharacterIds).toHaveLength(4);
+      expect(new Set(visibleCharacterIds)).toHaveProperty('size', 4);
+      expect(
+        visibleCharacterIds.every((characterId) =>
+          allowedTypeSet.has(characterTypes.get(characterId)!),
+        ),
+      ).toBe(true);
+      if (excludedIds.length > 0) {
+        expect(visibleCharacterIds).not.toEqual(expect.arrayContaining([...excludedIds]));
+      }
+      expect(offer.actualCharacterIdsByOfferedId).toEqual(
+        Object.fromEntries(visibleCharacterIds.map((characterId) => [characterId, actualId])),
+      );
+    },
+  );
+
   it('masks hidden mulligan results and maps them to the actual character', () => {
     const offer = maskDraftOfferIdentities(
       {

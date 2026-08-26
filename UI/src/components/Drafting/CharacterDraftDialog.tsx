@@ -170,16 +170,30 @@ export function CharacterDraftDialog({
     ? (playerNames[currentEntry.playerId] ?? 'Unknown player')
     : '';
   const hiddenIdentityOptions = currentEntry
-    ? Object.entries(currentEntry.offer.actualCharacterIdsByOfferedId ?? {})
-        .filter(([apparentCharacterId, actualCharacterId]) => {
-          return actualCharacterId !== apparentCharacterId;
-        })
-        .map(([apparentCharacterId, actualCharacterId]) => ({
-          apparentCharacterId,
-          apparentCharacter: characterById.get(apparentCharacterId),
-          actualCharacterId,
-          actualCharacter: characterById.get(actualCharacterId),
-        }))
+    ? Object.entries(currentEntry.offer.actualCharacterIdsByOfferedId ?? {}).reduce<
+        Array<{
+          actualCharacterId: string;
+          actualCharacter: CharacterDef | undefined;
+          apparentCharacters: Array<{ id: string; character: CharacterDef | undefined }>;
+        }>
+      >((groups, [apparentCharacterId, actualCharacterId]) => {
+        if (actualCharacterId === apparentCharacterId) return groups;
+        const existingGroup = groups.find((group) => group.actualCharacterId === actualCharacterId);
+        const apparentCharacter = {
+          id: apparentCharacterId,
+          character: characterById.get(apparentCharacterId),
+        };
+        if (existingGroup) {
+          existingGroup.apparentCharacters.push(apparentCharacter);
+        } else {
+          groups.push({
+            actualCharacterId,
+            actualCharacter: characterById.get(actualCharacterId),
+            apparentCharacters: [apparentCharacter],
+          });
+        }
+        return groups;
+      }, [])
     : [];
   const privateHandoffEntry =
     privateHandoff &&
@@ -646,14 +660,9 @@ export function CharacterDraftDialog({
                       HIDDEN CHARACTER — STORYTELLER EYES ONLY
                     </Typography>
                     {hiddenIdentityOptions.map(
-                      ({
-                        actualCharacterId,
-                        actualCharacter,
-                        apparentCharacterId,
-                        apparentCharacter,
-                      }) => (
+                      ({ actualCharacterId, actualCharacter, apparentCharacters }) => (
                         <Stack
-                          key={`${actualCharacterId}-${apparentCharacterId}`}
+                          key={actualCharacterId}
                           direction="row"
                           spacing={2}
                           alignItems="center"
@@ -677,8 +686,11 @@ export function CharacterDraftDialog({
                               {actualCharacter?.name ?? actualCharacterId}
                             </Typography>
                             <Typography variant="body1" fontWeight={800}>
-                              Player sees {apparentCharacter?.name ?? apparentCharacterId}.
-                              Selecting it secretly assigns{' '}
+                              Player&apos;s fake draft shows{' '}
+                              {apparentCharacters
+                                .map(({ id, character }) => character?.name ?? id)
+                                .join(', ')}
+                              . Any selection secretly assigns{' '}
                               {actualCharacter?.name ?? actualCharacterId}.
                             </Typography>
                           </Box>
