@@ -69,6 +69,10 @@ its hidden post-draft Minion-conversion phase is not implemented.
   script characters such as Lord of Typhon no longer make following rows
   briefly disappear.
 - Added actual/apparent identity masking for Drunk, Lunatic, and Marionette.
+- Added a mandatory full-screen Storyteller warning before any false-identity
+  offer can enter private handoff. The warning uses a blaring red stop screen,
+  shows the hidden character's icon and actual-versus-apparent identity, and
+  requires explicit acknowledgement before the player roller is rendered.
 - Blocked drafts when a hidden role cannot be given a safe, unique false
   identity instead of exposing its actual role.
 - Added atomic final assignment, setup-only Lil' Monsta tracking, and Atheist
@@ -118,8 +122,8 @@ its hidden post-draft Minion-conversion phase is not implemented.
   Production contains the three official base scripts and milestone scripts;
   integration-only scripts live under `test`. Production lookup takes
   precedence while legacy flat script files remain readable.
-- Passed the focused drafting and Game View UI suites, Storybook interaction
-  tests and production build, full Go API suite, app TypeScript check, Vite
+- Passed 4,308 UI tests across 99 files, 231 Storybook interaction tests
+  across 29 files, the full Go API suite, app TypeScript check, Vite
   production build, and the complete drafting lifecycle E2E path.
 
 ## Known deployment boundaries

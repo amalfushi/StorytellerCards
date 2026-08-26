@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import CasinoIcon from '@mui/icons-material/Casino';
 import RefreshIcon from '@mui/icons-material/Refresh';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -22,6 +23,7 @@ import type {
   PlayerId,
 } from '@/types/index.ts';
 import { CharacterDraftRoller } from '@/components/Drafting/CharacterDraftRoller.tsx';
+import { CharacterIconImage } from '@/components/common/CharacterIconImage.tsx';
 import { getCharacterTypeColor } from '@/components/common/characterTypeColor.ts';
 import {
   DraftPresentationMode,
@@ -88,6 +90,11 @@ export interface CharacterDraftDialogProps {
   onDraftComplete: (draft: CharacterDraftState) => void;
 }
 
+interface DraftHandoffSnapshot {
+  playerId: PlayerId;
+  revision: number;
+}
+
 export function CharacterDraftDialog({
   open,
   playerIds,
@@ -103,10 +110,10 @@ export function CharacterDraftDialog({
   const [presentationMode, setPresentationMode] = useState<DraftPresentationMode>(
     DraftPresentationMode.Open,
   );
-  const [privateHandoff, setPrivateHandoff] = useState<{
-    playerId: PlayerId;
-    revision: number;
-  } | null>(null);
+  const [privateHandoff, setPrivateHandoff] = useState<DraftHandoffSnapshot | null>(null);
+  const [hiddenIdentityWarning, setHiddenIdentityWarning] = useState<DraftHandoffSnapshot | null>(
+    null,
+  );
   const [draftError, setDraftError] = useState<string>();
   const draftStateRef = useRef(draftState);
   const isResolvingRef = useRef(false);
@@ -165,6 +172,26 @@ export function CharacterDraftDialog({
   const currentPlayerName = currentEntry
     ? (playerNames[currentEntry.playerId] ?? 'Unknown player')
     : '';
+  const hiddenIdentityOptions = currentEntry
+    ? Object.entries(currentEntry.offer.actualCharacterIdsByOfferedId ?? {})
+        .filter(([apparentCharacterId, actualCharacterId]) => {
+          return actualCharacterId !== apparentCharacterId;
+        })
+        .map(([apparentCharacterId, actualCharacterId]) => ({
+          apparentCharacterId,
+          apparentCharacter: characterById.get(apparentCharacterId),
+          actualCharacterId,
+          actualCharacter: characterById.get(actualCharacterId),
+        }))
+    : [];
+  const hiddenIdentityWarningEntry =
+    hiddenIdentityWarning &&
+    draftState?.activePlayerId === hiddenIdentityWarning.playerId &&
+    draftState.revision === hiddenIdentityWarning.revision
+      ? currentEntry
+      : undefined;
+  const hiddenIdentityWarningExpired =
+    hiddenIdentityWarning !== null && hiddenIdentityWarningEntry === undefined;
   const privateHandoffEntry =
     privateHandoff &&
     draftState?.activePlayerId === privateHandoff.playerId &&
@@ -267,6 +294,7 @@ export function CharacterDraftDialog({
   const handleSelectPlayer = (playerId: PlayerId) => {
     if (!draftState || hasPendingSetupChoice) return;
     isResolvingRef.current = false;
+    setHiddenIdentityWarning(null);
     setPrivateHandoff(null);
     setDraftError(undefined);
     onDraftChange(selectGameCharacterDraftPlayer(draftState, config, playerId));
@@ -327,6 +355,138 @@ export function CharacterDraftDialog({
       setPrivateHandoff(null);
     }
   };
+
+  if (hiddenIdentityWarningEntry && hiddenIdentityOptions.length > 0) {
+    return (
+      <Dialog
+        open={open}
+        fullScreen
+        aria-labelledby="hidden-identity-warning-title"
+        data-testid="hidden-identity-warning"
+        slotProps={{
+          paper: {
+            sx: {
+              bgcolor: '#160000',
+              backgroundImage:
+                'radial-gradient(circle at center, rgba(255, 23, 68, 0.3), transparent 65%)',
+              border: '12px solid #ff1744',
+            },
+          },
+        }}
+      >
+        <DialogContent
+          sx={{
+            display: 'grid',
+            placeItems: 'center',
+            p: { xs: 2, sm: 5 },
+          }}
+        >
+          <Stack
+            spacing={4}
+            alignItems="center"
+            sx={{ width: '100%', maxWidth: 960, textAlign: 'center' }}
+          >
+            <WarningAmberIcon sx={{ color: '#ffeb3b', fontSize: { xs: 96, sm: 150 } }} />
+            <Typography
+              id="hidden-identity-warning-title"
+              variant="h2"
+              component="h1"
+              fontWeight={1000}
+              sx={{ color: '#fff', fontSize: { xs: '2.5rem', sm: '4.5rem' } }}
+            >
+              STOP — STORYTELLER ONLY
+            </Typography>
+            <Typography variant="h4" fontWeight={900} sx={{ color: '#ffeb3b' }}>
+              Do not hand the device to {currentPlayerName} yet.
+            </Typography>
+            <Typography variant="h5" fontWeight={800} sx={{ color: '#fff' }}>
+              This draft offer contains a hidden character.
+            </Typography>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              useFlexGap
+              flexWrap="wrap"
+              justifyContent="center"
+              gap={3}
+            >
+              {hiddenIdentityOptions.map(
+                ({
+                  actualCharacterId,
+                  actualCharacter,
+                  apparentCharacterId,
+                  apparentCharacter,
+                }) => (
+                  <Stack
+                    key={`${actualCharacterId}-${apparentCharacterId}`}
+                    spacing={2}
+                    alignItems="center"
+                    sx={{
+                      width: { xs: '100%', sm: 320 },
+                      p: 3,
+                      bgcolor: '#fff',
+                      border: '8px solid #ff1744',
+                      borderRadius: 4,
+                      boxShadow: '0 0 36px #ff1744',
+                    }}
+                  >
+                    <CharacterIconImage
+                      characterId={actualCharacterId}
+                      characterName={actualCharacter?.name ?? actualCharacterId}
+                      typeColor={getCharacterTypeColor(actualCharacter?.type ?? 'Minion')}
+                      size={180}
+                      borderColor="#ff1744"
+                      alignment={actualCharacter?.defaultAlignment}
+                    />
+                    <Typography variant="h3" fontWeight={1000} sx={{ color: '#b00020' }}>
+                      {actualCharacter?.name ?? actualCharacterId}
+                    </Typography>
+                    <Typography variant="h6" fontWeight={900} sx={{ color: '#111' }}>
+                      The player will see {apparentCharacter?.name ?? apparentCharacterId}.
+                    </Typography>
+                    <Typography variant="body1" fontWeight={700} sx={{ color: '#333' }}>
+                      Selecting that apparent character secretly assigns{' '}
+                      {actualCharacter?.name ?? actualCharacterId}.
+                    </Typography>
+                  </Stack>
+                ),
+              )}
+            </Stack>
+          </Stack>
+        </DialogContent>
+        <DialogActions
+          sx={{
+            justifyContent: 'center',
+            gap: 2,
+            p: 3,
+            bgcolor: '#000',
+            borderTop: '6px solid #ff1744',
+          }}
+        >
+          <Button
+            size="large"
+            variant="outlined"
+            color="inherit"
+            onClick={() => setHiddenIdentityWarning(null)}
+            sx={{ color: '#fff', borderColor: '#fff', fontWeight: 900 }}
+          >
+            Return to Storyteller board
+          </Button>
+          <Button
+            size="large"
+            variant="contained"
+            color="error"
+            onClick={() => {
+              setHiddenIdentityWarning(null);
+              setPrivateHandoff(hiddenIdentityWarning);
+            }}
+            sx={{ fontWeight: 1000, fontSize: { xs: '1rem', sm: '1.25rem' }, py: 2, px: 4 }}
+          >
+            I understand — hide this and hand device to {currentPlayerName}
+          </Button>
+        </DialogActions>
+      </Dialog>
+    );
+  }
 
   if (privateHandoffEntry) {
     return (
@@ -560,12 +720,36 @@ export function CharacterDraftDialog({
             {draftState.status === 'blocked' && (
               <Alert severity="warning">{draftState.blockedReason}</Alert>
             )}
-            {(draftError || privateHandoffExpired) && (
+            {(draftError || privateHandoffExpired || hiddenIdentityWarningExpired) && (
               <Alert severity="warning" data-testid="draft-offer-expired">
                 {draftError ??
                   'This private offer expired. Select the player again to generate a fresh offer.'}
               </Alert>
             )}
+            {currentEntry &&
+              draftState.status === 'drafting' &&
+              hiddenIdentityOptions.length > 0 && (
+                <Alert
+                  severity="error"
+                  icon={<WarningAmberIcon sx={{ fontSize: 52 }} />}
+                  data-testid="hidden-identity-offer-alert"
+                  sx={{
+                    border: '6px solid #ff1744',
+                    bgcolor: '#2b0000',
+                    color: '#fff',
+                    boxShadow: '0 0 24px #ff1744',
+                    '& .MuiAlert-icon': { color: '#ffeb3b', alignItems: 'center' },
+                  }}
+                >
+                  <Typography variant="h4" fontWeight={1000}>
+                    HIDDEN CHARACTER — STORYTELLER EYES ONLY
+                  </Typography>
+                  <Typography variant="h6" fontWeight={800}>
+                    A mandatory warning with the hidden character icon will appear before this
+                    device can be handed to {currentPlayerName}.
+                  </Typography>
+                </Alert>
+              )}
             {currentEntry && draftState.status === 'drafting' && (
               <Alert
                 severity="info"
@@ -603,6 +787,7 @@ export function CharacterDraftDialog({
       <DialogActions>
         <Button
           onClick={() => {
+            setHiddenIdentityWarning(null);
             setPrivateHandoff(null);
             setDraftError(undefined);
             onClose();
@@ -623,10 +808,15 @@ export function CharacterDraftDialog({
               onClick={() => {
                 isResolvingRef.current = false;
                 setDraftError(undefined);
-                setPrivateHandoff({
+                const handoff = {
                   playerId: currentEntry.playerId,
                   revision: draftState.revision,
-                });
+                };
+                if (hiddenIdentityOptions.length > 0) {
+                  setHiddenIdentityWarning(handoff);
+                } else {
+                  setPrivateHandoff(handoff);
+                }
               }}
             >
               Hand device to {currentPlayerName}

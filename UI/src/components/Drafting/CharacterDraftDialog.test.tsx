@@ -107,6 +107,68 @@ describe('CharacterDraftDialog', () => {
     expect(screen.queryByText('Storyteller board')).not.toBeInTheDocument();
   });
 
+  it('requires a blaring Storyteller warning before handing off a hidden character offer', () => {
+    render(
+      <CharacterDraftDialog
+        open
+        playerIds={['p1']}
+        playerNames={{ p1: 'Alice' }}
+        scriptCharacters={[
+          ...scriptCharacters,
+          {
+            ...character('marionette', CharacterType.Minion),
+            name: 'Marionette',
+          },
+        ]}
+        draftState={{
+          status: 'drafting',
+          setupMode: 'standard',
+          presentationMode: 'open',
+          playerOrder: ['p1'],
+          currentPlayerIndex: 0,
+          activePlayerId: 'p1',
+          entries: [
+            {
+              playerId: 'p1',
+              offer: {
+                offeredCharacterIds: ['t1'],
+                mulliganCharacterId: null,
+                actualCharacterIdsByOfferedId: { t1: 'marionette' },
+                rolledCharacterTypes: [],
+                legalCandidateCount: 1,
+              },
+            },
+          ],
+          revision: 1,
+        }}
+        onClose={vi.fn()}
+        onDraftChange={vi.fn()}
+        onDraftComplete={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByTestId('hidden-identity-offer-alert')).toHaveTextContent(
+      /hidden character/i,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /hand device to alice/i }));
+
+    expect(screen.getByTestId('hidden-identity-warning')).toBeVisible();
+    expect(screen.getByRole('heading', { name: /stop.*storyteller only/i })).toBeVisible();
+    expect(screen.getByRole('img', { name: 'Marionette' })).toBeVisible();
+    expect(screen.getByText(/the player will see t1/i)).toBeVisible();
+    expect(screen.queryByTestId('private-draft')).not.toBeInTheDocument();
+
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: /i understand.*hide this and hand device to alice/i,
+      }),
+    );
+
+    expect(screen.getByTestId('private-draft')).toHaveTextContent('Alice');
+    expect(screen.queryByText('Marionette')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('hidden-identity-warning')).not.toBeInTheDocument();
+  });
+
   it('expires a private handoff safely when its active player is cleared', () => {
     const onDraftChange = vi.fn();
     const baseProps = {
@@ -138,9 +200,7 @@ describe('CharacterDraftDialog', () => {
       ],
       revision: 2,
     };
-    const { rerender } = render(
-      <CharacterDraftDialog {...baseProps} draftState={activeDraft} />,
-    );
+    const { rerender } = render(<CharacterDraftDialog {...baseProps} draftState={activeDraft} />);
 
     fireEvent.click(screen.getByRole('button', { name: /hand device to alice/i }));
     expect(screen.getByTestId('private-draft')).toBeVisible();
