@@ -107,7 +107,7 @@ describe('CharacterDraftDialog', () => {
     expect(screen.queryByText('Storyteller board')).not.toBeInTheDocument();
   });
 
-  it('requires a blaring Storyteller warning before handing off a hidden character offer', () => {
+  it('warns the Storyteller inline before handing off a hidden character offer', () => {
     render(
       <CharacterDraftDialog
         open
@@ -147,26 +147,19 @@ describe('CharacterDraftDialog', () => {
       />,
     );
 
-    expect(screen.getByTestId('hidden-identity-offer-alert')).toHaveTextContent(
-      /hidden character/i,
+    expect(screen.getByTestId('draft-player-hidden-warning-p1')).toBeVisible();
+    const currentPlayerWarning = screen.getByTestId('current-player-hidden-identity-warning');
+    expect(currentPlayerWarning).toHaveTextContent(/hidden character.*storyteller eyes only/i);
+    expect(within(currentPlayerWarning).getByRole('img', { name: 'Marionette' })).toBeVisible();
+    expect(currentPlayerWarning).toHaveTextContent(
+      /player sees t1.*selecting it secretly assigns marionette/i,
     );
+
     fireEvent.click(screen.getByRole('button', { name: /hand device to alice/i }));
-
-    expect(screen.getByTestId('hidden-identity-warning')).toBeVisible();
-    expect(screen.getByRole('heading', { name: /stop.*storyteller only/i })).toBeVisible();
-    expect(screen.getByRole('img', { name: 'Marionette' })).toBeVisible();
-    expect(screen.getByText(/the player will see t1/i)).toBeVisible();
-    expect(screen.queryByTestId('private-draft')).not.toBeInTheDocument();
-
-    fireEvent.click(
-      screen.getByRole('button', {
-        name: /i understand.*hide this and hand device to alice/i,
-      }),
-    );
 
     expect(screen.getByTestId('private-draft')).toHaveTextContent('Alice');
     expect(screen.queryByText('Marionette')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('hidden-identity-warning')).not.toBeInTheDocument();
+    expect(screen.queryByRole('img', { name: 'Marionette' })).not.toBeInTheDocument();
   });
 
   it('expires a private handoff safely when its active player is cleared', () => {

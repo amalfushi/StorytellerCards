@@ -69,10 +69,11 @@ its hidden post-draft Minion-conversion phase is not implemented.
   script characters such as Lord of Typhon no longer make following rows
   briefly disappear.
 - Added actual/apparent identity masking for Drunk, Lunatic, and Marionette.
-- Added a mandatory full-screen Storyteller warning before any false-identity
-  offer can enter private handoff. The warning uses a blaring red stop screen,
-  shows the hidden character's icon and actual-versus-apparent identity, and
-  requires explicit acknowledgement before the player roller is rendered.
+- Added prominent Storyteller-board warnings for false-identity offers. The
+  affected player pill carries a warning icon, while the active **Drafting
+  now** panel uses blaring error styling and shows the hidden character's icon
+  plus its actual-versus-apparent identity. Private handoff remains one click,
+  and the player roller never renders the hidden identity.
 - Blocked drafts when a hidden role cannot be given a safe, unique false
   identity instead of exposing its actual role.
 - Added atomic final assignment, setup-only Lil' Monsta tracking, and Atheist
