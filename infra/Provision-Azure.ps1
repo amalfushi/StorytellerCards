@@ -42,14 +42,44 @@ if ($SubscriptionId) {
 }
 
 if (-not $AccessPassword) {
-    $passwordBytes = [byte[]]::new(24)
+    $characterRoot = Join-Path (Split-Path -Parent $PSScriptRoot) 'UI\src\data\characters'
+    $characterNames = @(
+        Get-ChildItem -Path $characterRoot -Directory |
+            ForEach-Object { Get-ChildItem -Path $_.FullName -File -Filter '*.ts' } |
+            Where-Object { $_.BaseName -match '^[a-z0-9]{4,}$' } |
+            Select-Object -ExpandProperty BaseName -Unique
+    )
+    if ($characterNames.Count -lt 4) {
+        throw "Unable to find at least four character names under '$characterRoot'."
+    }
+
     $randomNumberGenerator = [Security.Cryptography.RandomNumberGenerator]::Create()
     try {
-        $randomNumberGenerator.GetBytes($passwordBytes)
+        $availableNames = [Collections.Generic.List[string]]::new()
+        $availableNames.AddRange([string[]] $characterNames)
+        $selectedNames = for ($nameNumber = 0; $nameNumber -lt 4; $nameNumber++) {
+            $randomBytes = [byte[]]::new(2)
+            $selectionRange = 65536 - (65536 % $availableNames.Count)
+            do {
+                $randomNumberGenerator.GetBytes($randomBytes)
+                $randomValue = [BitConverter]::ToUInt16($randomBytes, 0)
+            } while ($randomValue -ge $selectionRange)
+
+            $selectedIndex = $randomValue % $availableNames.Count
+            $selectedName = $availableNames[$selectedIndex]
+            $availableNames.RemoveAt($selectedIndex)
+            $selectedName
+        }
+
+        # Four known-list names need extra entropy, so append 40 random Base32 bits.
+        $suffixAlphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+        $suffixBytes = [byte[]]::new(8)
+        $randomNumberGenerator.GetBytes($suffixBytes)
+        $suffix = -join ($suffixBytes | ForEach-Object { $suffixAlphabet[$_ % 32] })
+        $AccessPassword = "$($selectedNames -join '-')-$suffix"
     } finally {
         $randomNumberGenerator.Dispose()
     }
-    $AccessPassword = [Convert]::ToBase64String($passwordBytes).TrimEnd('=').Replace('+', '-').Replace('/', '_')
 }
 
 $templateFile = Join-Path $PSScriptRoot 'main.bicep'

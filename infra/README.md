@@ -172,11 +172,25 @@ After reviewing the preview:
 The script:
 
 1. Uses the current Azure CLI subscription unless `-SubscriptionId` is given.
-2. Generates a random access password unless `-AccessPassword` is given.
+2. Generates a memorable random access password unless `-AccessPassword` is
+   given.
 3. Deploys the resource group, registry, plan, app, persistent storage settings,
    health probe, managed identity, and `AcrPull` assignment with Bicep.
 4. Prints resource names, the URL, and the one-time generated
    username/password.
+
+Generated passwords contain four distinct Storyteller Cards character IDs of at
+least four characters plus an eight-character cryptographic Base32 suffix, for
+example:
+
+```text
+kazali-lordoftyphon-atheist-king-K7M4P9RX
+```
+
+The character names make most of the password memorable. The suffix is
+important: four names selected from the known in-app character list provide
+only about 30 bits of uncertainty, while the suffix adds 40 random bits. Do not
+remove the suffix or substitute a personally chosen phrase.
 
 Save the printed password in a password manager. The browser sends Basic
 credentials only over the App Service HTTPS endpoint. Local development stays

@@ -40,3 +40,12 @@
 - Documented the complete personal-machine workflow, optional local Docker
   validation, verification checklist, troubleshooting, and data-model rollback
   warning. No Copilot or other AI tooling is required.
+
+## 2026-08-26 — Memorable generated credentials
+
+- Changed the default generated password from opaque Base64URL text to four
+  distinct in-app character IDs plus an eight-character random Base32 suffix.
+- Retained roughly 70 bits of total entropy while making the credential easier
+  to recognize and remember.
+- Documented the password format, example, storage expectations, and why the
+  random suffix must be retained.
