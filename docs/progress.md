@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-08-23
+> Last updated: 2026-08-25
 
 ## Milestone Overview
 
@@ -49,6 +49,7 @@
 | M40       | Seating Template + Player + Game Rework (Playground) — disposable `/playground/m40` UI iterating a first-class player + seating-template data model with spacers, propagation toggle, participant vs seat split, traveller-aware role counts                                                    | ✅ Complete                           | [details](milestones/40%20-%20seating%20template%20rework/milestone40.md)                             |
 | M41       | Seating Model Integration — production migration to the M40 model: `Session.template` + `Session.players`, per-game `slots`/`participants`/`playerState`/`playerCountOverride`, spacer-aware seat numbering, propagation toggles, character assignment decoupled from seat. Playground removed. | ✅ Complete                           | [details](milestones/41%20-%20seating%20model%20integration/milestone41.md)                           |
 | M42       | Game Preparation UX — selected Option 3 provides explicit Town Square Edit Seating with draft/review/save, participant parking + assignment sheet, propagation controls, first-start seating validation/confirmation, and full-stack persistence coverage.                              | ✅ Complete                           | [details](milestones/42%20-%20game%20preparation%20alternatives/milestone42.md)                       |
+| M44       | Personal Azure Deployment — single-container App Service plan, persistent JSON storage, private-by-default Basic authentication, Bicep/ACR automation, verified Azure what-if, one-week cost estimate, and teardown runbook.                                                           | ✅ Complete — provisioning deferred | [details](milestones/44%20-%20personal%20azure%20deployment/milestone44.md)                            |
 
 ## Key Design Decisions
 
