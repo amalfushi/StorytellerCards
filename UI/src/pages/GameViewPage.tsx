@@ -104,7 +104,7 @@ export function GameViewPage() {
     removeToken,
     setSeatingConfirmed,
   } = useGame();
-  const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
+  const { getCharactersByIds, getCharacter } = useCharacterLookup();
 
   const [tabIndex, setTabIndex] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -191,6 +191,7 @@ export function GameViewPage() {
   const loading = !!initialGame && !gameState.game;
 
   const [remoteScript, setRemoteScript] = useState<Script | null>(null);
+  const [failedScriptId, setFailedScriptId] = useState<string | null>(null);
 
   // Load the script from localStorage using the game's scriptId
   const localScript = useMemo<Script | null>(() => {
@@ -209,13 +210,19 @@ export function GameViewPage() {
   useEffect(() => {
     if (!gameState.game?.scriptId || localScript) return;
     let cancelled = false;
-    fetchScript(gameState.game.scriptId).then((apiScript) => {
-      if (cancelled || !apiScript) return;
+    const scriptId = gameState.game.scriptId;
+    fetchScript(scriptId).then((apiScript) => {
+      if (cancelled) return;
+      if (!apiScript) {
+        setFailedScriptId(scriptId);
+        return;
+      }
       try {
         localStorage.setItem(`storyteller-script-${apiScript.id}`, JSON.stringify(apiScript));
       } catch {
         // Silently ignore storage errors
       }
+      setFailedScriptId((current) => (current === scriptId ? null : current));
       setRemoteScript(apiScript);
     });
     return () => {
@@ -226,12 +233,13 @@ export function GameViewPage() {
   // Only use remoteScript if its ID matches the current game's scriptId
   const script =
     localScript ?? (remoteScript?.id === gameState.game?.scriptId ? remoteScript : null);
+  const scriptLoadFailed = failedScriptId === gameState.game?.scriptId;
 
-  // Derive script character IDs from the loaded script, falling back to all characters
+  // Never substitute the full registry for a missing script: doing so can create an invalid draft.
   const scriptCharacterIds = useMemo(() => {
     if (script?.characterIds?.length) return script.characterIds;
-    return allCharacters.map((ch) => ch.id);
-  }, [script, allCharacters]);
+    return [];
+  }, [script]);
 
   // Script characters as CharacterDef[] for the assignment dialog
   const scriptCharacterDefs = useMemo(
@@ -694,7 +702,14 @@ export function GameViewPage() {
       />
 
       {/* ── Character Assignment Banner ── */}
-      {needsCharacterAssignment && viewMode === 'day' && (
+      {scriptLoadFailed && viewMode === 'day' && (
+        <Alert severity="error" sx={{ borderRadius: 0 }}>
+          Could not load this game&apos;s script. Restore API access and reload before assigning or
+          drafting characters.
+        </Alert>
+      )}
+
+      {needsCharacterAssignment && viewMode === 'day' && !scriptLoadFailed && (
         <Alert
           severity="info"
           action={

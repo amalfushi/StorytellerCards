@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { cleanup, render, screen, fireEvent } from '@testing-library/react';
+import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import type { Game, Session, PlayerGameState } from '@/types/index.ts';
 import type { GameViewState } from '@/context/GameContext.tsx';
 import { Alignment, Phase } from '@/types/index.ts';
@@ -90,6 +90,7 @@ const mockNavigate = vi.fn();
 const mockUpdatePlayerState = vi.fn();
 const mockSetSeatingConfirmed = vi.fn();
 const mockCompleteCharacterDraft = vi.fn();
+const mockFetchScript = vi.fn(async () => null);
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
@@ -129,7 +130,7 @@ vi.mock('@/context/useGame.ts', () => ({
 }));
 
 vi.mock('@/hooks/useApiSync.ts', () => ({
-  useApiSync: () => ({ fetchGame: vi.fn(async () => null), fetchScript: vi.fn(async () => null) }),
+  useApiSync: () => ({ fetchGame: vi.fn(async () => null), fetchScript: mockFetchScript }),
 }));
 
 vi.mock('@/hooks/useCharacterLookup.ts', () => ({
@@ -367,6 +368,24 @@ describe('GameViewPage', () => {
     render(<GameViewPage />);
 
     expect(screen.getByText(/Characters haven't been assigned yet/)).toBeInTheDocument();
+  });
+
+  it('blocks character setup instead of using every character when the script cannot load', async () => {
+    const unassignedPlayerState = Object.fromEntries(
+      Object.entries(playerState).map(([playerId, state]) => [
+        playerId,
+        { ...state, characterId: '' },
+      ]),
+    );
+    mockGame = { ...baseGame, playerState: unassignedPlayerState };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+
+    render(<GameViewPage />);
+
+    await waitFor(() =>
+      expect(screen.getByText(/Could not load this game's script/)).toBeInTheDocument(),
+    );
+    expect(screen.queryByRole('button', { name: /^select characters$/i })).not.toBeInTheDocument();
   });
 
   it('uses one Select Characters action and lets the Storyteller choose manual setup', () => {

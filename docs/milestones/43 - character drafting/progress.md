@@ -97,6 +97,12 @@ its hidden post-draft Minion-conversion phase is not implemented.
 - Made API data-root discovery independent of whether the server starts from
   the repository root, `API`, or `API/cmd/server`, with an explicit
   `STORYTELLER_DATA_DIR` override for deployments.
+- Corrected the primary VS Code Chrome launch to start the root full-stack
+  task instead of Vite alone. UI-only and full-stack Go-debug launches remain
+  available under explicit names.
+- Removed the Game View fallback that silently substituted the entire
+  character registry when a script request failed. Character setup now stops
+  with an actionable error instead of creating an invalid oversized draft.
 - Added a deployable script catalog split into `production` and `test`.
   Production contains the three official base scripts and milestone scripts;
   integration-only scripts live under `test`. Production lookup takes

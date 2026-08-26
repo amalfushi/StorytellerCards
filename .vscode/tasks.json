@@ -3,7 +3,7 @@
   "tasks": [
     // ── Run tasks ──────────────────────────────────────────────
     {
-      "label": "Dev: UI",
+      "label": "Dev: UI Only",
       "type": "shell",
       "command": "npm run dev",
       "options": { "cwd": "${workspaceFolder}/UI" },
@@ -21,7 +21,7 @@
       "presentation": { "reveal": "always", "panel": "dedicated", "group": "dev" }
     },
     {
-      "label": "Dev: Both",
+      "label": "Dev: Full Stack",
       "type": "shell",
       "command": "npm run dev",
       "options": { "cwd": "${workspaceFolder}" },
