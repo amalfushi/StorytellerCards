@@ -102,9 +102,13 @@ async function expectApiSeatOrder(
 
 test.describe('Game Lifecycle', () => {
   test.beforeEach(async ({ page }) => {
-    // Clear localStorage before page scripts run, and block API session fetch
-    // so remote data doesn't pollute local-only tests.
-    await page.addInitScript(() => localStorage.clear());
+    // Clear localStorage once per test context while preserving state across reloads.
+    await page.addInitScript(() => {
+      if (!sessionStorage.getItem('e2e-local-storage-initialized')) {
+        localStorage.clear();
+        sessionStorage.setItem('e2e-local-storage-initialized', 'true');
+      }
+    });
     await page.route('**/api/sessions', (route) => {
       if (route.request().method() === 'GET') {
         return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
@@ -296,6 +300,88 @@ test.describe('Game Lifecycle', () => {
     });
     expect(startedGame.seatingConfirmed).toBe(true);
     expect(startedGame.currentPhase).toBe('Night');
+  });
+
+  test('drafts through private handoff, mulligan, reload, and final assignment', async ({
+    page,
+  }) => {
+    test.setTimeout(90_000);
+
+    await createAndOpenSession(page, 'Character Draft Test');
+    const fixtureFilePath = path.resolve(__dirname, 'fixtures', 'test-script.json');
+    await page.locator('input[type="file"]').setInputFiles(fixtureFilePath);
+    await expect(page.getByText('Test Script')).toBeVisible();
+
+    await addRosterPlayer(page, 'Player 6', 6);
+    await addRosterPlayer(page, 'Player 7', 7);
+    await page.getByRole('button', { name: /add seats for all players/i }).click();
+    await assignSeat(page, 6, 'Player 6');
+    await assignSeat(page, 7, 'Player 7');
+
+    await page.getByRole('button', { name: 'New Game' }).click();
+    await page.getByText('Game 1', { exact: true }).click();
+    await page.getByRole('button', { name: 'Select Characters', exact: true }).click();
+    await page.getByRole('button', { name: 'Start character draft' }).click();
+    await page.getByRole('button', { name: 'Generate draft' }).click();
+    await page
+      .getByRole('button', { name: /Not drafted/ })
+      .first()
+      .click();
+    const firstPlayerBoard = page.getByTestId('game-draft-current-player');
+    await expect(firstPlayerBoard).toContainText('Drafting now:');
+
+    await page.getByRole('button', { name: /Hand device to/ }).click();
+    await page.getByTestId('draft-roll-options').click();
+    await page.getByTestId('draft-mulligan').click();
+    await page.getByTestId('confirm-draft-mulligan').click();
+    await page.getByTestId('roll-draft-mulligan').click();
+    const acceptMulligan = page.getByTestId('accept-draft-mulligan');
+    await expect(acceptMulligan).toBeVisible({ timeout: 10_000 });
+    await acceptMulligan.click();
+    await expect(page.getByText('1 of 7 players complete')).toBeVisible({ timeout: 10_000 });
+    await expect(page.getByRole('button', { name: /Not drafted/ })).toHaveCount(6);
+    await expect(page.getByTestId('game-draft-current-player')).not.toBeVisible();
+
+    await page.reload();
+    await page.getByRole('button', { name: 'Select Characters', exact: true }).click();
+    await page.getByRole('button', { name: 'Resume character draft' }).click();
+    await expect(page.getByText('1 of 7 players complete')).toBeVisible();
+    await expect(page.getByRole('button', { name: /Not drafted/ })).toHaveCount(6);
+
+    for (let remainingDrafts = 0; remainingDrafts < 7; remainingDrafts += 1) {
+      let handoffButton = page.getByRole('button', { name: /Hand device to/ });
+      if (!(await handoffButton.isVisible())) {
+        const undraftedPlayer = page.getByRole('button', { name: /Not drafted/ }).first();
+        if (!(await undraftedPlayer.isVisible())) break;
+        await undraftedPlayer.click();
+        handoffButton = page.getByRole('button', { name: /Hand device to/ });
+      }
+      await handoffButton.click();
+      await page.getByTestId('draft-roll-options').click();
+      await page.getByTestId('draft-choice-0').click();
+    }
+
+    await page.getByRole('button', { name: /confirm draft and review seating/i }).click();
+    await saveTownSquareDraft(page);
+    await expect(page.getByRole('dialog')).toContainText(
+      'Confirm the randomized seating before continuing to Demon bluffs.',
+    );
+    await page.getByRole('button', { name: /^confirm seating$/i }).click();
+    await expect(page.getByText('Select Demon Bluffs')).toBeVisible();
+
+    const gameData = await page.evaluate(() => {
+      const gameKey = Object.keys(localStorage).find((key) => key.startsWith('storyteller-game-'));
+      return gameKey ? JSON.parse(localStorage.getItem(gameKey) ?? 'null') : null;
+    });
+    expect(gameData).not.toBeNull();
+    expect(gameData.characterDraft.status).toBe('complete');
+    expect(gameData.characterDraft.entries).toHaveLength(7);
+    expect(
+      gameData.participants.every(
+        (participant: { playerId: string }) =>
+          gameData.playerState[participant.playerId]?.characterId,
+      ),
+    ).toBe(true);
   });
 });
 
@@ -657,6 +743,7 @@ test.describe('Game Lifecycle - API Integration', () => {
     ];
     await page.getByRole('button', { name: 'Select Characters', exact: true }).click();
     await expect(page.getByRole('dialog')).toBeVisible();
+    await page.getByRole('button', { name: 'Manual selection and assignment' }).click();
 
     for (const charId of inPlayChars) {
       await page.getByTestId(`char-toggle-${charId}`).click();

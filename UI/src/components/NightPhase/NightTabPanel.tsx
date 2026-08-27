@@ -109,6 +109,11 @@ export function NightTabPanel({
     return getCharactersByIds(game.demonBluffs);
   }, [game, getCharactersByIds]);
 
+  const lunaticBluffCharacters = useMemo(() => {
+    if (!game?.lunaticBluffs?.length) return undefined;
+    return getCharactersByIds(game.lunaticBluffs);
+  }, [game, getCharactersByIds]);
+
   // Auto-start night if nightProgress is null
   useEffect(() => {
     if (!nightProgress && entries.length > 0) {
@@ -253,6 +258,7 @@ export function NightTabPanel({
         previousNightHistory={previousNightHistory}
         onReminderTokenClick={onReminderTokenClick}
         bluffCharacters={bluffCharacters}
+        lunaticBluffCharacters={lunaticBluffCharacters}
         playerBluffs={game?.playerBluffs}
         scriptId={game?.scriptId}
         showMessages={game?.showMessages}

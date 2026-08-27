@@ -1,0 +1,14 @@
+{
+  "id": "testscript",
+  "name": "Test Script",
+  "author": "Integration Test",
+  "characterIds": [
+    "washerwoman",
+    "librarian",
+    "investigator",
+    "chef",
+    "empath",
+    "imp",
+    "poisoner"
+  ]
+}

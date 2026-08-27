@@ -12,6 +12,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import Typography from '@mui/material/Typography';
 import Avatar from '@mui/material/Avatar';
 import IconButton from '@mui/material/IconButton';
+import FullscreenIcon from '@mui/icons-material/Fullscreen';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import PersonIcon from '@mui/icons-material/Person';
 import type { CharacterDef, ActiveJinx, PlayerToken } from '@/types/index.ts';
@@ -107,6 +108,7 @@ export function NightFlashcard({
   const [detailOpen, setDetailOpen] = useState(false);
   const [choiceShowMessage, setChoiceShowMessage] = useState<string | null>(null);
   const [tokenShowPhrase, setTokenShowPhrase] = useState<string | null>(null);
+  const [lunaticBluffsFullscreenOpen, setLunaticBluffsFullscreenOpen] = useState(false);
   const typeColor = characterDef ? getCharacterTypeColor(characterDef.type) : '#9e9e9e';
   const signalPrefix = 'signal:';
 
@@ -633,17 +635,28 @@ export function NightFlashcard({
             zIndex: 1,
           }}
         >
-          <Typography
-            variant="subtitle2"
-            sx={{
-              color: '#42a5f5',
-              fontWeight: 700,
-              mb: 1,
-              textAlign: 'center',
-            }}
-          >
-            Show these bluffs to the Lunatic
-          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                color: '#42a5f5',
+                fontWeight: 700,
+                textAlign: 'center',
+                flexGrow: 1,
+              }}
+            >
+              Show these bluffs to the Lunatic
+            </Typography>
+            <IconButton
+              size="small"
+              onClick={() => setLunaticBluffsFullscreenOpen(true)}
+              sx={{ color: 'rgba(255,255,255,0.6)', ml: 0.5 }}
+              aria-label="Show Lunatic bluffs fullscreen"
+              data-testid="lunatic-bluffs-fullscreen-btn"
+            >
+              <FullscreenIcon fontSize="small" />
+            </IconButton>
+          </Box>
           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, flexWrap: 'wrap' }}>
             {lunaticBluffCharacters.map((ch) => (
               <Box
@@ -761,7 +774,9 @@ export function NightFlashcard({
             return (
               <Box
                 key={r.id}
-                onClick={onReminderTokenClick ? (event) => onReminderTokenClick(token, event) : undefined}
+                onClick={
+                  onReminderTokenClick ? (event) => onReminderTokenClick(token, event) : undefined
+                }
                 sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}
               >
                 <ReminderTokenChip
@@ -1019,6 +1034,16 @@ export function NightFlashcard({
         message={choiceShowMessage ?? ''}
       />
 
+      {/* Lunatic bluffs fullscreen overlay */}
+      {lunaticBluffCharacters && lunaticBluffCharacters.length > 0 && (
+        <PlayerShowScreen
+          open={lunaticBluffsFullscreenOpen}
+          onClose={() => setLunaticBluffsFullscreenOpen(false)}
+          variant="bluffs"
+          bluffCharacters={lunaticBluffCharacters}
+        />
+      )}
+
       {/* Token fullscreen overlay */}
       <PlayerShowScreen
         key={`token-show-${tokenShowPhrase ?? 'none'}-${initialTokenCharacterId ?? ''}`}
@@ -1030,7 +1055,11 @@ export function NightFlashcard({
         scriptCharacters={tokenPickerCharacters}
         sourceCharacter={tokenSourceCharacter}
         additionalCharacter={tokenDisplayCharacter}
-        characterList={tokenCharacterList}
+        characterList={
+          tokenShowPhrase === 'THESE CHARACTERS ARE NOT IN PLAY' && characterDef?.id === 'lunatic'
+            ? lunaticBluffCharacters
+            : tokenCharacterList
+        }
         additionalLabel={tokenAdditionalLabel}
         instructionText={tokenInstructionText}
         initialSelectedCharacterId={initialTokenCharacterId}

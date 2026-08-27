@@ -106,7 +106,7 @@ function CharacterShowIcon({
  * Designed for physically turning the phone toward a player so they
  * can read the content without seeing any other game info.
  *
- * - `variant='bluffs'`: "Your bluffs are:" + large character icons
+ * - `variant='bluffs'`: Player-facing bluff guidance + large character icons
  * - `variant='text'`: Large centered text message
  *
  * On larger viewports (≥600px), icons and text scale up ~50% for readability at a distance.
@@ -187,12 +187,29 @@ export function PlayerShowScreen({
             sx={{
               color: '#fff',
               fontWeight: 700,
-              mb: 5,
+              mb: 1,
               textAlign: 'center',
               textShadow: '0 2px 12px rgba(0,0,0,0.5)',
             }}
+            data-testid="player-show-bluff-title"
           >
-            Your bluffs are:
+            These characters are not in play.
+          </Typography>
+
+          <Typography
+            variant={instructionVariant}
+            data-testid="player-show-bluff-instructions"
+            sx={{
+              color: 'rgba(255,255,255,0.78)',
+              fontStyle: 'italic',
+              textAlign: 'center',
+              px: 3,
+              mb: 5,
+              maxWidth: isLargeViewport ? 640 : 420,
+              lineHeight: 1.45,
+            }}
+          >
+            You may pretend to be these characters. Try to share this information with your minions.
           </Typography>
 
           <Box

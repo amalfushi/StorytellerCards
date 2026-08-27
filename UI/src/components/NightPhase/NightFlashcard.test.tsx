@@ -444,6 +444,75 @@ describe('NightFlashcard', () => {
     expect(screen.queryByTestId('affecting-tokens')).not.toBeInTheDocument();
   });
 
+  describe('Lunatic bluffs', () => {
+    const lunaticBluffs = [
+      { ...mockCharacterDef, id: 'chef', name: 'Chef' },
+      { ...mockCharacterDef, id: 'empath', name: 'Empath' },
+      {
+        ...mockCharacterDef,
+        id: 'butler',
+        name: 'Butler',
+        type: CharacterType.Outsider,
+      },
+    ];
+    const lunaticEntry: NightOrderEntry = {
+      ...mockEntry,
+      id: 'lunatic',
+      name: 'Lunatic',
+      subActions: [
+        {
+          id: 'lunatic-show-bluffs',
+          description: 'Show the THESE CHARACTERS ARE NOT IN PLAY token.',
+          isConditional: false,
+        },
+      ],
+    };
+    const lunaticCharacter = {
+      ...mockCharacterDef,
+      id: 'lunatic',
+      name: 'Lunatic',
+      type: CharacterType.Outsider,
+    };
+
+    it('opens the private bluff screen from the Lunatic bluff panel', () => {
+      render(
+        <NightFlashcard
+          {...defaultProps}
+          entry={lunaticEntry}
+          characterDef={lunaticCharacter}
+          checkedStates={[false]}
+          lunaticBluffCharacters={lunaticBluffs}
+        />,
+      );
+
+      fireEvent.click(screen.getByTestId('lunatic-bluffs-fullscreen-btn'));
+
+      expect(screen.getByText('These characters are not in play.')).toBeInTheDocument();
+      expect(screen.getByTestId('player-show-bluff-chef')).toBeInTheDocument();
+      expect(screen.getByTestId('player-show-bluff-empath')).toBeInTheDocument();
+      expect(screen.getByTestId('player-show-bluff-butler')).toBeInTheDocument();
+    });
+
+    it('shows Lunatic bluffs with the not-in-play token instruction', () => {
+      render(
+        <NightFlashcard
+          {...defaultProps}
+          entry={lunaticEntry}
+          characterDef={lunaticCharacter}
+          checkedStates={[false]}
+          lunaticBluffCharacters={lunaticBluffs}
+        />,
+      );
+
+      fireEvent.click(screen.getByTestId('action-fullscreen-0'));
+
+      expect(screen.getByTestId('player-show-token')).toBeInTheDocument();
+      expect(screen.getByTestId('token-character-list-chef')).toBeInTheDocument();
+      expect(screen.getByTestId('token-character-list-empath')).toBeInTheDocument();
+      expect(screen.getByTestId('token-character-list-butler')).toBeInTheDocument();
+    });
+  });
+
   // Phase 3: Signal detection
   it('shows signal controls for thumbs up/down sub-actions', () => {
     const signalEntry: NightOrderEntry = {

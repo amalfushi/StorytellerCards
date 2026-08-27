@@ -1,0 +1,453 @@
+# Milestone 43 — Character Drafting
+
+## Status: ✅ Complete
+
+**Started:** 2026-08-23
+**Completed:** 2026-08-26
+
+This milestone adds player-driven character drafting. Each non-Traveller player
+privately chooses from an adaptive set of legal script characters or accepts an
+irreversible mulligan that rolls one different legal character. The system must
+preserve a legal Blood on the Clocktower setup after every choice, including
+setup modifiers, required partners, hidden identities, repeated characters,
+special game modes, and seating constraints.
+
+## Product goals
+
+1. Give players meaningful agency without allowing a draft choice to make the
+   game setup impossible.
+2. Preserve exact character-type counts and every supported setup rule.
+3. Keep hidden actual characters separate from player-visible draft results.
+4. Give the Storyteller a complete draft board and the ability to adjust
+   generated offers before revealing them.
+5. Randomize seating after drafting, then let the Storyteller secretly repair
+   adjacency and line constraints.
+6. Minimize information leaked by offer timing, option composition, or draft
+   order.
+
+## Non-goals
+
+- Public simultaneous drafting.
+- Perfectly uniform randomness. Correctness and option quality take precedence.
+- Preventing every inference from a finite script and exact role counts.
+- Treating in-game character changes such as Pit-Hag, Engineer, Farmer, Barber,
+  Hatter, or Snake Charmer as initial draft count changes.
+- Drafting Travellers, Fabled, or Loric characters.
+
+## Approved hybrid design
+
+The implementation combines three mechanisms:
+
+1. **Exact feasibility engine:** a character is legal only when committing it
+   leaves at least one complete legal setup.
+2. **Adaptive randomized presentation:** choose among solver-approved candidates
+   using open, secret-single-type, or secret-two-type presentation. Reduce the
+   visible choice count when fewer than four legal branches remain rather than
+   rejecting an otherwise completable game.
+3. **Persisted Storyteller-directed workflow:** the Storyteller selects any
+   unresolved player, saves that offer before reveal, sees hidden
+   actual/apparent outcomes on the Storyteller board, and may regenerate the
+   current unrevealed offer.
+
+Probability weights rank only candidates already proven legal. They never
+decide legality.
+
+```text
+isOfferable(character) =
+  hasLegalCompletion(commitCharacter(currentState, character))
+```
+
+Every visible option independently satisfies this rule. With four or more legal
+candidates, the offer has three choices plus a distinct precomputed mulligan.
+With three, two, or one legal candidates, it becomes two choices plus mulligan,
+one choice plus mulligan, or one mandatory choice respectively. A chosen
+mulligan is always final.
+
+## Canonical rule model
+
+Draft rules are declarative and separate from display components:
+
+| Rule family             | Examples                                                     | Solver effect                                                                |
+| ----------------------- | ------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Count modifier          | Baron, Fang Gu, Vigormortis                                  | Changes exact type targets.                                                  |
+| Variable count modifier | Balloonist, Hermit, Godfather, Xaan, Kazali, Lord of Typhon  | Branches over Storyteller-approved values before offers are revealed.        |
+| Required partner        | Choirboy → King, Huntsman → Damsel                           | Reserves the required character or rejects the branch.                       |
+| Repeated character      | Village Idiot, Legion                                        | Allows a bounded or mode-specific duplicate count.                           |
+| Game mode               | Atheist, Legion, Lil' Monsta, Summoner, Kazali               | Replaces normal setup rules or changes how evil assignments are represented. |
+| Hidden identity         | Drunk, Lunatic, Marionette, Kazali conversions               | Stores actual and apparent draft outcomes independently.                     |
+| Alignment setup         | Bounty Hunter                                                | Reserves and marks an evil Townsfolk without changing its character type.    |
+| Incompatibility         | Heretic with Baron/Godfather/Lleech/Pit-Hag/Spy/Widow        | Prevents both characters from being in the completed setup.                  |
+| Off-board resource      | Demon/Summoner/Snitch bluffs, Boffin ability, false identity | Reserves or warns about enough not-in-play identities.                       |
+| Seating constraint      | Marionette, Lord of Typhon, No Dashii                        | Applied by constrained post-draft seating, not option counts.                |
+| Information rule        | Poppy Grower, Magician, King, Damsel, Vizier, Widow          | Changes reveal timing and recipient information.                             |
+
+The canonical registry must distinguish:
+
+- `hard` rules that can invalidate a branch;
+- `workflow` rules that require a hidden Storyteller decision;
+- `presentation` rules that alter what a player is shown; and
+- `seating` rules resolved after roles are final.
+
+## Exhaustive regular-character audit
+
+The audit covered all 138 regular definitions currently in
+`UI/src/data/characters`: 69 Townsfolk, 23 Outsiders, 27 Minions, and 19 Demons.
+
+### Townsfolk with drafting or setup impact
+
+| Character     | Required handling                                                                                                                                                                                          |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alchemist     | Storyteller selects a Minion ability. Some jinxed abilities change setup, especially Alchemist-Summoner (`No Demon`). Treat the gained ability as a hidden setup decision, not a second drafted character. |
+| Atheist       | Irreversible all-good mode. It is illegal after any evil actual character is committed. Remaining offers are good only.                                                                                    |
+| Balloonist    | Storyteller chooses `+0` or `+1 Outsider`; the choice must be fixed in the branch before offers depend on it.                                                                                              |
+| Bounty Hunter | Requires one other Townsfolk to start evil. Reserve an eligible Townsfolk and conceal the alignment change.                                                                                                |
+| Choirboy      | Requires King in play. Committing Choirboy reserves King immediately.                                                                                                                                      |
+| Huntsman      | Requires Damsel in play. Committing Huntsman reserves an Outsider slot for Damsel immediately.                                                                                                             |
+| Magician      | Evil players receive false team information. Delay evil-team reveals until the final actual setup is known.                                                                                                |
+| No Dashii     | Its two neighbors must be Townsfolk for the intended setup. Resolve through constrained seating after the draft.                                                                                           |
+| Poppy Grower  | Suppresses normal Minion/Demon recognition. Reveal workflow must branch before evil-team information is shown.                                                                                             |
+| Village Idiot | Allows one to three copies; if extras exist, one extra is drunk. Copies consume Townsfolk slots and need distinct player assignments.                                                                      |
+
+Other Townsfolk have no initial count or eligibility effect:
+Acrobat, Alsaahir, Amnesiac, Artist, Banshee, Cannibal, Chambermaid, Chef,
+Clockmaker, Courtier, Cult Leader, Dreamer, Empath, Engineer, Exorcist, Farmer,
+Fisherman, Flowergirl, Fool, Fortune Teller, Gambler, General, Gossip,
+Grandmother, High Priestess, Innkeeper, Investigator, Juggler, King, Knight,
+Librarian, Lycanthrope, Mathematician, Mayor, Minstrel, Monk, Nightwatchman,
+Noble, Oracle, Pacifist, Philosopher, Pixie, Preacher, Princess, Professor,
+Ravenkeeper, Sage, Sailor, Savant, Seamstress, Shugenja, Slayer, Snake Charmer,
+Soldier, Steward, Tea Lady, Town Crier, Undertaker, Virgin, and Washerwoman.
+Their setup tokens and in-game transformations remain normal post-draft setup.
+
+### Outsiders with drafting or setup impact
+
+| Character | Required handling                                                                                                                                                                                                                                                                                                                      |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Drunk     | Conceptually draw and persist as many unique script Outsiders as the setup has Outsider slots, matching normal bag inclusion probability. A Drunk result reserves a primary Outsider player and gives that player three randomized Townsfolk choices plus a Townsfolk mulligan. Lunatic is excluded from the illusion. Every apparent selection secretly assigns Drunk; preserve both actual and apparent outcomes. |
+| Hermit    | Storyteller chooses `-0` or `-1 Outsider`. It also has every Outsider ability on the script, so the draft board must flag unusually complex scripts.                                                                                                                                                                                   |
+| Heretic   | Cannot coexist with Baron, Godfather, Lleech, Pit-Hag, Spy, or Widow under the current official jinx data.                                                                                                                                                                                                                             |
+| Lunatic   | Uses the same persisted conceptual Outsider draws as Drunk and may coexist with Drunk when both are drawn into distinct slots. A Lunatic result gives the reserved Outsider player three randomized Demon choices plus a Demon mulligan. Every apparent selection secretly assigns Lunatic. The real Demon must know the Lunatic and their choices.                                                                   |
+| Snitch    | Every Minion receives three bluffs. Validate or warn about the off-board good-character pool before reveal.                                                                                                                                                                                                                            |
+
+Other Outsiders have no initial count or eligibility effect:
+Barber, Butler, Damsel, Golem, Goon, Hatter, Klutz, Moonchild, Mutant, Ogre,
+Plague Doctor, Politician, Puzzlemaster, Recluse, Saint, Sweetheart, Tinker, and
+Zealot. Damsel remains a required partner and information rule when Huntsman
+selects it.
+
+### Minions with drafting or setup impact
+
+| Character  | Required handling                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Baron      | Adds two Outsiders and removes two Townsfolk. Incompatible with Heretic.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Boffin     | Requires an eligible not-in-play good ability, known to Boffin and Demon. Some abilities are forbidden by jinx.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Evil Twin  | Requires an opposing-alignment twin and a private paired reveal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Godfather  | Storyteller chooses `-1` or `+1 Outsider`. Incompatible with Heretic.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Marionette | At draft creation in every presentation mode, one primary Minion player and one script Minion are rolled and persisted. If that 1-in-N Minion roll is Marionette, the reserved player's pill is warned immediately and their future Minion slot is protected while other players draft. When selected, they receive three randomized good choices plus a good mulligan; otherwise Marionette is excluded from that game. Drunk and Lunatic are excluded from the illusion. Every apparent selection secretly assigns Marionette. It must neighbor a Demon and remain hidden from its player. |
+| Pit-Hag    | Incompatible with Heretic. Its later character changes do not alter initial draft counts.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Spy        | Incompatible with Heretic. Registration as good does not alter its Minion slot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Summoner   | Starts with no Demon player, receives three bluffs, and creates a Demon on night three. The missing Demon slot becomes a good slot.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Vizier     | Publicly known. Its reveal must happen only after every hidden draft outcome is finalized.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Widow      | Incompatible with Heretic and requires one good player to learn a Widow is in play.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Xaan       | The selected `X` is exactly the number of Outsiders. Fix `X` before dependent offers are revealed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+
+Other Minions have no initial count or eligibility effect:
+Assassin, Boomdandy, Cerenovus, Devil's Advocate, Fearmonger, Goblin, Harpy,
+Mastermind, Mezepheles, Organ Grinder, Poisoner, Psychopath, Scarlet Woman,
+Witch, Wizard, and Wraith.
+
+### Demons with drafting or setup impact
+
+| Character      | Required handling                                                                                                                                                                                                |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Fang Gu        | Adds one Outsider and removes one Townsfolk.                                                                                                                                                                     |
+| Kazali         | Chooses which players become which Minions. Players selected for conversion need provisional/apparent good drafts; final evil assignments are a hidden setup phase. Outsider adjustment is Storyteller-variable. |
+| Legion         | Replaces the normal distribution with repeated Legion copies and a small good minority. It must be selected before incompatible normal evil assignments exist.                                                   |
+| Lil' Monsta    | Setup-only Demon token, never a player draft option. Uses zero Demon players and one additional Minion player.                                                                                                   |
+| Lleech         | Incompatible with Heretic and requires a hidden host selection.                                                                                                                                                  |
+| Lord of Typhon | Adds one Minion, has a variable Outsider adjustment, and requires all evil players in one continuous line with the Demon in the middle.                                                                          |
+| No Dashii      | Requires Townsfolk neighbors for intended poisoning and constrained seating.                                                                                                                                     |
+| Vigormortis    | Removes one Outsider and adds one Townsfolk.                                                                                                                                                                     |
+
+Other Demons have no initial count or eligibility effect:
+Al-Hadikhia, Imp, Leviathan, Ojo, Po, Pukka, Riot, Shabaloth, Vortox,
+Yaggababble, and Zombuul. Their public status, later transformations, or death
+rules are handled after setup. Standard Demons still require three not-in-play
+good bluffs unless another information rule changes that flow.
+
+## Draft workflow
+
+1. Storyteller selects participants and drafting mode. A selected script limits
+   the pool; when no script is selected, drafting uses every regular character.
+   A script that was selected but failed to load remains an error rather than
+   silently falling back to the full registry.
+2. Engine resolves the selected exceptional setup mode and displays an
+   unresolved pill for every participating player.
+3. Storyteller selects any unresolved player. The engine generates and persists
+   a hidden one- or two-type plan for every unresolved player, then generates
+   and persists the selected player's offer, including its
+   adaptive options, mulligan result, type rolls, and hidden identity mapping.
+4. Storyteller reviews or regenerates the current unrevealed offer. Every
+   generated result is checked by the exact solver.
+5. Offers are revealed through a private physical-device handoff. Players choose one
+   option or the mandatory mulligan, then remain on a private confirmation screen
+   showing only their apparent character until they explicitly hand the device back
+   to the Storyteller.
+   Variable setup choices regenerate the hidden type plans for every unresolved
+   player before another offer can be revealed.
+6. Hidden-identity players see only their apparent draft. The Storyteller sees
+   and commits the actual role first.
+7. The Storyteller explicitly confirms the completed draft. The engine then
+   generates a randomized seating
+   permutation satisfying hard adjacency/line constraints where possible.
+8. Storyteller secretly reviews or edits and confirms seating. Demon bluff
+   selection does not begin until this confirmation, after which normal ordered
+   information reveals and first-night setup continue.
+
+### Standalone draft simulator
+
+The tools page exposes a draft simulator that exercises the production offer
+generator and player presentation without creating a session or game. It
+supports official base scripts, custom script JSON import, player count and
+setup-mode selection, normal choices, mandatory mulligans, offer regeneration,
+and Storyteller-only diagnostics showing how each commitment changes the legal
+candidate pool. The tool displays the number of viable characters before each
+offer and uses the same adaptive offer policy as production. A dedicated
+hidden-character test can force Drunk, Lunatic, or Marionette into the first
+offer using the production Storyteller board, false-identity masking, private
+handoff, and resolution flow, without modifying a real game. Its apparent
+choices are randomly sampled without replacement from the same role-specific
+pool used in production rather than taken in script or alphabetical order. Travellers,
+Fabled, and Loric characters are always excluded. Kazali is currently gated
+because its required hidden post-draft Minion-conversion workflow is not
+implemented.
+
+### Script catalog and API loading
+
+Curated server scripts are stored below `API/data/scripts` in two categories:
+
+- `production` contains official base scripts, milestone scripts, and imported
+  scripts intended for regular games.
+- `test` contains integration-only scripts.
+
+The API resolves production before test and temporarily supports legacy flat
+script files. Its data root must resolve correctly when launched from the
+repository root, `API`, or `API/cmd/server`; deployments may override it with
+`STORYTELLER_DATA_DIR`.
+
+## Player experience
+
+- Reuse the existing full-screen slot-machine presentation.
+- Normal draft: one to three synchronized columns, each ending on one offered
+  character.
+- Keep wheel animation independent from React render state. Every spin must
+  settle on transition completion, transition cancellation, or a bounded
+  timeout so the workflow cannot remain permanently locked in its rolling
+  phase.
+- The player taps one character or **Mulligan**.
+- Mulligan: the three columns collapse to one, the predetermined fourth result
+  rolls, remains visible with its ability summary, and must be explicitly
+  accepted; no further choice is available.
+- Display each offered character's short ability description below its name.
+- Keep ability descriptions in equal-height white panels, separate from explicit
+  character selection buttons.
+- Keep each wheel, description panel, and selection button at the same
+  responsive width.
+- Use white wheel and ability surfaces against the otherwise black private
+  handoff.
+- Use the player's stable Town Square color prominently on the private handoff
+  and Storyteller board.
+- Present the private handoff in an opaque full-screen dialog with a heavily
+  obscured backdrop so no Storyteller information remains readable.
+- After a choice or accepted mulligan, show a full-screen confirmation containing
+  only the apparent character. Do not reveal the Storyteller board until the
+  player explicitly confirms the hand-back.
+- Do not show public draft position, remaining role counts, rejected options,
+  or other players' offers.
+- Clearly state that a mulligan is final before starting its animation.
+
+## State model
+
+Draft state is persisted on `Game` so refresh and cross-device sync cannot
+reroll or reveal different outcomes.
+
+```ts
+interface CharacterDraftState {
+  status: "drafting" | "blocked" | "complete";
+  setupMode: CharacterDraftSetupMode;
+  presentationMode: CharacterDraftPresentationMode;
+  playerOrder: PlayerId[];
+  plannedCharacterTypes?: Partial<
+    Record<PlayerId, DraftableCharacterType[]>
+  >;
+  marionetteRoll?: CharacterDraftCharacterRoll;
+  outsiderCharacterRolls?: CharacterDraftCharacterRoll[];
+  outsiderHiddenRoll?: CharacterDraftCharacterRoll; // legacy compatibility
+  currentPlayerIndex: number;
+  activePlayerId?: PlayerId;
+  variableModifierValues?: Record<string, number>;
+  characterCopyTargets?: Record<string, number>;
+  entries: CharacterDraftEntry[];
+  blockedReason?: string;
+  revision: number;
+}
+
+interface CharacterDraftEntry {
+  playerId: PlayerId;
+  offer: {
+    offeredCharacterIds: string[];
+    mulliganCharacterId: string | null;
+    rolledCharacterTypes: DraftableCharacterType[];
+    legalCandidateCount: number;
+    actualCharacterIdsByOfferedId?: Record<string, string>;
+  };
+  selectedCharacterId?: string;
+  actualCharacterId?: string;
+  apparentCharacterId?: string;
+  resolution?: "choice" | "mulligan";
+}
+```
+
+Persist generated outcomes before reveal. Any Storyteller edit increments the
+draft revision. Once an entry is revealed, changing it requires an explicit
+reset confirmation. `marionetteRoll` is the single persisted Minion control
+roll. `outsiderCharacterRolls` stores one unique conceptual bag draw per
+Outsider slot; legacy games with only `outsiderHiddenRoll` are upgraded by
+preserving that result and drawing only the missing slots.
+
+## Information-leak mitigations
+
+- Let the Storyteller choose unresolved players in any order and hide turn
+  numbers.
+- Persist offers before reveal so refreshes and response timing do not reroll outcomes.
+- Prefer mixed character types when several legal branches support them.
+- Avoid repeatedly showing the same unselected character unless scarcity
+  requires it.
+- Keep option probabilities and candidate setup counts hidden.
+- Randomize final seating independently of draft order.
+- Allow the Storyteller to repair adjacency secretly.
+- Document that exact counts make zero-information drafting impossible; the
+  goal is bounded, non-actionable leakage.
+
+### Possible future improvement — option-type composition
+
+A late offer containing three Demons is a particularly strong information leak:
+it can reveal that the setup still requires a Demon and may let players narrow
+the Demon to someone drafting at or after that point. The initial implementation
+will **not** add further controls for this case. It should first be playtested
+with the existing exact-legality and weighted-random generation so the design is
+guided by observed human behavior rather than speculative restrictions.
+
+If playtesting shows that same-type offers create actionable information, future
+iterations may consider:
+
+| Option                               | Approach                                                                                                                                        | Primary trade-off                                                                              |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Entropy-aware lookahead              | Penalize or reject choices whose legal continuations predict low-diversity future offers, especially three-Demon endpoints.                     | Reduces risk but cannot guarantee safety for every sequence of player choices.                 |
+| Evil-role deadlines                  | Increase pressure to commit required evil roles while several drafts remain, rather than allowing them to be deferred to the final players.     | Preserves immediate choices but may eventually force a role or expose the deadline indirectly. |
+| Complete setup ensembles             | Generate offers from several complete legal setups and retain only branches that preserve both legality and acceptable future option diversity. | Stronger planning at the cost of more computation and potentially fewer compatible scripts.    |
+| Storyteller preview and backtracking | Simulate the hidden draft board, flag type-revealing offers, and let the Storyteller reorder or regenerate them before reveal.                  | Practical human safeguard, but not a guarantee against every later player choice.              |
+| Ranked global resolution             | Have players privately rank their options, then assign the highest compatible selections after all rankings are collected.                      | Preserves mixed-type agency, but a player's apparent selection is provisional.                 |
+| Hidden type allocation               | Secretly allocate required character types first, then offer three characters of the allocated type.                                            | Makes same-type offers routine, but removes player agency over character type and alignment.   |
+| Mandatory-role fallback              | When only one type can legally satisfy the setup, present a single mandatory roll instead of three equivalent same-type choices.                | Honest and less theatrical, but suspends the normal three-choice draft.                        |
+
+Draft-order concealment, private handoff, and post-draft seating randomization
+remain useful regardless of whether any of these controls are later adopted.
+This section is a future-improvement catalog, not part of the current milestone
+acceptance criteria.
+
+## Implementation phases
+
+### Phase 1 — Rule and feasibility foundation
+
+- [x] Audit all regular characters.
+- [x] Define rule families and edge-case catalog.
+- [x] Add the canonical draft-rule registry.
+- [x] Add a pure exact-feasibility engine with memoized normalized states.
+- [x] Add candidate legality and mulligan-pool helpers.
+- [x] Add exhaustive unit tests for standard counts, modifiers, modes,
+      dependencies, incompatibilities, and duplicates.
+
+### Phase 2 — Persistent draft workflow
+
+- [x] Add a standalone ephemeral simulator backed by production draft logic.
+- [x] Add reusable offer generation and draft-session transitions.
+- [x] Add `CharacterDraftState` to the game model and API roundtrip.
+- [x] Add reducer actions for persisted progress and atomic completion.
+- [x] Prevent regenerated randomness after save, refresh, or sync.
+- [x] Preserve backward compatibility for games without draft state.
+
+### Phase 3 — Storyteller draft board
+
+- [x] Generate offers for any Storyteller-selected unresolved player from exact
+      legal candidates.
+- [x] Display actual/apparent outcomes, viable candidate counts, and secret type rolls.
+- [x] Support legal regeneration of the current unresolved offer.
+- [x] Lock resolved entries.
+- [x] Color player pills by stable player color while active and by selected
+      character type when complete.
+- [x] Display target setup counts and pause the Storyteller board for supported
+      variable modifiers or a Village Idiot copy target only after the relevant
+      character is selected.
+- [x] Persist hidden type plans for unresolved players and regenerate them with
+      the displayed target counts after variable setup choices.
+
+### Phase 4 — Player draft presentation
+
+- [x] Build the reusable three-column slot-machine draft presentation.
+- [x] Add irreversible one-column mulligan animation.
+- [x] Add private physical-device handoff.
+- [x] Add hidden-identity illusion drafts for Drunk, Lunatic, and Marionette.
+- [x] Show short ability descriptions for every option and final mulligan.
+- [x] Separate equal-height ability panels from explicit selection buttons and
+      use high-contrast white wheel surfaces.
+- [x] Obscure the entire application behind the private handoff.
+
+### Phase 5 — Seating and reveal orchestration
+
+- [x] Generate constrained random seating for Marionette, Lord of Typhon, and
+      No Dashii.
+- [x] Integrate failed automatic placement with Town Square Edit Seating.
+- [x] Route Poppy Grower, Magician, King, Damsel, Vizier, Widow, Lunatic,
+      Marionette, and evil-team information through the existing setup
+      checklist and first-night reveal workflows.
+- [x] Require confirmed final seating before play starts.
+- [x] Delay Demon bluff selection until the Storyteller reviews and confirms
+      randomized seating.
+- [x] Keep full actual-character portraits and actual/apparent assignment text
+      visible between the seating reorder controls, and allow constrained
+      re-randomization before saving.
+
+## Testing strategy
+
+- Example tests for every explicit registry rule.
+- Property tests across player counts 5–15 and representative scripts:
+  every offered choice and mulligan must have a complete legal continuation.
+- Adversarial tests that repeatedly choose the option with the scarcest type.
+- Permutation tests for draft order independence.
+- Duplicate tests for Village Idiot and Legion only, including sequential
+  player selections of multiple Village Idiots and preference weighting after
+  the first copy is chosen.
+- Hidden-identity tests proving actual roles never enter player-visible props.
+- Persistence and API roundtrip tests proving generated offers are stable.
+- Component and Storybook interaction tests for choice, mulligan, private
+  handoff, reduced motion, and Storyteller board editing.
+- Seating property tests proving constraints or returning an explicit
+  Storyteller-resolution warning when no permutation exists.
+- Lifecycle E2E from game planning through draft, seating confirmation, refresh,
+  and first night.
+
+## Acceptance criteria
+
+- [x] Every visible option independently leaves at least one legal completion.
+- [x] Mulligan excludes every original option and is mandatory.
+- [x] Exact final type counts match the resolved setup branch.
+- [x] All supported count modifiers, dependencies, incompatibilities, and
+      special modes are enforced.
+- [x] Actual and apparent characters are independently persisted and revealed.
+- [x] Refresh and cross-device synchronization never reroll a revealed board.
+- [x] Storyteller can review and regenerate each unresolved offer before reveal.
+- [x] Final seating is randomized and checked for every supported constraint.
+- [x] Draft order and remaining counts are not exposed to players.
+- [x] Existing manual assignment and randomization workflows remain available.
+- [x] Required unit, Storybook, API, and lifecycle suites pass.

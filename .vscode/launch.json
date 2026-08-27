@@ -4,10 +4,18 @@
     {
       "type": "chrome",
       "request": "launch",
-      "name": "Launch UI (Chrome)",
+      "name": "Launch Full Stack (Chrome)",
       "url": "http://localhost:5173",
       "webRoot": "${workspaceFolder}/UI/src",
-      "preLaunchTask": "Dev: UI"
+      "preLaunchTask": "Dev: Full Stack"
+    },
+    {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch UI Only (Chrome)",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/UI/src",
+      "preLaunchTask": "Dev: UI Only"
     },
     {
       "type": "chrome",
@@ -18,6 +26,9 @@
       "preLaunchTask": "Dev: UI Local Only"
     },
     {
+      "type": "chrome",
+      "request": "launch",
+      "name": "Launch Storybook (Chrome)",
       "url": "http://localhost:6006",
       "webRoot": "${workspaceFolder}/UI",
       "preLaunchTask": "Storybook"
@@ -49,8 +60,8 @@
   ],
   "compounds": [
     {
-      "name": "Full Stack (UI + API)",
-      "configurations": ["Launch UI (Chrome)", "Debug Go API"]
+      "name": "Full Stack Debug (Chrome + Go)",
+      "configurations": ["Launch UI Only (Chrome)", "Debug Go API"]
     }
   ]
 }

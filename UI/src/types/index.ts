@@ -355,6 +355,64 @@ export interface PlayerGameState {
   gainedAbility?: GainedAbility;
 }
 
+export type CharacterDraftSetupMode =
+  | 'standard'
+  | 'atheist'
+  | 'legion'
+  | 'lilmonsta'
+  | 'summoner'
+  | 'kazali';
+
+export type CharacterDraftPresentationMode = 'open' | 'secret-single-type' | 'secret-two-types';
+export type DraftableCharacterType = Extract<
+  CharacterType,
+  'Townsfolk' | 'Outsider' | 'Minion' | 'Demon'
+>;
+
+export interface CharacterDraftOfferSnapshot {
+  offeredCharacterIds: string[];
+  mulliganCharacterId: string | null;
+  rolledCharacterTypes: DraftableCharacterType[];
+  legalCandidateCount: number;
+  /** Maps a player-facing false identity back to the secretly assigned character. */
+  actualCharacterIdsByOfferedId?: Record<string, string>;
+}
+
+export interface CharacterDraftEntry {
+  playerId: PlayerId;
+  offer: CharacterDraftOfferSnapshot;
+  selectedCharacterId?: string;
+  actualCharacterId?: string;
+  apparentCharacterId?: string;
+  resolution?: 'choice' | 'mulligan';
+}
+
+export interface CharacterDraftCharacterRoll {
+  playerId: PlayerId;
+  characterId: string;
+}
+
+export interface CharacterDraftState {
+  status: 'drafting' | 'blocked' | 'complete';
+  setupMode: CharacterDraftSetupMode;
+  presentationMode: CharacterDraftPresentationMode;
+  playerOrder: PlayerId[];
+  plannedCharacterTypes?: Partial<Record<PlayerId, DraftableCharacterType[]>>;
+  /** One persisted Minion roll determines whether a planned Minion player receives Marionette. */
+  marionetteRoll?: CharacterDraftCharacterRoll;
+  /** @deprecated Legacy single-slot Outsider roll retained for persisted draft compatibility. */
+  outsiderHiddenRoll?: CharacterDraftCharacterRoll;
+  /** Persisted conceptual bag draws for every Outsider slot; hidden results reserve their players. */
+  outsiderCharacterRolls?: CharacterDraftCharacterRoll[];
+  currentPlayerIndex: number;
+  activePlayerId?: PlayerId;
+  variableModifierValues?: Record<string, number>;
+  characterCopyTargets?: Record<string, number>;
+  entries: CharacterDraftEntry[];
+  blockedReason?: string;
+  revision: number;
+}
+
 // ──────────────────────────────────────────────
 // Game
 // ──────────────────────────────────────────────
@@ -395,6 +453,8 @@ export interface Game {
   activeLoric?: string[];
   /** Character IDs selected as in-play for this game (subset of script). */
   inPlayCharacterIds?: string[];
+  /** Persisted private character-drafting progress for this game. */
+  characterDraft?: CharacterDraftState;
   /** Character IDs of the 3 not-in-play good characters shown to the Demon as bluffs. */
   demonBluffs?: string[];
   /** Character IDs of the 3 good characters shown to the Lunatic as fake bluffs. */

@@ -1,0 +1,17 @@
+{
+  "id": "extendedtestscript",
+  "name": "Extended Test Script",
+  "author": "Integration Test",
+  "characterIds": [
+    "washerwoman",
+    "librarian",
+    "investigator",
+    "chef",
+    "empath",
+    "fortuneteller",
+    "undertaker",
+    "monk",
+    "imp",
+    "poisoner"
+  ]
+}

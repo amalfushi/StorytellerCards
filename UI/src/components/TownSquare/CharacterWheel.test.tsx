@@ -1,15 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { createRef, useEffect } from 'react';
 import { act, render } from '@testing-library/react';
 import {
   CharacterWheel,
   type CharacterWheelHandle,
   WHEEL_ROW_HEIGHT_PX,
+  WHEEL_STRIP_REPEATS,
 } from '@/components/TownSquare/CharacterWheel.tsx';
 import type { CharacterDef } from '@/types/index.ts';
 import { Alignment, CharacterType } from '@/types/index.ts';
-
-const STRIP_REPEATS = 11;
 
 function makeChar(
   id: string,
@@ -38,10 +37,11 @@ const chars: CharacterDef[] = [
 ];
 
 describe('CharacterWheel', () => {
-  it('renders STRIP_REPEATS × characters rows so the spin can travel several revolutions', () => {
+  it('renders the bounded repeated strip needed for edge-safe spinning', () => {
     const { getByTestId } = render(<CharacterWheel characters={chars} />);
     const strip = getByTestId('character-wheel-strip');
-    expect(strip.childElementCount).toBe(chars.length * STRIP_REPEATS);
+    expect(strip.childElementCount).toBe(chars.length * WHEEL_STRIP_REPEATS);
+    expect(WHEEL_STRIP_REPEATS).toBeLessThanOrEqual(7);
   });
 
   it('spinTo resolves immediately for an unknown character without animating', async () => {
@@ -66,11 +66,12 @@ describe('CharacterWheel', () => {
     let donePromise!: Promise<void>;
     await act(async () => {
       donePromise = ref.current!.spinTo('beta', 50);
-      // give React time to flip the spinning flag
-      await Promise.resolve();
+      await new Promise((resolve) => setTimeout(resolve, 20));
     });
+
     expect(wheel.getAttribute('data-spinning')).toBe('true');
     expect(strip.style.transform).toMatch(/translateY\(-\d+(\.\d+)?px\)/);
+    expect(strip.style.transform).toBe('translateY(-936px)');
 
     await act(async () => {
       strip.dispatchEvent(new Event('transitionend'));
@@ -80,6 +81,24 @@ describe('CharacterWheel', () => {
     });
 
     expect(wheel.getAttribute('data-spinning')).toBe('false');
+  });
+
+  it('settles if the browser does not emit transitionend', async () => {
+    vi.useFakeTimers();
+    const ref = createRef<CharacterWheelHandle>();
+    const { getByTestId } = render(<CharacterWheel ref={ref} characters={chars} />);
+    let resolved = false;
+
+    await act(async () => {
+      void ref.current!.spinTo('beta', 50).then(() => {
+        resolved = true;
+      });
+      await vi.advanceTimersByTimeAsync(400);
+    });
+
+    expect(resolved).toBe(true);
+    expect(getByTestId('character-wheel')).toHaveAttribute('data-spinning', 'false');
+    vi.useRealTimers();
     // Row height is exposed as a constant; sanity-check that the strip rows
     // are tall enough that the snap math is using it.
     expect(WHEEL_ROW_HEIGHT_PX).toBeGreaterThan(0);
@@ -98,5 +117,15 @@ describe('CharacterWheel', () => {
     render(<Probe />);
     expect(stripEl).not.toBeNull();
     expect(stripEl!.style.transform).toMatch(/translateY\(-\d+(\.\d+)?px\)/);
+  });
+
+  it('renders a shorter wheel in compact mode', () => {
+    const { getByTestId } = render(<CharacterWheel characters={chars} compact />);
+    expect(getByTestId('character-wheel')).toHaveStyle({ height: '280px' });
+  });
+
+  it('supports a light private-draft surface', () => {
+    const { getByTestId } = render(<CharacterWheel characters={chars} surface="light" />);
+    expect(getByTestId('character-wheel')).toHaveStyle({ backgroundColor: '#fff' });
   });
 });

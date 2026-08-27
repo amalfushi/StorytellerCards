@@ -16,6 +16,11 @@ type FileStore struct {
 	baseDir string
 }
 
+const (
+	productionScriptsDir = "production"
+	testScriptsDir       = "test"
+)
+
 // New creates a FileStore rooted at baseDir.
 func New(baseDir string) *FileStore {
 	return &FileStore{baseDir: baseDir}
@@ -25,7 +30,8 @@ func New(baseDir string) *FileStore {
 func (fs *FileStore) EnsureDirectories() error {
 	dirs := []string{
 		filepath.Join(fs.baseDir, "sessions"),
-		filepath.Join(fs.baseDir, "scripts"),
+		filepath.Join(fs.baseDir, "scripts", productionScriptsDir),
+		filepath.Join(fs.baseDir, "scripts", testScriptsDir),
 	}
 	for _, d := range dirs {
 		if err := os.MkdirAll(d, 0755); err != nil {
@@ -208,57 +214,81 @@ func (fs *FileStore) DeleteGame(sessionID, gameID string) error {
 // Scripts
 // ──────────────────────────────────────────────
 
-func (fs *FileStore) scriptPath(id string) string {
-	return filepath.Join(fs.baseDir, "scripts", id+".json")
+func (fs *FileStore) scriptPath(category, id string) string {
+	return filepath.Join(fs.baseDir, "scripts", category, id+".json")
 }
 
 // GetScript loads a script by ID.
 func (fs *FileStore) GetScript(id string) (models.Script, error) {
 	var s models.Script
-	data, err := os.ReadFile(fs.scriptPath(id))
-	if err != nil {
-		return s, err
+	paths := []string{
+		fs.scriptPath(productionScriptsDir, id),
+		fs.scriptPath(testScriptsDir, id),
+		filepath.Join(fs.baseDir, "scripts", id+".json"),
 	}
-	err = json.Unmarshal(data, &s)
-	return s, err
+	var lastErr error
+	for _, path := range paths {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			lastErr = err
+			if os.IsNotExist(err) {
+				continue
+			}
+			return s, err
+		}
+		if err := json.Unmarshal(data, &s); err != nil {
+			return s, err
+		}
+		return s, nil
+	}
+	return s, lastErr
 }
 
-// SaveScript persists a script to disk.
+// SaveScript persists imported scripts as production scripts.
 func (fs *FileStore) SaveScript(s models.Script) error {
 	data, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return err
 	}
-	return atomicWrite(fs.scriptPath(s.ID), data)
+	return atomicWrite(fs.scriptPath(productionScriptsDir, s.ID), data)
 }
 
 // ListScripts returns all scripts.
 func (fs *FileStore) ListScripts() ([]models.Script, error) {
-	dir := filepath.Join(fs.baseDir, "scripts")
-	entries, err := os.ReadDir(dir)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return []models.Script{}, nil
-		}
-		return nil, err
-	}
-
 	var scripts []models.Script
-	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
-			continue
-		}
-		var s models.Script
-		data, err := os.ReadFile(filepath.Join(dir, e.Name()))
+	seen := make(map[string]bool)
+	dirs := []string{
+		filepath.Join(fs.baseDir, "scripts", productionScriptsDir),
+		filepath.Join(fs.baseDir, "scripts", testScriptsDir),
+		filepath.Join(fs.baseDir, "scripts"),
+	}
+	for _, dir := range dirs {
+		entries, err := os.ReadDir(dir)
 		if err != nil {
-			log.Printf("WARN: skip bad script file %s: %v", e.Name(), err)
-			continue
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, err
 		}
-		if err := json.Unmarshal(data, &s); err != nil {
-			log.Printf("WARN: skip bad script json %s: %v", e.Name(), err)
-			continue
+		for _, e := range entries {
+			if e.IsDir() || !strings.HasSuffix(e.Name(), ".json") {
+				continue
+			}
+			var s models.Script
+			data, err := os.ReadFile(filepath.Join(dir, e.Name()))
+			if err != nil {
+				log.Printf("WARN: skip bad script file %s: %v", e.Name(), err)
+				continue
+			}
+			if err := json.Unmarshal(data, &s); err != nil {
+				log.Printf("WARN: skip bad script json %s: %v", e.Name(), err)
+				continue
+			}
+			if !seen[s.ID] {
+				scripts = append(scripts, s)
+				seen[s.ID] = true
+			}
 		}
-		scripts = append(scripts, s)
 	}
 	return scripts, nil
 }

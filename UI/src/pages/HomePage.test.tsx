@@ -90,6 +90,12 @@ describe('HomePage', () => {
     expect(screen.getByText('Storyteller Cards')).toBeInTheDocument();
   });
 
+  it('opens the standalone draft simulator from the header', () => {
+    render(<HomePage />);
+    fireEvent.click(screen.getByRole('button', { name: /draft simulator/i }));
+    expect(mockNavigate).toHaveBeenCalledWith('/tools/character-draft');
+  });
+
   it('shows empty state when no sessions exist', () => {
     render(<HomePage />);
     expect(screen.getByText('No sessions yet')).toBeInTheDocument();
