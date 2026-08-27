@@ -31,7 +31,7 @@ export interface LegalDraftCandidateOptions {
   excludeCharacterIds?: readonly string[];
 }
 
-interface CharacterCounts {
+export interface DraftCompletionCounts {
   Townsfolk: number;
   Outsider: number;
   Minion: number;
@@ -40,7 +40,7 @@ interface CharacterCounts {
 
 interface SetupProfile {
   mode: DraftSetupMode;
-  counts: CharacterCounts;
+  counts: DraftCompletionCounts;
   includedModifierIds: readonly string[];
   forbiddenCharacterIds: ReadonlySet<string>;
   setupCharacterIds: readonly string[];
@@ -78,7 +78,7 @@ const STRUCTURAL_CHARACTER_IDS = new Set([
 
 const resultCache = new Map<string, boolean>();
 
-function emptyCounts(): CharacterCounts {
+function emptyCounts(): DraftCompletionCounts {
   return { Townsfolk: 0, Outsider: 0, Minion: 0, Demon: 0 };
 }
 
@@ -87,7 +87,7 @@ function toCounts(
   outsiders: number,
   minions: number,
   demons: number,
-): CharacterCounts {
+): DraftCompletionCounts {
   return {
     Townsfolk: townsfolk,
     Outsider: outsiders,
@@ -122,7 +122,7 @@ function countIds(ids: readonly string[]): Map<string, number> {
 function countSelectedTypes(
   selected: ReadonlyMap<string, number>,
   scriptById: ReadonlyMap<string, DraftCharacter>,
-): CharacterCounts | undefined {
+): DraftCompletionCounts | undefined {
   const counts = emptyCounts();
   for (const [id, copies] of selected) {
     const character = scriptById.get(id);
@@ -263,7 +263,7 @@ function canFillProfile(
   return searchStructural(0, selected);
 }
 
-function getBaseCounts(playerCount: number, mode: DraftSetupMode): CharacterCounts[] {
+function getBaseCounts(playerCount: number, mode: DraftSetupMode): DraftCompletionCounts[] {
   const base = getDistribution(playerCount);
 
   if (mode === DraftSetupMode.Atheist) {
@@ -307,9 +307,9 @@ function getAllowedModifierIds(mode: DraftSetupMode, scriptIds: ReadonlySet<stri
 
 function applyModifiers(
   playerCount: number,
-  base: CharacterCounts,
+  base: DraftCompletionCounts,
   selectedValues: ReadonlyMap<string, readonly number[]>,
-): CharacterCounts | undefined {
+): DraftCompletionCounts | undefined {
   let minions = base.Minion;
   let demons = base.Demon;
   let outsiderDelta = 0;
@@ -404,11 +404,11 @@ function getPossibleModes(
   return modes;
 }
 
-function hasCompletionInMode(
+function findCompletionInMode(
   input: DraftFeasibilityInput,
   mode: DraftSetupMode,
   scriptById: ReadonlyMap<string, DraftCharacter>,
-): boolean {
+): DraftCompletionCounts | undefined {
   const scriptIds = new Set(scriptById.keys());
   const modeCharacterId = getModeCharacterId(mode);
   const setupCharacterIds = modeCharacterId ? [modeCharacterId] : [];
@@ -429,6 +429,7 @@ function hasCompletionInMode(
   }
 
   for (const base of getBaseCounts(input.playerCount, mode)) {
+    let completionCounts: DraftCompletionCounts | undefined;
     const found = enumerateModifierSelections(
       modifierIds,
       forcedIds,
@@ -443,7 +444,7 @@ function hasCompletionInMode(
           if (!selectedValues.has(id)) forbiddenCharacterIds.add(id);
         });
 
-        return canFillProfile(
+        const canFill = canFillProfile(
           input,
           {
             mode,
@@ -454,37 +455,48 @@ function hasCompletionInMode(
           },
           scriptById,
         );
+        if (canFill) completionCounts = counts;
+        return canFill;
       },
     );
-    if (found) return true;
+    if (found) return completionCounts;
   }
-  return false;
+  return undefined;
 }
 
-export function hasLegalDraftCompletion(input: DraftFeasibilityInput): boolean {
+function findLegalDraftCompletion(input: DraftFeasibilityInput): DraftCompletionCounts | undefined {
   if (
     !Number.isInteger(input.playerCount) ||
     input.playerCount < 5 ||
     input.playerCount > 15 ||
     input.committedCharacterIds.length > input.playerCount
   ) {
-    return false;
+    return undefined;
   }
 
+  const scriptById = new Map(input.scriptCharacters.map((character) => [character.id, character]));
+  if (scriptById.size !== input.scriptCharacters.length) return undefined;
+
+  const scriptIds = new Set(scriptById.keys());
+  for (const mode of getPossibleModes(scriptIds, input.setupMode)) {
+    const completion = findCompletionInMode(input, mode, scriptById);
+    if (completion) return completion;
+  }
+  return undefined;
+}
+
+export function getLegalDraftCompletionCounts(
+  input: DraftFeasibilityInput,
+): DraftCompletionCounts | undefined {
+  return findLegalDraftCompletion(input);
+}
+
+export function hasLegalDraftCompletion(input: DraftFeasibilityInput): boolean {
   const cacheKey = getCacheKey(input);
   const cached = resultCache.get(cacheKey);
   if (cached !== undefined) return cached;
 
-  const scriptById = new Map(input.scriptCharacters.map((character) => [character.id, character]));
-  if (scriptById.size !== input.scriptCharacters.length) {
-    resultCache.set(cacheKey, false);
-    return false;
-  }
-
-  const scriptIds = new Set(scriptById.keys());
-  const result = getPossibleModes(scriptIds, input.setupMode).some((mode) =>
-    hasCompletionInMode(input, mode, scriptById),
-  );
+  const result = findLegalDraftCompletion(input) !== undefined;
   resultCache.set(cacheKey, result);
   return result;
 }

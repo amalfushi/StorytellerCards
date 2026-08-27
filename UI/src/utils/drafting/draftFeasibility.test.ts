@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { DraftCharacter, DraftFeasibilityInput } from '@/utils/drafting/draftFeasibility.ts';
 import {
+  getLegalDraftCompletionCounts,
   getLegalDraftCandidates,
   getLegalMulliganCandidates,
   hasLegalDraftCompletion,
@@ -106,6 +107,21 @@ describe('hasLegalDraftCompletion', () => {
     for (const id of ['balloonist', 'hermit', 'godfather', 'xaan']) {
       expect(hasLegalDraftCompletion(input(8, [id], modifiers))).toBe(true);
     }
+  });
+
+  it('returns the count profile required by a legal future modifier', () => {
+    const state = input(
+      11,
+      ['poisoner', 'butler', 'chef', 'lunatic'],
+      [...characters('Outsider', 'lunatic'), ...characters('Minion', 'godfather')],
+    );
+
+    expect(getLegalDraftCompletionCounts(state)).toEqual({
+      Townsfolk: 6,
+      Outsider: 2,
+      Minion: 2,
+      Demon: 1,
+    });
   });
 
   it('restricts a variable setup modifier to the Storyteller-selected value', () => {

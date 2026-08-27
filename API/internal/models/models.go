@@ -197,18 +197,27 @@ type CharacterDraftEntry struct {
 	Resolution          string              `json:"resolution,omitempty"`
 }
 
+type CharacterDraftCharacterRoll struct {
+	PlayerID    string `json:"playerId"`
+	CharacterID string `json:"characterId"`
+}
+
 type CharacterDraftState struct {
-	Status                 string                `json:"status"`
-	SetupMode              string                `json:"setupMode"`
-	PresentationMode       string                `json:"presentationMode"`
-	PlayerOrder            []string              `json:"playerOrder"`
-	CurrentPlayerIndex     int                   `json:"currentPlayerIndex"`
-	ActivePlayerID         string                `json:"activePlayerId,omitempty"`
-	VariableModifierValues map[string]int        `json:"variableModifierValues,omitempty"`
-	CharacterCopyTargets   map[string]int        `json:"characterCopyTargets,omitempty"`
-	Entries                []CharacterDraftEntry `json:"entries"`
-	BlockedReason          string                `json:"blockedReason,omitempty"`
-	Revision               int                   `json:"revision"`
+	Status                 string                       `json:"status"`
+	SetupMode              string                       `json:"setupMode"`
+	PresentationMode       string                       `json:"presentationMode"`
+	PlayerOrder            []string                     `json:"playerOrder"`
+	PlannedCharacterTypes  map[string][]string          `json:"plannedCharacterTypes,omitempty"`
+	MarionetteRoll         *CharacterDraftCharacterRoll `json:"marionetteRoll,omitempty"`
+	OutsiderHiddenRoll     *CharacterDraftCharacterRoll `json:"outsiderHiddenRoll,omitempty"`
+	OutsiderCharacterRolls []CharacterDraftCharacterRoll `json:"outsiderCharacterRolls,omitempty"`
+	CurrentPlayerIndex     int                          `json:"currentPlayerIndex"`
+	ActivePlayerID         string                       `json:"activePlayerId,omitempty"`
+	VariableModifierValues map[string]int               `json:"variableModifierValues,omitempty"`
+	CharacterCopyTargets   map[string]int               `json:"characterCopyTargets,omitempty"`
+	Entries                []CharacterDraftEntry        `json:"entries"`
+	BlockedReason          string                       `json:"blockedReason,omitempty"`
+	Revision               int                          `json:"revision"`
 }
 
 // ──────────────────────────────────────────────

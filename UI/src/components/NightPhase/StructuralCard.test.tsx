@@ -345,7 +345,12 @@ describe('StructuralCard', () => {
         />,
       );
       fireEvent.click(screen.getByTestId('demoninfo-bluffs-fullscreen-btn'));
-      expect(screen.getByText('Your bluffs are:')).toBeInTheDocument();
+      expect(screen.getByText('These characters are not in play.')).toBeInTheDocument();
+      expect(
+        screen.getByText(
+          'You may pretend to be these characters. Try to share this information with your minions.',
+        ),
+      ).toBeInTheDocument();
     });
   });
 });

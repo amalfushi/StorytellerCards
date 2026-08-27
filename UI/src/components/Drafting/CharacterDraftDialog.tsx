@@ -34,10 +34,12 @@ import {
 import { DraftSetupMode, isProductionDraftSetupMode } from '@/utils/drafting/draftRules.ts';
 import {
   createGameCharacterDraft,
+  getHiddenOutsiderRolls,
   getDraftExpectedCharacterCounts,
   regenerateGameCharacterDraftOffer,
   resolveGameCharacterDraft,
   selectGameCharacterDraftPlayer,
+  upgradeLegacyGameCharacterDraft,
   updateGameCharacterDraftSetup,
 } from '@/utils/drafting/gameCharacterDraft.ts';
 import { hasLegalDraftCompletion } from '@/utils/drafting/draftFeasibility.ts';
@@ -95,6 +97,11 @@ interface DraftHandoffSnapshot {
   revision: number;
 }
 
+interface DraftSelectionConfirmation {
+  playerId: PlayerId;
+  apparentCharacterId: string;
+}
+
 export function CharacterDraftDialog({
   open,
   playerIds,
@@ -111,8 +118,11 @@ export function CharacterDraftDialog({
     DraftPresentationMode.Open,
   );
   const [privateHandoff, setPrivateHandoff] = useState<DraftHandoffSnapshot | null>(null);
+  const [selectionConfirmation, setSelectionConfirmation] =
+    useState<DraftSelectionConfirmation | null>(null);
   const [draftError, setDraftError] = useState<string>();
   const draftStateRef = useRef(draftState);
+  const upgradedLegacyDraftRef = useRef<CharacterDraftState | undefined>(undefined);
   const isResolvingRef = useRef(false);
 
   useEffect(() => {
@@ -162,6 +172,16 @@ export function CharacterDraftDialog({
       setupMode,
     ],
   );
+
+  useEffect(() => {
+    if (!open || !draftState || upgradedLegacyDraftRef.current === draftState) return;
+
+    const upgradedDraft = upgradeLegacyGameCharacterDraft(draftState, config);
+    if (upgradedDraft === draftState) return;
+
+    upgradedLegacyDraftRef.current = draftState;
+    onDraftChange(upgradedDraft);
+  }, [config, draftState, onDraftChange, open]);
 
   const currentEntry = draftState?.activePlayerId
     ? draftState.entries.find((entry) => entry.playerId === draftState.activePlayerId)
@@ -298,6 +318,7 @@ export function CharacterDraftDialog({
     if (!draftState || hasPendingSetupChoice) return;
     isResolvingRef.current = false;
     setPrivateHandoff(null);
+    setSelectionConfirmation(null);
     setDraftError(undefined);
     onDraftChange(selectGameCharacterDraftPlayer(draftState, config, playerId));
   };
@@ -345,8 +366,18 @@ export function CharacterDraftDialog({
     }
 
     try {
-      onDraftChange(resolveGameCharacterDraft(latestDraftState, config, characterId, resolution));
+      const resolvedDraft = resolveGameCharacterDraft(
+        latestDraftState,
+        config,
+        characterId,
+        resolution,
+      );
+      onDraftChange(resolvedDraft);
       setDraftError(undefined);
+      setSelectionConfirmation({
+        playerId: privateHandoff.playerId,
+        apparentCharacterId: characterId,
+      });
       setPrivateHandoff(null);
     } catch (error) {
       setDraftError(
@@ -358,6 +389,70 @@ export function CharacterDraftDialog({
     }
   };
 
+  const handlePrivateDialogExited = () => {
+    setPrivateHandoff(null);
+    setSelectionConfirmation(null);
+  };
+
+  if (selectionConfirmation) {
+    const apparentCharacter = characterById.get(selectionConfirmation.apparentCharacterId);
+    const playerName = playerNames[selectionConfirmation.playerId] ?? 'Player';
+
+    return (
+      <Dialog
+        open={open}
+        fullScreen
+        data-testid="private-draft-confirmation"
+        slotProps={{
+          backdrop: {
+            sx: {
+              bgcolor: 'rgba(0, 0, 0, 0.98)',
+            },
+          },
+          paper: {
+            sx: {
+              bgcolor: '#050505',
+              backgroundImage: 'none',
+            },
+          },
+          transition: {
+            onExited: handlePrivateDialogExited,
+          },
+        }}
+      >
+        <DialogContent sx={{ display: 'grid', placeItems: 'center', p: 3 }}>
+          <Stack spacing={3} alignItems="center" textAlign="center" sx={{ maxWidth: 560 }}>
+            <Typography variant="overline" color="text.secondary" fontWeight={800}>
+              {playerName}&apos;s character
+            </Typography>
+            <CharacterIconImage
+              characterId={selectionConfirmation.apparentCharacterId}
+              characterName={apparentCharacter?.name ?? selectionConfirmation.apparentCharacterId}
+              typeColor={getCharacterTypeColor(apparentCharacter?.type ?? 'Townsfolk')}
+              size={160}
+              borderColor={getCharacterTypeColor(apparentCharacter?.type ?? 'Townsfolk')}
+              alignment={apparentCharacter?.defaultAlignment}
+            />
+            <Box>
+              <Typography variant="h3" component="h2" fontWeight={1000}>
+                {apparentCharacter?.name ?? selectionConfirmation.apparentCharacterId}
+              </Typography>
+              <Typography variant="h6" color="text.secondary" sx={{ mt: 1 }}>
+                Your selection is confirmed.
+              </Typography>
+            </Box>
+            <Alert severity="info" sx={{ width: '100%', textAlign: 'left' }}>
+              Keep this screen private, then hand the device back to the Storyteller.
+            </Alert>
+            <Button variant="contained" size="large" onClick={() => setSelectionConfirmation(null)}>
+              Confirm and return to Storyteller board
+            </Button>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
   if (privateHandoffEntry) {
     return (
       <Dialog
@@ -368,7 +463,6 @@ export function CharacterDraftDialog({
           backdrop: {
             sx: {
               bgcolor: 'rgba(0, 0, 0, 0.98)',
-              backdropFilter: 'blur(24px)',
             },
           },
           paper: {
@@ -376,6 +470,9 @@ export function CharacterDraftDialog({
               bgcolor: '#050505',
               backgroundImage: 'none',
             },
+          },
+          transition: {
+            onExited: handlePrivateDialogExited,
           },
         }}
       >
@@ -537,6 +634,10 @@ export function CharacterDraftDialog({
                   ([apparentCharacterId, actualCharacterId]) =>
                     apparentCharacterId !== actualCharacterId,
                 );
+                const hasReservedHiddenIdentity =
+                  (draftState.marionetteRoll?.playerId === playerId &&
+                    draftState.marionetteRoll.characterId === 'marionette') ||
+                  getHiddenOutsiderRolls(draftState).some((roll) => roll.playerId === playerId);
                 return (
                   <Chip
                     key={playerId}
@@ -554,7 +655,7 @@ export function CharacterDraftDialog({
                     }
                     data-testid={`draft-player-${playerId}`}
                     icon={
-                      hasHiddenIdentityOffer ? (
+                      hasHiddenIdentityOffer || hasReservedHiddenIdentity ? (
                         <WarningAmberIcon data-testid={`draft-player-hidden-warning-${playerId}`} />
                       ) : undefined
                     }
@@ -718,6 +819,7 @@ export function CharacterDraftDialog({
         <Button
           onClick={() => {
             setPrivateHandoff(null);
+            setSelectionConfirmation(null);
             setDraftError(undefined);
             onClose();
           }}
@@ -735,6 +837,9 @@ export function CharacterDraftDialog({
             <Button
               variant="contained"
               onClick={() => {
+                if (document.activeElement instanceof HTMLElement) {
+                  document.activeElement.blur();
+                }
                 isResolvingRef.current = false;
                 setDraftError(undefined);
                 const handoff = {

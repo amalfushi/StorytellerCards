@@ -213,10 +213,25 @@ func TestGameRoundtripFull(t *testing.T) {
 		ActiveLoric:        []string{"archmage"},
 		InPlayCharacterIds: []string{"washerwoman", "imp", "baron", "drunk"},
 		CharacterDraft: &models.CharacterDraftState{
-			Status:             "drafting",
-			SetupMode:          "standard",
-			PresentationMode:   "secret-two-types",
-			PlayerOrder:        []string{"p-alice", "p-bob"},
+			Status:           "drafting",
+			SetupMode:        "standard",
+			PresentationMode: "secret-two-types",
+			PlayerOrder:      []string{"p-alice", "p-bob"},
+			PlannedCharacterTypes: map[string][]string{
+				"p-bob": {"Minion", "Townsfolk"},
+			},
+			MarionetteRoll: &models.CharacterDraftCharacterRoll{
+				PlayerID:    "p-bob",
+				CharacterID: "marionette",
+			},
+			OutsiderHiddenRoll: &models.CharacterDraftCharacterRoll{
+				PlayerID:    "p-alice",
+				CharacterID: "drunk",
+			},
+			OutsiderCharacterRolls: []models.CharacterDraftCharacterRoll{
+				{PlayerID: "p-alice", CharacterID: "drunk"},
+				{PlayerID: "p-bob", CharacterID: "recluse"},
+			},
 			CurrentPlayerIndex: 1,
 			ActivePlayerID:     "p-bob",
 			VariableModifierValues: map[string]int{
@@ -356,6 +371,21 @@ func TestGameRoundtripFull(t *testing.T) {
 	assertEq(t, "game.characterDraft.status", got.CharacterDraft.Status, "drafting")
 	assertEq(t, "game.characterDraft.presentationMode", got.CharacterDraft.PresentationMode, "secret-two-types")
 	assertStrSlice(t, "game.characterDraft.playerOrder", got.CharacterDraft.PlayerOrder, []string{"p-alice", "p-bob"})
+	assertStrSlice(t, "game.characterDraft.plannedCharacterTypes['p-bob']", got.CharacterDraft.PlannedCharacterTypes["p-bob"], []string{"Minion", "Townsfolk"})
+	if got.CharacterDraft.MarionetteRoll == nil {
+		t.Fatal("game.characterDraft.marionetteRoll should not be nil")
+	}
+	assertEq(t, "game.characterDraft.marionetteRoll.playerId", got.CharacterDraft.MarionetteRoll.PlayerID, "p-bob")
+	assertEq(t, "game.characterDraft.marionetteRoll.characterId", got.CharacterDraft.MarionetteRoll.CharacterID, "marionette")
+	if got.CharacterDraft.OutsiderHiddenRoll == nil {
+		t.Fatal("game.characterDraft.outsiderHiddenRoll should not be nil")
+	}
+	assertEq(t, "game.characterDraft.outsiderHiddenRoll.playerId", got.CharacterDraft.OutsiderHiddenRoll.PlayerID, "p-alice")
+	assertEq(t, "game.characterDraft.outsiderHiddenRoll.characterId", got.CharacterDraft.OutsiderHiddenRoll.CharacterID, "drunk")
+	if len(got.CharacterDraft.OutsiderCharacterRolls) != 2 {
+		t.Fatalf("game.characterDraft.outsiderCharacterRolls length = %d, want 2", len(got.CharacterDraft.OutsiderCharacterRolls))
+	}
+	assertEq(t, "game.characterDraft.outsiderCharacterRolls[0].characterId", got.CharacterDraft.OutsiderCharacterRolls[0].CharacterID, "drunk")
 	assertEq(t, "game.characterDraft.activePlayerId", got.CharacterDraft.ActivePlayerID, "p-bob")
 	assertEq(t, "game.characterDraft.variableModifierValues['godfather']", got.CharacterDraft.VariableModifierValues["godfather"], -1)
 	assertEq(t, "game.characterDraft.characterCopyTargets['villageidiot']", got.CharacterDraft.CharacterCopyTargets["villageidiot"], 3)

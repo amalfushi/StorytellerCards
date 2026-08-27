@@ -33,7 +33,7 @@ type Story = StoryObj<typeof meta>;
 // Bluffs variant
 // ──────────────────────────────────────────────
 
-/** Bluffs variant — "Your bluffs are:" with 3 good character icons. */
+/** Bluffs variant with player-facing guidance and 3 good character icons. */
 export const BluffsThreeCharacters: Story = {
   args: {
     variant: 'bluffs',

@@ -150,6 +150,9 @@ describe('CharacterDraftSimulatorPage', () => {
       expect(visibleCharacterIds).not.toEqual(firstFourEligibleIds);
 
       fireEvent.click(screen.getByRole('button', { name: 'Choose first' }));
+      fireEvent.click(
+        screen.getByRole('button', { name: /confirm and return to storyteller board/i }),
+      );
       expect(screen.getByTestId('draft-player-test-player-1')).toHaveTextContent(
         new RegExp(`${hiddenCharacterName}.*appears as`, 'i'),
       );

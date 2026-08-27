@@ -1,6 +1,7 @@
 import type { CharacterDef } from '@/types/index.ts';
 import {
   getLegalDraftCandidates,
+  hasLegalDraftCompletion,
   type DraftCharacter,
   type DraftFeasibilityInput,
 } from '@/utils/drafting/draftFeasibility.ts';
@@ -32,6 +33,9 @@ export interface DraftSessionConfig {
   setupMode: DraftSetupMode;
   presentationMode?: DraftPresentationMode;
   plannedCharacterTypes?: DraftCharacter['type'][];
+  forcedCharacterId?: string;
+  excludedCharacterIds?: readonly string[];
+  reservedCharacterIds?: readonly string[];
   variableModifierValues?: Readonly<Record<string, number>>;
   characterCopyTargets?: Readonly<Record<string, number>>;
 }
@@ -116,15 +120,23 @@ function getPresentationPool(
     const typeById = new Map(
       config.scriptCharacters.map((character) => [character.id, character.type]),
     );
+    const mixedCandidates = mixCandidateTypes(
+      candidateIds.filter((id) => {
+        const type = typeById.get(id);
+        return type !== undefined && plannedTypes.has(type);
+      }),
+      config.scriptCharacters,
+      random,
+    );
+    if (preferredCharacterId) {
+      const preferredIndex = mixedCandidates.indexOf(preferredCharacterId);
+      if (preferredIndex > 0) {
+        mixedCandidates.splice(preferredIndex, 1);
+        mixedCandidates.unshift(preferredCharacterId);
+      }
+    }
     return {
-      candidateIds: mixCandidateTypes(
-        candidateIds.filter((id) => {
-          const type = typeById.get(id);
-          return type !== undefined && plannedTypes.has(type);
-        }),
-        config.scriptCharacters,
-        random,
-      ),
+      candidateIds: mixedCandidates,
       rolledCharacterTypes: [...plannedTypes],
     };
   }
@@ -198,8 +210,20 @@ export function generateDraftOffer(
   committedCharacterIds: readonly string[],
   random: DraftRandomSource = Math.random,
 ): DraftOfferGenerationResult {
+  const reservedCharacterIds = config.reservedCharacterIds ?? [];
   const legalCandidateIds = getLegalDraftCandidates(
     toFeasibilityInput(config, committedCharacterIds),
+    { excludeCharacterIds: config.excludedCharacterIds },
+  ).filter(
+    (candidateId) =>
+      reservedCharacterIds.length === 0 ||
+      hasLegalDraftCompletion(
+        toFeasibilityInput(config, [
+          ...committedCharacterIds,
+          candidateId,
+          ...reservedCharacterIds,
+        ]),
+      ),
   );
 
   if (legalCandidateIds.length === 0) {
@@ -210,13 +234,29 @@ export function generateDraftOffer(
     };
   }
 
+  if (config.forcedCharacterId && !legalCandidateIds.includes(config.forcedCharacterId)) {
+    return {
+      offer: null,
+      legalCandidateIds,
+      blockedReason: `${config.forcedCharacterId} no longer leaves a legal completion for its reserved draft turn.`,
+    };
+  }
+
   const villageIdiotCopies = committedCharacterIds.filter((id) => id === 'villageidiot').length;
   const villageIdiotBias = villageIdiotCopies === 1 ? 0.55 : villageIdiotCopies >= 2 ? 0.75 : 0;
   const preferredCharacterId =
-    legalCandidateIds.includes('villageidiot') && random() < villageIdiotBias
+    config.forcedCharacterId ??
+    (legalCandidateIds.includes('villageidiot') && random() < villageIdiotBias
       ? 'villageidiot'
-      : undefined;
+      : undefined);
   const presentation = getPresentationPool(legalCandidateIds, config, random, preferredCharacterId);
+  if (config.forcedCharacterId && !presentation.candidateIds.includes(config.forcedCharacterId)) {
+    return {
+      offer: null,
+      legalCandidateIds,
+      blockedReason: `${config.forcedCharacterId} is outside the reserved player's rolled character types.`,
+    };
+  }
   const presentationCandidateIds =
     preferredCharacterId &&
     (config.presentationMode ?? DraftPresentationMode.Open) === DraftPresentationMode.Open

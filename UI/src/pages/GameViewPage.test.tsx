@@ -156,7 +156,28 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
         otherNights: null,
         reminders: [],
       })),
-    allCharacters: [],
+    allCharacters: [
+      {
+        id: 'registry-town',
+        name: 'Registry Townsfolk',
+        type: 'Townsfolk',
+        defaultAlignment: 'Good',
+        abilityShort: 'Test',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+      {
+        id: 'registry-demon',
+        name: 'Registry Demon',
+        type: 'Demon',
+        defaultAlignment: 'Evil',
+        abilityShort: 'Test',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+    ],
   }),
 }));
 vi.mock('@/hooks/useNightOrder.ts', () => ({ useNightOrder: () => [] }));
@@ -254,12 +275,17 @@ vi.mock('@/components/Drafting/CharacterDraftDialog.tsx', () => ({
   CharacterDraftDialog: ({
     open,
     onDraftComplete,
+    scriptCharacters,
   }: {
     open: boolean;
     onDraftComplete: (draft: NonNullable<Game['characterDraft']>) => void;
+    scriptCharacters: Array<{ id: string }>;
   }) =>
     open ? (
-      <div data-testid="character-draft-dialog">
+      <div
+        data-testid="character-draft-dialog"
+        data-script-characters={scriptCharacters.map((character) => character.id).join(',')}
+      >
         Draft
         <button
           data-testid="complete-character-draft"
@@ -426,6 +452,31 @@ describe('GameViewPage', () => {
     fireEvent.click(screen.getByRole('button', { name: /start character draft/i }));
 
     expect(screen.getByTestId('character-draft-dialog')).toBeInTheDocument();
+  });
+
+  it('uses the full character registry for drafting when no script is selected', () => {
+    const unassignedPlayerState = Object.fromEntries(
+      Object.entries(playerState).map(([playerId, state]) => [
+        playerId,
+        { ...state, characterId: '' },
+      ]),
+    );
+    mockGame = {
+      ...baseGame,
+      scriptId: '',
+      playerState: unassignedPlayerState,
+      inPlayCharacterIds: [],
+    };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^select characters$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start character draft/i }));
+
+    expect(screen.getByTestId('character-draft-dialog')).toHaveAttribute(
+      'data-script-characters',
+      'registry-town,registry-demon',
+    );
   });
 
   it('skips Demon bluff selection after an Atheist draft', () => {

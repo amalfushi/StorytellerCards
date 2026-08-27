@@ -2,7 +2,7 @@
 
 ## Current status
 
-**Implementation complete — ready for deployment and playtesting**
+**Complete — ready for deployment and playtesting**
 
 Character drafting is now integrated into regular game setup as well as the
 standalone simulator. Draft progress persists on the game and through the Go
@@ -69,6 +69,21 @@ its hidden post-draft Minion-conversion phase is not implemented.
   script characters such as Lord of Typhon no longer make following rows
   briefly disappear.
 - Added actual/apparent identity masking for Drunk, Lunatic, and Marionette.
+- Made Marionette participation an explicit persisted Minion roll: one primary
+  Minion player and one script Minion are selected at draft creation. A
+  Marionette result forces that player's main illusion offer; any other result
+  excludes Marionette from the game instead of repeatedly placing it in
+  disposable mulligan slots.
+- Applied that roll in open presentation mode as well as secret-type modes,
+  reserved its future Minion slot against other players' choices, and displayed
+  the affected player's warning icon immediately when the draft is generated.
+- Applied the same controlled frequency model to Drunk and Lunatic. The draft
+  conceptually draws and persists one unique script Outsider per Outsider slot,
+  matching normal bag inclusion probability. Hidden results reserve distinct
+  primary Outsider players and may coexist; unselected hidden Outsiders are
+  excluded. Later count modifiers extend the persisted draw without rerolling
+  earlier results. Existing single-roll drafts migrate without changing their
+  original result.
 - Changed hidden-role offers into complete forced illusions: all three choices
   and the mulligan are unique randomized apparent identities that secretly
   resolve to the same actual role. Drunk sees only Townsfolk, Lunatic sees only
@@ -129,11 +144,22 @@ its hidden post-draft Minion-conversion phase is not implemented.
 - Removed the Game View fallback that silently substituted the entire
   character registry when a script request failed. Character setup now stops
   with an actionable error instead of creating an invalid oversized draft.
+- Added an explicit no-script drafting mode that uses every regular character
+  while preserving the load error for games that reference a missing script.
+  Empty blocked drafts created by the old no-script behavior recover
+  automatically when reopened with the feasible full registry.
+- Added a private post-selection confirmation screen showing only the player's
+  apparent character. The Storyteller board remains hidden until the player
+  explicitly confirms that the device is being handed back.
+- Kept controlled hidden-character reservations pinned to the exact legal
+  completion profile during replanning. Future count modifiers such as
+  Godfather can no longer make a pending Lunatic lose its Outsider type plan
+  or disappear from the Storyteller warning when another player is selected.
 - Added a deployable script catalog split into `production` and `test`.
   Production contains the three official base scripts and milestone scripts;
   integration-only scripts live under `test`. Production lookup takes
   precedence while legacy flat script files remain readable.
-- Passed 4,308 UI tests across 99 files, 231 Storybook interaction tests
+- Passed 4,350 UI tests with 3 skipped across 99 discovered files, 231 Storybook interaction tests
   across 29 files, the full Go API suite, app TypeScript check, Vite
   production build, and the complete drafting lifecycle E2E path.
 

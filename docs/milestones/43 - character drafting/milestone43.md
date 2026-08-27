@@ -1,8 +1,9 @@
 # Milestone 43 — Character Drafting
 
-## Status: 🚧 In Progress
+## Status: ✅ Complete
 
 **Started:** 2026-08-23
+**Completed:** 2026-08-26
 
 This milestone adds player-driven character drafting. Each non-Traveller player
 privately chooses from an adaptive set of legal script characters or accepts an
@@ -120,13 +121,13 @@ Their setup tokens and in-game transformations remain normal post-draft setup.
 
 ### Outsiders with drafting or setup impact
 
-| Character | Required handling                                                                                                                                                             |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Drunk     | The actual character consumes an Outsider slot, but the player receives three randomized Townsfolk choices plus a Townsfolk mulligan. Lunatic is excluded. Every apparent selection secretly assigns Drunk; preserve both actual and apparent outcomes. |
-| Hermit    | Storyteller chooses `-0` or `-1 Outsider`. It also has every Outsider ability on the script, so the draft board must flag unusually complex scripts.                          |
-| Heretic   | Cannot coexist with Baron, Godfather, Lleech, Pit-Hag, Spy, or Widow under the current official jinx data.                                                                    |
-| Lunatic   | The actual character consumes an Outsider slot, but the player receives three randomized Demon choices plus a Demon mulligan. Every apparent selection secretly assigns Lunatic. The real Demon must know the Lunatic and their choices.     |
-| Snitch    | Every Minion receives three bluffs. Validate or warn about the off-board good-character pool before reveal.                                                                   |
+| Character | Required handling                                                                                                                                                                                                                                                                                                                      |
+| --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Drunk     | Conceptually draw and persist as many unique script Outsiders as the setup has Outsider slots, matching normal bag inclusion probability. A Drunk result reserves a primary Outsider player and gives that player three randomized Townsfolk choices plus a Townsfolk mulligan. Lunatic is excluded from the illusion. Every apparent selection secretly assigns Drunk; preserve both actual and apparent outcomes. |
+| Hermit    | Storyteller chooses `-0` or `-1 Outsider`. It also has every Outsider ability on the script, so the draft board must flag unusually complex scripts.                                                                                                                                                                                   |
+| Heretic   | Cannot coexist with Baron, Godfather, Lleech, Pit-Hag, Spy, or Widow under the current official jinx data.                                                                                                                                                                                                                             |
+| Lunatic   | Uses the same persisted conceptual Outsider draws as Drunk and may coexist with Drunk when both are drawn into distinct slots. A Lunatic result gives the reserved Outsider player three randomized Demon choices plus a Demon mulligan. Every apparent selection secretly assigns Lunatic. The real Demon must know the Lunatic and their choices.                                                                   |
+| Snitch    | Every Minion receives three bluffs. Validate or warn about the off-board good-character pool before reveal.                                                                                                                                                                                                                            |
 
 Other Outsiders have no initial count or eligibility effect:
 Barber, Butler, Damsel, Golem, Goon, Hatter, Klutz, Moonchild, Mutant, Ogre,
@@ -136,19 +137,19 @@ selects it.
 
 ### Minions with drafting or setup impact
 
-| Character  | Required handling                                                                                                                   |
-| ---------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Baron      | Adds two Outsiders and removes two Townsfolk. Incompatible with Heretic.                                                            |
-| Boffin     | Requires an eligible not-in-play good ability, known to Boffin and Demon. Some abilities are forbidden by jinx.                     |
-| Evil Twin  | Requires an opposing-alignment twin and a private paired reveal.                                                                    |
-| Godfather  | Storyteller chooses `-1` or `+1 Outsider`. Incompatible with Heretic.                                                               |
-| Marionette | Actual Minion with three randomized good choices plus a good mulligan. Drunk and Lunatic are excluded. Every apparent selection secretly assigns Marionette. It must neighbor a Demon and remain hidden from its player. |
-| Pit-Hag    | Incompatible with Heretic. Its later character changes do not alter initial draft counts.                                           |
-| Spy        | Incompatible with Heretic. Registration as good does not alter its Minion slot.                                                     |
-| Summoner   | Starts with no Demon player, receives three bluffs, and creates a Demon on night three. The missing Demon slot becomes a good slot. |
-| Vizier     | Publicly known. Its reveal must happen only after every hidden draft outcome is finalized.                                          |
-| Widow      | Incompatible with Heretic and requires one good player to learn a Widow is in play.                                                 |
-| Xaan       | The selected `X` is exactly the number of Outsiders. Fix `X` before dependent offers are revealed.                                  |
+| Character  | Required handling                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Baron      | Adds two Outsiders and removes two Townsfolk. Incompatible with Heretic.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| Boffin     | Requires an eligible not-in-play good ability, known to Boffin and Demon. Some abilities are forbidden by jinx.                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Evil Twin  | Requires an opposing-alignment twin and a private paired reveal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| Godfather  | Storyteller chooses `-1` or `+1 Outsider`. Incompatible with Heretic.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| Marionette | At draft creation in every presentation mode, one primary Minion player and one script Minion are rolled and persisted. If that 1-in-N Minion roll is Marionette, the reserved player's pill is warned immediately and their future Minion slot is protected while other players draft. When selected, they receive three randomized good choices plus a good mulligan; otherwise Marionette is excluded from that game. Drunk and Lunatic are excluded from the illusion. Every apparent selection secretly assigns Marionette. It must neighbor a Demon and remain hidden from its player. |
+| Pit-Hag    | Incompatible with Heretic. Its later character changes do not alter initial draft counts.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| Spy        | Incompatible with Heretic. Registration as good does not alter its Minion slot.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Summoner   | Starts with no Demon player, receives three bluffs, and creates a Demon on night three. The missing Demon slot becomes a good slot.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Vizier     | Publicly known. Its reveal must happen only after every hidden draft outcome is finalized.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| Widow      | Incompatible with Heretic and requires one good player to learn a Widow is in play.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Xaan       | The selected `X` is exactly the number of Outsiders. Fix `X` before dependent offers are revealed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 Other Minions have no initial count or eligibility effect:
 Assassin, Boomdandy, Cerenovus, Devil's Advocate, Fearmonger, Goblin, Harpy,
@@ -176,7 +177,10 @@ good bluffs unless another information rule changes that flow.
 
 ## Draft workflow
 
-1. Storyteller selects participants, script, and drafting mode.
+1. Storyteller selects participants and drafting mode. A selected script limits
+   the pool; when no script is selected, drafting uses every regular character.
+   A script that was selected but failed to load remains an error rather than
+   silently falling back to the full registry.
 2. Engine resolves the selected exceptional setup mode and displays an
    unresolved pill for every participating player.
 3. Storyteller selects any unresolved player. The engine generates and persists
@@ -186,7 +190,9 @@ good bluffs unless another information rule changes that flow.
 4. Storyteller reviews or regenerates the current unrevealed offer. Every
    generated result is checked by the exact solver.
 5. Offers are revealed through a private physical-device handoff. Players choose one
-   option or the mandatory mulligan.
+   option or the mandatory mulligan, then remain on a private confirmation screen
+   showing only their apparent character until they explicitly hand the device back
+   to the Storyteller.
    Variable setup choices regenerate the hidden type plans for every unresolved
    player before another offer can be revealed.
 6. Hidden-identity players see only their apparent draft. The Storyteller sees
@@ -252,7 +258,10 @@ repository root, `API`, or `API/cmd/server`; deployments may override it with
 - Use the player's stable Town Square color prominently on the private handoff
   and Storyteller board.
 - Present the private handoff in an opaque full-screen dialog with a heavily
-  blurred backdrop so no Storyteller information remains readable.
+  obscured backdrop so no Storyteller information remains readable.
+- After a choice or accepted mulligan, show a full-screen confirmation containing
+  only the apparent character. Do not reveal the Storyteller board until the
+  player explicitly confirms the hand-back.
 - Do not show public draft position, remaining role counts, rejected options,
   or other players' offers.
 - Clearly state that a mulligan is final before starting its animation.
@@ -268,6 +277,12 @@ interface CharacterDraftState {
   setupMode: CharacterDraftSetupMode;
   presentationMode: CharacterDraftPresentationMode;
   playerOrder: PlayerId[];
+  plannedCharacterTypes?: Partial<
+    Record<PlayerId, DraftableCharacterType[]>
+  >;
+  marionetteRoll?: CharacterDraftCharacterRoll;
+  outsiderCharacterRolls?: CharacterDraftCharacterRoll[];
+  outsiderHiddenRoll?: CharacterDraftCharacterRoll; // legacy compatibility
   currentPlayerIndex: number;
   activePlayerId?: PlayerId;
   variableModifierValues?: Record<string, number>;
@@ -295,7 +310,10 @@ interface CharacterDraftEntry {
 
 Persist generated outcomes before reveal. Any Storyteller edit increments the
 draft revision. Once an entry is revealed, changing it requires an explicit
-reset confirmation.
+reset confirmation. `marionetteRoll` is the single persisted Minion control
+roll. `outsiderCharacterRolls` stores one unique conceptual bag draw per
+Outsider slot; legacy games with only `outsiderHiddenRoll` are upgraded by
+preserving that result and drawing only the missing slots.
 
 ## Information-leak mitigations
 

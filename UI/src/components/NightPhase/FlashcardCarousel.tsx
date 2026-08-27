@@ -44,6 +44,8 @@ export interface FlashcardCarouselProps {
   ) => void;
   /** Demon bluff character definitions (passed to demoninfo StructuralCard). */
   bluffCharacters?: CharacterDef[];
+  /** Game-level Lunatic bluffs used when legacy games have no per-player copy. */
+  lunaticBluffCharacters?: CharacterDef[];
   /** Per-player bluffs keyed by player id. */
   playerBluffs?: Record<PlayerId, string[]>;
   /** Current game script id for template recall. */
@@ -95,6 +97,7 @@ export function FlashcardCarousel({
   onCardChange,
   onReminderTokenClick,
   bluffCharacters,
+  lunaticBluffCharacters,
   playerBluffs,
   scriptId = 'carousel',
   showMessages = [],
@@ -261,11 +264,18 @@ export function FlashcardCarousel({
 
     // Per-player bluffs: look up from the matched player's seat
     const playerSeatBluffs = player && playerBluffs ? playerBluffs[player.playerId] : undefined;
-    const resolvedBluffChars = playerSeatBluffs?.length
+    const perPlayerBluffChars = playerSeatBluffs?.length
       ? playerSeatBluffs
           .map((id) => characterLookup(id))
           .filter((c): c is CharacterDef => c !== undefined)
       : undefined;
+    const resolvedBluffChars = perPlayerBluffChars?.length
+      ? perPlayerBluffChars
+      : isLunatic
+        ? lunaticBluffCharacters
+        : isDemon
+          ? bluffCharacters
+          : undefined;
 
     return (
       <NightFlashcard
@@ -317,16 +327,28 @@ export function FlashcardCarousel({
     currentEntry?.type === 'character'
       ? players.find((p) => p.characterId === currentEntry.id)
       : undefined;
-  const currentBluffIds = currentPlayer && playerBluffs ? playerBluffs[currentPlayer.playerId] : undefined;
-  const currentBluffChars = useMemo(() => {
-    if (!currentBluffIds?.length) return undefined;
-    return currentBluffIds
-      .map((id) => characterLookup(id))
-      .filter((c): c is CharacterDef => c !== undefined);
-  }, [currentBluffIds, characterLookup]);
-  const currentBluffLabel = currentEntry?.id === 'lunatic' ? 'Lunatic Bluffs' : 'Demon Bluffs';
   const currentCharacterDef =
     currentEntry?.type === 'character' ? characterLookup(currentEntry.id) : undefined;
+  const currentBluffIds =
+    currentPlayer && playerBluffs ? playerBluffs[currentPlayer.playerId] : undefined;
+  const currentBluffChars = useMemo(() => {
+    if (currentBluffIds?.length) {
+      return currentBluffIds
+        .map((id) => characterLookup(id))
+        .filter((c): c is CharacterDef => c !== undefined);
+    }
+    if (currentEntry?.id === 'lunatic') return lunaticBluffCharacters;
+    if (currentCharacterDef?.type === 'Demon') return bluffCharacters;
+    return undefined;
+  }, [
+    bluffCharacters,
+    characterLookup,
+    currentBluffIds,
+    currentCharacterDef?.type,
+    currentEntry?.id,
+    lunaticBluffCharacters,
+  ]);
+  const currentBluffLabel = currentEntry?.id === 'lunatic' ? 'Lunatic Bluffs' : 'Demon Bluffs';
 
   return (
     <Box

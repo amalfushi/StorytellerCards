@@ -727,12 +727,38 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'SET_DEMON_BLUFFS': {
       if (!state.game) return state;
-      return { ...state, game: { ...state.game, demonBluffs: action.payload.characterIds } };
+      const playerBluffs = { ...state.game.playerBluffs };
+      for (const [playerId, playerState] of Object.entries(state.game.playerState)) {
+        if (getCharacter(playerState.characterId)?.type === CharacterType.Demon) {
+          playerBluffs[playerId] = action.payload.characterIds;
+        }
+      }
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          demonBluffs: action.payload.characterIds,
+          playerBluffs,
+        },
+      };
     }
 
     case 'SET_LUNATIC_BLUFFS': {
       if (!state.game) return state;
-      return { ...state, game: { ...state.game, lunaticBluffs: action.payload.characterIds } };
+      const playerBluffs = { ...state.game.playerBluffs };
+      for (const [playerId, playerState] of Object.entries(state.game.playerState)) {
+        if (playerState.characterId === 'lunatic') {
+          playerBluffs[playerId] = action.payload.characterIds;
+        }
+      }
+      return {
+        ...state,
+        game: {
+          ...state.game,
+          lunaticBluffs: action.payload.characterIds,
+          playerBluffs,
+        },
+      };
     }
 
     case 'SET_PLAYER_BLUFFS': {

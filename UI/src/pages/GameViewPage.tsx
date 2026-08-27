@@ -104,7 +104,7 @@ export function GameViewPage() {
     removeToken,
     setSeatingConfirmed,
   } = useGame();
-  const { getCharactersByIds, getCharacter } = useCharacterLookup();
+  const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
 
   const [tabIndex, setTabIndex] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -235,7 +235,6 @@ export function GameViewPage() {
     localScript ?? (remoteScript?.id === gameState.game?.scriptId ? remoteScript : null);
   const scriptLoadFailed = failedScriptId === gameState.game?.scriptId;
 
-  // Never substitute the full registry for a missing script: doing so can create an invalid draft.
   const scriptCharacterIds = useMemo(() => {
     if (script?.characterIds?.length) return script.characterIds;
     return [];
@@ -246,6 +245,7 @@ export function GameViewPage() {
     () => getCharactersByIds(scriptCharacterIds),
     [getCharactersByIds, scriptCharacterIds],
   );
+  const draftScriptCharacterDefs = gameState.game?.scriptId ? scriptCharacterDefs : allCharacters;
 
   const game = gameState.game;
   const nightHistoryCount = game?.nightHistory.length ?? 0;
@@ -1032,7 +1032,7 @@ export function GameViewPage() {
           playerIds={draftingPlayerIds}
           playerNames={draftingPlayerNames}
           playerColors={draftingPlayerColors}
-          scriptCharacters={scriptCharacterDefs}
+          scriptCharacters={draftScriptCharacterDefs}
           draftState={game.characterDraft}
           onClose={() => setCharacterDraftOpen(false)}
           onDraftChange={setCharacterDraft}

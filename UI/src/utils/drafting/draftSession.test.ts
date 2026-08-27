@@ -114,6 +114,29 @@ describe('draftSession', () => {
     expect(result.legalCandidateIds).toEqual(['d1']);
   });
 
+  it('preserves a future hidden-character reservation in open drafts', () => {
+    const reservationConfig: DraftSessionConfig = {
+      playerCount: 5,
+      setupMode: DraftSetupMode.Standard,
+      scriptCharacters: [
+        { id: 't1', type: CharacterType.Townsfolk },
+        { id: 't2', type: CharacterType.Townsfolk },
+        { id: 't3', type: CharacterType.Townsfolk },
+        { id: 'm1', type: CharacterType.Minion },
+        { id: 'm2', type: CharacterType.Minion },
+        { id: 'd1', type: CharacterType.Demon },
+        { id: 'd2', type: CharacterType.Demon },
+      ],
+      presentationMode: DraftPresentationMode.Open,
+      excludedCharacterIds: ['m1'],
+      reservedCharacterIds: ['m1'],
+    };
+
+    const result = generateDraftOffer(reservationConfig, ['t1', 't2', 't3'], () => 0);
+
+    expect(result.legalCandidateIds).toEqual(['d1', 'd2']);
+  });
+
   it.each([
     { candidates: 4, visible: 3, hasMulligan: true },
     { candidates: 3, visible: 2, hasMulligan: true },
@@ -231,6 +254,37 @@ describe('draftSession', () => {
     expect(next.committedCharacterIds).toEqual(state.committedCharacterIds);
     expect(next.picks).toEqual(state.picks);
     expect(next.currentOffer).not.toEqual(state.currentOffer);
+  });
+
+  it('places a reserved character in the main offer', () => {
+    const generated = generateDraftOffer(
+      {
+        ...config,
+        plannedCharacterTypes: [CharacterType.Minion],
+        forcedCharacterId: 'm2',
+      },
+      [],
+      () => 0,
+    );
+
+    expect(generated.offer?.offeredCharacterIds).toContain('m2');
+    expect(generated.offer?.mulliganCharacterId).not.toBe('m2');
+  });
+
+  it('excludes a controlled hidden character from ordinary offers', () => {
+    const generated = generateDraftOffer(
+      {
+        ...config,
+        plannedCharacterTypes: [CharacterType.Minion],
+        excludedCharacterIds: ['m2'],
+      },
+      [],
+      () => 0,
+    );
+
+    expect(generated.legalCandidateIds).not.toContain('m2');
+    expect(generated.offer?.offeredCharacterIds).not.toContain('m2');
+    expect(generated.offer?.mulliganCharacterId).not.toBe('m2');
   });
 
   it('completes a seven-player Boozling draft without blocking', () => {

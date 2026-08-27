@@ -215,6 +215,25 @@ describe('GameContext', () => {
         expect(result.current.state.game?.seatingConfirmed).toBe(false);
         expect(result.current.state.game?.characterDraft).toEqual(draft);
       });
+
+      it('copies bluff selections onto players whose characters were assigned by drafting', () => {
+        const { result } = renderGameHook();
+        const game = makeGameWithPlayers([
+          makePlayer('lunatic-player', 'Luna'),
+          makePlayer('demon-player', 'Demon'),
+        ]);
+        game.playerState['lunatic-player'].characterId = 'lunatic';
+        game.playerState['demon-player'].characterId = 'imp';
+
+        act(() => result.current.loadGame(game));
+        act(() => result.current.setLunaticBluffs(['sailor', 'fool']));
+        act(() => result.current.setDemonBluffs(['washerwoman', 'chef']));
+
+        expect(result.current.state.game?.playerBluffs).toEqual({
+          'lunatic-player': ['sailor', 'fool'],
+          'demon-player': ['washerwoman', 'chef'],
+        });
+      });
     });
   });
 

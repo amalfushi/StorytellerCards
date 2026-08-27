@@ -387,12 +387,23 @@ export interface CharacterDraftEntry {
   resolution?: 'choice' | 'mulligan';
 }
 
+export interface CharacterDraftCharacterRoll {
+  playerId: PlayerId;
+  characterId: string;
+}
+
 export interface CharacterDraftState {
   status: 'drafting' | 'blocked' | 'complete';
   setupMode: CharacterDraftSetupMode;
   presentationMode: CharacterDraftPresentationMode;
   playerOrder: PlayerId[];
   plannedCharacterTypes?: Partial<Record<PlayerId, DraftableCharacterType[]>>;
+  /** One persisted Minion roll determines whether a planned Minion player receives Marionette. */
+  marionetteRoll?: CharacterDraftCharacterRoll;
+  /** @deprecated Legacy single-slot Outsider roll retained for persisted draft compatibility. */
+  outsiderHiddenRoll?: CharacterDraftCharacterRoll;
+  /** Persisted conceptual bag draws for every Outsider slot; hidden results reserve their players. */
+  outsiderCharacterRolls?: CharacterDraftCharacterRoll[];
   currentPlayerIndex: number;
   activePlayerId?: PlayerId;
   variableModifierValues?: Record<string, number>;
