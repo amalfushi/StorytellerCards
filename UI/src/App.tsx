@@ -3,6 +3,7 @@ import { ErrorBoundary } from '@/components/common/ErrorBoundary.tsx';
 import { HomePage } from '@/pages/HomePage.tsx';
 import { SessionSetupPage } from '@/pages/SessionSetupPage.tsx';
 import { GameViewPage } from '@/pages/GameViewPage.tsx';
+import { CharacterDraftSimulatorPage } from '@/pages/CharacterDraftSimulatorPage.tsx';
 
 /** Wrapper that remounts GameViewPage when gameId changes via key prop. */
 function GameViewPageWrapper() {
@@ -18,6 +19,14 @@ export function App() {
         element={
           <ErrorBoundary>
             <HomePage />
+          </ErrorBoundary>
+        }
+      />
+      <Route
+        path="/tools/character-draft"
+        element={
+          <ErrorBoundary>
+            <CharacterDraftSimulatorPage />
           </ErrorBoundary>
         }
       />

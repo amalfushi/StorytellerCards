@@ -32,6 +32,7 @@ const makeEntry = (
 const duskEntry = makeEntry('dusk', 'Dusk', 'structural');
 const fortuneTellerEntry = makeEntry('fortuneteller', 'Fortune Teller');
 const impEntry = makeEntry('imp', 'Imp');
+const lunaticEntry = makeEntry('lunatic', 'Lunatic');
 const dawnEntry = makeEntry('dawn', 'Dawn', 'structural');
 
 const entries: NightOrderEntry[] = [duskEntry, fortuneTellerEntry, impEntry, dawnEntry];
@@ -77,9 +78,40 @@ const mockImpDef: CharacterDef = {
   reminders: [],
 };
 
+const mockLunaticDef: CharacterDef = {
+  id: 'lunatic',
+  name: 'Lunatic',
+  type: CharacterType.Outsider,
+  defaultAlignment: Alignment.Good,
+  abilityShort: 'You think you are a Demon, but you are not.',
+  firstNight: null,
+  otherNights: null,
+  reminders: [],
+};
+
+const mockSailorDef: CharacterDef = {
+  id: 'sailor',
+  name: 'Sailor',
+  type: CharacterType.Townsfolk,
+  defaultAlignment: Alignment.Good,
+  abilityShort: 'Each night, choose an alive player.',
+  firstNight: null,
+  otherNights: null,
+  reminders: [],
+};
+
+const mockFoolDef: CharacterDef = {
+  ...mockSailorDef,
+  id: 'fool',
+  name: 'Fool',
+};
+
 const characterLookup = (id: string): CharacterDef | undefined => {
   if (id === 'fortuneteller') return mockCharacterDef;
   if (id === 'imp') return mockImpDef;
+  if (id === 'lunatic') return mockLunaticDef;
+  if (id === 'sailor') return mockSailorDef;
+  if (id === 'fool') return mockFoolDef;
   return undefined;
 };
 
@@ -195,6 +227,59 @@ describe('FlashcardCarousel', () => {
     // Index 1 is Fortune Teller — a character entry
     expect(screen.getByText('Fortune Teller')).toBeInTheDocument();
     expect(screen.getByText('Alice (Seat 1)')).toBeInTheDocument();
+  });
+
+  it('falls back to game-level Lunatic bluffs when no per-player bluffs exist', () => {
+    render(
+      <FlashcardCarousel
+        {...defaultProps}
+        entries={[lunaticEntry]}
+        players={[
+          {
+            playerId: 'lunatic-player',
+            playerName: 'Luna',
+            seat: 1,
+            characterId: 'lunatic',
+            alive: true,
+            actualAlignment: Alignment.Good,
+          },
+        ]}
+        nightProgress={{ ...makeNightProgress(), totalCards: 1 }}
+        lunaticBluffCharacters={[mockSailorDef, mockFoolDef]}
+      />,
+    );
+
+    expect(screen.getByTestId('lunatic-bluffs')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Show Lunatic bluffs fullscreen' }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Sailor')).toBeInTheDocument();
+    expect(screen.getByText('Fool')).toBeInTheDocument();
+  });
+
+  it('prefers per-player Lunatic bluffs over the game-level fallback', () => {
+    render(
+      <FlashcardCarousel
+        {...defaultProps}
+        entries={[lunaticEntry]}
+        players={[
+          {
+            playerId: 'lunatic-player',
+            playerName: 'Luna',
+            seat: 1,
+            characterId: 'lunatic',
+            alive: true,
+            actualAlignment: Alignment.Good,
+          },
+        ]}
+        nightProgress={{ ...makeNightProgress(), totalCards: 1 }}
+        playerBluffs={{ 'lunatic-player': ['fool'] }}
+        lunaticBluffCharacters={[mockSailorDef]}
+      />,
+    );
+
+    expect(screen.getByText('Fool')).toBeInTheDocument();
+    expect(screen.queryByText('Sailor')).not.toBeInTheDocument();
   });
 
   it('supports keyboard navigation with ArrowRight', () => {

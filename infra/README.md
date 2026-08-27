@@ -208,6 +208,12 @@ Service's persistent `/home` share across container restarts and image updates.
 This storage is adequate for the single-user scenario but is not intended for
 multi-instance writes or high availability.
 
+Each release image also contains the curated production and test scripts from
+`API/data/scripts`. At startup, the API copies only bundled script files that
+are missing from `/home/data/scripts`. Deploying a newer release therefore adds
+new bundled scripts without overwriting imported or edited files already in
+persistent storage.
+
 ## Build a Versioned Release
 
 Use this release checklist each time:

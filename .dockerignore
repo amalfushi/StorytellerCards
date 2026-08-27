@@ -8,5 +8,5 @@
 **/storybook-static
 **/test-results
 **/playwright-report
-API/data
+API/data/sessions
 docs

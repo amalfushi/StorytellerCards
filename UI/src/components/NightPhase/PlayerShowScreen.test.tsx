@@ -32,7 +32,12 @@ describe('PlayerShowScreen', () => {
           bluffCharacters={bluffCharacters}
         />,
       );
-      expect(screen.getByText('Your bluffs are:')).toBeInTheDocument();
+      expect(screen.getByTestId('player-show-bluff-title')).toHaveTextContent(
+        'These characters are not in play.',
+      );
+      expect(screen.getByTestId('player-show-bluff-instructions')).toHaveTextContent(
+        'You may pretend to be these characters. Try to share this information with your minions.',
+      );
       expect(screen.getByTestId('player-show-bluff-washerwoman')).toBeInTheDocument();
       expect(screen.getByTestId('player-show-bluff-empath')).toBeInTheDocument();
       expect(screen.getByTestId('player-show-bluff-butler')).toBeInTheDocument();
@@ -91,7 +96,8 @@ describe('PlayerShowScreen', () => {
           bluffCharacters={bluffCharacters}
         />,
       );
-      expect(screen.queryByText('Your bluffs are:')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('player-show-bluff-title')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('player-show-bluff-instructions')).not.toBeInTheDocument();
     });
 
     it('does not render message content when message is empty', () => {

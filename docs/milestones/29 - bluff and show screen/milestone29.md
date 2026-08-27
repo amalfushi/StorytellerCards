@@ -14,7 +14,7 @@ Extended the demon bluff system with Lunatic support and built a general-purpose
 - Added `Game.lunaticBluffs?: string[]` field and `SET_LUNATIC_BLUFFS` reducer action
 - Extended `DemonBluffSelection` with `variant` prop ('demon' | 'lunatic') — lunatic variant shows all good characters (not restricted to not-in-play)
 - Added conditional lunatic bluff selection step in pre-game setup flow (after demon bluffs, only when Lunatic is in-play)
-- Lunatic's first-night flashcard displays assigned bluffs inline
+- Lunatic's first-night flashcard displays assigned bluffs inline and opens them in the private player show screen
 
 **PlayerActionsModal Bluff Wiring:**
 - Wired bluff props (`demonBluffs`, `bluffCharacters`, `availableBluffCharacters`, `onChangeBluff`) from `TownSquareTab` and `PlayerListTab` to `PlayerActionsModal`
@@ -23,18 +23,25 @@ Extended the demon bluff system with Lunatic support and built a general-purpose
 
 **Player Show Screen Framework:**
 - `PlayerShowScreen` — fullscreen overlay component with two variants:
-  - `bluffs`: "Your bluffs are:" + large character icons (112px)
+  - `bluffs`: "These characters are not in play." heading, smaller
+    bluff-sharing guidance, and large character icons (112px)
   - `text`: Large centered text message
 - `PlayerShowDrawer` — bottom drawer triggered from each NightFlashcard's "📱 Show Player" button:
   - "Show Bluffs" option (only for demons/lunatics with bluffs)
   - "Custom Message" — text field with save/clear, opens fullscreen when shown
-- Added fullscreen expand button on the demoninfo StructuralCard bluff display
+- Added fullscreen expand buttons on the Demon and Lunatic bluff displays
 
 **Custom Player Messages:**
 - Added `Game.customPlayerMessages?: Record<string, string>` (keyed by characterId)
 - `SET_CUSTOM_PLAYER_MESSAGE` and `CLEAR_CUSTOM_PLAYER_MESSAGE` reducer actions
 - Messages persist across nights within the same game session via localStorage
 - Storyteller can edit/clear messages from the PlayerShowDrawer
+
+**Milestone 43 follow-up:**
+- Drafted Demon and Lunatic bluffs are copied to the assigned player's
+  per-player bluff record.
+- Lunatic night flashcards prefer per-player bluffs and fall back to the
+  game-level `lunaticBluffs` list for existing games.
 
 ### Files Changed
 
@@ -78,7 +85,7 @@ Extended the demon bluff system with Lunatic support and built a general-purpose
 - [x] Create PlayerShowScreen component (bluffs + text variants)
 - [x] Create PlayerShowDrawer component (bottom sheet with options)
 - [x] Add lunatic bluff display on first-night flashcard
-- [x] Add fullscreen button on demoninfo StructuralCard
+- [x] Add fullscreen buttons to Demon and Lunatic bluff displays
 - [x] Add "Show Player" button on NightFlashcard
 - [x] Write tests for all new components and features
 - [x] Create milestone documentation

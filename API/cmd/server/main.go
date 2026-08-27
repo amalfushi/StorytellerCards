@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 	"time"
 
@@ -21,17 +22,38 @@ import (
 	"storyteller-cards-api/internal/web"
 )
 
+func resolveDataDir() string {
+	if configured := os.Getenv("STORYTELLER_DATA_DIR"); configured != "" {
+		return configured
+	}
+	if configured := os.Getenv("DATA_DIR"); configured != "" {
+		return configured
+	}
+	candidates := []string{"data", filepath.Join("API", "data"), filepath.Join("..", "..", "data")}
+	for _, candidate := range candidates {
+		if info, err := os.Stat(candidate); err == nil && info.IsDir() {
+			return candidate
+		}
+	}
+	return "data"
+}
+
 func main() {
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "3001"
 	}
 
-	baseDir := envOrDefault("DATA_DIR", "data")
+	baseDir := resolveDataDir()
 
 	store := storage.New(baseDir)
 	if err := store.EnsureDirectories(); err != nil {
 		log.Fatalf("FATAL ensure dirs: %v", err)
+	}
+	if seedDir := os.Getenv("STORYTELLER_SEED_DATA_DIR"); seedDir != "" {
+		if err := store.SeedScripts(seedDir); err != nil {
+			log.Fatalf("FATAL seed scripts: %v", err)
+		}
 	}
 
 	// Start 90-day session cleanup

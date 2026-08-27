@@ -166,6 +166,35 @@ describe('getSeatingWarnings', () => {
     expect(lineWarning).toBeUndefined();
   });
 
+  it('accepts a Lord of Typhon evil line that wraps around the final seat', () => {
+    const { slots, playerState } = makeSeating(8, {
+      1: 'lordoftyphon',
+      2: 'baron',
+      8: 'poisoner',
+    });
+
+    expect(
+      getSeatingWarnings(slots, playerState).find(
+        (warning) => warning.characterId === 'lordoftyphon',
+      ),
+    ).toBeUndefined();
+  });
+
+  it('accepts either middle seat for an even Lord of Typhon evil line', () => {
+    const { slots, playerState } = makeSeating(8, {
+      2: 'poisoner',
+      3: 'lordoftyphon',
+      4: 'baron',
+      5: 'scarletwoman',
+    });
+
+    expect(
+      getSeatingWarnings(slots, playerState).find(
+        (warning) => warning.characterId === 'lordoftyphon',
+      ),
+    ).toBeUndefined();
+  });
+
   it('ignores unoccupied seats for constraint checks', () => {
     const { slots, playerState } = makeSeating(4, { 1: 'imp', 2: 'marionette' });
     const sparseSlots = slots.map((slot) =>
@@ -173,6 +202,30 @@ describe('getSeatingWarnings', () => {
     );
 
     expect(getSeatingWarnings(sparseSlots, playerState)).toHaveLength(0);
+  });
+
+  it('warns when No Dashii is not seated between Townsfolk', () => {
+    const { slots, playerState } = makeSeating(5, {
+      1: 'nodashii',
+      2: 'poisoner',
+      5: 'washerwoman',
+    });
+
+    expect(
+      getSeatingWarnings(slots, playerState).find((warning) => warning.characterId === 'nodashii'),
+    ).toBeDefined();
+  });
+
+  it('accepts No Dashii seated between Townsfolk', () => {
+    const { slots, playerState } = makeSeating(5, {
+      1: 'nodashii',
+      2: 'chef',
+      5: 'washerwoman',
+    });
+
+    expect(
+      getSeatingWarnings(slots, playerState).find((warning) => warning.characterId === 'nodashii'),
+    ).toBeUndefined();
   });
 });
 

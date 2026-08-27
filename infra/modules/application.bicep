@@ -67,7 +67,7 @@ resource webApp 'Microsoft.Web/sites@2024-04-01' = {
           value: 'storyteller'
         }
         {
-          name: 'DATA_DIR'
+          name: 'STORYTELLER_DATA_DIR'
           value: '/home/data'
         }
         {

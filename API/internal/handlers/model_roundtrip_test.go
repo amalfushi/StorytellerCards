@@ -140,6 +140,7 @@ func TestGameRoundtripFull(t *testing.T) {
 	r := setupRoundtripRouter(t)
 
 	override := 8
+	mulligan := "chef"
 	sent := models.Game{
 		ID:           "roundtrip-game",
 		SessionID:    "sess-rt",
@@ -211,8 +212,55 @@ func TestGameRoundtripFull(t *testing.T) {
 		ActiveFabled:       []string{"stormcatcher", "spiritofivory"},
 		ActiveLoric:        []string{"archmage"},
 		InPlayCharacterIds: []string{"washerwoman", "imp", "baron", "drunk"},
-		DemonBluffs:        []string{"monk", "chef", "empath"},
-		LunaticBluffs:      []string{"fortuneteller", "undertaker", "ravenkeeper"},
+		CharacterDraft: &models.CharacterDraftState{
+			Status:           "drafting",
+			SetupMode:        "standard",
+			PresentationMode: "secret-two-types",
+			PlayerOrder:      []string{"p-alice", "p-bob"},
+			PlannedCharacterTypes: map[string][]string{
+				"p-bob": {"Minion", "Townsfolk"},
+			},
+			MarionetteRoll: &models.CharacterDraftCharacterRoll{
+				PlayerID:    "p-bob",
+				CharacterID: "marionette",
+			},
+			OutsiderHiddenRoll: &models.CharacterDraftCharacterRoll{
+				PlayerID:    "p-alice",
+				CharacterID: "drunk",
+			},
+			OutsiderCharacterRolls: []models.CharacterDraftCharacterRoll{
+				{PlayerID: "p-alice", CharacterID: "drunk"},
+				{PlayerID: "p-bob", CharacterID: "recluse"},
+			},
+			CurrentPlayerIndex: 1,
+			ActivePlayerID:     "p-bob",
+			VariableModifierValues: map[string]int{
+				"godfather": -1,
+			},
+			CharacterCopyTargets: map[string]int{
+				"villageidiot": 3,
+			},
+			Entries: []models.CharacterDraftEntry{
+				{
+					PlayerID: "p-alice",
+					Offer: models.CharacterDraftOffer{
+						OfferedCharacterIds:  []string{"washerwoman", "chef"},
+						MulliganCharacterID:  &mulligan,
+						RolledCharacterTypes: []string{"Townsfolk", "Outsider"},
+						LegalCandidateCount:  5,
+						ActualCharacterIdsByOfferedID: map[string]string{
+							"chef": "drunk",
+						},
+					},
+					SelectedCharacterID: "washerwoman",
+					ActualCharacterID:   "washerwoman",
+					Resolution:          "choice",
+				},
+			},
+			Revision: 2,
+		},
+		DemonBluffs:   []string{"monk", "chef", "empath"},
+		LunaticBluffs: []string{"fortuneteller", "undertaker", "ravenkeeper"},
 		PlayerBluffs: map[string][]string{
 			"p-alice": {"monk", "chef", "empath"},
 			"p-bob":   {"fortuneteller", "undertaker"},
@@ -317,6 +365,36 @@ func TestGameRoundtripFull(t *testing.T) {
 
 	// Game-level optional arrays
 	assertStrSlice(t, "game.activeFabled", got.ActiveFabled, []string{"stormcatcher", "spiritofivory"})
+	if got.CharacterDraft == nil {
+		t.Fatal("game.characterDraft should not be nil")
+	}
+	assertEq(t, "game.characterDraft.status", got.CharacterDraft.Status, "drafting")
+	assertEq(t, "game.characterDraft.presentationMode", got.CharacterDraft.PresentationMode, "secret-two-types")
+	assertStrSlice(t, "game.characterDraft.playerOrder", got.CharacterDraft.PlayerOrder, []string{"p-alice", "p-bob"})
+	assertStrSlice(t, "game.characterDraft.plannedCharacterTypes['p-bob']", got.CharacterDraft.PlannedCharacterTypes["p-bob"], []string{"Minion", "Townsfolk"})
+	if got.CharacterDraft.MarionetteRoll == nil {
+		t.Fatal("game.characterDraft.marionetteRoll should not be nil")
+	}
+	assertEq(t, "game.characterDraft.marionetteRoll.playerId", got.CharacterDraft.MarionetteRoll.PlayerID, "p-bob")
+	assertEq(t, "game.characterDraft.marionetteRoll.characterId", got.CharacterDraft.MarionetteRoll.CharacterID, "marionette")
+	if got.CharacterDraft.OutsiderHiddenRoll == nil {
+		t.Fatal("game.characterDraft.outsiderHiddenRoll should not be nil")
+	}
+	assertEq(t, "game.characterDraft.outsiderHiddenRoll.playerId", got.CharacterDraft.OutsiderHiddenRoll.PlayerID, "p-alice")
+	assertEq(t, "game.characterDraft.outsiderHiddenRoll.characterId", got.CharacterDraft.OutsiderHiddenRoll.CharacterID, "drunk")
+	if len(got.CharacterDraft.OutsiderCharacterRolls) != 2 {
+		t.Fatalf("game.characterDraft.outsiderCharacterRolls length = %d, want 2", len(got.CharacterDraft.OutsiderCharacterRolls))
+	}
+	assertEq(t, "game.characterDraft.outsiderCharacterRolls[0].characterId", got.CharacterDraft.OutsiderCharacterRolls[0].CharacterID, "drunk")
+	assertEq(t, "game.characterDraft.activePlayerId", got.CharacterDraft.ActivePlayerID, "p-bob")
+	assertEq(t, "game.characterDraft.variableModifierValues['godfather']", got.CharacterDraft.VariableModifierValues["godfather"], -1)
+	assertEq(t, "game.characterDraft.characterCopyTargets['villageidiot']", got.CharacterDraft.CharacterCopyTargets["villageidiot"], 3)
+	assertEq(t, "game.characterDraft.entries[0].actualCharacterId", got.CharacterDraft.Entries[0].ActualCharacterID, "washerwoman")
+	if got.CharacterDraft.Entries[0].Offer.MulliganCharacterID == nil {
+		t.Fatal("game.characterDraft.entries[0].offer.mulliganCharacterId should not be nil")
+	}
+	assertEq(t, "game.characterDraft.entries[0].offer.mulliganCharacterId", *got.CharacterDraft.Entries[0].Offer.MulliganCharacterID, "chef")
+	assertEq(t, "game.characterDraft.entries[0].offer.actualCharacterIdsByOfferedId['chef']", got.CharacterDraft.Entries[0].Offer.ActualCharacterIdsByOfferedID["chef"], "drunk")
 	assertStrSlice(t, "game.demonBluffs", got.DemonBluffs, []string{"monk", "chef", "empath"})
 	assertStrSlice(t, "game.playerBluffs['p-alice']", got.PlayerBluffs["p-alice"], []string{"monk", "chef", "empath"})
 	assertEq(t, "game.customPlayerMessages['imp']", got.CustomPlayerMessages["imp"], "You are the Imp. Kill wisely.")
@@ -387,6 +465,9 @@ func TestGameRoundtripEmptyOptionals(t *testing.T) {
 	}
 	if got.PlayerCountOverride != nil {
 		t.Errorf("game.playerCountOverride = %v, want nil", got.PlayerCountOverride)
+	}
+	if got.CharacterDraft != nil {
+		t.Errorf("game.characterDraft = %v, want nil", got.CharacterDraft)
 	}
 
 	psA := got.PlayerState["p-alice"]

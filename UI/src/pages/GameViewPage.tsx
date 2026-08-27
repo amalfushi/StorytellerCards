@@ -51,6 +51,7 @@ import { NightHistoryDrawer } from '@/components/NightHistory/NightHistoryDrawer
 import { NightChoiceSelector } from '@/components/NightPhase/NightChoiceSelector.tsx';
 import { CharacterAssignmentDialog } from '@/components/CharacterAssignment/CharacterAssignmentDialog.tsx';
 import { CharacterSelection } from '@/components/Setup/CharacterSelection.tsx';
+import { CharacterDraftDialog } from '@/components/Drafting/CharacterDraftDialog.tsx';
 import { DemonBluffSelection } from '@/components/Setup/DemonBluffSelection.tsx';
 import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
@@ -62,6 +63,8 @@ import {
   hasGameStarted,
   validateGameSeating,
 } from '@/utils/seating/index.ts';
+import { randomizeConstrainedDraftSeating } from '@/utils/drafting/draftSeating.ts';
+import { getPlayerColorById } from '@/utils/playerColor.ts';
 
 interface GameViewPlayer extends PlayerGameState {
   playerId: string;
@@ -90,6 +93,8 @@ export function GameViewPage() {
     saveGame,
     setPhase,
     setInPlayCharacters,
+    setCharacterDraft,
+    completeCharacterDraft,
     setDemonBluffs,
     setLunaticBluffs,
     setPlayerBluffs,
@@ -104,12 +109,17 @@ export function GameViewPage() {
   const [tabIndex, setTabIndex] = useState(0);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [assignDialogOpen, setAssignDialogOpen] = useState(false);
+  const [characterSetupOpen, setCharacterSetupOpen] = useState(false);
   const [charSelectionOpen, setCharSelectionOpen] = useState(false);
+  const [characterDraftOpen, setCharacterDraftOpen] = useState(false);
   const [bluffSelectionOpen, setBluffSelectionOpen] = useState(false);
   const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [seatingEditMode, setSeatingEditMode] = useState(false);
   const [seatingConfirmationOpen, setSeatingConfirmationOpen] = useState(false);
+  const [pendingDraftSetupMode, setPendingDraftSetupMode] = useState<
+    NonNullable<Game['characterDraft']>['setupMode'] | null
+  >(null);
   const [viewMode, setViewMode] = useState<'day' | 'night'>('day');
   const [reminderPicker, setReminderPicker] = useState<{
     anchorEl: HTMLElement;
@@ -181,6 +191,7 @@ export function GameViewPage() {
   const loading = !!initialGame && !gameState.game;
 
   const [remoteScript, setRemoteScript] = useState<Script | null>(null);
+  const [failedScriptId, setFailedScriptId] = useState<string | null>(null);
 
   // Load the script from localStorage using the game's scriptId
   const localScript = useMemo<Script | null>(() => {
@@ -199,13 +210,19 @@ export function GameViewPage() {
   useEffect(() => {
     if (!gameState.game?.scriptId || localScript) return;
     let cancelled = false;
-    fetchScript(gameState.game.scriptId).then((apiScript) => {
-      if (cancelled || !apiScript) return;
+    const scriptId = gameState.game.scriptId;
+    fetchScript(scriptId).then((apiScript) => {
+      if (cancelled) return;
+      if (!apiScript) {
+        setFailedScriptId(scriptId);
+        return;
+      }
       try {
         localStorage.setItem(`storyteller-script-${apiScript.id}`, JSON.stringify(apiScript));
       } catch {
         // Silently ignore storage errors
       }
+      setFailedScriptId((current) => (current === scriptId ? null : current));
       setRemoteScript(apiScript);
     });
     return () => {
@@ -216,18 +233,19 @@ export function GameViewPage() {
   // Only use remoteScript if its ID matches the current game's scriptId
   const script =
     localScript ?? (remoteScript?.id === gameState.game?.scriptId ? remoteScript : null);
+  const scriptLoadFailed = failedScriptId === gameState.game?.scriptId;
 
-  // Derive script character IDs from the loaded script, falling back to all characters
   const scriptCharacterIds = useMemo(() => {
     if (script?.characterIds?.length) return script.characterIds;
-    return allCharacters.map((ch) => ch.id);
-  }, [script, allCharacters]);
+    return [];
+  }, [script]);
 
   // Script characters as CharacterDef[] for the assignment dialog
   const scriptCharacterDefs = useMemo(
     () => getCharactersByIds(scriptCharacterIds),
     [getCharactersByIds, scriptCharacterIds],
   );
+  const draftScriptCharacterDefs = gameState.game?.scriptId ? scriptCharacterDefs : allCharacters;
 
   const game = gameState.game;
   const nightHistoryCount = game?.nightHistory.length ?? 0;
@@ -283,6 +301,33 @@ export function GameViewPage() {
 
     return rows.sort((a, b) => a.seat - b.seat);
   }, [game, session?.players]);
+  const draftingPlayerIds = useMemo(
+    () =>
+      game?.participants
+        .filter((participant) => !participant.isTraveller)
+        .map((participant) => participant.playerId) ?? [],
+    [game?.participants],
+  );
+  const draftingPlayerNames = useMemo(
+    () =>
+      Object.fromEntries(
+        draftingPlayerIds.map((playerId) => [
+          playerId,
+          session?.players.find((player) => player.id === playerId)?.name ?? 'Unknown player',
+        ]),
+      ),
+    [draftingPlayerIds, session?.players],
+  );
+  const draftingPlayerColors = useMemo(
+    () =>
+      Object.fromEntries(
+        draftingPlayerIds.map((playerId) => [
+          playerId,
+          getPlayerColorById(playerId, draftingPlayerIds) ?? '#90a4ae',
+        ]),
+      ),
+    [draftingPlayerIds],
+  );
 
   const nightEntries = useNightOrder(
     scriptCharacterIds,
@@ -302,19 +347,28 @@ export function GameViewPage() {
     );
   }, [game]);
 
-  // Check if in-play character selection is needed (no inPlayCharacterIds yet)
-  const needsCharacterSelection = useMemo(() => {
-    if (!game) return false;
-    return needsCharacterAssignment && !hasCharacterPool;
-  }, [game, hasCharacterPool, needsCharacterAssignment]);
-
-  const handleOpenCharacterAssignment = useCallback(() => {
-    if (!hasCharacterPool) {
-      setCharSelectionOpen(true);
-      return;
-    }
-    setAssignDialogOpen(true);
-  }, [hasCharacterPool]);
+  const handleCompleteCharacterDraft = useCallback(
+    (draft: NonNullable<Game['characterDraft']>) => {
+      if (!game) return;
+      const characterIdByPlayer = Object.fromEntries(
+        draft.entries.flatMap((entry) =>
+          entry.actualCharacterId ? [[entry.playerId, entry.actualCharacterId]] : [],
+        ),
+      );
+      const seating = randomizeConstrainedDraftSeating(
+        game.slots,
+        draft.playerOrder,
+        characterIdByPlayer,
+        scriptCharacterDefs,
+      );
+      completeCharacterDraft(draft, seating.slots);
+      setCharacterDraftOpen(false);
+      setTabIndex(0);
+      setPendingDraftSetupMode(draft.setupMode);
+      setSeatingEditMode(true);
+    },
+    [completeCharacterDraft, game, scriptCharacterDefs],
+  );
 
   // Characters are assigned but first night hasn't been played yet — show setup checklist
   const showSetupChecklistBanner = useMemo(() => {
@@ -353,11 +407,11 @@ export function GameViewPage() {
       setBluffSelectionOpen(false);
       if (lunaticIsInPlay) {
         setLunaticBluffSelectionOpen(true);
-      } else {
+      } else if (needsCharacterAssignment) {
         setAssignDialogOpen(true);
       }
     },
-    [setDemonBluffs, saveGame, lunaticIsInPlay],
+    [setDemonBluffs, saveGame, lunaticIsInPlay, needsCharacterAssignment],
   );
 
   // Handle confirming lunatic bluff selection
@@ -366,9 +420,11 @@ export function GameViewPage() {
       setLunaticBluffs(bluffIds);
       saveGame();
       setLunaticBluffSelectionOpen(false);
-      setAssignDialogOpen(true);
+      if (needsCharacterAssignment) {
+        setAssignDialogOpen(true);
+      }
     },
-    [setLunaticBluffs, saveGame],
+    [setLunaticBluffs, saveGame, needsCharacterAssignment],
   );
 
   // Template bluffs for distribution after assignment
@@ -646,7 +702,14 @@ export function GameViewPage() {
       />
 
       {/* ── Character Assignment Banner ── */}
-      {needsCharacterAssignment && viewMode === 'day' && (
+      {scriptLoadFailed && viewMode === 'day' && (
+        <Alert severity="error" sx={{ borderRadius: 0 }}>
+          Could not load this game&apos;s script. Restore API access and reload before assigning or
+          drafting characters.
+        </Alert>
+      )}
+
+      {needsCharacterAssignment && viewMode === 'day' && !scriptLoadFailed && (
         <Alert
           severity="info"
           action={
@@ -655,17 +718,9 @@ export function GameViewPage() {
                 color="inherit"
                 size="small"
                 startIcon={<AssignmentIndIcon />}
-                onClick={() => setCharSelectionOpen(true)}
+                onClick={() => setCharacterSetupOpen(true)}
               >
-                {game.inPlayCharacterIds?.length ? 'Re-select Characters' : 'Select Characters'}
-              </Button>
-              <Button
-                color="inherit"
-                size="small"
-                startIcon={<AssignmentIndIcon />}
-                onClick={handleOpenCharacterAssignment}
-              >
-                {needsCharacterSelection ? 'Select Characters First' : 'Assign Characters'}
+                Select Characters
               </Button>
             </Box>
           }
@@ -768,9 +823,13 @@ export function GameViewPage() {
                 <TownSquareTab
                   scriptCharacterIds={scriptCharacterIds}
                   editMode={seatingEditMode}
-                  onEditModeChange={setSeatingEditMode}
-                  onSelectCharacters={() => setCharSelectionOpen(true)}
-                  onAssignCharacters={handleOpenCharacterAssignment}
+                  onEditModeChange={(editing) => {
+                    setSeatingEditMode(editing);
+                    if (!editing && pendingDraftSetupMode) {
+                      setSeatingConfirmationOpen(true);
+                    }
+                  }}
+                  onSelectCharacters={() => setCharacterSetupOpen(true)}
                 />
               )}
               {tabIndex === 1 && <PlayerListTab scriptCharacterIds={scriptCharacterIds} />}
@@ -831,8 +890,9 @@ export function GameViewPage() {
         <DialogTitle>Confirm Game {gameNumber || ''} seating</DialogTitle>
         <DialogContent>
           <Typography variant="body2">
-            All {game.participants.length} participants have seats. Use this Town Square for the
-            first Night?
+            {pendingDraftSetupMode
+              ? 'Confirm the randomized seating before continuing to Demon bluffs.'
+              : `All ${game.participants.length} participants have seats. Use this Town Square for the first Night?`}
           </Typography>
         </DialogContent>
         <DialogActions>
@@ -850,10 +910,17 @@ export function GameViewPage() {
             onClick={() => {
               setSeatingConfirmed(true);
               setSeatingConfirmationOpen(false);
-              enterNightView();
+              if (pendingDraftSetupMode) {
+                const setupMode = pendingDraftSetupMode;
+                setPendingDraftSetupMode(null);
+                setBluffSelectionOpen(setupMode !== 'atheist');
+                saveGame();
+              } else {
+                enterNightView();
+              }
             }}
           >
-            Confirm &amp; start Night
+            {pendingDraftSetupMode ? 'Confirm seating' : 'Confirm & start Night'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -912,6 +979,41 @@ export function GameViewPage() {
         />
       )}
 
+      <Dialog open={characterSetupOpen} onClose={() => setCharacterSetupOpen(false)}>
+        <DialogTitle>Select Characters</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>
+            Choose the setup flow for this game.
+          </Typography>
+          <Box sx={{ display: 'grid', gap: 1.5, minWidth: { sm: 360 } }}>
+            <Button
+              variant="outlined"
+              onClick={() => {
+                setCharacterSetupOpen(false);
+                setCharSelectionOpen(true);
+              }}
+            >
+              Manual selection and assignment
+            </Button>
+            <Button
+              variant="contained"
+              startIcon={<AssignmentIndIcon />}
+              onClick={() => {
+                setCharacterSetupOpen(false);
+                setCharacterDraftOpen(true);
+              }}
+            >
+              {game?.characterDraft?.status === 'drafting'
+                ? 'Resume character draft'
+                : 'Start character draft'}
+            </Button>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setCharacterSetupOpen(false)}>Cancel</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Character Selection Dialog */}
       {game && (
         <CharacterSelection
@@ -924,6 +1026,20 @@ export function GameViewPage() {
         />
       )}
 
+      {game && (
+        <CharacterDraftDialog
+          open={characterDraftOpen}
+          playerIds={draftingPlayerIds}
+          playerNames={draftingPlayerNames}
+          playerColors={draftingPlayerColors}
+          scriptCharacters={draftScriptCharacterDefs}
+          draftState={game.characterDraft}
+          onClose={() => setCharacterDraftOpen(false)}
+          onDraftChange={setCharacterDraft}
+          onDraftComplete={handleCompleteCharacterDraft}
+        />
+      )}
+
       {/* Demon Bluff Selection Dialog */}
       {game && game.inPlayCharacterIds && (
         <DemonBluffSelection
@@ -932,7 +1048,7 @@ export function GameViewPage() {
             setBluffSelectionOpen(false);
             if (lunaticIsInPlay) {
               setLunaticBluffSelectionOpen(true);
-            } else {
+            } else if (needsCharacterAssignment) {
               setAssignDialogOpen(true);
             }
           }}
@@ -949,7 +1065,9 @@ export function GameViewPage() {
           open={lunaticBluffSelectionOpen}
           onClose={() => {
             setLunaticBluffSelectionOpen(false);
-            setAssignDialogOpen(true);
+            if (needsCharacterAssignment) {
+              setAssignDialogOpen(true);
+            }
           }}
           scriptCharacters={scriptCharacterDefs}
           inPlayCharacterIds={game.inPlayCharacterIds}

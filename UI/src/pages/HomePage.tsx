@@ -21,6 +21,7 @@ import Typography from '@mui/material/Typography';
 import AddIcon from '@mui/icons-material/Add';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SportsEsportsIcon from '@mui/icons-material/SportsEsports';
+import CasinoIcon from '@mui/icons-material/Casino';
 import { useSession } from '@/context/useSession.ts';
 
 export function HomePage() {
@@ -55,6 +56,13 @@ export function HomePage() {
           <Typography variant="h6" component="h1" sx={{ flexGrow: 1, fontWeight: 'bold' }}>
             Storyteller Cards
           </Typography>
+          <Button
+            color="inherit"
+            startIcon={<CasinoIcon />}
+            onClick={() => navigate('/tools/character-draft')}
+          >
+            Draft Simulator
+          </Button>
         </Toolbar>
       </AppBar>
 

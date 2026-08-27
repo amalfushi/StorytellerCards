@@ -152,6 +152,89 @@ describe('GameContext', () => {
       expect(result.current.state.showCharacters).toBe(false);
       expect(result.current.state.nightProgress).toBeNull();
     });
+
+    describe('character drafting', () => {
+      it('persists progress and atomically applies a completed draft', () => {
+        const { result } = renderGameHook();
+        const game = makeGameWithPlayers([
+          makePlayer('player-1', 'Alice'),
+          makePlayer('player-2', 'Bob'),
+        ]);
+        const draft: NonNullable<Game['characterDraft']> = {
+          status: 'complete',
+          setupMode: 'lilmonsta',
+          presentationMode: 'open',
+          playerOrder: ['player-2', 'player-1'],
+          currentPlayerIndex: 2,
+          entries: [
+            {
+              playerId: 'player-2',
+              offer: {
+                offeredCharacterIds: ['imp'],
+                mulliganCharacterId: null,
+                rolledCharacterTypes: [],
+                legalCandidateCount: 1,
+              },
+              selectedCharacterId: 'imp',
+              actualCharacterId: 'imp',
+              apparentCharacterId: 'imp',
+              resolution: 'choice',
+            },
+            {
+              playerId: 'player-1',
+              offer: {
+                offeredCharacterIds: ['washerwoman'],
+                mulliganCharacterId: null,
+                rolledCharacterTypes: [],
+                legalCandidateCount: 1,
+              },
+              selectedCharacterId: 'washerwoman',
+              actualCharacterId: 'washerwoman',
+              apparentCharacterId: 'washerwoman',
+              resolution: 'choice',
+            },
+          ],
+          revision: 3,
+        };
+        const randomizedSlots = [makeSeat('slot-1', 'player-2'), makeSeat('slot-2', 'player-1')];
+
+        act(() => result.current.loadGame(game));
+        act(() => result.current.setCharacterDraft({ ...draft, status: 'drafting' }));
+        expect(result.current.state.game?.characterDraft?.status).toBe('drafting');
+
+        act(() => result.current.completeCharacterDraft(draft, randomizedSlots));
+
+        expect(result.current.state.game?.slots).toEqual(randomizedSlots);
+        expect(result.current.state.game?.inPlayCharacterIds).toEqual([
+          'lilmonsta',
+          'imp',
+          'washerwoman',
+        ]);
+        expect(result.current.state.game?.playerState['player-2'].characterId).toBe('imp');
+        expect(result.current.state.game?.playerState['player-1'].characterId).toBe('washerwoman');
+        expect(result.current.state.game?.seatingConfirmed).toBe(false);
+        expect(result.current.state.game?.characterDraft).toEqual(draft);
+      });
+
+      it('copies bluff selections onto players whose characters were assigned by drafting', () => {
+        const { result } = renderGameHook();
+        const game = makeGameWithPlayers([
+          makePlayer('lunatic-player', 'Luna'),
+          makePlayer('demon-player', 'Demon'),
+        ]);
+        game.playerState['lunatic-player'].characterId = 'lunatic';
+        game.playerState['demon-player'].characterId = 'imp';
+
+        act(() => result.current.loadGame(game));
+        act(() => result.current.setLunaticBluffs(['sailor', 'fool']));
+        act(() => result.current.setDemonBluffs(['washerwoman', 'chef']));
+
+        expect(result.current.state.game?.playerBluffs).toEqual({
+          'lunatic-player': ['sailor', 'fool'],
+          'demon-player': ['washerwoman', 'chef'],
+        });
+      });
+    });
   });
 
   describe('loadGame', () => {

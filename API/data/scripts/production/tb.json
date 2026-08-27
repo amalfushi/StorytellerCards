@@ -1,0 +1,29 @@
+{
+  "id": "tb",
+  "name": "Trouble Brewing",
+  "author": "The Pandemonium Institute",
+  "characterIds": [
+    "washerwoman",
+    "librarian",
+    "investigator",
+    "chef",
+    "empath",
+    "fortuneteller",
+    "undertaker",
+    "monk",
+    "ravenkeeper",
+    "virgin",
+    "slayer",
+    "soldier",
+    "mayor",
+    "butler",
+    "drunk",
+    "recluse",
+    "saint",
+    "poisoner",
+    "spy",
+    "baron",
+    "scarletwoman",
+    "imp"
+  ]
+}

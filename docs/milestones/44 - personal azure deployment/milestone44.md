@@ -7,10 +7,10 @@
 The documented plan and deployment implementation are complete in the M44
 worktree. An authenticated Azure what-if verified the exact five-resource plan
 against the personal subscription. The owner explicitly chose not to provision
-resources yet, so no Azure resources or charges were created. Milestone 43 is
-being developed separately; M44 does not modify its feature files and should be
-rebased after M43 before a future deployment. The selected deployment defaults
-are `westus3` and B1.
+resources yet, so no Azure resources or charges were created. Milestone 43 has
+been integrated; the container seeds its curated scripts into persistent storage
+without overwriting existing files. The selected deployment defaults are
+`westus3` and B1.
 
 ## Goal
 
@@ -96,6 +96,7 @@ official pricing links, the vacation runbook, and teardown instructions.
 - [x] Select a design aligned with the existing same-origin application.
 - [x] Add a multi-stage production container.
 - [x] Add persistent data and static asset directory configuration.
+- [x] Package Milestone 43 scripts and safely seed missing files into persistent storage.
 - [x] Add SPA route fallback for direct React route navigation.
 - [x] Add private-by-default authentication for the public deployment.
 - [x] Add subscription-scoped Bicep for App Service, ACR, identity, and role assignment.

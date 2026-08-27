@@ -139,6 +139,8 @@ data/
 │       └── games/
 │           └── {game-id}.json     # Game state
 └── scripts/
+    ├── production/  # Official, imported, and milestone scripts
+    └── test/        # Integration-test-only scripts
     └── {script-id}.json           # Imported scripts
 ```
 
@@ -158,7 +160,9 @@ A background goroutine runs on startup and then every 24 hours. It deletes sessi
 |-----------------------|----------------------------------------------------------------|--------------|
 | `PORT`                | Server listen port                                             | `3001`       |
 | `HOST`                | Server bind address                                            | `0.0.0.0`    |
-| `DATA_DIR`            | Writable directory for sessions, games, and imported scripts  | `data`       |
+| `STORYTELLER_DATA_DIR`| Writable directory for sessions, games, and scripts            | auto-detected|
+| `DATA_DIR`            | Legacy fallback for `STORYTELLER_DATA_DIR`                     | unset        |
+| `STORYTELLER_SEED_DATA_DIR` | Read-only bundled data copied into empty writable storage | unset        |
 | `STATIC_DIR`          | Built React assets served by the API with SPA route fallback  | `../UI/dist` |
 | `BASIC_AUTH_USERNAME` | Username used when Basic authentication is enabled             | `storyteller`|
 | `BASIC_AUTH_PASSWORD` | Enables Basic authentication when set; `/health` remains open | unset        |
@@ -177,7 +181,7 @@ The `/api/characters` endpoint serves from the UI's bundled `characters.json` fi
 ## Deployment Notes
 
 - The root `Dockerfile` builds the UI and API into one runtime image.
-- Set `DATA_DIR` to persistent writable storage. Azure App Service uses
+- Set `STORYTELLER_DATA_DIR` to persistent writable storage. Azure App Service uses
   `/home/data`.
 - Set `BASIC_AUTH_PASSWORD` for an internet-facing deployment.
 - The checked-in Azure Bicep and deployment scripts are documented in

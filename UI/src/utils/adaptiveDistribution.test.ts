@@ -309,6 +309,18 @@ describe('calculateAdaptiveTargets', () => {
     });
   });
 
+  describe('Summoner (no starting Demon)', () => {
+    it('replaces the Demon slot with a Townsfolk', () => {
+      const result = calculateAdaptiveTargets(8, ['summoner']);
+      expect(result.townsfolk).toBe(6);
+      expect(result.outsiders).toBe(1);
+      expect(result.minions).toBe(1);
+      expect(result.demons).toBe(0);
+      expect(result.total).toBe(8);
+      expect(modifierIds(result)).toContain('summoner');
+    });
+  });
+
   // ──────────────────────────────────────────
   // Lord of Typhon: +1 Minion + variable Outsiders
   // ──────────────────────────────────────────

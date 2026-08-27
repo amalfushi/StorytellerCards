@@ -1,6 +1,9 @@
 package storage
 
 import (
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"storyteller-cards-api/internal/models"
@@ -230,6 +233,49 @@ func TestSaveAndGetGame(t *testing.T) {
 	})
 }
 
+func TestSeedScripts(t *testing.T) {
+	dataDir := t.TempDir()
+	seedDir := t.TempDir()
+	store := New(dataDir)
+	if err := store.EnsureDirectories(); err != nil {
+		t.Fatalf("EnsureDirectories: %v", err)
+	}
+
+	productionDir := filepath.Join(seedDir, "scripts", productionScriptsDir)
+	if err := os.MkdirAll(productionDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(productionDir, "bundled.json"), []byte(`{"id":"bundled"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	existingPath := filepath.Join(dataDir, "scripts", productionScriptsDir, "existing.json")
+	if err := os.WriteFile(existingPath, []byte(`{"id":"existing","name":"User version"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(productionDir, "existing.json"), []byte(`{"id":"existing","name":"Bundled version"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := store.SeedScripts(seedDir); err != nil {
+		t.Fatalf("SeedScripts: %v", err)
+	}
+
+	bundled, err := os.ReadFile(filepath.Join(dataDir, "scripts", productionScriptsDir, "bundled.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(bundled) != `{"id":"bundled"}` {
+		t.Fatalf("bundled script = %q", bundled)
+	}
+	existing, err := os.ReadFile(existingPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(existing) != `{"id":"existing","name":"User version"}` {
+		t.Fatalf("existing script was overwritten: %q", existing)
+	}
+}
+
 func TestSaveAndGetScript(t *testing.T) {
 	dir := t.TempDir()
 	store := New(dir)
@@ -272,6 +318,93 @@ func TestSaveAndGetScript(t *testing.T) {
 		}
 		if len(scripts) != 1 {
 			t.Errorf("expected 1 script, got %d", len(scripts))
+		}
+	})
+
+	t.Run("loads scripts from the test category", func(t *testing.T) {
+		testScript := models.Script{
+			ID:           "test-only",
+			Name:         "Test Only",
+			Author:       "Integration Test",
+			CharacterIDs: []string{"chef", "imp"},
+		}
+		data, err := json.Marshal(testScript)
+		if err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(dir, "scripts", testScriptsDir, "test-only.json")
+		if err := os.WriteFile(path, data, 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		got, err := store.GetScript("test-only")
+		if err != nil {
+			t.Fatalf("GetScript: %v", err)
+		}
+		if got.ID != testScript.ID {
+			t.Errorf("ID = %q, want %q", got.ID, testScript.ID)
+		}
+	})
+
+	t.Run("prefers production and deduplicates legacy scripts", func(t *testing.T) {
+		legacyScript := models.Script{
+			ID:           "boozling",
+			Name:         "Legacy Boozling",
+			Author:       "Legacy",
+			CharacterIDs: []string{"chef"},
+		}
+		data, err := json.Marshal(legacyScript)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, "scripts", "boozling.json"), data, 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		got, err := store.GetScript("boozling")
+		if err != nil {
+			t.Fatalf("GetScript: %v", err)
+		}
+		if got.Name != script.Name {
+			t.Errorf("Name = %q, want production name %q", got.Name, script.Name)
+		}
+
+		scripts, err := store.ListScripts()
+		if err != nil {
+			t.Fatalf("ListScripts: %v", err)
+		}
+		boozlingCount := 0
+		for _, listed := range scripts {
+			if listed.ID == "boozling" {
+				boozlingCount++
+			}
+		}
+		if boozlingCount != 1 {
+			t.Errorf("expected one deduplicated Boozling script, got %d", boozlingCount)
+		}
+	})
+
+	t.Run("loads a legacy flat script", func(t *testing.T) {
+		legacyScript := models.Script{
+			ID:           "legacy-only",
+			Name:         "Legacy Only",
+			Author:       "Legacy",
+			CharacterIDs: []string{"chef"},
+		}
+		data, err := json.Marshal(legacyScript)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(dir, "scripts", "legacy-only.json"), data, 0644); err != nil {
+			t.Fatal(err)
+		}
+
+		got, err := store.GetScript("legacy-only")
+		if err != nil {
+			t.Fatalf("GetScript: %v", err)
+		}
+		if got.ID != legacyScript.ID {
+			t.Errorf("ID = %q, want %q", got.ID, legacyScript.ID)
 		}
 	})
 }

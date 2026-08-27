@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { cleanup, render, screen, fireEvent } from '@testing-library/react';
+import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import type { Game, Session, PlayerGameState } from '@/types/index.ts';
 import type { GameViewState } from '@/context/GameContext.tsx';
 import { Alignment, Phase } from '@/types/index.ts';
@@ -76,6 +76,7 @@ const mockSession: Session = {
 let mockGame: Game | null;
 let mockShowCharacters: boolean;
 let mockNightProgress: GameViewState['nightProgress'];
+let mockDraftSetupMode: NonNullable<Game['characterDraft']>['setupMode'];
 let capturedPhaseBarProps: {
   activeView: string;
   nightInProgress: boolean;
@@ -88,6 +89,8 @@ const mockSetPhase = vi.fn();
 const mockNavigate = vi.fn();
 const mockUpdatePlayerState = vi.fn();
 const mockSetSeatingConfirmed = vi.fn();
+const mockCompleteCharacterDraft = vi.fn();
+const mockFetchScript = vi.fn(async () => null);
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
@@ -113,6 +116,8 @@ vi.mock('@/context/useGame.ts', () => ({
     saveGame: vi.fn(),
     setPhase: mockSetPhase,
     setInPlayCharacters: vi.fn(),
+    setCharacterDraft: vi.fn(),
+    completeCharacterDraft: mockCompleteCharacterDraft,
     setDemonBluffs: vi.fn(),
     setLunaticBluffs: vi.fn(),
     setPlayerBluffs: vi.fn(),
@@ -125,7 +130,7 @@ vi.mock('@/context/useGame.ts', () => ({
 }));
 
 vi.mock('@/hooks/useApiSync.ts', () => ({
-  useApiSync: () => ({ fetchGame: vi.fn(async () => null), fetchScript: vi.fn(async () => null) }),
+  useApiSync: () => ({ fetchGame: vi.fn(async () => null), fetchScript: mockFetchScript }),
 }));
 
 vi.mock('@/hooks/useCharacterLookup.ts', () => ({
@@ -151,7 +156,28 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
         otherNights: null,
         reminders: [],
       })),
-    allCharacters: [],
+    allCharacters: [
+      {
+        id: 'registry-town',
+        name: 'Registry Townsfolk',
+        type: 'Townsfolk',
+        defaultAlignment: 'Good',
+        abilityShort: 'Test',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+      {
+        id: 'registry-demon',
+        name: 'Registry Demon',
+        type: 'Demon',
+        defaultAlignment: 'Evil',
+        abilityShort: 'Test',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+    ],
   }),
 }));
 vi.mock('@/hooks/useNightOrder.ts', () => ({ useNightOrder: () => [] }));
@@ -245,7 +271,45 @@ vi.mock('@/components/Setup/CharacterSelection.tsx', () => ({
   CharacterSelection: ({ open }: { open: boolean }) =>
     open ? <div data-testid="char-selection-dialog">Selection</div> : null,
 }));
-vi.mock('@/components/Setup/DemonBluffSelection.tsx', () => ({ DemonBluffSelection: () => null }));
+vi.mock('@/components/Drafting/CharacterDraftDialog.tsx', () => ({
+  CharacterDraftDialog: ({
+    open,
+    onDraftComplete,
+    scriptCharacters,
+  }: {
+    open: boolean;
+    onDraftComplete: (draft: NonNullable<Game['characterDraft']>) => void;
+    scriptCharacters: Array<{ id: string }>;
+  }) =>
+    open ? (
+      <div
+        data-testid="character-draft-dialog"
+        data-script-characters={scriptCharacters.map((character) => character.id).join(',')}
+      >
+        Draft
+        <button
+          data-testid="complete-character-draft"
+          onClick={() =>
+            onDraftComplete({
+              status: 'complete',
+              setupMode: mockDraftSetupMode,
+              presentationMode: 'open',
+              playerOrder: [],
+              currentPlayerIndex: 0,
+              entries: [],
+              revision: 1,
+            })
+          }
+        >
+          Complete draft
+        </button>
+      </div>
+    ) : null,
+}));
+vi.mock('@/components/Setup/DemonBluffSelection.tsx', () => ({
+  DemonBluffSelection: ({ open }: { open: boolean }) =>
+    open ? <div data-testid="demon-bluff-selection">Bluffs</div> : null,
+}));
 vi.mock('@/components/Setup/SetupChecklist.tsx', () => ({ SetupChecklist: () => null }));
 
 import { GameViewPage } from '@/pages/GameViewPage.tsx';
@@ -257,6 +321,7 @@ describe('GameViewPage', () => {
     mockGame = baseGame;
     mockShowCharacters = false;
     mockNightProgress = null;
+    mockDraftSetupMode = 'standard';
     localStorage.setItem('storyteller-game-game-1', JSON.stringify(baseGame));
   });
 
@@ -331,7 +396,25 @@ describe('GameViewPage', () => {
     expect(screen.getByText(/Characters haven't been assigned yet/)).toBeInTheDocument();
   });
 
-  it('redirects assignment to Character Selection until the game has a character pool', () => {
+  it('blocks character setup instead of using every character when the script cannot load', async () => {
+    const unassignedPlayerState = Object.fromEntries(
+      Object.entries(playerState).map(([playerId, state]) => [
+        playerId,
+        { ...state, characterId: '' },
+      ]),
+    );
+    mockGame = { ...baseGame, playerState: unassignedPlayerState };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+
+    render(<GameViewPage />);
+
+    await waitFor(() =>
+      expect(screen.getByText(/Could not load this game's script/)).toBeInTheDocument(),
+    );
+    expect(screen.queryByRole('button', { name: /^select characters$/i })).not.toBeInTheDocument();
+  });
+
+  it('uses one Select Characters action and lets the Storyteller choose manual setup', () => {
     const unassignedPlayerState = Object.fromEntries(
       Object.entries(playerState).map(([playerId, state]) => [
         playerId,
@@ -346,10 +429,102 @@ describe('GameViewPage', () => {
     localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
     render(<GameViewPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: /select characters first/i }));
+    expect(screen.getAllByRole('button', { name: /^select characters$/i })).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: /^select characters$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /manual selection and assignment/i }));
 
     expect(screen.getByTestId('char-selection-dialog')).toBeInTheDocument();
     expect(screen.queryByTestId('char-assign-dialog')).not.toBeInTheDocument();
+  });
+
+  it('opens character drafting from the regular game setup flow', () => {
+    const unassignedPlayerState = Object.fromEntries(
+      Object.entries(playerState).map(([playerId, state]) => [
+        playerId,
+        { ...state, characterId: '' },
+      ]),
+    );
+    mockGame = { ...baseGame, playerState: unassignedPlayerState, inPlayCharacterIds: [] };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^select characters$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start character draft/i }));
+
+    expect(screen.getByTestId('character-draft-dialog')).toBeInTheDocument();
+  });
+
+  it('uses the full character registry for drafting when no script is selected', () => {
+    const unassignedPlayerState = Object.fromEntries(
+      Object.entries(playerState).map(([playerId, state]) => [
+        playerId,
+        { ...state, characterId: '' },
+      ]),
+    );
+    mockGame = {
+      ...baseGame,
+      scriptId: '',
+      playerState: unassignedPlayerState,
+      inPlayCharacterIds: [],
+    };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^select characters$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start character draft/i }));
+
+    expect(screen.getByTestId('character-draft-dialog')).toHaveAttribute(
+      'data-script-characters',
+      'registry-town,registry-demon',
+    );
+  });
+
+  it('skips Demon bluff selection after an Atheist draft', () => {
+    const unassignedPlayerState = Object.fromEntries(
+      Object.entries(playerState).map(([playerId, state]) => [
+        playerId,
+        { ...state, characterId: '' },
+      ]),
+    );
+    mockGame = { ...baseGame, playerState: unassignedPlayerState, inPlayCharacterIds: [] };
+    mockDraftSetupMode = 'atheist';
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^select characters$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start character draft/i }));
+    fireEvent.click(screen.getByTestId('complete-character-draft'));
+
+    expect(mockCompleteCharacterDraft).toHaveBeenCalledOnce();
+    expect(screen.getByTestId('town-square-tab')).toHaveAttribute('data-edit-mode', 'true');
+    fireEvent.click(screen.getByText('Save seating'));
+    fireEvent.click(screen.getByText('Confirm seating'));
+    expect(screen.queryByTestId('demon-bluff-selection')).not.toBeInTheDocument();
+  });
+
+  it('reviews randomized seating before continuing to Demon bluff selection', () => {
+    const unassignedPlayerState = Object.fromEntries(
+      Object.entries(playerState).map(([playerId, state]) => [
+        playerId,
+        { ...state, characterId: '' },
+      ]),
+    );
+    mockGame = { ...baseGame, playerState: unassignedPlayerState, inPlayCharacterIds: [] };
+    localStorage.setItem('storyteller-game-game-1', JSON.stringify(mockGame));
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: /^select characters$/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start character draft/i }));
+    fireEvent.click(screen.getByTestId('complete-character-draft'));
+
+    expect(screen.queryByTestId('demon-bluff-selection')).not.toBeInTheDocument();
+    expect(screen.getByTestId('town-square-tab')).toHaveAttribute('data-edit-mode', 'true');
+    fireEvent.click(screen.getByText('Save seating'));
+    expect(screen.getByRole('dialog')).toHaveTextContent(
+      /confirm the randomized seating before continuing to demon bluffs/i,
+    );
+    fireEvent.click(screen.getByText('Confirm seating'));
+    expect(screen.getByTestId('demon-bluff-selection')).toBeInTheDocument();
   });
 
   it('switches between day and night views using PhaseBar callbacks', () => {

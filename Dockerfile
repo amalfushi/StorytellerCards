@@ -23,10 +23,12 @@ RUN addgroup -S storyteller \
     && chown -R storyteller:storyteller /app /home/data
 COPY --from=api-build /out/storyteller-api /app/storyteller-api
 COPY --from=ui-build /src/UI/dist /app/ui
+COPY API/data/scripts /app/seed-data/scripts
 
 ENV HOST=0.0.0.0 \
     PORT=8080 \
-    DATA_DIR=/home/data \
+    STORYTELLER_DATA_DIR=/home/data \
+    STORYTELLER_SEED_DATA_DIR=/app/seed-data \
     STATIC_DIR=/app/ui \
     APP_VERSION=$APP_VERSION
 
