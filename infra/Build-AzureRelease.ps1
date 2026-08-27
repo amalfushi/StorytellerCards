@@ -55,12 +55,18 @@ if ($LASTEXITCODE -ne 0) {
 }
 $shortCommit = $shortCommit.Trim()
 $gitTag = "v$Version"
-$tagCommit = & git -C $repoRoot rev-list -n 1 $gitTag 2>$null
-if ($LASTEXITCODE -ne 0) {
-    $tagCommit = $null
+$tagRef = "refs/tags/$gitTag"
+& git -C $repoRoot show-ref --verify --quiet $tagRef
+$tagExists = $LASTEXITCODE -eq 0
+$tagCommit = $null
+if ($tagExists) {
+    $tagCommit = & git -C $repoRoot rev-list -n 1 $gitTag
+    if ($LASTEXITCODE -ne 0) {
+        throw "Unable to resolve Git tag '$gitTag'."
+    }
 }
 
-if (-not $tagCommit) {
+if (-not $tagExists) {
     if (-not $CreateGitTag) {
         throw "Git tag '$gitTag' does not exist. Create it manually or rerun with -CreateGitTag."
     }
@@ -95,12 +101,27 @@ if ($LASTEXITCODE -ne 0 -or -not $registry.name) {
 
 $repository = 'storyteller-cards'
 $releaseImage = "${repository}:$Version"
-& az acr manifest show-metadata `
-    --registry $registry.name `
-    --name $releaseImage `
-    --only-show-errors `
-    --output none 2>$null
-if ($LASTEXITCODE -eq 0) {
+$repositoryExists = & az acr repository list `
+    --name $registry.name `
+    --query "[?@ == '$repository'] | [0]" `
+    --output tsv
+if ($LASTEXITCODE -ne 0) {
+    throw "Unable to inspect repositories in '$($registry.name)'."
+}
+
+$releaseExists = $null
+if ($repositoryExists) {
+    $releaseExists = & az acr repository show-tags `
+        --name $registry.name `
+        --repository $repository `
+        --query "[?@ == '$Version'] | [0]" `
+        --output tsv
+    if ($LASTEXITCODE -ne 0) {
+        throw "Unable to inspect release tags in '$($registry.name)/$repository'."
+    }
+}
+
+if ($releaseExists) {
     throw "Release '$Version' already exists in '$($registry.name)'. Choose a new version; release tags are immutable."
 }
 
