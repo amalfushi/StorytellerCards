@@ -1,8 +1,8 @@
 {
   "statements": {
     "total": 6822,
-    "covered": 5630,
-    "pct": 82.53
+    "covered": 5629,
+    "pct": 82.51
   },
   "branches": {
     "total": 5362,
@@ -16,7 +16,7 @@
   },
   "lines": {
     "total": 6822,
-    "covered": 5630,
-    "pct": 82.53
+    "covered": 5629,
+    "pct": 82.51
   }
 }
