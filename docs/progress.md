@@ -50,6 +50,7 @@
 | M41       | Seating Model Integration — production migration to the M40 model: `Session.template` + `Session.players`, per-game `slots`/`participants`/`playerState`/`playerCountOverride`, spacer-aware seat numbering, propagation toggles, character assignment decoupled from seat. Playground removed. | ✅ Complete                           | [details](milestones/41%20-%20seating%20model%20integration/milestone41.md)                           |
 | M42       | Game Preparation UX — selected Option 3 provides explicit Town Square Edit Seating with draft/review/save, participant parking + assignment sheet, propagation controls, first-start seating validation/confirmation, and full-stack persistence coverage.                              | ✅ Complete                           | [details](milestones/42%20-%20game%20preparation%20alternatives/milestone42.md)                       |
 | M43       | Character Drafting — exact-feasibility offers, player choice and mulligans, hidden Drunk/Lunatic/Marionette identities, persistent Storyteller workflow, private handoff, and constrained randomized seating.                                                          | ✅ Complete                           | [details](milestones/43%20-%20character%20drafting/milestone43.md)                                    |
+| M44       | Personal Azure Deployment — single-container App Service, persistent JSON storage, Basic authentication, Bicep/ACR automation, immutable releases, live restart/persistence verification, cost controls, and teardown runbook.                                                        | ✅ Complete                           | [details](milestones/44%20-%20personal%20azure%20deployment/milestone44.md)                            |
 
 ## Key Design Decisions
 
@@ -65,15 +66,16 @@
 - **Same-origin architecture in M33** — Vite proxy in dev (`/api` → `:3001`), Go static file serving in production. Eliminated all CORS configuration, `isPrivateOrigin()`, and cross-origin complexity
 - **Playwright E2E testing in M34** — three-level integration testing strategy: Go model roundtrip tests (catch field parity), Playwright game lifecycle (catch UI→API gaps), Playwright cross-device sync (catch SSE/sync bugs)
 
-## Verification (as of M43 complete)
+## Verification (as of M44 complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
 - Tests: 4350 passing, 3 skipped (99 discovered test files)
-- Coverage: Stmts 80.24%, Branch 70.54%, Funcs 75.73%, Lines 80.24%
-- Storybook: 27 story files, 225 stories incl. `play()` interaction tests
+- Coverage: Stmts 82.51%, Branch 74.82%, Funcs 79.27%, Lines 85.12%
+- Storybook: 29 story files, 231 stories incl. `play()` interaction tests
 - Go build: success
 - Go tests: all passing (handlers, sse, storage packages + roundtrip integration tests)
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)
 - Character icons: 179 base + 312 alignment variants (156 `_e` + 156 `_g`)
-- Playwright E2E: 2 spec files (8 lifecycle scenarios plus cross-device-sync), Chromium-only, `test:e2e`/`test:e2e:sync`/`test:e2e:all`/`test:integration` scripts
+- Playwright E2E: 3 spec files covering lifecycle, cross-device sync, and the
+  full game journey; all release-validation suites passed

@@ -156,17 +156,23 @@ A background goroutine runs on startup and then every 24 hours. It deletes sessi
 
 ## Environment Variables
 
-| Variable | Description          | Default |
-|----------|----------------------|---------|
-| `PORT`   | Server listen port   | `3001`  |
+| Variable              | Description                                                    | Default      |
+|-----------------------|----------------------------------------------------------------|--------------|
+| `PORT`                | Server listen port                                             | `3001`       |
+| `HOST`                | Server bind address                                            | `0.0.0.0`    |
+| `STORYTELLER_DATA_DIR`| Writable directory for sessions, games, and scripts            | auto-detected|
+| `DATA_DIR`            | Legacy fallback for `STORYTELLER_DATA_DIR`                     | unset        |
+| `STORYTELLER_SEED_DATA_DIR` | Read-only bundled data copied into empty writable storage | unset        |
+| `STATIC_DIR`          | Built React assets served by the API with SPA route fallback  | `../UI/dist` |
+| `BASIC_AUTH_USERNAME` | Username used when Basic authentication is enabled             | `storyteller`|
+| `BASIC_AUTH_PASSWORD` | Enables Basic authentication when set; `/health` remains open | unset        |
 
-## CORS
+## Same-Origin Hosting
 
-The API allows requests from:
-- `http://localhost:5173` (Vite dev server)
-- `http://localhost:4173` (Vite preview)
-
-Update the CORS configuration in `cmd/server/main.go` for production domains.
+Vite proxies `/api` and `/health` to the Go server during development. In
+production, the Go server serves the built React app and falls back to
+`index.html` for client-side routes. UI, REST, and SSE traffic therefore share
+one origin and do not require CORS configuration.
 
 ## Character Data
 
@@ -174,8 +180,9 @@ The `/api/characters` endpoint serves from the UI's bundled `characters.json` fi
 
 ## Deployment Notes
 
-- Build a static binary with `go build -o storyteller-api ./cmd/server`
-- Set `PORT` env var for your hosting environment
-- Update CORS origins for your production domain
-- The `data/` directory must be writable by the server process
-- Consider a reverse proxy (nginx/Caddy) for TLS termination
+- The root `Dockerfile` builds the UI and API into one runtime image.
+- Set `STORYTELLER_DATA_DIR` to persistent writable storage. Azure App Service uses
+  `/home/data`.
+- Set `BASIC_AUTH_PASSWORD` for an internet-facing deployment.
+- The checked-in Azure Bicep and deployment scripts are documented in
+  [`../infra/README.md`](../infra/README.md).

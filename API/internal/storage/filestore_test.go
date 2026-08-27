@@ -233,6 +233,49 @@ func TestSaveAndGetGame(t *testing.T) {
 	})
 }
 
+func TestSeedScripts(t *testing.T) {
+	dataDir := t.TempDir()
+	seedDir := t.TempDir()
+	store := New(dataDir)
+	if err := store.EnsureDirectories(); err != nil {
+		t.Fatalf("EnsureDirectories: %v", err)
+	}
+
+	productionDir := filepath.Join(seedDir, "scripts", productionScriptsDir)
+	if err := os.MkdirAll(productionDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(productionDir, "bundled.json"), []byte(`{"id":"bundled"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	existingPath := filepath.Join(dataDir, "scripts", productionScriptsDir, "existing.json")
+	if err := os.WriteFile(existingPath, []byte(`{"id":"existing","name":"User version"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(productionDir, "existing.json"), []byte(`{"id":"existing","name":"Bundled version"}`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := store.SeedScripts(seedDir); err != nil {
+		t.Fatalf("SeedScripts: %v", err)
+	}
+
+	bundled, err := os.ReadFile(filepath.Join(dataDir, "scripts", productionScriptsDir, "bundled.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(bundled) != `{"id":"bundled"}` {
+		t.Fatalf("bundled script = %q", bundled)
+	}
+	existing, err := os.ReadFile(existingPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(existing) != `{"id":"existing","name":"User version"}` {
+		t.Fatalf("existing script was overwritten: %q", existing)
+	}
+}
+
 func TestSaveAndGetScript(t *testing.T) {
 	dir := t.TempDir()
 	store := New(dir)

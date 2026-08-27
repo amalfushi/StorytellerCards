@@ -55,3 +55,10 @@ StorytellerCards/
 
 - [UI README](UI/README.md) — React app architecture, components, testing
 - [API README](API/README.md) — Go API endpoints, storage, deployment
+
+## Azure Deployment
+
+Milestone 44 packages the React UI and Go API into one same-origin container and
+provisions a private-by-default Azure App Service deployment. See
+[infra/README.md](infra/README.md) for prerequisites, cost choices, deployment,
+credential handling, logs, and teardown.

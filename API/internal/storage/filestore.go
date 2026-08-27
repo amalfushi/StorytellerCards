@@ -41,6 +41,51 @@ func (fs *FileStore) EnsureDirectories() error {
 	return nil
 }
 
+// SeedScripts copies bundled scripts that are not already present in writable storage.
+func (fs *FileStore) SeedScripts(seedDataDir string) error {
+	sourceDir := filepath.Join(seedDataDir, "scripts")
+	return filepath.WalkDir(sourceDir, func(sourcePath string, entry os.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+
+		relativePath, err := filepath.Rel(sourceDir, sourcePath)
+		if err != nil {
+			return fmt.Errorf("resolve seed script path %s: %w", sourcePath, err)
+		}
+		destinationPath := filepath.Join(fs.baseDir, "scripts", relativePath)
+		if entry.IsDir() {
+			if err := os.MkdirAll(destinationPath, 0755); err != nil {
+				return fmt.Errorf("mkdir seed destination %s: %w", destinationPath, err)
+			}
+			return nil
+		}
+		if filepath.Ext(entry.Name()) != ".json" {
+			return nil
+		}
+
+		data, err := os.ReadFile(sourcePath)
+		if err != nil {
+			return fmt.Errorf("read seed script %s: %w", sourcePath, err)
+		}
+		file, err := os.OpenFile(destinationPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+		if os.IsExist(err) {
+			return nil
+		}
+		if err != nil {
+			return fmt.Errorf("create seed script %s: %w", destinationPath, err)
+		}
+		if _, err := file.Write(data); err != nil {
+			file.Close()
+			return fmt.Errorf("write seed script %s: %w", destinationPath, err)
+		}
+		if err := file.Close(); err != nil {
+			return fmt.Errorf("close seed script %s: %w", destinationPath, err)
+		}
+		return nil
+	})
+}
+
 // ──────────────────────────────────────────────
 // Atomic write helper
 // ──────────────────────────────────────────────

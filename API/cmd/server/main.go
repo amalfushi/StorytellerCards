@@ -14,14 +14,19 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 
+	"storyteller-cards-api/internal/auth"
 	"storyteller-cards-api/internal/cleanup"
 	"storyteller-cards-api/internal/handlers"
 	"storyteller-cards-api/internal/sse"
 	"storyteller-cards-api/internal/storage"
+	"storyteller-cards-api/internal/web"
 )
 
 func resolveDataDir() string {
 	if configured := os.Getenv("STORYTELLER_DATA_DIR"); configured != "" {
+		return configured
+	}
+	if configured := os.Getenv("DATA_DIR"); configured != "" {
 		return configured
 	}
 	candidates := []string{"data", filepath.Join("API", "data"), filepath.Join("..", "..", "data")}
@@ -45,6 +50,11 @@ func main() {
 	if err := store.EnsureDirectories(); err != nil {
 		log.Fatalf("FATAL ensure dirs: %v", err)
 	}
+	if seedDir := os.Getenv("STORYTELLER_SEED_DATA_DIR"); seedDir != "" {
+		if err := store.SeedScripts(seedDir); err != nil {
+			log.Fatalf("FATAL seed scripts: %v", err)
+		}
+	}
 
 	// Start 90-day session cleanup
 	cleanup.Start(store)
@@ -60,6 +70,7 @@ func main() {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(auth.Basic(envOrDefault("BASIC_AUTH_USERNAME", "storyteller"), os.Getenv("BASIC_AUTH_PASSWORD")))
 
 	// Routes
 	r.Route("/api", func(r chi.Router) {
@@ -93,11 +104,12 @@ func main() {
 	})
 
 	// Serve built UI in production (after API routes)
-	distDir := "../UI/dist"
-	if _, err := os.Stat(distDir); err == nil {
-		fs := http.FileServer(http.Dir(distDir))
-		r.Handle("/*", fs)
+	distDir := envOrDefault("STATIC_DIR", "../UI/dist")
+	if staticHandler, err := web.NewSPAHandler(distDir); err == nil {
+		r.Handle("/*", staticHandler)
 		log.Printf("Serving UI from %s", distDir)
+	} else {
+		log.Printf("UI static assets unavailable: %v", err)
 	}
 
 	host := os.Getenv("HOST")
@@ -131,6 +143,13 @@ func main() {
 		log.Printf("ERROR shutdown: %v", err)
 	}
 	log.Println("server stopped")
+}
+
+func envOrDefault(name, fallback string) string {
+	if value := os.Getenv(name); value != "" {
+		return value
+	}
+	return fallback
 }
 
 // logLANAddresses prints the machine's LAN IPs so users know what URL to use from other devices.

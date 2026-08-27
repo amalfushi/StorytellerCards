@@ -27,6 +27,7 @@ func TestResolveDataDir(t *testing.T) {
 
 	t.Run("repository root", func(t *testing.T) {
 		t.Setenv("STORYTELLER_DATA_DIR", "")
+		t.Setenv("DATA_DIR", "")
 		if err := os.Chdir(root); err != nil {
 			t.Fatal(err)
 		}
@@ -37,6 +38,7 @@ func TestResolveDataDir(t *testing.T) {
 
 	t.Run("server package directory", func(t *testing.T) {
 		t.Setenv("STORYTELLER_DATA_DIR", "")
+		t.Setenv("DATA_DIR", "")
 		if err := os.Chdir(filepath.Join(root, "API", "cmd", "server")); err != nil {
 			t.Fatal(err)
 		}
@@ -47,8 +49,17 @@ func TestResolveDataDir(t *testing.T) {
 
 	t.Run("environment override", func(t *testing.T) {
 		t.Setenv("STORYTELLER_DATA_DIR", filepath.Join(root, "custom-data"))
+		t.Setenv("DATA_DIR", filepath.Join(root, "legacy-data"))
 		if got := resolveDataDir(); got != filepath.Join(root, "custom-data") {
 			t.Fatalf("resolveDataDir() = %q, want environment override", got)
+		}
+	})
+
+	t.Run("legacy environment override", func(t *testing.T) {
+		t.Setenv("STORYTELLER_DATA_DIR", "")
+		t.Setenv("DATA_DIR", filepath.Join(root, "legacy-data"))
+		if got := resolveDataDir(); got != filepath.Join(root, "legacy-data") {
+			t.Fatalf("resolveDataDir() = %q, want legacy environment override", got)
 		}
 	})
 }

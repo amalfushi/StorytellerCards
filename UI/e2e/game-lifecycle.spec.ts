@@ -338,6 +338,7 @@ test.describe('Game Lifecycle', () => {
     const acceptMulligan = page.getByTestId('accept-draft-mulligan');
     await expect(acceptMulligan).toBeVisible({ timeout: 10_000 });
     await acceptMulligan.click();
+    await page.getByRole('button', { name: /Confirm and return to Storyteller board/i }).click();
     await expect(page.getByText('1 of 7 players complete')).toBeVisible({ timeout: 10_000 });
     await expect(page.getByRole('button', { name: /Not drafted/ })).toHaveCount(6);
     await expect(page.getByTestId('game-draft-current-player')).not.toBeVisible();
@@ -359,6 +360,7 @@ test.describe('Game Lifecycle', () => {
       await handoffButton.click();
       await page.getByTestId('draft-roll-options').click();
       await page.getByTestId('draft-choice-0').click();
+      await page.getByRole('button', { name: /Confirm and return to Storyteller board/i }).click();
     }
 
     await page.getByRole('button', { name: /confirm draft and review seating/i }).click();
