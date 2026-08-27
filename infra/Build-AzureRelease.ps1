@@ -126,6 +126,10 @@ if ($releaseExists) {
 }
 
 Write-Host "Building Storyteller Cards $Version from commit $shortCommit..."
+# Azure CLI uses Python and otherwise decodes streamed ACR logs with the
+# Windows legacy code page, which fails when build tools emit Unicode.
+$env:PYTHONIOENCODING = 'utf-8'
+$env:PYTHONUTF8 = '1'
 & az acr build `
     --registry $registry.name `
     --image $releaseImage `
