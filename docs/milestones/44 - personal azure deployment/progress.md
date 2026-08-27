@@ -1,5 +1,31 @@
 # Milestone 44 Progress
 
+## 2026-08-26 — Release deployed and owner-verified
+
+- Provisioned the authenticated five-resource West US 3 B1 plan after a fresh
+  what-if again confirmed five creations with no updates or deletions.
+- Built release `v0.44.0` through ACR Tasks and deployed its immutable digest to
+  the App Service.
+- Locked the release tag against overwrite and deletion and published the
+  matching annotated Git tag.
+- Verified the public health endpoint, Basic authentication challenge,
+  authenticated UI and nested SPA routes, nine seeded scripts, exact deployed
+  version and digest, and managed-identity ACR pulls.
+- Created a disposable session, restarted App Service, verified the session
+  survived in persistent storage, and removed the test record.
+- Fixed first-release handling for nonexistent Git/ACR tags and Windows UTF-8
+  ACR log streaming.
+- The owner confirmed the deployed application through normal hands-on use.
+
+## 2026-08-26 — Milestone 43 integration validated
+
+- Merged Milestone 43 into the deployment branch.
+- Added safe first-run seeding of bundled curated scripts into persistent
+  storage without overwriting imported or edited files.
+- Passed TypeScript compilation, 4,350 UI tests with 3 skipped, 231 Storybook
+  interaction tests, Go tests, lifecycle and sync E2E suites, and the full
+  journey E2E suite.
+
 ## 2026-08-25 — Deployment implementation complete
 
 - Created the `m44/azure-personal-deployment` worktree from `main` so Milestone
@@ -11,13 +37,6 @@
 - Added Bicep plus PowerShell deployment and teardown automation.
 - Validated Go tests, Bicep compilation, PowerShell parsing, and Vite asset
   generation.
-
-## Pending
-
-- Rebase after Milestone 43 and run the full repository quality gates before
-  merging M44.
-- When vacation dates are known, provision B1 one day before travel, complete
-  live phone/restart/SSE smoke tests, and tear down immediately afterward.
 
 ## 2026-08-25 — Personal subscription plan verified
 

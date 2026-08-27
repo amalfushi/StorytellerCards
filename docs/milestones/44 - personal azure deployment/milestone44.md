@@ -1,16 +1,22 @@
 # Milestone 44 — Personal Azure Deployment
 
-## Status: ✅ Complete — deployment intentionally deferred
+## Status: ✅ Complete — deployed and live-verified
 
 **Implementation date:** 2026-08-25
 
-The documented plan and deployment implementation are complete in the M44
-worktree. An authenticated Azure what-if verified the exact five-resource plan
-against the personal subscription. The owner explicitly chose not to provision
-resources yet, so no Azure resources or charges were created. Milestone 43 has
-been integrated; the container seeds its curated scripts into persistent storage
-without overwriting existing files. The selected deployment defaults are
-`westus3` and B1.
+**Deployment date:** 2026-08-26
+
+The documented plan and deployment implementation are complete. Milestone 43
+was integrated and the full repository quality gates passed. An authenticated
+Azure what-if verified the exact five-resource plan before provisioning it in
+the personal subscription with the selected `westus3` and B1 defaults.
+
+Release `v0.44.0` was built with ACR Tasks, locked against tag overwrite and
+deletion, and deployed to App Service by immutable digest. Live verification
+covered the public health endpoint, Basic authentication, React SPA fallback,
+curated script seeding, managed-identity ACR pulls, and JSON persistence across
+an App Service restart. The disposable persistence-test record was removed, and
+the owner subsequently confirmed the application through normal hands-on use.
 
 ## Goal
 
@@ -110,6 +116,10 @@ official pricing links, the vacation runbook, and teardown instructions.
 - [x] Authenticate to and run Azure what-if against the selected personal subscription.
 - [x] Confirm the five-resource West US 3 B1 plan without creating resources.
 - [x] Document expected one-week cost and the deploy/teardown runbook.
+- [x] Provision the verified five-resource plan in the personal subscription.
+- [x] Build and publish immutable release `v0.44.0`.
+- [x] Deploy the release digest and verify the live application.
+- [x] Confirm persistent session storage survives an App Service restart.
 
 ## Validation
 
@@ -118,12 +128,16 @@ official pricing links, the vacation runbook, and teardown instructions.
 - [x] PowerShell parser validation for provisioning, build, deployment, inventory, and teardown scripts.
 - [x] Vite production asset build.
 - [x] Authenticated Azure what-if against the personal subscription.
-- [ ] Full TypeScript build after Milestone 43 lands. The current `main` branch
-  has pre-existing M43-adjacent type errors and Vitest configuration typing
-  errors; M44 does not suppress or modify those checks.
-- [ ] Future-deployment validation: ACR container build and live App Service
-  smoke test. Intentionally deferred because the plan-only scope creates no
-  billable resources.
+- [x] Full TypeScript build after integrating Milestone 43: 0 errors.
+- [x] UI unit tests: 4,350 passed and 3 skipped across 99 test files.
+- [x] Storybook interaction tests: 231 passed.
+- [x] Lifecycle, cross-device sync, and full-journey Playwright suites.
+- [x] ACR Tasks production container build with immutable tag and digest.
+- [x] Live App Service smoke test for health, authentication, SPA routing,
+  seeded scripts, release metadata, and managed-identity image pulls.
+- [x] Persistent session roundtrip across an App Service restart, followed by
+  successful cleanup of the disposable test record.
+- [x] Owner confirmation through normal use of the deployed application.
 
 ## Acceptance Criteria
 
@@ -137,3 +151,4 @@ official pricing links, the vacation runbook, and teardown instructions.
 - [x] Public access requires generated credentials.
 - [x] All created resources can be removed through a confirmation-gated command.
 - [x] The owner can review expected costs before deciding when to provision.
+- [x] A versioned release is running successfully in the personal subscription.
