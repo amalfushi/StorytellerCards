@@ -14,9 +14,12 @@ param(
     [string] $Location = 'westus3',
     [ValidatePattern('^[a-z][a-z0-9-]{2,23}$')]
     [string] $NamePrefix = 'storytellercards',
+    [ValidatePattern('^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$')]
+    [string] $WebAppName,
     [ValidateSet('F1', 'B1')]
     [string] $Sku = 'B1',
     [string] $AccessPassword,
+    [switch] $UseExistingInfrastructure,
     [switch] $WhatIf
 )
 
@@ -41,7 +44,8 @@ if ($SubscriptionId) {
     $account = (& az @accountArguments) | ConvertFrom-Json
 }
 
-if (-not $AccessPassword) {
+$generatedAccessPassword = -not $AccessPassword
+if ($generatedAccessPassword) {
     $characterRoot = Join-Path (Split-Path -Parent $PSScriptRoot) 'UI\src\data\characters'
     $characterNames = @(
         Get-ChildItem -Path $characterRoot -Directory |
@@ -93,13 +97,24 @@ $deploymentArguments = @(
     "namePrefix=$NamePrefix",
     "location=$Location",
     "appServiceSkuName=$Sku",
-    "basicAuthPassword=$AccessPassword",
-    '--output', 'json'
+    "provisionSharedInfrastructure=$((-not $UseExistingInfrastructure).ToString().ToLowerInvariant())",
+    "basicAuthPassword=$AccessPassword"
 )
+
+# Supplying a web app name creates or updates that app while retaining the
+# subscription-specific registry and App Service plan derived from NamePrefix.
+if ($WebAppName) {
+    $deploymentArguments += "webAppName=$WebAppName"
+}
+$deploymentArguments += @('--output', 'json')
 
 Write-Host "Subscription: $($account.name) ($($account.id))"
 Write-Host "SKU:          $Sku"
 Write-Host "Location:     $Location"
+if ($WebAppName) {
+    Write-Host "Web app:      $WebAppName"
+}
+Write-Host "Shared infra: $(if ($UseExistingInfrastructure) { 'Reuse existing' } else { 'Create or update' })"
 
 if ($WhatIf) {
     $deploymentArguments[2] = 'what-if'
@@ -128,8 +143,15 @@ Write-Host "Registry:       $registryName"
 Write-Host "Web app:        $webAppName"
 Write-Host "URL:            $webAppUrl"
 Write-Host 'Username:       storyteller'
-Write-Host "Password:       $AccessPassword"
+if ($generatedAccessPassword) {
+    Write-Host "Password:       $AccessPassword"
+} else {
+    Write-Host 'Password:       supplied value retained (not displayed)'
+}
 Write-Host ''
-Write-Host 'Save the password, then build and deploy a release:'
+if ($generatedAccessPassword) {
+    Write-Host 'Save the generated password before continuing.'
+}
+Write-Host 'Build and deploy a release:'
 Write-Host '  .\infra\Build-AzureRelease.ps1 -Version <major.minor.patch> -CreateGitTag'
-Write-Host '  .\infra\Deploy-AzureRelease.ps1 -Version <major.minor.patch>'
+Write-Host "  .\infra\Deploy-AzureRelease.ps1 -Version <major.minor.patch> -WebAppName '$webAppName'"

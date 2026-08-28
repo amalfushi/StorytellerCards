@@ -1,42 +1,23 @@
 param location string
 param registryName string
 param webAppName string
+param appServicePlanName string
 param appServiceSkuName string
 
 @secure()
 param basicAuthPassword string
 
-var appServicePlanName = '${webAppName}-plan'
-var appServiceSkuTier = appServiceSkuName == 'F1' ? 'Free' : 'Basic'
 var acrPullRoleDefinitionId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
   '7f951dda-4ed3-4680-a7ca-43fe172d538d'
 )
 
-resource registry 'Microsoft.ContainerRegistry/registries@2023-07-01' = {
+resource registry 'Microsoft.ContainerRegistry/registries@2023-07-01' existing = {
   name: registryName
-  location: location
-  sku: {
-    name: 'Basic'
-  }
-  properties: {
-    adminUserEnabled: false
-    publicNetworkAccess: 'Enabled'
-  }
 }
 
-resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' = {
+resource appServicePlan 'Microsoft.Web/serverfarms@2024-04-01' existing = {
   name: appServicePlanName
-  location: location
-  kind: 'linux'
-  sku: {
-    name: appServiceSkuName
-    tier: appServiceSkuTier
-    capacity: 1
-  }
-  properties: {
-    reserved: true
-  }
 }
 
 resource webApp 'Microsoft.Web/sites@2024-04-01' = {

@@ -1,5 +1,29 @@
 # Milestone 44 Progress
 
+## 2026-08-26 — Friendly App Service URL deployed
+
+- Added an optional explicit App Service name while retaining the generated
+  names as the safe default for first-time deployments.
+- Split shared ACR and App Service plan provisioning from app provisioning so
+  replacement apps can reference existing infrastructure without updating it.
+- Added explicit web-app targeting to release deployment and inventory scripts;
+  implicit selection now refuses to continue when multiple apps exist.
+- Previewed the replacement deployment and confirmed it would create only
+  `storytellercards` and its managed-identity ACR pull role assignment, with no
+  shared-resource updates or deletions.
+- Provisioned `storytellercards` in the existing
+  `storytellercards-hm7rgicvjobuq-plan` and deployed the existing immutable
+  `0.44.1` image digest.
+- Verified `https://storytellercards.azurewebsites.net` health, Basic
+  authentication, authenticated UI and nested routes, nine seeded scripts,
+  exact release metadata, and managed-identity ACR pulls.
+- Verified the original suffixed app remained running and healthy throughout
+  replacement validation, with exactly one App Service plan serving both apps.
+- After validation, the owner manually deleted the original suffixed app. The
+  friendly-name app is now the only app using the existing plan.
+- The replacement app has its own `/home` storage. No persistent session, game,
+  or imported-script data was migrated from the original app before deletion.
+
 ## 2026-08-26 — Release deployed and owner-verified
 
 - Provisioned the authenticated five-resource West US 3 B1 plan after a fresh

@@ -15,7 +15,9 @@ param(
     [string] $Version,
     [string] $SubscriptionId,
     [ValidatePattern('^[a-z][a-z0-9-]{2,23}$')]
-    [string] $NamePrefix = 'storytellercards'
+    [string] $NamePrefix = 'storytellercards',
+    [ValidatePattern('^[a-z0-9][a-z0-9-]{1,58}[a-z0-9]$')]
+    [string] $WebAppName
 )
 
 $ErrorActionPreference = 'Stop'
@@ -45,14 +47,36 @@ if ($LASTEXITCODE -ne 0 -or -not $registry.name) {
     throw "No Azure Container Registry was found in resource group '$resourceGroupName'."
 }
 
-$webAppName = & az webapp list `
-    --resource-group $resourceGroupName `
-    --query '[0].name' `
-    --output tsv
-if ($LASTEXITCODE -ne 0 -or -not $webAppName) {
-    throw "No Azure Web App was found in resource group '$resourceGroupName'."
+# Explicit targeting prevents a release from reaching the wrong app when a
+# resource group temporarily contains both the current and replacement apps.
+if ($WebAppName) {
+    $resolvedWebAppName = & az webapp show `
+        --resource-group $resourceGroupName `
+        --name $WebAppName `
+        --query name `
+        --output tsv
+    if ($LASTEXITCODE -ne 0 -or -not $resolvedWebAppName) {
+        throw "Web app '$WebAppName' was not found in resource group '$resourceGroupName'."
+    }
+} else {
+    $webAppNames = @(
+        (& az webapp list `
+            --resource-group $resourceGroupName `
+            --query '[].name' `
+            --output json) | ConvertFrom-Json
+    )
+    if ($LASTEXITCODE -ne 0) {
+        throw "Unable to list Azure Web Apps in resource group '$resourceGroupName'."
+    }
+    if ($webAppNames.Count -eq 0) {
+        throw "No Azure Web App was found in resource group '$resourceGroupName'."
+    }
+    if ($webAppNames.Count -gt 1) {
+        throw "Multiple Azure Web Apps were found in resource group '$resourceGroupName'. Specify -WebAppName."
+    }
+    $resolvedWebAppName = $webAppNames[0]
 }
-$webAppName = $webAppName.Trim()
+$resolvedWebAppName = $resolvedWebAppName.Trim()
 
 $repository = 'storyteller-cards'
 $releaseImage = "${repository}:$Version"
@@ -67,18 +91,18 @@ if ($LASTEXITCODE -ne 0 -or -not $digest) {
 $digest = $digest.Trim()
 
 $immutableImage = "$($registry.loginServer)/${repository}@$digest"
-$webAppUrl = "https://$webAppName.azurewebsites.net"
+$webAppUrl = "https://$resolvedWebAppName.azurewebsites.net"
 
 Write-Host "Subscription: $($account.name) ($($account.id))"
 Write-Host "Release:      $Version"
 Write-Host "Digest:       $digest"
-Write-Host "Web app:      $webAppName"
+Write-Host "Web app:      $resolvedWebAppName"
 Write-Host ''
 Write-Host 'Configuring App Service with the immutable release image...'
 
 & az webapp config container set `
     --resource-group $resourceGroupName `
-    --name $webAppName `
+    --name $resolvedWebAppName `
     --container-image-name $immutableImage `
     --container-registry-url "https://$($registry.loginServer)" `
     --output none
@@ -88,7 +112,7 @@ if ($LASTEXITCODE -ne 0) {
 
 & az webapp config appsettings set `
     --resource-group $resourceGroupName `
-    --name $webAppName `
+    --name $resolvedWebAppName `
     --settings "APP_VERSION=$Version" "APP_IMAGE_DIGEST=$digest" `
     --output none
 if ($LASTEXITCODE -ne 0) {
@@ -97,7 +121,7 @@ if ($LASTEXITCODE -ne 0) {
 
 & az webapp log config `
     --resource-group $resourceGroupName `
-    --name $webAppName `
+    --name $resolvedWebAppName `
     --docker-container-logging filesystem `
     --output none
 if ($LASTEXITCODE -ne 0) {
@@ -106,7 +130,7 @@ if ($LASTEXITCODE -ne 0) {
 
 & az webapp restart `
     --resource-group $resourceGroupName `
-    --name $webAppName `
+    --name $resolvedWebAppName `
     --output none
 if ($LASTEXITCODE -ne 0) {
     throw 'Unable to restart App Service.'
@@ -131,4 +155,4 @@ do {
     }
 } while ((Get-Date) -lt $deadline)
 
-throw "Release '$Version' did not become healthy within five minutes. Inspect logs with: az webapp log tail --resource-group $resourceGroupName --name $webAppName"
+throw "Release '$Version' did not become healthy within five minutes. Inspect logs with: az webapp log tail --resource-group $resourceGroupName --name $resolvedWebAppName"

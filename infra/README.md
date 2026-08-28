@@ -157,9 +157,36 @@ To target a non-default subscription, location, name, or Free plan:
   -WhatIf
 ```
 
-The expected preview is five creations: resource group, Basic ACR, B1 Linux App
-Service plan, web app, and ACR pull role assignment. Stop and investigate if it
-shows updates or deletions you did not expect.
+To request a specific globally unique App Service hostname while reusing the
+registry and App Service plan derived from `NamePrefix`:
+
+```powershell
+.\infra\Provision-Azure.ps1 `
+  -SubscriptionId '<subscription-id>' `
+  -WebAppName 'storytellercards' `
+  -UseExistingInfrastructure `
+  -WhatIf
+```
+
+App Service names use a global namespace. A requested name can become
+unavailable before provisioning, and an existing App Service cannot be
+renamed. Changing `WebAppName` creates a replacement app in the same plan;
+incremental deployment leaves the previous app running for validation and
+cutover. Persistent `/home` storage belongs to each app and is not shared just
+because the apps use the same plan. Copy any data that must survive cutover
+before deleting the previous app.
+
+For a first deployment, the expected preview is five creations: resource group,
+Basic ACR, B1 Linux App Service plan, web app, and ACR pull role assignment. A
+replacement app in existing infrastructure should create only the new web app
+and its ACR pull role assignment while retaining the registry and plan. Stop
+and investigate if the preview shows an additional plan, unexpected updates,
+or deletions.
+
+`-UseExistingInfrastructure` makes the registry and App Service plan read-only
+inputs to the deployment. Use it only after those resources have been
+provisioned with the same `NamePrefix`; the deployment fails rather than
+creating replacements if either resource is missing.
 
 ### 2. Provision
 
@@ -302,11 +329,24 @@ The script:
 4. Records `APP_VERSION` and `APP_IMAGE_DIGEST` in App Service settings.
 5. Restarts the app and waits up to five minutes for `/health`.
 
+When more than one web app exists in the resource group, target the intended
+app explicitly:
+
+```powershell
+.\infra\Deploy-AzureRelease.ps1 `
+  -Version 0.44.0 `
+  -WebAppName 'storytellercards'
+```
+
 List available versions and the currently deployed version:
 
 ```powershell
-.\infra\Get-AzureReleases.ps1
+.\infra\Get-AzureReleases.ps1 -WebAppName 'storytellercards'
 ```
+
+Both release scripts infer the target only when exactly one web app exists.
+They stop and require `-WebAppName` when multiple apps exist so a deployment
+cannot silently modify the wrong app.
 
 ### Verify Every Deployment
 
@@ -371,12 +411,13 @@ az webapp list `
 Show the current release and release history:
 
 ```powershell
-.\infra\Get-AzureReleases.ps1
+.\infra\Get-AzureReleases.ps1 -WebAppName '<app-name>'
 ```
 
 Provisioning again with the same `NamePrefix` updates infrastructure but does
-not build or deploy application code. Changing `NamePrefix` creates a separate
-resource group. Build and deployment remain explicit, separate operations.
+not build or deploy application code. Changing `WebAppName` creates another app
+in the same App Service plan; changing `NamePrefix` creates a separate resource
+group. Build and deployment remain explicit, separate operations.
 
 ### Troubleshooting
 
