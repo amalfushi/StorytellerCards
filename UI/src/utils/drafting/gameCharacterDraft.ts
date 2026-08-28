@@ -21,10 +21,19 @@ import {
 } from '@/utils/drafting/draftSession.ts';
 import {
   getLegalDraftCompletionCounts,
+  hasLegalDraftCompletion,
   type DraftCharacter,
 } from '@/utils/drafting/draftFeasibility.ts';
-import { CHARACTER_DRAFT_RULES, DraftIdentityKind } from '@/utils/drafting/draftRules.ts';
-import { calculateAdaptiveTargets, type AdaptiveTargets } from '@/utils/adaptiveDistribution.ts';
+import {
+  CHARACTER_DRAFT_RULES,
+  DraftIdentityKind,
+  DraftSetupMode,
+} from '@/utils/drafting/draftRules.ts';
+import {
+  calculateAdaptiveTargets,
+  getLegionGoodCount,
+  type AdaptiveTargets,
+} from '@/utils/adaptiveDistribution.ts';
 
 const DRAFTABLE_TYPES: DraftableCharacterType[] = [
   CharacterType.Townsfolk,
@@ -34,6 +43,7 @@ const DRAFTABLE_TYPES: DraftableCharacterType[] = [
 ];
 
 const HIDDEN_OUTSIDER_CHARACTER_IDS = new Set(['drunk', 'lunatic']);
+const NON_LEGION_SETUP_CHARACTER_IDS = ['atheist', 'kazali', 'summoner'] as const;
 
 const SETUP_MODE_CHARACTER_IDS: Partial<Record<CharacterDraftSetupMode, string>> = {
   atheist: 'atheist',
@@ -378,6 +388,52 @@ function committedCharacterIds(state: CharacterDraftState): string[] {
   );
 }
 
+function hasRolledNonLegionEvil(state: CharacterDraftState, config: DraftSessionConfig): boolean {
+  const typeById = new Map(
+    config.scriptCharacters.map((character) => [character.id, character.type]),
+  );
+  return (
+    state.legionEliminated === true ||
+    state.entries.some((entry) =>
+      [...entry.offer.offeredCharacterIds, entry.offer.mulliganCharacterId].some(
+        (characterId) =>
+          characterId !== null &&
+          characterId !== 'legion' &&
+          (typeById.get(characterId) === CharacterType.Minion ||
+            typeById.get(characterId) === CharacterType.Demon),
+      ),
+    )
+  );
+}
+
+function offerShowsNonLegionEvil(
+  offer: CharacterDraftOfferSnapshot,
+  config: DraftSessionConfig,
+): boolean {
+  const typeById = new Map(
+    config.scriptCharacters.map((character) => [character.id, character.type]),
+  );
+  return [...offer.offeredCharacterIds, offer.mulliganCharacterId].some(
+    (characterId) =>
+      characterId !== null &&
+      characterId !== 'legion' &&
+      (typeById.get(characterId) === CharacterType.Minion ||
+        typeById.get(characterId) === CharacterType.Demon),
+  );
+}
+
+function rollEarlyDemonCharacterId(
+  config: DraftSessionConfig,
+  random: DraftRandomSource,
+): string | undefined {
+  const demonIds = config.scriptCharacters
+    .filter((character) => character.type === CharacterType.Demon)
+    .map((character) => character.id);
+  if (demonIds.length === 0) return undefined;
+  const index = Math.min(demonIds.length - 1, Math.floor(Math.max(0, random()) * demonIds.length));
+  return demonIds[index];
+}
+
 export function getDraftExpectedCharacterCounts(
   state: CharacterDraftState,
   playerCount: number,
@@ -409,6 +465,70 @@ export function replanGameCharacterDraftTypes(
   const remainingPlayerIds = state.playerOrder.filter(
     (playerId) => !resolvedPlayerIds.has(playerId),
   );
+  if (state.setupMode === DraftSetupMode.Legion) {
+    const goodCount = getLegionGoodCount(config.playerCount);
+    const legionCount = config.playerCount - goodCount;
+    const selectedCharacterIds = committedCharacterIds(state);
+    const incompatibleEvilCharacterId = selectedCharacterIds.find((id) => {
+      const type = config.scriptCharacters.find((character) => character.id === id)?.type;
+      return type === CharacterType.Minion || (type === CharacterType.Demon && id !== 'legion');
+    });
+    if (incompatibleEvilCharacterId) {
+      return {
+        ...state,
+        status: 'blocked',
+        blockedReason: `${incompatibleEvilCharacterId} cannot be committed in Legion setup.`,
+        plannedCharacterTypes: undefined,
+      };
+    }
+    const committedLegionCount = selectedCharacterIds.filter((id) => id === 'legion').length;
+    const remainingLegionCount = legionCount - committedLegionCount;
+    const remainingGoodCount = goodCount - (selectedCharacterIds.length - committedLegionCount);
+    if (
+      remainingLegionCount < 0 ||
+      remainingGoodCount < 0 ||
+      remainingLegionCount + remainingGoodCount !== remainingPlayerIds.length
+    ) {
+      return { ...state, plannedCharacterTypes: undefined };
+    }
+
+    const goodTypes = DRAFTABLE_TYPES.filter(
+      (type) =>
+        (type === CharacterType.Townsfolk || type === CharacterType.Outsider) &&
+        config.scriptCharacters.some((character) => character.type === type),
+    );
+    const forcedLegionPlayerId =
+      remainingLegionCount > 0 &&
+      state.activePlayerId &&
+      remainingPlayerIds.includes(state.activePlayerId)
+        ? state.activePlayerId
+        : undefined;
+    const shuffledPlayerIds = shuffle(
+      remainingPlayerIds.filter((playerId) => playerId !== forcedLegionPlayerId),
+      random,
+    );
+    const plannedAlignments = shuffle(
+      [
+        ...Array.from(
+          { length: remainingLegionCount - (forcedLegionPlayerId ? 1 : 0) },
+          () => CharacterType.Demon,
+        ),
+        ...Array.from({ length: remainingGoodCount }, () => CharacterType.Townsfolk),
+      ],
+      random,
+    );
+    const plannedCharacterTypes: Partial<Record<PlayerId, DraftableCharacterType[]>> = {};
+    if (forcedLegionPlayerId) {
+      plannedCharacterTypes[forcedLegionPlayerId] = [CharacterType.Demon];
+    }
+    shuffledPlayerIds.forEach((playerId, index) => {
+      plannedCharacterTypes[playerId] =
+        plannedAlignments[index] === CharacterType.Demon
+          ? [CharacterType.Demon]
+          : shuffle(goodTypes, random).slice(0, 2);
+    });
+    return { ...state, plannedCharacterTypes };
+  }
   const hiddenReservations: Array<{
     playerId: PlayerId;
     characterId: string;
@@ -647,10 +767,73 @@ export function upgradeLegacyGameCharacterDraft(
   };
 }
 
+function hasValidLegionPlans(state: CharacterDraftState, config: DraftSessionConfig): boolean {
+  if (state.setupMode !== DraftSetupMode.Legion || !state.plannedCharacterTypes) return false;
+  if (
+    state.entries.some((entry) => {
+      if (!entry.actualCharacterId) return false;
+      const type = config.scriptCharacters.find(
+        (character) => character.id === entry.actualCharacterId,
+      )?.type;
+      return (
+        type === CharacterType.Minion ||
+        (type === CharacterType.Demon && entry.actualCharacterId !== 'legion')
+      );
+    })
+  ) {
+    return false;
+  }
+  const playerCount = config.playerCount;
+  const resolvedPlayerIds = new Set(
+    state.entries.filter((entry) => entry.actualCharacterId).map((entry) => entry.playerId),
+  );
+  const remainingPlayerIds = state.playerOrder.filter(
+    (playerId) => !resolvedPlayerIds.has(playerId),
+  );
+  const remainingLegionCount =
+    playerCount -
+    getLegionGoodCount(playerCount) -
+    state.entries.filter((entry) => entry.actualCharacterId === 'legion').length;
+  let plannedLegionCount = 0;
+
+  for (const playerId of remainingPlayerIds) {
+    const plannedTypes = state.plannedCharacterTypes[playerId];
+    if (!plannedTypes || plannedTypes.length === 0) return false;
+    if (plannedTypes.length === 1 && plannedTypes[0] === CharacterType.Demon) {
+      plannedLegionCount += 1;
+      continue;
+    }
+    if (
+      plannedTypes.some(
+        (type) => type !== CharacterType.Townsfolk && type !== CharacterType.Outsider,
+      )
+    ) {
+      return false;
+    }
+  }
+
+  return plannedLegionCount === remainingLegionCount;
+}
+
+function ensureGameCharacterDraftPlans(
+  state: CharacterDraftState,
+  config: DraftSessionConfig,
+  random: DraftRandomSource,
+): CharacterDraftState {
+  if (
+    state.plannedCharacterTypes &&
+    (state.setupMode !== DraftSetupMode.Legion || hasValidLegionPlans(state, config))
+  ) {
+    return state;
+  }
+  return replanGameCharacterDraftTypes(state, config, random);
+}
+
 function configForDraftPlayer(
   state: CharacterDraftState,
   config: DraftSessionConfig,
   playerId: PlayerId,
+  earlyDemonCharacterId?: string,
 ): DraftSessionConfig {
   const controlledMarionetteRoll = state.marionetteRoll;
   const receivesMarionette =
@@ -661,11 +844,16 @@ function configForDraftPlayer(
     state.outsiderCharacterRolls !== undefined || state.outsiderHiddenRoll !== undefined;
   const controlledOutsiderRoll = controlledOutsiderRolls.find((roll) => roll.playerId === playerId);
   const receivesOutsiderHiddenCharacter = controlledOutsiderRoll !== undefined;
-  const forcedCharacterId = receivesMarionette
-    ? 'marionette'
-    : receivesOutsiderHiddenCharacter
-      ? controlledOutsiderRoll.characterId
-      : undefined;
+  const receivesForcedLegion =
+    state.setupMode === DraftSetupMode.Legion &&
+    state.plannedCharacterTypes?.[playerId]?.[0] === CharacterType.Demon;
+  const forcedCharacterId = receivesForcedLegion
+    ? 'legion'
+    : receivesMarionette
+      ? 'marionette'
+      : receivesOutsiderHiddenCharacter
+        ? controlledOutsiderRoll.characterId
+        : undefined;
   const excludedCharacterIds = [
     ...(controlledMarionetteRoll && !receivesMarionette ? ['marionette'] : []),
     ...(hasControlledOutsiderRoll
@@ -687,15 +875,92 @@ function configForDraftPlayer(
       .filter((roll) => roll.playerId !== playerId && !resolvedPlayerIds.has(roll.playerId))
       .map((roll) => roll.characterId),
   ].filter((characterId): characterId is string => characterId !== undefined);
+  const legionTransitionWindow = getLegionGoodCount(config.playerCount);
+  const isEarlyLegionDecisionWindow =
+    state.setupMode === DraftSetupMode.Standard &&
+    state.entries.filter((entry) => entry.actualCharacterId).length <= legionTransitionWindow &&
+    !hasRolledNonLegionEvil(state, config) &&
+    config.scriptCharacters.some((character) => character.id === 'legion');
+  const canOfferLegionTransition =
+    earlyDemonCharacterId === 'legion' &&
+    isEarlyLegionDecisionWindow &&
+    hasLegalDraftCompletion({
+      playerCount: config.playerCount,
+      scriptCharacters: config.scriptCharacters,
+      committedCharacterIds: [...committedCharacterIds(state), 'legion'],
+      setupMode: DraftSetupMode.Legion,
+      variableModifierValues: state.variableModifierValues,
+      characterCopyTargets: state.characterCopyTargets,
+    });
+  const canOfferStandardDemon =
+    earlyDemonCharacterId !== undefined &&
+    earlyDemonCharacterId !== 'legion' &&
+    isEarlyLegionDecisionWindow &&
+    hasLegalDraftCompletion({
+      playerCount: config.playerCount,
+      scriptCharacters: config.scriptCharacters,
+      committedCharacterIds: [...committedCharacterIds(state), earlyDemonCharacterId],
+      setupMode: DraftSetupMode.Standard,
+      variableModifierValues: state.variableModifierValues,
+      characterCopyTargets: state.characterCopyTargets,
+    });
+  const offeredEarlyDemonId = canOfferLegionTransition
+    ? 'legion'
+    : canOfferStandardDemon
+      ? earlyDemonCharacterId
+      : undefined;
+  const protectsPotentialLegionGoodPlayer =
+    isEarlyLegionDecisionWindow && offeredEarlyDemonId === undefined;
+  const plannedGoodType = state.plannedCharacterTypes?.[playerId]?.find(
+    (type) => type === CharacterType.Townsfolk || type === CharacterType.Outsider,
+  );
+  const legionTransitionTypes = [
+    CharacterType.Demon,
+    plannedGoodType ??
+      (config.scriptCharacters.some((character) => character.type === CharacterType.Townsfolk)
+        ? CharacterType.Townsfolk
+        : CharacterType.Outsider),
+  ];
+  const legionTransitionExclusions =
+    offeredEarlyDemonId || protectsPotentialLegionGoodPlayer
+      ? config.scriptCharacters
+          .filter(
+            (character) =>
+              character.id !== offeredEarlyDemonId &&
+              (character.type === CharacterType.Minion ||
+                character.type === CharacterType.Demon ||
+                NON_LEGION_SETUP_CHARACTER_IDS.includes(
+                  character.id as (typeof NON_LEGION_SETUP_CHARACTER_IDS)[number],
+                ) ||
+                CHARACTER_DRAFT_RULES[character.id]?.identity !== undefined),
+          )
+          .map((character) => character.id)
+      : [];
 
   return {
     ...config,
-    plannedCharacterTypes:
-      state.presentationMode === DraftPresentationMode.Open
-        ? undefined
-        : state.plannedCharacterTypes?.[playerId],
+    setupMode: state.setupMode,
+    preferredCharacterId: offeredEarlyDemonId,
+    randomizePreferredCharacterPosition: offeredEarlyDemonId !== undefined || undefined,
+    additionalLegalCandidateIds: canOfferLegionTransition ? ['legion'] : undefined,
+    plannedCharacterTypes: offeredEarlyDemonId
+      ? legionTransitionTypes
+      : protectsPotentialLegionGoodPlayer
+        ? DRAFTABLE_TYPES.filter(
+            (type) =>
+              (type === CharacterType.Townsfolk || type === CharacterType.Outsider) &&
+              config.scriptCharacters.some((character) => character.type === type),
+          )
+        : state.presentationMode === DraftPresentationMode.Open &&
+            state.setupMode !== DraftSetupMode.Legion
+          ? undefined
+          : state.plannedCharacterTypes?.[playerId],
     forcedCharacterId,
-    excludedCharacterIds: excludedCharacterIds.length > 0 ? excludedCharacterIds : undefined,
+    repeatForcedCharacterAcrossOffer: receivesForcedLegion || undefined,
+    excludedCharacterIds:
+      excludedCharacterIds.length + legionTransitionExclusions.length > 0
+        ? [...excludedCharacterIds, ...legionTransitionExclusions]
+        : undefined,
     reservedCharacterIds: reservedCharacterIds.length > 0 ? reservedCharacterIds : undefined,
   };
 }
@@ -713,14 +978,24 @@ export function selectGameCharacterDraftPlayer(
     throw new Error('The player has already completed their draft.');
   }
 
-  const stateWithPlans = state.plannedCharacterTypes
-    ? state
-    : withHiddenCharacterRolls(
-        replanGameCharacterDraftTypes(state, config, random),
-        config,
-        random,
-      );
-  const playerConfig = configForDraftPlayer(stateWithPlans, config, playerId);
+  const ensuredState = ensureGameCharacterDraftPlans(state, config, random);
+  const stateWithPlans =
+    ensuredState === state ? state : withHiddenCharacterRolls(ensuredState, config, random);
+  if (stateWithPlans.status === 'blocked') return stateWithPlans;
+  const earlyDemonCharacterId =
+    stateWithPlans.setupMode === DraftSetupMode.Standard &&
+    stateWithPlans.entries.filter((entry) => entry.actualCharacterId).length <=
+      getLegionGoodCount(config.playerCount) &&
+    !hasRolledNonLegionEvil(stateWithPlans, config) &&
+    config.scriptCharacters.some((character) => character.id === 'legion')
+      ? rollEarlyDemonCharacterId(config, random)
+      : undefined;
+  const playerConfig = configForDraftPlayer(
+    stateWithPlans,
+    config,
+    playerId,
+    earlyDemonCharacterId,
+  );
   const session = regenerateDraftOffer(
     {
       ...toSessionState({ ...stateWithPlans, activePlayerId: undefined }),
@@ -752,7 +1027,16 @@ export function selectGameCharacterDraftPlayer(
     return {
       ...stateWithPlans,
       activePlayerId: playerId,
-      entries: [...state.entries.filter((candidate) => candidate.playerId !== playerId), entry],
+      entries: [
+        ...stateWithPlans.entries.filter(
+          (candidate) =>
+            candidate.selectedCharacterId !== undefined && candidate.resolution !== undefined,
+        ),
+        entry,
+      ],
+      legionEliminated:
+        hasRolledNonLegionEvil(stateWithPlans, config) ||
+        offerShowsNonLegionEvil(entry.offer, config),
       blockedReason: undefined,
       revision: state.revision + 1,
     };
@@ -775,7 +1059,22 @@ export function resolveGameCharacterDraft(
   const currentEntry = state.entries.find((entry) => entry.playerId === state.activePlayerId);
   if (!currentEntry) throw new Error('The game draft does not have an active player.');
   const actualCharacterId = actualCharacterIdForOffer(currentEntry, characterId);
-  const playerConfig = configForDraftPlayer(state, config, currentEntry.playerId);
+  const typeById = new Map(
+    config.scriptCharacters.map((character) => [character.id, character.type]),
+  );
+  const rolledDemonCharacterId = [
+    ...currentEntry.offer.offeredCharacterIds,
+    currentEntry.offer.mulliganCharacterId,
+  ].find(
+    (offeredCharacterId): offeredCharacterId is string =>
+      offeredCharacterId !== null && typeById.get(offeredCharacterId) === CharacterType.Demon,
+  );
+  const playerConfig = configForDraftPlayer(
+    state,
+    config,
+    currentEntry.playerId,
+    rolledDemonCharacterId,
+  );
 
   const nextSession = resolveDraftPick(
     toSessionState(state),
@@ -793,14 +1092,28 @@ export function resolveGameCharacterDraft(
     apparentCharacterId: characterId,
     resolution,
   };
+  const setupMode =
+    state.setupMode === DraftSetupMode.Standard && actualCharacterId === 'legion'
+      ? DraftSetupMode.Legion
+      : state.setupMode;
+  const resolvedState = withResolvedTurn(
+    {
+      ...state,
+      entries,
+      setupMode,
+      marionetteRoll: setupMode === DraftSetupMode.Legion ? undefined : state.marionetteRoll,
+      outsiderHiddenRoll:
+        setupMode === DraftSetupMode.Legion ? undefined : state.outsiderHiddenRoll,
+      outsiderCharacterRolls:
+        setupMode === DraftSetupMode.Legion ? undefined : state.outsiderCharacterRolls,
+    },
+    nextSession,
+  );
+  const resolvedConfig = { ...config, setupMode };
 
   return withHiddenCharacterRolls(
-    replanGameCharacterDraftTypes(
-      withResolvedTurn({ ...state, entries }, nextSession),
-      config,
-      random,
-    ),
-    config,
+    replanGameCharacterDraftTypes(resolvedState, resolvedConfig, random),
+    resolvedConfig,
     random,
   );
 }
@@ -812,22 +1125,38 @@ export function regenerateGameCharacterDraftOffer(
 ): CharacterDraftState {
   const activePlayerId = state.activePlayerId;
   if (!activePlayerId) throw new Error('The game draft does not have an active player.');
-  const playerConfig = configForDraftPlayer(state, config, activePlayerId);
-  const nextSession = regenerateDraftOffer(toSessionState(state), playerConfig, random);
+  const stateForOffer = ensureGameCharacterDraftPlans(state, config, random);
+  if (stateForOffer.status === 'blocked') return stateForOffer;
+  const earlyDemonCharacterId =
+    stateForOffer.setupMode === DraftSetupMode.Standard &&
+    stateForOffer.entries.filter((entry) => entry.actualCharacterId).length <=
+      getLegionGoodCount(config.playerCount) &&
+    !hasRolledNonLegionEvil(stateForOffer, config) &&
+    config.scriptCharacters.some((character) => character.id === 'legion')
+      ? rollEarlyDemonCharacterId(config, random)
+      : undefined;
+  const playerConfig = configForDraftPlayer(
+    stateForOffer,
+    config,
+    activePlayerId,
+    earlyDemonCharacterId,
+  );
+  const nextSession = regenerateDraftOffer(toSessionState(stateForOffer), playerConfig, random);
   const currentOffer = nextSession.currentOffer;
   if (!currentOffer) {
     return {
-      ...state,
+      ...stateForOffer,
       status: 'blocked',
       blockedReason: nextSession.blockedReason,
       revision: state.revision + 1,
     };
   }
 
-  const entries = [...state.entries];
+  const previousEntry = state.entries.find((entry) => entry.playerId === activePlayerId);
+  const entries = [...stateForOffer.entries];
   const currentEntryIndex = entries.findIndex((entry) => entry.playerId === activePlayerId);
   try {
-    entries[currentEntryIndex] = toEntry(
+    const regeneratedEntry = toEntry(
       activePlayerId,
       currentOffer,
       nextSession.legalCandidateIds.length,
@@ -835,12 +1164,28 @@ export function regenerateGameCharacterDraftOffer(
       nextSession.committedCharacterIds,
       random,
     );
+    if (currentEntryIndex >= 0) {
+      entries[currentEntryIndex] = regeneratedEntry;
+    } else {
+      entries.push(regeneratedEntry);
+    }
   } catch (error) {
-    return identityMaskFailure({ ...state, entries }, state.currentPlayerIndex, error);
+    return identityMaskFailure(
+      { ...stateForOffer, entries },
+      stateForOffer.currentPlayerIndex,
+      error,
+    );
   }
   return {
-    ...state,
+    ...stateForOffer,
     entries,
+    legionEliminated:
+      state.legionEliminated ||
+      (previousEntry ? offerShowsNonLegionEvil(previousEntry.offer, config) : false) ||
+      offerShowsNonLegionEvil(
+        entries.find((entry) => entry.playerId === activePlayerId)!.offer,
+        config,
+      ),
     blockedReason: nextSession.blockedReason,
     revision: state.revision + 1,
   };

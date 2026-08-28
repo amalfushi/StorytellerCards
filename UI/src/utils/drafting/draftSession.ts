@@ -34,6 +34,10 @@ export interface DraftSessionConfig {
   presentationMode?: DraftPresentationMode;
   plannedCharacterTypes?: DraftCharacter['type'][];
   forcedCharacterId?: string;
+  preferredCharacterId?: string;
+  randomizePreferredCharacterPosition?: boolean;
+  repeatForcedCharacterAcrossOffer?: boolean;
+  additionalLegalCandidateIds?: readonly string[];
   excludedCharacterIds?: readonly string[];
   reservedCharacterIds?: readonly string[];
   variableModifierValues?: Readonly<Record<string, number>>;
@@ -211,11 +215,17 @@ export function generateDraftOffer(
   random: DraftRandomSource = Math.random,
 ): DraftOfferGenerationResult {
   const reservedCharacterIds = config.reservedCharacterIds ?? [];
-  const legalCandidateIds = getLegalDraftCandidates(
-    toFeasibilityInput(config, committedCharacterIds),
-    { excludeCharacterIds: config.excludedCharacterIds },
-  ).filter(
+  const additionalLegalCandidateIds = new Set(config.additionalLegalCandidateIds ?? []);
+  const legalCandidateIds = [
+    ...new Set([
+      ...getLegalDraftCandidates(toFeasibilityInput(config, committedCharacterIds), {
+        excludeCharacterIds: config.excludedCharacterIds,
+      }),
+      ...additionalLegalCandidateIds,
+    ]),
+  ].filter(
     (candidateId) =>
+      additionalLegalCandidateIds.has(candidateId) ||
       reservedCharacterIds.length === 0 ||
       hasLegalDraftCompletion(
         toFeasibilityInput(config, [
@@ -246,6 +256,7 @@ export function generateDraftOffer(
   const villageIdiotBias = villageIdiotCopies === 1 ? 0.55 : villageIdiotCopies >= 2 ? 0.75 : 0;
   const preferredCharacterId =
     config.forcedCharacterId ??
+    config.preferredCharacterId ??
     (legalCandidateIds.includes('villageidiot') && random() < villageIdiotBias
       ? 'villageidiot'
       : undefined);
@@ -255,6 +266,17 @@ export function generateDraftOffer(
       offer: null,
       legalCandidateIds,
       blockedReason: `${config.forcedCharacterId} is outside the reserved player's rolled character types.`,
+    };
+  }
+  const forcedOfferCharacterId = config.forcedCharacterId;
+  if (forcedOfferCharacterId && config.repeatForcedCharacterAcrossOffer) {
+    return {
+      offer: {
+        offeredCharacterIds: Array.from({ length: 3 }, () => forcedOfferCharacterId),
+        mulliganCharacterId: null,
+        rolledCharacterTypes: presentation.rolledCharacterTypes,
+      },
+      legalCandidateIds,
     };
   }
   const presentationCandidateIds =
@@ -267,6 +289,19 @@ export function generateDraftOffer(
       : presentation.candidateIds;
   const optionCount = Math.min(3, Math.max(1, presentationCandidateIds.length - 1));
   const offeredCharacterIds = presentationCandidateIds.slice(0, optionCount);
+  if (preferredCharacterId && config.randomizePreferredCharacterPosition) {
+    const preferredIndex = offeredCharacterIds.indexOf(preferredCharacterId);
+    if (preferredIndex >= 0) {
+      const targetIndex = Math.min(
+        optionCount - 1,
+        Math.floor(Math.max(0, random()) * optionCount),
+      );
+      [offeredCharacterIds[preferredIndex], offeredCharacterIds[targetIndex]] = [
+        offeredCharacterIds[targetIndex],
+        offeredCharacterIds[preferredIndex],
+      ];
+    }
+  }
   const mulliganCharacterId = presentationCandidateIds[optionCount] ?? null;
 
   return {
@@ -340,7 +375,10 @@ export function resolveDraftPick(
   const legalCandidateIds = getLegalDraftCandidates(
     toFeasibilityInput(config, state.committedCharacterIds),
   );
-  if (!legalCandidateIds.includes(characterId)) {
+  if (
+    !legalCandidateIds.includes(characterId) &&
+    !config.additionalLegalCandidateIds?.includes(characterId)
+  ) {
     throw new Error('This draft offer is stale. Regenerate it before choosing a character.');
   }
 

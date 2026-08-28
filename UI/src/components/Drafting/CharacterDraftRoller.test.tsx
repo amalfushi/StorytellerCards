@@ -35,6 +35,7 @@ const characters = [
   makeCharacter('empath', CharacterType.Townsfolk),
   makeCharacter('baron', CharacterType.Minion),
   makeCharacter('imp', CharacterType.Demon),
+  makeCharacter('legion', CharacterType.Demon),
 ];
 const offer = {
   offeredCharacterIds: ['chef', 'empath', 'baron'],
@@ -166,6 +167,26 @@ describe('CharacterDraftRoller', () => {
       />,
     );
     expect(screen.getAllByTestId('mock-character-wheel')).toHaveLength(1);
+  });
+
+  it('renders three separate wheels for a repeated Legion offer', async () => {
+    render(
+      <CharacterDraftRoller
+        playerName="Player 1"
+        scriptCharacters={characters}
+        offer={{
+          offeredCharacterIds: ['legion', 'legion', 'legion'],
+          mulliganCharacterId: null,
+          rolledCharacterTypes: ['Demon'],
+        }}
+        onChoose={vi.fn()}
+        onMulligan={vi.fn()}
+      />,
+    );
+
+    expect(screen.getAllByTestId('mock-character-wheel')).toHaveLength(3);
+    fireEvent.click(screen.getByTestId('draft-roll-options'));
+    expect(await screen.findAllByText('Accept LEGION')).toHaveLength(3);
   });
 
   it('omits mulligan for a mandatory single-character offer', async () => {

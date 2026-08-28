@@ -404,6 +404,8 @@ export interface CharacterDraftState {
   outsiderHiddenRoll?: CharacterDraftCharacterRoll;
   /** Persisted conceptual bag draws for every Outsider slot; hidden results reserve their players. */
   outsiderCharacterRolls?: CharacterDraftCharacterRoll[];
+  /** Sticky once an ordinary evil identity has appeared during Legion's reveal window. */
+  legionEliminated?: boolean;
   currentPlayerIndex: number;
   activePlayerId?: PlayerId;
   variableModifierValues?: Record<string, number>;

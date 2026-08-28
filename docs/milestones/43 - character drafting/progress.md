@@ -28,6 +28,21 @@ its hidden post-draft Minion-conversion phase is not implemented.
   choices under solver pressure, and one mandatory character as the final
   legal fallback.
 - Added open, secret-single-type, and secret-two-type presentation modes.
+- Corrected Legion setup to allocate the inverted good/evil distribution
+  before offers in every presentation mode. Every evil slot rolls three
+  Legion wheels with no escape branch; every good wheel and mulligan is
+  restricted to Townsfolk or Outsiders and can never show Legion.
+- Added hidden Legion discovery to Standard setup. Legion is eligible only
+  until the first `Legion good count` players have completed good drafts. At ten
+  players this includes the fourth draft, whose player becomes the first evil
+  player if they choose Legion. Every eligible player uniformly rolls one
+  script Demon. That Demon appears once in a randomized wheel position among
+  the normal three choices, with good-only alternatives and mulligan. Choosing
+  Legion transitions and replans the remaining players to the inverted Legion
+  distribution. Choosing a good option or the good-only mulligan leaves the
+  draft in Standard setup. Rolling a non-Legion Demon visibly offers it and
+  permanently eliminates Legion from every later wheel and mulligan, whether
+  selected or not. The end of the early reveal window also closes the branch.
 - Persisted hidden type plans for every unresolved player in secret modes.
   Plans regenerate after each selection and variable setup choice so the
   remaining rolls track the updated expected character counts.
@@ -155,6 +170,10 @@ its hidden post-draft Minion-conversion phase is not implemented.
   completion profile during replanning. Future count modifiers such as
   Godfather can no longer make a pending Lunatic lose its Outsider type plan
   or disappear from the Storyteller warning when another player is selected.
+- Discarded stale unresolved previews when the Storyteller switches player
+  pills. Draft state now keeps every completed entry plus only the active offer,
+  preventing hidden Drunk, Lunatic, and Marionette warnings from accumulating
+  or appearing to jump between previously previewed players.
 - Added a deployable script catalog split into `production` and `test`.
   Production contains the three official base scripts and milestone scripts;
   integration-only scripts live under `test`. Production lookup takes
