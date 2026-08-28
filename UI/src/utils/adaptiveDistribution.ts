@@ -78,7 +78,7 @@ const LEGION_GOOD_COUNTS: Record<number, number> = {
   15: 3,
 };
 
-function getLegionGoodCount(playerCount: number): number {
+export function getLegionGoodCount(playerCount: number): number {
   const clamped = Math.min(15, Math.max(5, playerCount));
   return LEGION_GOOD_COUNTS[clamped] ?? 3;
 }

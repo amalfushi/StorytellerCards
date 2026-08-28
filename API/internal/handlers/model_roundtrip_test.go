@@ -232,6 +232,7 @@ func TestGameRoundtripFull(t *testing.T) {
 				{PlayerID: "p-alice", CharacterID: "drunk"},
 				{PlayerID: "p-bob", CharacterID: "recluse"},
 			},
+			LegionEliminated:   true,
 			CurrentPlayerIndex: 1,
 			ActivePlayerID:     "p-bob",
 			VariableModifierValues: map[string]int{
@@ -386,6 +387,7 @@ func TestGameRoundtripFull(t *testing.T) {
 		t.Fatalf("game.characterDraft.outsiderCharacterRolls length = %d, want 2", len(got.CharacterDraft.OutsiderCharacterRolls))
 	}
 	assertEq(t, "game.characterDraft.outsiderCharacterRolls[0].characterId", got.CharacterDraft.OutsiderCharacterRolls[0].CharacterID, "drunk")
+	assertEq(t, "game.characterDraft.legionEliminated", got.CharacterDraft.LegionEliminated, true)
 	assertEq(t, "game.characterDraft.activePlayerId", got.CharacterDraft.ActivePlayerID, "p-bob")
 	assertEq(t, "game.characterDraft.variableModifierValues['godfather']", got.CharacterDraft.VariableModifierValues["godfather"], -1)
 	assertEq(t, "game.characterDraft.characterCopyTargets['villageidiot']", got.CharacterDraft.CharacterCopyTargets["villageidiot"], 3)

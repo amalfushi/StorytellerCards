@@ -88,6 +88,23 @@ function exceptionalConfig(
   };
 }
 
+function lleechAndLegionConfig(): DraftSessionConfig {
+  const base = exceptionalConfig(DraftSetupMode.Standard, {
+    id: 'legion',
+    type: CharacterType.Demon,
+  });
+  return {
+    ...base,
+    playerCount: 10,
+    presentationMode: 'secret-two-types',
+    scriptCharacters: [
+      ...base.scriptCharacters.filter((character) => character.type !== CharacterType.Demon),
+      { id: 'lleech', type: CharacterType.Demon },
+      { id: 'legion', type: CharacterType.Demon },
+    ],
+  };
+}
+
 function marionetteRollConfig(): DraftSessionConfig {
   return {
     playerCount: 10,
@@ -288,6 +305,42 @@ describe('gameCharacterDraft', () => {
     expect(selected.activePlayerId).toBe('p3');
     expect(selected.entries[0].playerId).toBe('p3');
     expect(selected.entries[0].offer.legalCandidateCount).toBeGreaterThan(0);
+  });
+
+  it('discards stale previews while preserving resolved drafts and hidden reservations', () => {
+    const rollConfig = outsiderHiddenRollConfig();
+    let state = createDraftWithHiddenOutsider(rollConfig, 'drunk');
+    const drunkRoll = getHiddenOutsiderRolls(state).find((roll) => roll.characterId === 'drunk');
+    if (!drunkRoll) throw new Error('Expected a reserved Drunk player.');
+    const ordinaryPlayerIds = state.playerOrder.filter(
+      (playerId) => playerId !== drunkRoll.playerId,
+    );
+
+    state = selectGameCharacterDraftPlayer(state, rollConfig, ordinaryPlayerIds[0], () => 0.5);
+    const resolvedCharacterId = state.entries[0].offer.offeredCharacterIds[0];
+    state = resolveGameCharacterDraft(state, rollConfig, resolvedCharacterId, 'choice', () => 0.5);
+    const persistedOutsiderRolls = state.outsiderCharacterRolls;
+
+    state = selectGameCharacterDraftPlayer(state, rollConfig, drunkRoll.playerId, () => 0.5);
+    expect(
+      Object.values(state.entries.at(-1)?.offer.actualCharacterIdsByOfferedId ?? {}),
+    ).toContain('drunk');
+
+    state = selectGameCharacterDraftPlayer(state, rollConfig, ordinaryPlayerIds[1], () => 0.5);
+
+    expect(state.outsiderCharacterRolls).toEqual(persistedOutsiderRolls);
+    expect(state.entries).toHaveLength(2);
+    expect(state.entries[0]).toEqual(
+      expect.objectContaining({
+        playerId: ordinaryPlayerIds[0],
+        actualCharacterId: expect.any(String),
+      }),
+    );
+    expect(state.entries[1].playerId).toBe(ordinaryPlayerIds[1]);
+    expect(state.entries[1].actualCharacterId).toBeUndefined();
+    expect(Object.values(state.entries[1].offer.actualCharacterIdsByOfferedId ?? {})).not.toContain(
+      'drunk',
+    );
   });
 
   it('preplans the exact remaining type distribution for secret single-type drafts', () => {
@@ -784,15 +837,10 @@ describe('gameCharacterDraft', () => {
     );
 
     expect(resolved.activePlayerId).toBeUndefined();
-    expect(() =>
-      resolveGameCharacterDraft(
-        resolved,
-        config,
-        resolved.entries.find((entry) => entry.playerId === 'p1')!.offer.offeredCharacterIds[0],
-        'choice',
-        () => 0,
-      ),
-    ).toThrow('does not have an active player');
+    expect(resolved.entries.map((entry) => entry.playerId)).toEqual(['p3']);
+    expect(() => resolveGameCharacterDraft(resolved, config, 't0', 'choice', () => 0)).toThrow(
+      'does not have an active player',
+    );
   });
 
   it('excludes Demons and unique characters already committed out of player order', () => {
@@ -922,6 +970,552 @@ describe('gameCharacterDraft', () => {
       });
     },
   );
+
+  it.each(['open', 'secret-single-type', 'secret-two-types'] as const)(
+    'strictly isolates Legion and good offers in %s presentation mode',
+    (presentationMode) => {
+      const legionConfig: DraftSessionConfig = {
+        ...exceptionalConfig(DraftSetupMode.Legion, {
+          id: 'legion',
+          type: CharacterType.Demon,
+        }),
+        playerCount: 10,
+        presentationMode,
+      };
+      const playerIds = Array.from(
+        { length: legionConfig.playerCount },
+        (_, index) => `p${index + 1}`,
+      );
+      const created = createGameCharacterDraft(playerIds, legionConfig, () => 0.37);
+      const evilPlayerIds = playerIds.filter(
+        (playerId) => created.plannedCharacterTypes?.[playerId]?.[0] === CharacterType.Demon,
+      );
+      const goodPlayerIds = playerIds.filter((playerId) => !evilPlayerIds.includes(playerId));
+
+      expect(evilPlayerIds).toHaveLength(7);
+      expect(goodPlayerIds).toHaveLength(3);
+
+      for (const playerId of evilPlayerIds) {
+        const selected = selectGameCharacterDraftPlayer(
+          created,
+          legionConfig,
+          playerId,
+          () => 0.37,
+        );
+        const offer = selected.entries.find((entry) => entry.playerId === playerId)?.offer;
+        expect(offer?.offeredCharacterIds).toEqual(['legion', 'legion', 'legion']);
+        expect(offer?.mulliganCharacterId).toBeNull();
+      }
+
+      const selectedGoodPlayer = selectGameCharacterDraftPlayer(
+        created,
+        legionConfig,
+        goodPlayerIds[0],
+        () => 0.37,
+      );
+      const goodOffer = selectedGoodPlayer.entries.find(
+        (entry) => entry.playerId === goodPlayerIds[0],
+      )?.offer;
+      expect(goodOffer?.offeredCharacterIds).not.toContain('legion');
+      const goodCharacterIds = [
+        ...(goodOffer?.offeredCharacterIds ?? []),
+        goodOffer?.mulliganCharacterId,
+      ].filter((characterId): characterId is string => characterId !== null);
+      const typeById = new Map(
+        legionConfig.scriptCharacters.map((character) => [character.id, character.type]),
+      );
+      expect(
+        goodCharacterIds.every(
+          (characterId) =>
+            typeById.get(characterId) === CharacterType.Townsfolk ||
+            typeById.get(characterId) === CharacterType.Outsider,
+        ),
+      ).toBe(true);
+      expect(goodOffer?.rolledCharacterTypes).toEqual(
+        expect.arrayContaining([CharacterType.Townsfolk, CharacterType.Outsider]),
+      );
+    },
+  );
+
+  it.each(['open', 'secret-single-type', 'secret-two-types'] as const)(
+    'completes a ten-player %s Legion draft with seven Legion',
+    (presentationMode) => {
+      const legionConfig: DraftSessionConfig = {
+        ...exceptionalConfig(DraftSetupMode.Legion, {
+          id: 'legion',
+          type: CharacterType.Demon,
+        }),
+        playerCount: 10,
+        presentationMode,
+      };
+      const state = completeDraft(legionConfig);
+      const actualCharacterIds = state.entries.map((entry) => entry.actualCharacterId);
+
+      expect(state.status).toBe('complete');
+      expect(actualCharacterIds.filter((id) => id === 'legion')).toHaveLength(7);
+      expect(actualCharacterIds.filter((id) => id !== 'legion')).toHaveLength(3);
+    },
+  );
+
+  it('offers Legion in a normal Standard draft without activating it before selection', () => {
+    const legionConfig: DraftSessionConfig = {
+      ...exceptionalConfig(DraftSetupMode.Standard, {
+        id: 'legion',
+        type: CharacterType.Demon,
+      }),
+      playerCount: 10,
+      presentationMode: 'secret-two-types',
+    };
+    const playerIds = Array.from(
+      { length: legionConfig.playerCount },
+      (_, index) => `p${index + 1}`,
+    );
+    const created = createGameCharacterDraft(playerIds, legionConfig, () => 0.37);
+    const selected = selectGameCharacterDraftPlayer(created, legionConfig, 'p1', () => 0.999);
+    const offer = selected.entries[0].offer;
+    const rolledIds = [...offer.offeredCharacterIds, offer.mulliganCharacterId];
+
+    expect(selected.setupMode).toBe(DraftSetupMode.Standard);
+    expect(offer.offeredCharacterIds).toHaveLength(3);
+    expect(rolledIds.filter((characterId) => characterId === 'legion')).toHaveLength(1);
+    expect(selected.plannedCharacterTypes).toEqual(created.plannedCharacterTypes);
+    expect(
+      Object.values(selected.plannedCharacterTypes ?? {}).filter(
+        (types) => types?.[0] === CharacterType.Demon,
+      ),
+    ).toHaveLength(1);
+
+    const ordinaryCharacterId = offer.offeredCharacterIds.find(
+      (characterId) => characterId !== 'legion',
+    );
+    expect(ordinaryCharacterId).toBeDefined();
+    const remainedStandard = resolveGameCharacterDraft(
+      selected,
+      legionConfig,
+      ordinaryCharacterId!,
+      'choice',
+      () => 0.37,
+    );
+    expect(remainedStandard.setupMode).toBe(DraftSetupMode.Standard);
+
+    const activated = resolveGameCharacterDraft(
+      selected,
+      legionConfig,
+      'legion',
+      'choice',
+      () => 0.37,
+    );
+    const evilPlans = Object.values(activated.plannedCharacterTypes ?? {}).filter(
+      (types) => types?.[0] === CharacterType.Demon,
+    );
+
+    expect(activated.setupMode).toBe(DraftSetupMode.Legion);
+    expect(activated.entries[0].actualCharacterId).toBe('legion');
+    expect(evilPlans).toHaveLength(6);
+  });
+
+  it('lets an early good-primary player choose Legion from a mixed Standard offer', () => {
+    const legionConfig = lleechAndLegionConfig();
+    const playerIds = Array.from(
+      { length: legionConfig.playerCount },
+      (_, index) => `p${index + 1}`,
+    );
+    const created = createGameCharacterDraft(playerIds, legionConfig, () => 0.1);
+    const eligible = {
+      ...created,
+      plannedCharacterTypes: {
+        ...created.plannedCharacterTypes,
+        p1: [CharacterType.Townsfolk, CharacterType.Demon],
+      },
+    };
+    const selected = selectGameCharacterDraftPlayer(eligible, legionConfig, 'p1', () => 0.99);
+    const offer = selected.entries[0].offer;
+    expect(selected.setupMode).toBe(DraftSetupMode.Standard);
+    expect(offer.offeredCharacterIds).toHaveLength(3);
+    expect(offer.offeredCharacterIds).toContain('legion');
+    expect(offer.offeredCharacterIds[0]).not.toBe('legion');
+    expect(offer.offeredCharacterIds).not.toContain('lleech');
+
+    const activated = resolveGameCharacterDraft(
+      selected,
+      legionConfig,
+      'legion',
+      'choice',
+      () => 0.37,
+    );
+    expect(activated.setupMode).toBe(DraftSetupMode.Legion);
+  });
+
+  it('offers the Demon that wins the early roll and eliminates Legion when it is Lleech', () => {
+    const legionConfig = lleechAndLegionConfig();
+    const playerIds = Array.from(
+      { length: legionConfig.playerCount },
+      (_, index) => `p${index + 1}`,
+    );
+    const created = createGameCharacterDraft(playerIds, legionConfig, () => 0.37);
+    const eligible = {
+      ...created,
+      plannedCharacterTypes: {
+        ...created.plannedCharacterTypes,
+        p1: [CharacterType.Demon, CharacterType.Townsfolk],
+      },
+    };
+
+    const selected = selectGameCharacterDraftPlayer(eligible, legionConfig, 'p1', () => 0.1);
+    const offer = selected.entries[0].offer;
+    const typeById = new Map(
+      legionConfig.scriptCharacters.map((character) => [character.id, character.type]),
+    );
+    const visibleCharacterIds = [...offer.offeredCharacterIds, offer.mulliganCharacterId].filter(
+      (characterId): characterId is string => characterId !== null,
+    );
+
+    expect(selected.setupMode).toBe(DraftSetupMode.Standard);
+    expect(visibleCharacterIds).not.toContain('legion');
+    expect(visibleCharacterIds.filter((characterId) => characterId === 'lleech')).toHaveLength(1);
+    expect(selected.legionEliminated).toBe(true);
+    expect(
+      visibleCharacterIds
+        .filter((characterId) => characterId !== 'lleech')
+        .every(
+          (characterId) =>
+            typeById.get(characterId) === CharacterType.Townsfolk ||
+            typeById.get(characterId) === CharacterType.Outsider,
+        ),
+    ).toBe(true);
+
+    const nextPlayer = selectGameCharacterDraftPlayer(selected, legionConfig, 'p2', () => 0.99);
+    expect(nextPlayer.entries.at(-1)!.offer.offeredCharacterIds).not.toContain('legion');
+  });
+
+  it('lets any of the first four drafts trigger Legion in a ten-player game', () => {
+    const legionConfig: DraftSessionConfig = {
+      ...exceptionalConfig(DraftSetupMode.Standard, {
+        id: 'legion',
+        type: CharacterType.Demon,
+      }),
+      playerCount: 10,
+      presentationMode: 'secret-two-types',
+    };
+    const playerIds = Array.from(
+      { length: legionConfig.playerCount },
+      (_, index) => `p${index + 1}`,
+    );
+
+    for (const triggeringDraftIndex of [0, 1, 2, 3]) {
+      let state = createGameCharacterDraft(playerIds, legionConfig, () => 0.37);
+      for (let draftIndex = 0; draftIndex < triggeringDraftIndex; draftIndex += 1) {
+        state = selectGameCharacterDraftPlayer(
+          state,
+          legionConfig,
+          playerIds[draftIndex],
+          () => 0.99,
+        );
+        const offer = state.entries.at(-1)!.offer;
+        state = resolveGameCharacterDraft(
+          state,
+          legionConfig,
+          offer.offeredCharacterIds[0],
+          'choice',
+          () => 0.37,
+        );
+      }
+
+      state = selectGameCharacterDraftPlayer(
+        state,
+        legionConfig,
+        playerIds[triggeringDraftIndex],
+        () => 0.999,
+      );
+
+      expect(state.setupMode).toBe(DraftSetupMode.Standard);
+      expect(state.entries.at(-1)!.offer.offeredCharacterIds).toContain('legion');
+      state = resolveGameCharacterDraft(state, legionConfig, 'legion', 'choice', () => 0.37);
+      expect(state.setupMode).toBe(DraftSetupMode.Legion);
+    }
+  });
+
+  it('regenerates an eligible Standard offer with Legion without activating it', () => {
+    const legionConfig: DraftSessionConfig = {
+      ...exceptionalConfig(DraftSetupMode.Standard, {
+        id: 'legion',
+        type: CharacterType.Demon,
+      }),
+      playerCount: 10,
+      presentationMode: 'secret-two-types',
+    };
+    const playerIds = Array.from(
+      { length: legionConfig.playerCount },
+      (_, index) => `p${index + 1}`,
+    );
+    const created = createGameCharacterDraft(playerIds, legionConfig, () => 0.37);
+    const state: CharacterDraftState = {
+      ...created,
+      activePlayerId: 'p1',
+      plannedCharacterTypes: {
+        ...created.plannedCharacterTypes,
+        p1: [CharacterType.Demon, CharacterType.Townsfolk],
+      },
+      entries: [
+        {
+          playerId: 'p1',
+          offer: {
+            offeredCharacterIds: ['town0', 'town1', 'town2'],
+            mulliganCharacterId: 'town3',
+            rolledCharacterTypes: [CharacterType.Townsfolk],
+            legalCandidateCount: 4,
+          },
+        },
+      ],
+    };
+
+    const regenerated = regenerateGameCharacterDraftOffer(state, legionConfig, () => 0.999);
+    const offer = regenerated.entries.find((entry) => entry.playerId === 'p1')!.offer;
+
+    expect(regenerated.setupMode).toBe(DraftSetupMode.Standard);
+    expect(offer.offeredCharacterIds).toHaveLength(3);
+    expect(offer.offeredCharacterIds).toContain('legion');
+  });
+
+  it('blocks a persisted Legion setup containing another Demon', () => {
+    const legionConfig: DraftSessionConfig = {
+      ...exceptionalConfig(DraftSetupMode.Legion, {
+        id: 'legion',
+        type: CharacterType.Demon,
+      }),
+      playerCount: 10,
+      presentationMode: 'secret-two-types',
+    };
+    const playerIds = Array.from(
+      { length: legionConfig.playerCount },
+      (_, index) => `p${index + 1}`,
+    );
+    const created = createGameCharacterDraft(playerIds, legionConfig, () => 0.37);
+    const corrupt: CharacterDraftState = {
+      ...created,
+      entries: [
+        {
+          playerId: 'p1',
+          offer: {
+            offeredCharacterIds: ['demon0'],
+            mulliganCharacterId: null,
+            rolledCharacterTypes: [CharacterType.Demon],
+            legalCandidateCount: 1,
+          },
+          selectedCharacterId: 'demon0',
+          actualCharacterId: 'demon0',
+          apparentCharacterId: 'demon0',
+          resolution: 'choice',
+        },
+      ],
+    };
+
+    const selected = selectGameCharacterDraftPlayer(corrupt, legionConfig, 'p2', () => 0.37);
+
+    expect(selected.status).toBe('blocked');
+    expect(selected.blockedReason).toContain('demon0 cannot be committed in Legion setup');
+  });
+
+  it('clears Standard hidden reservations when Legion activates', () => {
+    const baseConfig = exceptionalConfig(DraftSetupMode.Standard, {
+      id: 'legion',
+      type: CharacterType.Demon,
+    });
+    const legionConfig: DraftSessionConfig = {
+      ...baseConfig,
+      playerCount: 10,
+      presentationMode: 'secret-two-types',
+      scriptCharacters: [
+        ...baseConfig.scriptCharacters,
+        { id: 'marionette', type: CharacterType.Minion },
+      ],
+    };
+    const playerIds = Array.from(
+      { length: legionConfig.playerCount },
+      (_, index) => `p${index + 1}`,
+    );
+    const created = createGameCharacterDraft(playerIds, legionConfig, () => 0.1);
+    const eligible: CharacterDraftState = {
+      ...created,
+      plannedCharacterTypes: {
+        ...created.plannedCharacterTypes,
+        p1: [CharacterType.Demon, CharacterType.Townsfolk],
+      },
+      outsiderCharacterRolls: [{ playerId: 'p2', characterId: 'outsider0' }],
+      marionetteRoll: { playerId: 'p3', characterId: 'marionette' },
+    };
+    const selected = selectGameCharacterDraftPlayer(eligible, legionConfig, 'p1', () => 0.999);
+    expect(selected.setupMode).toBe(DraftSetupMode.Standard);
+    expect(selected.entries[0].offer.offeredCharacterIds).toContain('legion');
+    expect(selected.outsiderCharacterRolls).toBeDefined();
+    expect(selected.marionetteRoll).toBeDefined();
+
+    const activated = resolveGameCharacterDraft(
+      selected,
+      legionConfig,
+      'legion',
+      'choice',
+      () => 0.37,
+    );
+    expect(activated.setupMode).toBe(DraftSetupMode.Legion);
+    expect(activated.outsiderHiddenRoll).toBeUndefined();
+    expect(activated.outsiderCharacterRolls).toBeUndefined();
+    expect(activated.marionetteRoll).toBeUndefined();
+  });
+
+  it('never offers Legion after the early Legion reveal window', () => {
+    const legionConfig: DraftSessionConfig = {
+      ...exceptionalConfig(DraftSetupMode.Standard, {
+        id: 'legion',
+        type: CharacterType.Demon,
+      }),
+      playerCount: 10,
+      presentationMode: 'secret-two-types',
+    };
+    const playerIds = Array.from(
+      { length: legionConfig.playerCount },
+      (_, index) => `p${index + 1}`,
+    );
+    let state = createGameCharacterDraft(playerIds, legionConfig, () => 0.37);
+
+    for (const playerId of playerIds.slice(0, 4)) {
+      state = {
+        ...state,
+        plannedCharacterTypes: {
+          ...state.plannedCharacterTypes,
+          [playerId]: [CharacterType.Townsfolk, CharacterType.Outsider],
+        },
+      };
+      state = selectGameCharacterDraftPlayer(state, legionConfig, playerId, () => 0.37);
+      state = resolveGameCharacterDraft(
+        state,
+        legionConfig,
+        state.entries.at(-1)!.offer.offeredCharacterIds[0],
+        'choice',
+        () => 0.37,
+      );
+    }
+
+    state = {
+      ...state,
+      plannedCharacterTypes: {
+        ...state.plannedCharacterTypes,
+        p5: [CharacterType.Demon, CharacterType.Townsfolk],
+      },
+    };
+    const selected = selectGameCharacterDraftPlayer(state, legionConfig, 'p5', () => 0);
+    const offer = selected.entries.at(-1)!.offer;
+
+    expect([...offer.offeredCharacterIds, offer.mulliganCharacterId]).not.toContain('legion');
+  });
+
+  it.each([CharacterType.Minion, CharacterType.Demon])(
+    'eliminates Legion after an ordinary %s is shown but not selected',
+    (evilType) => {
+      const legionConfig: DraftSessionConfig = {
+        ...exceptionalConfig(DraftSetupMode.Standard, {
+          id: 'legion',
+          type: CharacterType.Demon,
+        }),
+        playerCount: 10,
+        presentationMode: 'secret-two-types',
+      };
+      const playerIds = Array.from(
+        { length: legionConfig.playerCount },
+        (_, index) => `p${index + 1}`,
+      );
+
+      let state = createGameCharacterDraft(playerIds, legionConfig, () => 0.37);
+      for (const playerId of playerIds.slice(0, 4)) {
+        state = selectGameCharacterDraftPlayer(state, legionConfig, playerId, () => 0.99);
+        state = resolveGameCharacterDraft(
+          state,
+          legionConfig,
+          state.entries.at(-1)!.offer.offeredCharacterIds[0],
+          'choice',
+          () => 0.37,
+        );
+      }
+      state = {
+        ...state,
+        plannedCharacterTypes: {
+          ...state.plannedCharacterTypes,
+          p5: [evilType, CharacterType.Townsfolk],
+        },
+      };
+      state = selectGameCharacterDraftPlayer(state, legionConfig, 'p5', () => 0.9);
+      const firstOffer = state.entries.at(-1)!.offer;
+      const typeById = new Map(
+        legionConfig.scriptCharacters.map((character) => [character.id, character.type]),
+      );
+      const goodChoice = firstOffer.offeredCharacterIds.find(
+        (characterId) => typeById.get(characterId) === CharacterType.Townsfolk,
+      );
+
+      expect(
+        [...firstOffer.offeredCharacterIds, firstOffer.mulliganCharacterId].some(
+          (characterId) => characterId !== null && typeById.get(characterId) === evilType,
+        ),
+      ).toBe(true);
+      expect(goodChoice).toBeDefined();
+
+      state = resolveGameCharacterDraft(state, legionConfig, goodChoice!, 'choice', () => 0.9);
+      state = {
+        ...state,
+        plannedCharacterTypes: {
+          ...state.plannedCharacterTypes,
+          p6: [CharacterType.Demon, CharacterType.Townsfolk],
+        },
+      };
+      const selected = selectGameCharacterDraftPlayer(state, legionConfig, 'p6', () => 0.9);
+      const nextOffer = selected.entries.at(-1)!.offer;
+
+      expect([...nextOffer.offeredCharacterIds, nextOffer.mulliganCharacterId]).not.toContain(
+        'legion',
+      );
+    },
+  );
+
+  it('keeps Legion eliminated after an ordinary evil offer is regenerated away', () => {
+    const legionConfig: DraftSessionConfig = {
+      ...exceptionalConfig(DraftSetupMode.Standard, {
+        id: 'legion',
+        type: CharacterType.Demon,
+      }),
+      playerCount: 10,
+      presentationMode: 'secret-two-types',
+    };
+    const playerIds = Array.from(
+      { length: legionConfig.playerCount },
+      (_, index) => `p${index + 1}`,
+    );
+    let state = createGameCharacterDraft(playerIds, legionConfig, () => 0.9);
+    for (const playerId of playerIds.slice(0, 4)) {
+      state = selectGameCharacterDraftPlayer(state, legionConfig, playerId, () => 0.99);
+      state = resolveGameCharacterDraft(
+        state,
+        legionConfig,
+        state.entries.at(-1)!.offer.offeredCharacterIds[0],
+        'choice',
+        () => 0.9,
+      );
+    }
+    state = {
+      ...state,
+      plannedCharacterTypes: {
+        ...state.plannedCharacterTypes,
+        p5: [CharacterType.Minion, CharacterType.Townsfolk],
+      },
+    };
+    state = selectGameCharacterDraftPlayer(state, legionConfig, 'p5', () => 0.9);
+    state = regenerateGameCharacterDraftOffer(state, legionConfig, () => 0.1);
+
+    expect(state.legionEliminated).toBe(true);
+    expect([
+      ...state.entries.at(-1)!.offer.offeredCharacterIds,
+      state.entries.at(-1)!.offer.mulliganCharacterId,
+    ]).not.toContain('legion');
+  });
 
   it.each([
     ['marionette', [CharacterType.Townsfolk, CharacterType.Outsider], ['drunk', 'lunatic']],

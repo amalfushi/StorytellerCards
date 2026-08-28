@@ -1,4 +1,5 @@
 import { getDistribution } from '@/data/playerCountRules.ts';
+import { getLegionGoodCount } from '@/utils/adaptiveDistribution.ts';
 import type { CharacterType } from '@/types/index.ts';
 import {
   CHARACTER_DRAFT_RULES,
@@ -270,7 +271,7 @@ function getBaseCounts(playerCount: number, mode: DraftSetupMode): DraftCompleti
     return [toCounts(playerCount - base.outsiders, base.outsiders, 0, 0)];
   }
   if (mode === DraftSetupMode.Legion) {
-    const goodCount = playerCount <= 5 ? 1 : playerCount <= 8 ? 2 : 3;
+    const goodCount = getLegionGoodCount(playerCount);
     return Array.from({ length: goodCount + 1 }, (_, outsiders) =>
       toCounts(goodCount - outsiders, outsiders, 0, playerCount - goodCount),
     );

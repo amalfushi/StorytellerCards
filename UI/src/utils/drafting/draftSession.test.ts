@@ -92,6 +92,21 @@ describe('draftSession', () => {
     expect(result.legalCandidateIds).toContain('villageidiot');
   });
 
+  it('can randomize a preferred character among the visible wheels', () => {
+    const legionConfig: DraftSessionConfig = {
+      ...config,
+      preferredCharacterId: 'd0',
+      additionalLegalCandidateIds: ['d0'],
+      randomizePreferredCharacterPosition: true,
+    };
+
+    const result = generateDraftOffer(legionConfig, [], () => 0.99);
+
+    expect(result.offer?.offeredCharacterIds).toContain('d0');
+    expect(result.offer?.offeredCharacterIds[2]).toBe('d0');
+    expect(result.offer?.mulliganCharacterId).not.toBe('d0');
+  });
+
   it('forces a single legal character instead of blocking', () => {
     const narrowConfig: DraftSessionConfig = {
       playerCount: 5,
