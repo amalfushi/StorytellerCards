@@ -28,7 +28,7 @@ The app manages a hierarchy: **Sessions** (containers) → **Games** → **Playe
 | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | UI           | React 19 + TypeScript + Vite 6 + MUI Core (free tier)                                                                                            |
 | State        | React Context + `useReducer` + `localStorage` (primary), Go API (secondary sync)                                                                 |
-| Testing      | Vitest (4350 passing tests + 3 skipped across 99 discovered files), Storybook 8 (231 stories with `play()` interaction tests), Playwright E2E (2 spec files) |
+| Testing      | Vitest (4385 passing tests + 3 skipped across 101 discovered files), Storybook 8 (233 stories with `play()` interaction tests), Playwright E2E (3 spec files) |
 | Code Quality | ESLint 9 flat config + Prettier + Husky (pre-commit lint, pre-push tests + coverage)                                                             |
 | API          | Go + Chi router, JSON file storage, 90-day auto-cleanup                                                                                          |
 | PWA          | `manifest.json`, icons, mobile meta tags                                                                                                         |
@@ -215,10 +215,10 @@ Coverage is enforced via `vitest.config.ts` thresholds and the pre-push hook:
 
 See [`docs/testing.md`](docs/testing.md) for comprehensive testing guidelines.
 
-### Current Test Stats (as of M43 complete)
+### Current Test Stats (as of M45 complete)
 
-- **4350 passing tests** + **3 skipped** across **99 discovered test files**
-- **29 story files** with **231 stories** including `play()` interaction tests
+- **4385 passing tests** + **3 skipped** across **101 discovered test files**
+- **30 story files** with **233 stories** including `play()` interaction tests
 - **0 TypeScript errors**, **0 ESLint errors**
 - **Playwright E2E**: 2 spec files (game-lifecycle now has 9 scenarios, plus cross-device-sync)
 

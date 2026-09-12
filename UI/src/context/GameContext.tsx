@@ -153,7 +153,10 @@ type GameAction =
       type: 'ADD_PARTICIPANT';
       payload: { playerId: PlayerId; isTraveller?: boolean; characterId?: string };
     }
-  | { type: 'REMOVE_PARTICIPANT'; payload: { playerId: PlayerId } }
+  | {
+      type: 'REMOVE_PARTICIPANT';
+      payload: { playerId: PlayerId; removeOccupiedSeat?: boolean };
+    }
   | {
       type: 'SET_PARTICIPANT_TRAVELLER';
       payload: { playerId: PlayerId; isTraveller: boolean; alignment?: Alignment };
@@ -256,7 +259,17 @@ type GameAction =
       };
     }
   | { type: 'SET_GAINED_ABILITY'; payload: { playerId: PlayerId; gainedAbility: GainedAbility } }
-  | { type: 'CLEAR_GAINED_ABILITY'; payload: { playerId: PlayerId } };
+  | { type: 'CLEAR_GAINED_ABILITY'; payload: { playerId: PlayerId } }
+  | {
+      type: 'ADD_TRAVELLER';
+      payload: {
+        playerId: PlayerId;
+        characterId: string;
+        alignment: Alignment;
+        seatSlotId: SlotId;
+        appendSeat: boolean;
+      };
+    };
 
 // ──────────────────────────────────────────────
 // Reducer
@@ -340,18 +353,21 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
 
     case 'REMOVE_PARTICIPANT': {
       if (!state.game) return state;
-      const { playerId } = action.payload;
+      const { playerId, removeOccupiedSeat } = action.payload;
       const nextPlayerState = { ...state.game.playerState };
       delete nextPlayerState[playerId];
       const nextBluffs = state.game.playerBluffs ? { ...state.game.playerBluffs } : undefined;
       if (nextBluffs) delete nextBluffs[playerId];
+      const slots = removeOccupiedSeat
+        ? state.game.slots.filter((slot) => slot.kind !== 'seat' || slot.playerId !== playerId)
+        : clearPlayerFromSlots(state.game.slots, playerId);
       return {
         ...state,
         game: invalidatePreGameSeating(state.game, {
           ...state.game,
           participants: state.game.participants.filter((p) => p.playerId !== playerId),
           playerState: nextPlayerState,
-          slots: clearPlayerFromSlots(state.game.slots, playerId),
+          slots,
           playerBluffs: nextBluffs,
         }),
       };
@@ -973,6 +989,57 @@ function gameReducer(state: GameViewState, action: GameAction): GameViewState {
       };
     }
 
+    case 'ADD_TRAVELLER': {
+      if (!state.game) return state;
+      const { playerId, characterId, alignment, seatSlotId, appendSeat } = action.payload;
+      if (state.game.participants.some((participant) => participant.playerId === playerId)) {
+        return state;
+      }
+      if (getCharacter(characterId)?.type !== CharacterType.Traveller) return state;
+      if (
+        state.game.participants.some(
+          (participant) =>
+            state.game?.playerState[participant.playerId]?.characterId === characterId,
+        )
+      ) {
+        return state;
+      }
+
+      const targetSeat = state.game.slots.find((slot) => slot.id === seatSlotId);
+      if (
+        appendSeat
+          ? targetSeat !== undefined
+          : targetSeat?.kind !== 'seat' || targetSeat.playerId !== null
+      ) {
+        return state;
+      }
+
+      const travellerState: PlayerGameState = {
+        ...makeDefaultPlayerGameState(),
+        characterId,
+        actualAlignment: alignment,
+        startingAlignment: alignment,
+      };
+      const slots: Slot[] = appendSeat
+        ? [...state.game.slots, { kind: 'seat', id: seatSlotId, playerId }]
+        : state.game.slots.map((slot) =>
+            slot.id === seatSlotId && slot.kind === 'seat' ? { ...slot, playerId } : slot,
+          );
+      const updatedGame: Game = {
+        ...state.game,
+        participants: [...state.game.participants, { playerId, isTraveller: true }],
+        playerState: {
+          ...state.game.playerState,
+          [playerId]: travellerState,
+        },
+        slots,
+      };
+      return {
+        ...state,
+        game: invalidatePreGameSeating(state.game, updatedGame),
+      };
+    }
+
     default:
       return state;
   }
@@ -1015,7 +1082,13 @@ export interface GameContextValue {
     playerId: PlayerId,
     opts?: { isTraveller?: boolean; characterId?: string },
   ) => void;
-  removeParticipant: (playerId: PlayerId) => void;
+  removeParticipant: (playerId: PlayerId, options?: { removeOccupiedSeat?: boolean }) => void;
+  addTraveller: (
+    playerId: PlayerId,
+    characterId: string,
+    alignment: Alignment,
+    seatSlotId?: SlotId,
+  ) => void;
   setParticipantTraveller: (
     playerId: PlayerId,
     isTraveller: boolean,
@@ -1249,9 +1322,31 @@ export function GameProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const removeParticipant = useCallback((playerId: PlayerId) => {
-    dispatch({ type: 'REMOVE_PARTICIPANT', payload: { playerId } });
-  }, []);
+  const removeParticipant = useCallback(
+    (playerId: PlayerId, options?: { removeOccupiedSeat?: boolean }) => {
+      dispatch({
+        type: 'REMOVE_PARTICIPANT',
+        payload: { playerId, removeOccupiedSeat: options?.removeOccupiedSeat },
+      });
+    },
+    [],
+  );
+
+  const addTraveller = useCallback(
+    (playerId: PlayerId, characterId: string, alignment: Alignment, seatSlotId?: SlotId) => {
+      dispatch({
+        type: 'ADD_TRAVELLER',
+        payload: {
+          playerId,
+          characterId,
+          alignment,
+          seatSlotId: seatSlotId ?? generateId(),
+          appendSeat: seatSlotId === undefined,
+        },
+      });
+    },
+    [],
+  );
 
   const setParticipantTraveller = useCallback(
     (playerId: PlayerId, isTraveller: boolean, alignment?: Alignment) => {
@@ -1658,6 +1753,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     updatePlayerState,
     addParticipant,
     removeParticipant,
+    addTraveller,
     setParticipantTraveller,
     addGameSeat,
     addGameSpacer,

@@ -54,6 +54,7 @@ const meta = {
     onToggleAlive: noop,
     onToggleGhostVote: noop,
     onRemoveTraveller: noop,
+    onRemoveTravellerAndSeat: noop,
     onManageTokens: noop,
     onSaveCharacter: noop,
   },

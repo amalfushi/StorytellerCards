@@ -95,7 +95,12 @@ type SessionAction =
     }
   | {
       type: 'ADD_PLAYER';
-      payload: { sessionId: string; player: Player; slotId: SlotId };
+      payload: {
+        sessionId: string;
+        player: Player;
+        includeInDefaultLineup: boolean;
+        slotId?: SlotId;
+      };
     }
   | { type: 'RENAME_PLAYER'; payload: { sessionId: string; playerId: PlayerId; name: string } }
   | { type: 'REMOVE_PLAYER'; payload: { sessionId: string; playerId: PlayerId } }
@@ -258,8 +263,16 @@ function sessionReducer(state: SessionState, action: SessionAction): SessionStat
     }
 
     case 'ADD_PLAYER': {
-      const { sessionId, player, slotId } = action.payload;
+      const { sessionId, player, includeInDefaultLineup, slotId } = action.payload;
       return mapSession(state, sessionId, (s) => {
+        if (!includeInDefaultLineup) {
+          return {
+            ...s,
+            players: [...s.players, player],
+            defaultParticipantIds: getDefaultParticipantIds(s),
+          };
+        }
+        if (!slotId) return s;
         const defaultParticipantIds = getDefaultParticipantIds(s);
         return {
           ...s,
@@ -473,7 +486,11 @@ export interface SessionContextValue {
   selectSession: (id: string | null) => void;
   selectGame: (sessionId: string, gameId: string) => void;
   updateSession: (id: string, updates: { name?: string; defaultScriptId?: string }) => void;
-  addPlayer: (sessionId: string, name: string) => Player;
+  addPlayer: (
+    sessionId: string,
+    name: string,
+    options?: { includeInDefaultLineup?: boolean },
+  ) => Player;
   renamePlayer: (sessionId: string, playerId: PlayerId, name: string) => void;
   removePlayer: (sessionId: string, playerId: PlayerId) => void;
   setDefaultParticipant: (sessionId: string, playerId: PlayerId, included: boolean) => void;
@@ -502,7 +519,11 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     INITIAL_STATE,
   );
   const [state, dispatch] = useReducer(sessionReducer, persisted);
-  const isSyncingRef = useRef(false);
+  const remoteSessionSnapshotsRef = useRef(new Map<string, string>());
+  const previousSessionsRef = useRef(
+    new Map(persisted.sessions.map((session) => [session.id, session])),
+  );
+  const isFirstPersistenceEffectRef = useRef(true);
 
   const {
     syncSession: apiPushSession,
@@ -526,7 +547,9 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     apiFetchSessions().then((remoteSessions) => {
       console.info(`[SessionContext] API returned ${remoteSessions.length} sessions`);
       if (cancelled || remoteSessions.length === 0) return;
-      isSyncingRef.current = true;
+      for (const remoteSession of remoteSessions) {
+        remoteSessionSnapshotsRef.current.set(remoteSession.id, JSON.stringify(remoteSession));
+      }
       dispatch({ type: 'MERGE_REMOTE_SESSIONS', payload: { sessions: remoteSessions } });
     });
     return () => {
@@ -535,14 +558,21 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [apiFetchSessions]);
 
   useEffect(() => {
-    if (isSyncingRef.current) {
-      isSyncingRef.current = false;
-      return;
+    const currentSessions = new Map(state.sessions.map((session) => [session.id, session]));
+    for (const session of state.sessions) {
+      const remoteSnapshot = remoteSessionSnapshotsRef.current.get(session.id);
+      remoteSessionSnapshotsRef.current.delete(session.id);
+      if (remoteSnapshot === JSON.stringify(session)) continue;
+
+      const previousSession = previousSessionsRef.current.get(session.id);
+      const shouldPush =
+        previousSession !== session ||
+        (isFirstPersistenceEffectRef.current && session.id === state.activeSessionId);
+      if (shouldPush) apiPushSession(session);
     }
-    const activeSession = state.sessions.find((s) => s.id === state.activeSessionId);
-    if (activeSession) {
-      apiPushSession(activeSession);
-    }
+
+    previousSessionsRef.current = currentSessions;
+    isFirstPersistenceEffectRef.current = false;
   }, [state.sessions, state.activeSessionId, apiPushSession]);
 
   // ── Helper functions ──
@@ -575,14 +605,23 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     [],
   );
 
-  const addPlayer = useCallback((sessionId: string, name: string): Player => {
-    const player: Player = { id: generateId(), name };
-    dispatch({
-      type: 'ADD_PLAYER',
-      payload: { sessionId, player, slotId: generateId() },
-    });
-    return player;
-  }, []);
+  const addPlayer = useCallback(
+    (sessionId: string, name: string, options?: { includeInDefaultLineup?: boolean }): Player => {
+      const player: Player = { id: generateId(), name };
+      const includeInDefaultLineup = options?.includeInDefaultLineup ?? true;
+      dispatch({
+        type: 'ADD_PLAYER',
+        payload: {
+          sessionId,
+          player,
+          includeInDefaultLineup,
+          slotId: includeInDefaultLineup ? generateId() : undefined,
+        },
+      });
+      return player;
+    },
+    [],
+  );
 
   const renamePlayer = useCallback((sessionId: string, playerId: PlayerId, name: string) => {
     dispatch({ type: 'RENAME_PLAYER', payload: { sessionId, playerId, name } });
@@ -727,7 +766,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   }, [state.activeGameId]);
 
   const syncSession = useCallback((session: Session) => {
-    isSyncingRef.current = true;
+    remoteSessionSnapshotsRef.current.set(session.id, JSON.stringify(session));
     dispatch({ type: 'SYNC_SESSION', payload: { session } });
   }, []);
 

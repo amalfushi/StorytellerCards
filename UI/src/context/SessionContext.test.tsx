@@ -415,6 +415,27 @@ describe('SessionContext', () => {
       ]);
     });
 
+    it('can add a roster-only player without changing the default lineup or template', () => {
+      const { result } = renderSessionHook();
+
+      act(() => {
+        result.current.createSession('Session', 'script-1', ['Alice']);
+      });
+      const sessionId = result.current.state.sessions[0].id;
+      act(() => {
+        result.current.addPlayer(sessionId, 'Traveller', { includeInDefaultLineup: false });
+      });
+
+      expect(result.current.state.sessions[0].players.map((p) => p.name)).toEqual([
+        'Alice',
+        'Traveller',
+      ]);
+      expect(result.current.state.sessions[0].defaultParticipantIds).toEqual(['mock-id-2']);
+      expect(result.current.state.sessions[0].template.slots).toEqual([
+        { kind: 'seat', id: 'mock-id-3', playerId: 'mock-id-2' },
+      ]);
+    });
+
     it('renames a session player by stable player id', () => {
       const { result } = renderSessionHook();
 
@@ -918,6 +939,25 @@ describe('SessionContext', () => {
   });
 
   describe('sync helpers', () => {
+    it('pushes a local roster edit batched with remote hydration', () => {
+      const { result } = renderSessionHook();
+      const remote = makeSession({ id: 'remote-session', version: 2 });
+
+      act(() => {
+        result.current.syncSession(remote);
+        result.current.addPlayer('remote-session', 'Traveller Terry', {
+          includeInDefaultLineup: false,
+        });
+      });
+
+      expect(apiPushSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          id: 'remote-session',
+          players: expect.arrayContaining([expect.objectContaining({ name: 'Traveller Terry' })]),
+        }),
+      );
+    });
+
     it('syncSession accepts a newer remote session', () => {
       const { result } = renderSessionHook();
       const remote = makeSession({ id: 'remote-session', version: 2 });
