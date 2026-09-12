@@ -514,6 +514,91 @@ describe('GameContext', () => {
         playerId: null,
       });
     });
+
+    it('adds a traveller to a selected empty seat with their chosen alignment', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame({
+          ...makeGame(),
+          slots: [{ kind: 'seat', id: 'empty-seat', playerId: null }],
+        });
+      });
+
+      act(() => {
+        result.current.addTraveller('traveller-1', 'scapegoat', Alignment.Evil, 'empty-seat');
+      });
+
+      expect(result.current.state.game?.participants).toContainEqual({
+        playerId: 'traveller-1',
+        isTraveller: true,
+      });
+      expect(result.current.state.game?.playerState['traveller-1']).toEqual(
+        expect.objectContaining({
+          characterId: 'scapegoat',
+          actualAlignment: Alignment.Evil,
+          startingAlignment: Alignment.Evil,
+        }),
+      );
+      expect(result.current.state.game?.slots).toEqual([
+        { kind: 'seat', id: 'empty-seat', playerId: 'traveller-1' },
+      ]);
+    });
+
+    it('appends a seat when adding a traveller without an empty-seat selection', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame(makeGame());
+      });
+
+      act(() => {
+        result.current.addTraveller('traveller-1', 'scapegoat', Alignment.Good);
+      });
+
+      expect(result.current.state.game?.slots.at(-1)).toEqual(
+        expect.objectContaining({
+          kind: 'seat',
+          playerId: 'traveller-1',
+        }),
+      );
+    });
+
+    it('does not add a second copy of a Traveller character', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame({
+          ...makeGameWithPlayers([makePlayer('traveller-1', 'First Traveller')], {
+            'traveller-1': { characterId: 'scapegoat' },
+          }),
+          participants: [{ playerId: 'traveller-1', isTraveller: true }],
+          slots: [makeSeat('occupied-seat', 'traveller-1'), makeSeat('empty-seat', null)],
+        });
+      });
+      const gameBeforeDuplicate = result.current.state.game;
+
+      act(() => {
+        result.current.addTraveller('traveller-2', 'scapegoat', Alignment.Good, 'empty-seat');
+      });
+
+      expect(result.current.state.game).toBe(gameBeforeDuplicate);
+    });
+
+    it('can remove a traveller and their occupied seat together', () => {
+      const { result } = renderGameHook();
+      act(() => {
+        result.current.loadGame({
+          ...makeGameWithPlayers([makePlayer('traveller-1', 'Traveller')]),
+          participants: [{ playerId: 'traveller-1', isTraveller: true }],
+        });
+      });
+
+      act(() => {
+        result.current.removeParticipant('traveller-1', { removeOccupiedSeat: true });
+      });
+
+      expect(result.current.state.game?.participants).toEqual([]);
+      expect(result.current.state.game?.playerState['traveller-1']).toBeUndefined();
+      expect(result.current.state.game?.slots).toEqual([]);
+    });
   });
 
   describe('game slots', () => {

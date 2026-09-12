@@ -80,6 +80,7 @@ export interface PlayerActionsModalProps {
   onToggleGhostVote: PlayerActionHandler;
   onRemoveParticipant?: PlayerActionHandler;
   onRemoveTraveller?: PlayerActionHandler;
+  onRemoveTravellerAndSeat?: PlayerActionHandler;
   onManageTokens: PlayerActionHandler;
   onSaveCharacter: SaveCharacterHandler;
   onSwapWith?: PlayerActionHandler;
@@ -106,6 +107,7 @@ export function PlayerActionsModal({
   onToggleGhostVote,
   onRemoveParticipant,
   onRemoveTraveller,
+  onRemoveTravellerAndSeat,
   onManageTokens,
   onSaveCharacter,
   onSwapWith,
@@ -130,6 +132,7 @@ export function PlayerActionsModal({
       onToggleGhostVote={onToggleGhostVote}
       onRemoveParticipant={onRemoveParticipant}
       onRemoveTraveller={onRemoveTraveller}
+      onRemoveTravellerAndSeat={onRemoveTravellerAndSeat}
       onManageTokens={onManageTokens}
       onSaveCharacter={onSaveCharacter}
       onSwapWith={onSwapWith}
@@ -153,6 +156,7 @@ function PlayerActionsModalInner({
   onToggleGhostVote,
   onRemoveParticipant,
   onRemoveTraveller,
+  onRemoveTravellerAndSeat,
   onManageTokens,
   onSaveCharacter,
   onSwapWith,
@@ -213,6 +217,11 @@ function PlayerActionsModalInner({
   const handleRemoveParticipant = () => {
     const removeHandler = onRemoveParticipant ?? onRemoveTraveller;
     if (removeHandler) invokePlayerAction(removeHandler, player);
+    onClose();
+  };
+
+  const handleRemoveTravellerAndSeat = () => {
+    if (onRemoveTravellerAndSeat) invokePlayerAction(onRemoveTravellerAndSeat, player);
     onClose();
   };
 
@@ -327,6 +336,17 @@ function PlayerActionsModalInner({
             >
               Remove Traveller
             </Button>
+            {onRemoveTravellerAndSeat && (
+              <Button
+                variant="outlined"
+                color="error"
+                startIcon={<PersonRemoveIcon />}
+                onClick={handleRemoveTravellerAndSeat}
+                fullWidth
+              >
+                Remove Traveller and Seat
+              </Button>
+            )}
           </>
         )}
 

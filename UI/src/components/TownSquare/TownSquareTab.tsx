@@ -316,6 +316,13 @@ export function TownSquareTab({
     [removeParticipant],
   );
 
+  const handleRemoveParticipantAndSeat = useCallback(
+    (playerId: PlayerId) => {
+      removeParticipant(playerId, { removeOccupiedSeat: true });
+    },
+    [removeParticipant],
+  );
+
   const handleSaveCharacter = useCallback(
     (playerId: PlayerId, updates: { characterId?: string; actualAlignment?: Alignment }) => {
       if (updates.characterId !== undefined) {
@@ -464,6 +471,7 @@ export function TownSquareTab({
         onToggleAlive={handleToggleAlive}
         onToggleGhostVote={handleToggleGhostVote}
         onRemoveParticipant={handleRemoveParticipant}
+        onRemoveTravellerAndSeat={handleRemoveParticipantAndSeat}
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
         onChangeBluff={handleChangeBluff}

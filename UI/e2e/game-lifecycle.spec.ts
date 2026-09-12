@@ -413,7 +413,7 @@ test.describe('Game Lifecycle - API Integration', () => {
     await expect(page.getByRole('heading', { name: 'Storyteller Cards' })).toBeVisible();
   });
 
-  test('Option 3 seating flows preserve template, game scope, refresh, and Traveller state', async ({
+  test('seating flows preserve template, game scope, refresh, and Traveller lifecycle', async ({
     page,
     request,
   }, testInfo) => {
@@ -564,6 +564,9 @@ test.describe('Game Lifecycle - API Integration', () => {
         });
       await expectApiSeatOrder(request, sessionId, game2Id, game2Arrangement);
 
+      const defaultLineupBeforeTraveller = (await readSession(page, sessionId))
+        .defaultParticipantIds;
+
       // Remove the local game snapshot so reload must restore the expected state
       // through the browser → API → Go persistence path.
       await page.evaluate((id) => localStorage.removeItem(`storyteller-game-${id}`), game2Id);
@@ -573,10 +576,11 @@ test.describe('Game Lifecycle - API Integration', () => {
         .poll(async () => occupiedSeatOrder(await readGame(page, game2Id)))
         .toEqual(game2Arrangement);
 
-      // Add a roster player after both games exist, then use the explicit Option 3
-      // action to add and mark that player as a Traveller in Game 2 only.
-      await page.getByRole('button', { name: 'back to session' }).click();
-      await addRosterPlayer(page, 'Traveller Terry', 6);
+      // Add a new roster-only Traveller directly to Game 2. With every existing
+      // player already participating, the dialog defaults to inline creation.
+      await page.getByRole('button', { name: 'add traveller' }).click();
+      await page.getByLabel('Player name').fill('Traveller Terry');
+      await page.getByRole('button', { name: 'Add Traveller', exact: true }).click();
       await expect
         .poll(async () => {
           const session = await readSession(page, sessionId);
@@ -586,19 +590,26 @@ test.describe('Game Lifecycle - API Integration', () => {
         })
         .toBe(true);
       const sessionWithTraveller = await readSession(page, sessionId);
+      expect(sessionWithTraveller.defaultParticipantIds).toEqual(defaultLineupBeforeTraveller);
       const travellerId = sessionWithTraveller.players.find(
         (player: { name: string }) => player.name === 'Traveller Terry',
       ).id as string;
-
-      await page.getByText('Game 2', { exact: true }).click();
-      await page.getByRole('button', { name: /edit seating/i }).click();
-      await page.getByRole('button', { name: /add traveller terry to game/i }).click();
-      await page.getByTestId(`edit-player-${travellerId}`).click();
-      await page.getByRole('switch', { name: 'Traveller', exact: true }).click({
-        timeout: 5_000,
-      });
-      await page.getByRole('button', { name: 'Done', exact: true }).click();
-      await saveTownSquareDraft(page);
+      await expect
+        .poll(async () => {
+          const response = await request.get(`http://localhost:3001/api/sessions/${sessionId}`);
+          if (!response.ok()) return null;
+          const session = await response.json();
+          return {
+            hasTraveller: session.players.some(
+              (player: { id: string }) => player.id === travellerId,
+            ),
+            defaultParticipantIds: session.defaultParticipantIds,
+          };
+        })
+        .toEqual({
+          hasTraveller: true,
+          defaultParticipantIds: defaultLineupBeforeTraveller,
+        });
 
       await expect
         .poll(async () => {
@@ -622,6 +633,46 @@ test.describe('Game Lifecycle - API Integration', () => {
           game2HasTravellerSeat: true,
         });
 
+      const gameWithTraveller = await readGame(page, game2Id);
+      expect(
+        gameWithTraveller.slots.filter((slot: { kind: string }) => slot.kind === 'seat'),
+      ).toHaveLength(6);
+
+      // Travellers can leave while preserving their empty seat, then return to it.
+      await page.getByText('Traveller Terry', { exact: true }).click();
+      await page.getByRole('button', { name: 'Remove Traveller', exact: true }).click();
+      const gameWithEmptySeat = await readGame(page, game2Id);
+      expect(gameWithEmptySeat.participants).not.toContainEqual({
+        playerId: travellerId,
+        isTraveller: true,
+      });
+      expect(
+        gameWithEmptySeat.slots.filter((slot: { kind: string }) => slot.kind === 'seat'),
+      ).toHaveLength(6);
+      expect(
+        gameWithEmptySeat.slots.some((slot: { playerId: string | null }) => slot.playerId === null),
+      ).toBe(true);
+
+      await page.getByRole('button', { name: 'add traveller' }).click();
+      await page.getByRole('button', { name: 'Add Traveller', exact: true }).click();
+      await expect(page.getByText('Traveller Terry', { exact: true })).toBeVisible();
+
+      // The alternate departure removes the occupied seat as well.
+      await page.getByText('Traveller Terry', { exact: true }).click();
+      await page.getByRole('button', { name: 'Remove Traveller and Seat', exact: true }).click();
+      const gameAfterDeparture = await readGame(page, game2Id);
+      expect(gameAfterDeparture.participants).not.toContainEqual({
+        playerId: travellerId,
+        isTraveller: true,
+      });
+      expect(
+        gameAfterDeparture.slots.filter((slot: { kind: string }) => slot.kind === 'seat'),
+      ).toHaveLength(5);
+
+      // Add the existing roster identity again so API persistence and reload
+      // verification cover the final Traveller state.
+      await page.getByRole('button', { name: 'add traveller' }).click();
+      await page.getByRole('button', { name: 'Add Traveller', exact: true }).click();
       await expect
         .poll(
           async () => {

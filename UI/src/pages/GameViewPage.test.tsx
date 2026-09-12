@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { cleanup, render, screen, fireEvent, waitFor, within } from '@testing-library/react';
 import type { Game, Session, PlayerGameState } from '@/types/index.ts';
 import type { GameViewState } from '@/context/GameContext.tsx';
 import { Alignment, Phase } from '@/types/index.ts';
@@ -91,6 +91,11 @@ const mockUpdatePlayerState = vi.fn();
 const mockSetSeatingConfirmed = vi.fn();
 const mockCompleteCharacterDraft = vi.fn();
 const mockFetchScript = vi.fn(async () => null);
+const mockAddPlayer = vi.fn((sessionId: string, name: string) => ({
+  id: `${sessionId}-${name}`,
+  name,
+}));
+const mockAddTraveller = vi.fn();
 
 vi.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
@@ -100,7 +105,7 @@ vi.mock('react-router-dom', () => ({
 vi.mock('@/context/useSession.ts', () => ({
   useSession: () => ({
     state: { sessions: [mockSession], activeSessionId: 'session-1', activeGameId: 'game-1' },
-    addPlayer: vi.fn((sessionId: string, name: string) => ({ id: `${sessionId}-${name}`, name })),
+    addPlayer: mockAddPlayer,
   }),
 }));
 
@@ -126,6 +131,7 @@ vi.mock('@/context/useGame.ts', () => ({
     addToken: vi.fn(),
     removeToken: vi.fn(),
     setSeatingConfirmed: mockSetSeatingConfirmed,
+    addTraveller: mockAddTraveller,
   }),
 }));
 
@@ -172,6 +178,16 @@ vi.mock('@/hooks/useCharacterLookup.ts', () => ({
         name: 'Registry Demon',
         type: 'Demon',
         defaultAlignment: 'Evil',
+        abilityShort: 'Test',
+        firstNight: null,
+        otherNights: null,
+        reminders: [],
+      },
+      {
+        id: 'scapegoat',
+        name: 'Scapegoat',
+        type: 'Traveller',
+        defaultAlignment: 'Good',
         abilityShort: 'Test',
         firstNight: null,
         otherNights: null,
@@ -362,6 +378,50 @@ describe('GameViewPage', () => {
     expect(screen.queryByTestId('player-list-tab')).not.toBeInTheDocument();
   });
 
+  it('adds an available roster player as a traveller from the AppBar action', () => {
+    mockGame = {
+      ...baseGame,
+      participants: participants.slice(0, 4),
+      slots: slots.map((slot, index) => (index === 4 ? { ...slot, playerId: null } : slot)),
+    };
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'add traveller' }));
+    const dialog = screen.getByRole('dialog', { name: 'Add Traveller' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Add Traveller' }));
+
+    expect(mockAddTraveller).toHaveBeenCalledWith(
+      'player-5',
+      'scapegoat',
+      Alignment.Good,
+      'slot-5',
+    );
+    expect(mockAddPlayer).not.toHaveBeenCalled();
+  });
+
+  it('creates a roster-only identity when adding a new traveller', () => {
+    render(<GameViewPage />);
+
+    fireEvent.click(screen.getByRole('button', { name: 'add traveller' }));
+    const dialog = screen.getByRole('dialog', { name: 'Add Traveller' });
+    fireEvent.mouseDown(within(dialog).getByLabelText('Player'));
+    fireEvent.click(screen.getByRole('option', { name: 'New player' }));
+    fireEvent.change(within(dialog).getByLabelText('Player name'), {
+      target: { value: 'Trav Bob' },
+    });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Add Traveller' }));
+
+    expect(mockAddPlayer).toHaveBeenCalledWith('session-1', 'Trav Bob', {
+      includeInDefaultLineup: false,
+    });
+    expect(mockAddTraveller).toHaveBeenCalledWith(
+      'session-1-Trav Bob',
+      'scapegoat',
+      Alignment.Good,
+      undefined,
+    );
+  });
+
   it('shows night history controls only when history exists', () => {
     render(<GameViewPage />);
     expect(screen.getByRole('button', { name: /night history/i })).toBeInTheDocument();
@@ -475,7 +535,7 @@ describe('GameViewPage', () => {
 
     expect(screen.getByTestId('character-draft-dialog')).toHaveAttribute(
       'data-script-characters',
-      'registry-town,registry-demon',
+      'registry-town,registry-demon,scapegoat',
     );
   });
 

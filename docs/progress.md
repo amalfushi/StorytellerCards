@@ -1,6 +1,6 @@
 # Storyteller Cards — Progress Tracking
 
-> Last updated: 2026-08-26
+> Last updated: 2026-09-11
 
 ## Milestone Overview
 
@@ -51,6 +51,7 @@
 | M42       | Game Preparation UX — selected Option 3 provides explicit Town Square Edit Seating with draft/review/save, participant parking + assignment sheet, propagation controls, first-start seating validation/confirmation, and full-stack persistence coverage.                              | ✅ Complete                           | [details](milestones/42%20-%20game%20preparation%20alternatives/milestone42.md)                       |
 | M43       | Character Drafting — exact-feasibility offers, player choice and mulligans, hidden Drunk/Lunatic/Marionette identities, persistent Storyteller workflow, private handoff, and constrained randomized seating.                                                          | ✅ Complete                           | [details](milestones/43%20-%20character%20drafting/milestone43.md)                                    |
 | M44       | Personal Azure Deployment — single-container App Service, persistent JSON storage, Basic authentication, Bicep/ACR automation, immutable releases, live restart/persistence verification, cost controls, and teardown runbook.                                                        | ✅ Complete                           | [details](milestones/44%20-%20personal%20azure%20deployment/milestone44.md)                            |
+| M45       | Traveller Seat Management — persistent Game View arrival action, existing or inline-created roster identities, script-first Traveller selection, alignment and empty/new seat choice, and flexible departure with optional seat removal.                                           | ✅ Complete                           | [details](milestones/45%20-%20traveller%20seat%20management/milestone45.md)                            |
 
 ## Key Design Decisions
 
@@ -66,13 +67,13 @@
 - **Same-origin architecture in M33** — Vite proxy in dev (`/api` → `:3001`), Go static file serving in production. Eliminated all CORS configuration, `isPrivateOrigin()`, and cross-origin complexity
 - **Playwright E2E testing in M34** — three-level integration testing strategy: Go model roundtrip tests (catch field parity), Playwright game lifecycle (catch UI→API gaps), Playwright cross-device sync (catch SSE/sync bugs)
 
-## Verification (as of M44 complete)
+## Verification (as of M45 complete)
 
 - TypeScript: 0 errors
 - ESLint: 0 errors
-- Tests: 4350 passing, 3 skipped (99 discovered test files)
+- Tests: 4385 passing, 3 skipped (101 discovered test files)
 - Coverage: Stmts 82.51%, Branch 74.82%, Funcs 79.27%, Lines 85.12%
-- Storybook: 29 story files, 231 stories incl. `play()` interaction tests
+- Storybook: 30 story files, 233 stories incl. `play()` interaction tests
 - Go build: success
 - Go tests: all passing (handlers, sse, storage packages + roundtrip integration tests)
 - Characters: 179 total (69 Townsfolk, 23 Outsiders, 27 Minions, 19 Demons, 14 Fabled, 18 Travellers, 9 Loric)

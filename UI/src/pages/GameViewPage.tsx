@@ -26,6 +26,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import NightlightRoundIcon from '@mui/icons-material/NightlightRound';
 import AirlineSeatReclineExtraIcon from '@mui/icons-material/AirlineSeatReclineExtra';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
 import type {
   CharacterDef,
   Game,
@@ -52,6 +53,10 @@ import { NightChoiceSelector } from '@/components/NightPhase/NightChoiceSelector
 import { CharacterAssignmentDialog } from '@/components/CharacterAssignment/CharacterAssignmentDialog.tsx';
 import { CharacterSelection } from '@/components/Setup/CharacterSelection.tsx';
 import { CharacterDraftDialog } from '@/components/Drafting/CharacterDraftDialog.tsx';
+import {
+  AddTravellerDialog,
+  type AddTravellerRequest,
+} from '@/components/TownSquare/AddTravellerDialog.tsx';
 import { DemonBluffSelection } from '@/components/Setup/DemonBluffSelection.tsx';
 import { SetupChecklist } from '@/components/Setup/SetupChecklist.tsx';
 import { LoadingState } from '@/components/common/LoadingState.tsx';
@@ -85,7 +90,7 @@ interface GameViewPlayer extends PlayerGameState {
 export function GameViewPage() {
   const { sessionId, gameId } = useParams<{ sessionId: string; gameId: string }>();
   const navigate = useNavigate();
-  const { state: sessionState } = useSession();
+  const { state: sessionState, addPlayer } = useSession();
   const {
     state: gameState,
     loadGame,
@@ -103,6 +108,7 @@ export function GameViewPage() {
     addToken,
     removeToken,
     setSeatingConfirmed,
+    addTraveller,
   } = useGame();
   const { allCharacters, getCharactersByIds, getCharacter } = useCharacterLookup();
 
@@ -113,6 +119,7 @@ export function GameViewPage() {
   const [charSelectionOpen, setCharSelectionOpen] = useState(false);
   const [characterDraftOpen, setCharacterDraftOpen] = useState(false);
   const [bluffSelectionOpen, setBluffSelectionOpen] = useState(false);
+  const [addTravellerOpen, setAddTravellerOpen] = useState(false);
   const [lunaticBluffSelectionOpen, setLunaticBluffSelectionOpen] = useState(false);
   const [setupChecklistOpen, setSetupChecklistOpen] = useState(false);
   const [seatingEditMode, setSeatingEditMode] = useState(false);
@@ -255,6 +262,38 @@ export function GameViewPage() {
     () =>
       game ? validateGameSeating(game.slots, game.participants, session?.players ?? []) : null,
     [game, session?.players],
+  );
+  const availableTravellerPlayers = useMemo(() => {
+    if (!game || !session) return [];
+    const participantIds = new Set(game.participants.map((participant) => participant.playerId));
+    return session.players.filter((player) => !participantIds.has(player.id));
+  }, [game, session]);
+  const unavailableTravellerCharacterIds = useMemo(
+    () =>
+      game
+        ? game.participants
+            .map((participant) => game.playerState[participant.playerId]?.characterId)
+            .filter((characterId): characterId is string => Boolean(characterId))
+        : [],
+    [game],
+  );
+
+  const handleAddTraveller = useCallback(
+    (request: AddTravellerRequest) => {
+      if (!sessionId || !session) return;
+      const playerId =
+        request.playerId ??
+        (request.newPlayerName
+          ? addPlayer(sessionId, request.newPlayerName, {
+              includeInDefaultLineup: false,
+            }).id
+          : undefined);
+      if (!playerId) return;
+
+      addTraveller(playerId, request.characterId, request.alignment, request.seatSlotId);
+      setAddTravellerOpen(false);
+    },
+    [addPlayer, addTraveller, session, sessionId],
   );
 
   // Build display rows for legacy child components until their Slot-based migration lands.
@@ -661,6 +700,18 @@ export function GameViewPage() {
             </IconButton>
           </Tooltip>
 
+          <Tooltip title="Add Traveller">
+            <IconButton
+              color="inherit"
+              aria-label="add traveller"
+              disabled={!session}
+              onClick={() => setAddTravellerOpen(true)}
+              sx={{ mr: 0.5 }}
+            >
+              <PersonAddAlt1Icon />
+            </IconButton>
+          </Tooltip>
+
           {nightHistoryCount > 0 && (
             <Tooltip title="Night History">
               <IconButton
@@ -880,6 +931,17 @@ export function GameViewPage() {
 
       {/* Night History Drawer */}
       <NightHistoryDrawer open={historyOpen} onClose={() => setHistoryOpen(false)} />
+
+      <AddTravellerDialog
+        open={addTravellerOpen}
+        players={availableTravellerPlayers}
+        slots={game.slots}
+        scriptCharacterIds={scriptCharacterIds}
+        characters={allCharacters}
+        unavailableCharacterIds={unavailableTravellerCharacterIds}
+        onClose={() => setAddTravellerOpen(false)}
+        onAdd={handleAddTraveller}
+      />
 
       <Dialog
         open={seatingConfirmationOpen}

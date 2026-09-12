@@ -254,6 +254,14 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
     [findPlayerBySeat, removeParticipant],
   );
 
+  const handleRemoveTravellerAndSeat = useCallback(
+    (seat: number) => {
+      const player = findPlayerBySeat(seat);
+      if (player) removeParticipant(player.playerId, { removeOccupiedSeat: true });
+    },
+    [findPlayerBySeat, removeParticipant],
+  );
+
   const handleManageTokens = useCallback((seat: number) => {
     setTokenManagerSeat(seat);
   }, []);
@@ -454,6 +462,7 @@ export function PlayerListTab({ scriptCharacterIds }: PlayerListTabProps) {
         onToggleAlive={handleToggleAlive}
         onToggleGhostVote={handleToggleGhostVote}
         onRemoveTraveller={handleRemoveTraveller}
+        onRemoveTravellerAndSeat={handleRemoveTravellerAndSeat}
         onManageTokens={handleManageTokens}
         onSaveCharacter={handleSaveCharacter}
         onSwapWith={handleSwapWith}

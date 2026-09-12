@@ -106,6 +106,7 @@ const defaultHandlers = () => ({
   onToggleAlive: vi.fn(),
   onToggleGhostVote: vi.fn(),
   onRemoveTraveller: vi.fn(),
+  onRemoveTravellerAndSeat: vi.fn(),
   onManageTokens: vi.fn(),
   onSaveCharacter: vi.fn(),
 });
@@ -247,6 +248,7 @@ describe('PlayerActionsModal', () => {
         />,
       );
       expect(screen.getByText('Remove Traveller')).toBeInTheDocument();
+      expect(screen.getByText('Remove Traveller and Seat')).toBeInTheDocument();
     });
 
     it('does NOT show "Remove Traveller" for non-traveller', () => {
@@ -462,6 +464,22 @@ describe('PlayerActionsModal', () => {
       );
       fireEvent.click(screen.getByText('Remove Traveller'));
       expect(handlers.onRemoveTraveller).toHaveBeenCalledWith(10);
+      expect(handlers.onClose).toHaveBeenCalled();
+    });
+
+    it('clicking "Remove Traveller and Seat" calls its handler and onClose', () => {
+      const handlers = defaultHandlers();
+      render(
+        <PlayerActionsModal
+          open={true}
+          player={travellerPlayer}
+          showCharacters={false}
+          scriptCharacters={scriptCharacters}
+          {...handlers}
+        />,
+      );
+      fireEvent.click(screen.getByText('Remove Traveller and Seat'));
+      expect(handlers.onRemoveTravellerAndSeat).toHaveBeenCalledWith(10);
       expect(handlers.onClose).toHaveBeenCalled();
     });
 
